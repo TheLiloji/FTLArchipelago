@@ -1,0 +1,36 @@
+name: Maximal
+description: Every extension on, goal by selection
+game: "FTL: Faster Than Light"
+requires:
+  version: 0.6.7
+"FTL: Faster Than Light":
+  goal: victory_selection
+  victory_layouts:
+    - Stealth Cruiser B
+    - Crystal Cruiser A
+    - Federation Cruiser C
+  start_ship: engi_cruiser
+  ship_layouts: all_layouts
+  layout_unlocks: items
+  sectorsanity: full
+  sectorsanity_first_sector: 1
+  ship_achievements: true
+  general_achievements: all
+  cross_run_achievements: true
+  system_blueprints: true
+  progressive_systems: true
+  head_starts: true
+  trap_chance: 25
+  sector_logic: strict
+  shields_blueprint_logic: required
+  sensors_blueprint_logic: required
+  medbay_blueprint_logic: required
+  engines_blueprint_logic: anywhere
+  weapons_blueprint_logic: anywhere
+  progressive_crew_health: true
+  crew_health_floor: 25
+  progressive_skills: true
+  skill_checks: crossed
+  death_type_checks: true
+  death_link: true
+  death_link_effect: hull_damage

@@ -1,0 +1,39 @@
+
+<text name="ap_evt_package_text" language="de">Ein Archipelago-Relais ruft euch. Zwei Pakete warten auf ein Sendefenster, und es gibt nur eines. Eures ist ohnehin an Bord, egal wie ihr wählt.</text>
+<text name="ap_evt_package_c1" language="de">Das erste Paket weiterleiten. [Archipelago: sendet einen Check, 15 Schrott]</text>
+<text name="ap_evt_package_c1_text" language="de">Das Paket geht raus: ein Archipelago-Check wird gesendet, und was darin war, taucht im Spiel seines Besitzers auf, wo immer das ist. Das Relais nimmt seinen Anteil und schließt das Fenster. Das andere Paket wartet auf jemand anderen.</text>
+<text name="ap_evt_package_c2" language="de">Das zweite Paket weiterleiten. [Archipelago: sendet einen Check, 15 Schrott]</text>
+<text name="ap_evt_package_c2_text" language="de">Das Paket geht raus: ein Archipelago-Check wird gesendet, und was darin war, taucht im Spiel seines Besitzers auf, wo immer das ist. Das Relais nimmt seinen Anteil und schließt das Fenster. Das andere Paket wartet auf jemand anderen.</text>
+<text name="ap_evt_package_c3" language="de">Das Relais ziehen lassen.</text>
+<text name="ap_evt_package_c3_text" language="de">Ihr behaltet euren Schrott, und das Relais verschwindet aus der Reichweite. Die Pakete finden ein anderes Fenster.</text>
+
+<text name="ap_evt_zoltan_tithe_text" language="de">Die Kontrolle besteht aus einem einzelnen Zoltan-Kreuzer und sehr viel Papierkram. "Alle Schiffe, die den Dritten Ring queren, tragen zum Ring bei", erklärt der Offizier mit der Geduld von jemandem, der das zehntausendmal erklärt hat. "Ein Beitrag ist kein Zoll. Zoll wird genommen. Ein Beitrag wird gegeben."</text>
+<text name="ap_evt_zoltan_tithe_c1" language="de">Den Zehnt zahlen. [Archipelago: legt 900 J in den gemeinsamen Vorrat (EnergyLink)]</text>
+<text name="ap_evt_zoltan_tithe_c1_text" language="de">Der Offizier nimmt es an, ohne zu zählen, was beunruhigender ist, als hätte er gezählt. Der Ring leitet die Energie nach außen, in den gemeinsamen Vorrat, aus dem jeder Archipelago-Spieler schöpft. Ihr irgendwann auch.</text>
+<text name="ap_evt_zoltan_tithe_c2" language="de">Das Durchfahrtsrecht geltend machen. [Archipelago: nimmt Treibstoff aus dem gemeinsamen Vorrat (EnergyLink)]</text>
+<text name="ap_evt_zoltan_tithe_c2_text" language="de">Es ist euer Recht, der Offizier sagt es selbst, und er lässt euch nehmen, was der Ring hält. Niemand hält euch auf. Die Zoltan schreiben es nur auf. Irgendwo da draußen wird jemand den Vorrat leerer vorfinden, als er ihn verlassen hat.</text>
+
+<text name="ap_evt_slug_whisper_text" language="de">Der Slug redet schon, als der Kanal aufgeht, und redet offenbar seit einer Weile. "Ihr tragt etwas für Leute, die ihr nicht seht. Ich höre, wo die Dinge liegen." Eine feuchte Pause. "Sich fragen kostet nichts. Wissen kostet ein wenig."</text>
+<text name="ap_evt_slug_whisper_c1" language="de">Zahlen. Anhören, was er weiß. [Archipelago: zufälliger Hinweis]</text>
+<text name="ap_evt_slug_whisper_c1_text" language="de">Er gibt euch eine Sache, die er zufällig weiß: einen Gegenstand und wen er erwartet, oder einen Ort, an dem noch etwas liegt. Welche von beiden, dürft ihr nicht wählen. Bei kleinen Dingen lügen Slugs selten. Die großen sind teuer.</text>
+<text name="ap_evt_slug_whisper_c2" language="de">Den Kanal schließen.</text>
+<text name="ap_evt_slug_whisper_c2_text" language="de">Der Slug verschwindet beleidigt und streift im Gehen eure Hülle mit einem Abschiedsschuss, den er sicher einen Unfall nennen wird. Dabei lässt er eine Ladung fallen, für die er keine Verwendung mehr hat. Ihr gewinnt an Schrott und verliert an Panzerung.</text>
+
+<text name="ap_evt_another_world_text" language="de">Die Entladung kommt auf einem Band herein, das diese Galaxie nicht benutzt. Sie trägt einen Namen, den ihr nicht kennt, und einen Zeitstempel von einem Ort, der eure Uhr nicht teilt. Niemand hat sie auf euch gerichtet. Sie zieht nur vorbei, und irgendwo muss sie landen.</text>
+<text name="ap_evt_another_world_c1" language="de">Annehmen. Die Entladung über die eigene Hülle ableiten.</text>
+<text name="ap_evt_another_world_c1_text" language="de">Ein Punkt Hülle und ein Geruch, den ihr erst zwei Sprünge später einordnet. Das Relais bläst beim Entladen zwei Treibstoffzellen ab. Sonst hat niemand etwas gespürt.</text>
+<text name="ap_evt_another_world_c2" language="de">Zurück auf die Leitung geben. [Archipelago: schickt einer anderen Spielerin oder einem anderen Spieler eine Falle (TrapLink)]</text>
+<text name="ap_evt_another_world_c2_text" language="de">Ihr baut das Relais aus und schiebt die Entladung wieder hinaus, und sie geht irgendwohin. Jemand anders, in einem anderen Spiel, bekommt gleich eine schlechte Minute. Sie werden es spüren. Sie werden nicht wissen, dass ihr es wart. Die Bergung bringt guten Schrott.</text>
+
+<text name="list_tutorial_2" language="de">In einem Archipelago-Durchlauf kommen Schiffe aus dem Multiworld: irgendwo findet jemand den Schlüssel zu eurem Schiff und schickt ihn herüber. Das kann in der ersten Stunde passieren oder viel später.\n\nDrückt im Spiel TAB, um zu sehen, was schon da ist und was noch aussteht.</text>
+
+<text name="ap_beacon_label" language="de">ARCHIPELAGO</text>
+<text name="ap_beacon_undiscovered" language="de">Jemand sendet auf einer Archipelago-Frequenz.</text>
+<text name="ap_beacon_unvisited" language="de">Archipelago-Händler: Waren für andere Welten, und Geschäfte, die niemand annehmen sollte.</text>
+<text name="ap_beacon_visited" language="de">Archipelago-Händler.</text>
+<text name="ap_signal_undiscovered" language="de">Ein Archipelago-Signal durchquert diesen Sektor.</text>
+<text name="ap_signal_unvisited" language="de">Archipelago-Signal: jemand hat etwas für euch, und es ist kein Händler.</text>
+<text name="ap_signal_visited" language="de">Archipelago-Signal.</text>
+
+
+<text name="ap_store_text" language="de">Ein Händler ruft euch auf einer unbekannten Frequenz. Seine Ladeliste nennt Namen, die ihr nicht kennt, und Waren für Leute, die nicht an Bord sind.</text>

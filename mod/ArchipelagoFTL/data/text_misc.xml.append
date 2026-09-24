@@ -1,0 +1,39 @@
+
+<text name="ap_evt_package_text">An Archipelago relay hails you. Two packages are waiting on a transmit window and there is only one. Yours is already aboard, whichever you choose.</text>
+<text name="ap_evt_package_c1">Route the first package. [Archipelago: sends a check, 15 scrap]</text>
+<text name="ap_evt_package_c1_text">The package goes out: an Archipelago check is sent, and what it held turns up in its owner's game, wherever that is. The relay takes its cut and closes the window. The other package will wait for someone else.</text>
+<text name="ap_evt_package_c2">Route the second package. [Archipelago: sends a check, 15 scrap]</text>
+<text name="ap_evt_package_c2_text">The package goes out: an Archipelago check is sent, and what it held turns up in its owner's game, wherever that is. The relay takes its cut and closes the window. The other package will wait for someone else.</text>
+<text name="ap_evt_package_c3">Let the relay pass.</text>
+<text name="ap_evt_package_c3_text">You keep your scrap and the relay drifts out of range. The packages will find another window.</text>
+
+<text name="ap_evt_zoltan_tithe_text">The checkpoint is a single Zoltan cruiser and a great deal of paperwork. "All vessels crossing the Third Ring contribute to the Ring," the officer explains, with the patience of someone who has explained it ten thousand times. "The contribution is not a toll. A toll is taken. A contribution is given."</text>
+<text name="ap_evt_zoltan_tithe_c1">Pay the tithe. [Archipelago: adds 900 J to the shared reserve (EnergyLink)]</text>
+<text name="ap_evt_zoltan_tithe_c1_text">The officer accepts it without counting, which is more unsettling than if he had counted. The Ring routes the energy outward, into the shared reserve every Archipelago player draws from. Yours included, eventually.</text>
+<text name="ap_evt_zoltan_tithe_c2">Invoke right of passage. [Archipelago: takes fuel from the shared reserve (EnergyLink)]</text>
+<text name="ap_evt_zoltan_tithe_c2_text">It is your right, and the officer says so, and lets you take what the Ring holds. Nobody stops you. The Zoltan simply write it down. Somewhere out there, someone else will find the reserve emptier than they left it.</text>
+
+<text name="ap_evt_slug_whisper_text">The Slug is already talking when the channel opens, and has clearly been talking for a while. "You are carrying for people you cannot see. I hear where things are." A wet pause. "Wondering is free. Knowing costs a little."</text>
+<text name="ap_evt_slug_whisper_c1">Pay. Listen to what he knows. [Archipelago: random hint]</text>
+<text name="ap_evt_slug_whisper_c1_text">He gives you one thing he happens to know: an item and who it is waiting for, or a place that still has something in it. Which one, he does not let you pick. Slugs rarely lie about small things. It is the large ones that cost.</text>
+<text name="ap_evt_slug_whisper_c2">Cut the channel.</text>
+<text name="ap_evt_slug_whisper_c2_text">The Slug leaves, insulted, and in leaving clips your hull with a parting burst that it will certainly describe as an accident. It also drops a payload it no longer has a use for. You come out ahead on scrap and behind on plating.</text>
+
+<text name="ap_evt_another_world_text">The surge comes in on no band this galaxy uses. It carries a name you do not recognise and a timestamp from somewhere that does not share your clock. Nobody aimed it at you. It is simply passing through, and it has to land somewhere.</text>
+<text name="ap_evt_another_world_c1">Take it. Ground the surge through your own hull.</text>
+<text name="ap_evt_another_world_c1_text">One point of hull, and a smell you will not identify for another two jumps. The relay vents two fuel cells as it discharges. Nobody else felt a thing.</text>
+<text name="ap_evt_another_world_c2">Put it back on the wire. [Archipelago: sends a trap to another player (TrapLink)]</text>
+<text name="ap_evt_another_world_c2_text">You strip the relay and push the surge back out, and it goes somewhere. Another player, in another game, is about to have a bad minute. They will feel that. They will not know it was you. The salvage is worth good scrap.</text>
+
+<text name="list_tutorial_2">In an Archipelago run, ships come from the multiworld: someone out there finds your ship's key and sends it over. It can land in the first hour, or much later.\n\nPress TAB during a run to see what has already arrived, and what is still out there.</text>
+
+<text name="ap_beacon_label">ARCHIPELAGO</text>
+<text name="ap_beacon_undiscovered">Someone is broadcasting on an Archipelago frequency.</text>
+<text name="ap_beacon_unvisited">Archipelago trader: goods addressed to other worlds, and deals nobody should take.</text>
+<text name="ap_beacon_visited">Archipelago trader.</text>
+<text name="ap_signal_undiscovered">An Archipelago signal crosses this sector.</text>
+<text name="ap_signal_unvisited">Archipelago signal: someone has something for you, and it is not a trader.</text>
+<text name="ap_signal_visited">Archipelago signal.</text>
+
+
+<text name="ap_store_text">A trader hails you on an unfamiliar frequency. Their manifest lists names you do not recognise, and goods addressed to people who are not aboard.</text>

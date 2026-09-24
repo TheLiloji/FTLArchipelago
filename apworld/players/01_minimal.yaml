@@ -1,0 +1,20 @@
+name: Minimal
+description: Narrowest seed possible - one layout per ship, no sectorsanity
+game: "FTL: Faster Than Light"
+requires:
+  version: 0.6.7
+"FTL: Faster Than Light":
+  goal: victory_count
+  victories_required: 2
+  start_ship: kestrel_cruiser
+  ship_layouts: type_a_only
+  layout_unlocks: vanilla
+  sectorsanity: disabled
+  ship_achievements: true
+  general_achievements: all
+  cross_run_achievements: false
+  system_blueprints: false
+  progressive_systems: false
+  head_starts: false
+  trap_chance: 0
+  sector_logic: relaxed

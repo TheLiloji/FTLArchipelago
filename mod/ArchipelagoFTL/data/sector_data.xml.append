@@ -1,0 +1,150 @@
+<mod:findName type="sectorDescription" name="STANDARD_SPACE" panic="throw">
+    <mod:insertByFind>
+        <mod:findLike type="event" limit="1" panic="throw"/>
+        <mod-before:event name="AP_STORE_EVENT" min="1" max="1"/>
+        <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
+        <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
+    </mod:insertByFind>
+</mod:findName>
+
+<mod:findName type="sectorDescription" name="CIVILIAN_SECTOR" panic="throw">
+    <mod:insertByFind>
+        <mod:findLike type="event" limit="1" panic="throw"/>
+        <mod-before:event name="AP_STORE_EVENT" min="1" max="1"/>
+        <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
+        <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
+    </mod:insertByFind>
+</mod:findName>
+
+<mod:findName type="sectorDescription" name="ENGI_SECTOR" panic="throw">
+    <mod:insertByFind>
+        <mod:findLike type="event" limit="1" panic="throw"/>
+        <mod-before:event name="AP_STORE_EVENT" min="1" max="1"/>
+    </mod:insertByFind>
+</mod:findName>
+
+<mod:findName type="sectorDescription" name="ENGI_HOME" panic="throw">
+    <mod:insertByFind>
+        <mod:findLike type="event" limit="1" panic="throw"/>
+        <mod-before:event name="AP_STORE_EVENT" min="1" max="1"/>
+    </mod:insertByFind>
+</mod:findName>
+
+<mod:findName type="sectorDescription" name="PIRATE_SECTOR" panic="throw">
+    <mod:insertByFind>
+        <mod:findLike type="event" limit="1" panic="throw"/>
+        <mod-before:event name="AP_STORE_EVENT" min="1" max="1"/>
+    </mod:insertByFind>
+</mod:findName>
+
+<mod:findName type="sectorDescription" name="REBEL_SECTOR_MINIBOSS" panic="throw">
+    <mod:insertByFind>
+        <mod:findLike type="event" limit="1" panic="throw"/>
+        <mod-before:event name="AP_STORE_EVENT" min="1" max="1"/>
+    </mod:insertByFind>
+</mod:findName>
+
+<mod:findName type="sectorDescription" name="REBEL_SECTOR" panic="throw">
+    <mod:insertByFind>
+        <mod:findLike type="event" limit="1" panic="throw"/>
+        <mod-before:event name="AP_STORE_EVENT" min="1" max="1"/>
+        <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
+    </mod:insertByFind>
+</mod:findName>
+
+<mod:findName type="sectorDescription" name="MANTIS_SECTOR" panic="throw">
+    <mod:insertByFind>
+        <mod:findLike type="event" limit="1" panic="throw"/>
+        <mod-before:event name="AP_STORE_EVENT" min="1" max="1"/>
+    </mod:insertByFind>
+</mod:findName>
+
+<mod:findName type="sectorDescription" name="MANTIS_HOME" panic="throw">
+    <mod:insertByFind>
+        <mod:findLike type="event" limit="1" panic="throw"/>
+        <mod-before:event name="AP_STORE_EVENT" min="1" max="1"/>
+    </mod:insertByFind>
+</mod:findName>
+
+<mod:findName type="sectorDescription" name="NEBULA_SECTOR" panic="throw">
+    <mod:insertByFind>
+        <mod:findLike type="event" limit="1" panic="throw"/>
+        <mod-before:event name="AP_STORE_EVENT" min="1" max="1"/>
+        <mod-before:event name="AP_EVT_SLUG_WHISPER" min="0" max="1"/>
+    </mod:insertByFind>
+</mod:findName>
+
+<mod:findName type="sectorDescription" name="SLUG_HOME" panic="throw">
+    <mod:insertByFind>
+        <mod:findLike type="event" limit="1" panic="throw"/>
+        <mod-before:event name="AP_STORE_EVENT" min="1" max="1"/>
+        <mod-before:event name="AP_EVT_SLUG_WHISPER" min="0" max="1"/>
+    </mod:insertByFind>
+</mod:findName>
+
+<mod:findName type="sectorDescription" name="SLUG_SECTOR" panic="throw">
+    <mod:insertByFind>
+        <mod:findLike type="event" limit="1" panic="throw"/>
+        <mod-before:event name="AP_STORE_EVENT" min="1" max="1"/>
+        <mod-before:event name="AP_EVT_SLUG_WHISPER" min="0" max="1"/>
+    </mod:insertByFind>
+</mod:findName>
+
+<mod:findName type="sectorDescription" name="DEEP_SPACE_SECTOR" panic="throw">
+    <mod:insertByFind>
+        <mod:findLike type="event" limit="1" panic="throw"/>
+        <mod-before:event name="AP_STORE_EVENT" min="1" max="1"/>
+    </mod:insertByFind>
+</mod:findName>
+
+<mod:findName type="sectorDescription" name="ABANDONED_SECTOR" panic="throw">
+    <mod:insertByFind>
+        <mod:findLike type="event" limit="1" panic="throw"/>
+        <mod-before:event name="AP_STORE_EVENT" min="1" max="1"/>
+    </mod:insertByFind>
+</mod:findName>
+
+<mod:findName type="sectorDescription" name="ZOLTAN_SECTOR" panic="throw">
+    <mod:insertByFind>
+        <mod:findLike type="event" limit="1" panic="throw"/>
+        <mod-before:event name="AP_STORE_EVENT" min="1" max="1"/>
+        <mod-before:event name="AP_EVT_ZOLTAN_TITHE" min="0" max="1"/>
+    </mod:insertByFind>
+</mod:findName>
+
+<mod:findName type="sectorDescription" name="ZOLTAN_HOME" panic="throw">
+    <mod:insertByFind>
+        <mod:findLike type="event" limit="1" panic="throw"/>
+        <mod-before:event name="AP_STORE_EVENT" min="1" max="1"/>
+        <mod-before:event name="AP_EVT_ZOLTAN_TITHE" min="0" max="1"/>
+    </mod:insertByFind>
+</mod:findName>
+
+<mod:findName type="sectorDescription" name="ROCK_SECTOR" panic="throw">
+    <mod:insertByFind>
+        <mod:findLike type="event" limit="1" panic="throw"/>
+        <mod-before:event name="AP_STORE_EVENT" min="1" max="1"/>
+    </mod:insertByFind>
+</mod:findName>
+
+<mod:findName type="sectorDescription" name="ROCK_HOME" panic="throw">
+    <mod:insertByFind>
+        <mod:findLike type="event" limit="1" panic="throw"/>
+        <mod-before:event name="AP_STORE_EVENT" min="1" max="1"/>
+    </mod:insertByFind>
+</mod:findName>
+
+<mod:findName type="sectorDescription" name="CRYSTAL_HOME" panic="throw">
+    <mod:insertByFind>
+        <mod:findLike type="event" limit="1" panic="throw"/>
+        <mod-before:event name="AP_STORE_EVENT" min="1" max="1"/>
+        <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
+    </mod:insertByFind>
+</mod:findName>
+
+<mod:findName type="sectorDescription" name="LANIUS_SECTOR" panic="throw">
+    <mod:insertByFind>
+        <mod:findLike type="event" limit="1" panic="throw"/>
+        <mod-before:event name="AP_STORE_EVENT" min="1" max="1"/>
+    </mod:insertByFind>
+</mod:findName>

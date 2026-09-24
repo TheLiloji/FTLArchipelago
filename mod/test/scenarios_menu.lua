@@ -1,0 +1,173 @@
+local WEAPON_COLUMN_X, DRONE_COLUMN_X, CREW_COLUMN_X = 270, 532, 794
+local FIRST_ROW_Y = 205
+
+local function catalog(weapons, crewList)
+    apInventoryClear()
+    for name, count in pairs(weapons or {}) do
+        apInventory.shopAvailability[name] = count
+    end
+    for _, member in ipairs(crewList or {}) do
+        apInventory.crew[#apInventory.crew + 1] = member
+    end
+end
+
+local function menuShown()
+    sim.renderGui()
+    return sim.drawnText(apT("loadout.title"))
+end
+
+test("start-of-run menu: opens on a new run when something has been received", function()
+    catalog({ LASER_BURST_3 = 2 })
+    sim.startRun(true)
+    check(menuShown(), "the Archipelago menu is on screen")
+end)
+
+test("start-of-run menu: not when resuming a saved game", function()
+    catalog({ LASER_BURST_3 = 2 })
+    sim.startRun(false)
+    check(not menuShown(), "a resumed game keeps what it had already taken")
+end)
+
+test("start-of-run menu: nothing to offer, nothing on screen", function()
+    catalog({ LASER_BURST_3 = 1 })
+    sim.startRun(true)
+    check(not menuShown(), "a weapon received only once is not yet in the menu")
+end)
+
+test("start-of-run menu: a click gives the weapon, only one per run", function()
+    catalog({ LASER_BURST_3 = 2, BEAM_2 = 2 })
+    sim.startRun(true)
+    menuShown()
+    local before = sim.delivered()
+    sim.click(WEAPON_COLUMN_X, FIRST_ROW_Y)
+    equals(sim.delivered(), before + 1, "the weapon is delivered")
+    sim.click(WEAPON_COLUMN_X, FIRST_ROW_Y + 26)
+    equals(sim.delivered(), before + 1, "the second weapon is refused: one per category")
+    sim.renderGui()
+    check(sim.drawnText(apT("loadout.taken.short", { name = "" })), "the column says what was taken")
+end)
+
+test("start-of-run menu: the expert crew member arrives with their specialty", function()
+    catalog({}, { { race = "energy", skill = "shields" } })
+    sim.startRun(true)
+    menuShown()
+    local before = sim.player.vCrewList:size()
+    sim.click(CREW_COLUMN_X, FIRST_ROW_Y)
+    equals(sim.player.vCrewList:size(), before + 1, "one more crew member")
+    local recruit = sim.player.vCrewList[sim.player.vCrewList:size() - 1]
+    equals(recruit.species, "energy", "a Zoltan")
+    equals(recruit.maitrises[1], 2, "who has mastered shields")
+end)
+
+test("start-of-run menu: the first jump closes it", function()
+    catalog({ LASER_BURST_3 = 2 })
+    sim.startRun(true)
+    check(menuShown(), "open at the start")
+    sim.jumpArrive()
+    check(not menuShown(), "closed after the first jump")
+end)
+
+test("start-of-run menu: Done closes it without taking anything", function()
+    catalog({ LASER_BURST_3 = 2 })
+    sim.startRun(true)
+    menuShown()
+    local before = sim.delivered()
+    sim.click(640, 110 + 470 - 16 - 15)
+    check(not menuShown(), "the button closes the menu")
+    equals(sim.delivered(), before, "and nothing was given")
+end)
+
+test("items received outside a run: the catalog fills up, nothing arrives all at once at the start", function()
+    apInventoryClear()
+    apShopConfigure({ mode = "rarity_boost", deliver = true, baseline = {} })
+    sim.started = false
+    apQueueItem({ kind = "shop", bp = "LASER_BURST_3", display = "Burst Laser Mark II" })
+    apQueueItem({ kind = "shop", bp = "LASER_BURST_3", display = "Burst Laser Mark II" })
+    apQueueItem({ kind = "crew", race = "energy", skill = "shields", display = "Zoltan Shield Expert" })
+    apDeliverPending()
+    equals(apInventory.shopAvailability.LASER_BURST_3, 2, "both copies are counted")
+    equals(#apInventory.crew, 1, "the crew member is in the catalog")
+
+    local deliveredBefore = sim.delivered()
+    local crewBefore = sim.player.vCrewList:size()
+    sim.startRun(true)
+    sim.tick(240)
+    equals(sim.delivered(), deliveredBefore, "no weapon is given automatically at the start of the run")
+    equals(sim.player.vCrewList:size(), crewBefore, "no crew member is added automatically")
+    check(menuShown(), "everything waits in the start-of-run menu")
+end)
+
+test("start-of-run menu: the arrows change page", function()
+    local weapons = {}
+    for _, name in ipairs({ "LASER_BURST_3", "BEAM_2", "MISSILES_2" }) do weapons[name] = 2 end
+    catalog(weapons)
+    for index = 1, 9 do
+        sim.weaponBlueprints["TEST_WEAPON_" .. index] = 3
+        apInventory.shopAvailability["TEST_WEAPON_" .. index] = 2
+    end
+    sim.startRun(true)
+    check(menuShown(), "open")
+    check(sim.drawnText(apT("loadout.page", { n = 1, total = 2 })), "page 1 of 2 at the start")
+    local rightArrow = nil
+    for _, drawing in ipairs(sim.draws) do
+        if drawing.text == ">" and drawing.x > 260 and drawing.x < 260 + 250 then rightArrow = drawing end
+    end
+    check(rightArrow ~= nil and rightArrow.x >= 260 + 250 - 30, "the > is drawn where you click, at the end of the column")
+    sim.click(WEAPON_COLUMN_X + 250 - 15, 200 + 8 * 26 + 12)
+    sim.renderGui()
+    check(sim.drawnText(apT("loadout.page", { n = 2, total = 2 })), "the right arrow moves to page 2")
+    sim.click(WEAPON_COLUMN_X - 5, 200 + 8 * 26 + 12)
+    sim.renderGui()
+    check(sim.drawnText(apT("loadout.page", { n = 1, total = 2 })), "the left arrow goes back to page 1")
+end)
+
+local function progressiveZoltan()
+    apQueueItem({ kind = "crew", race = "energy", skill = "shields", tiers = 3,
+                  display = "Progressive Zoltan Crew" })
+    drain()
+end
+
+local function crewRows()
+    local rows = {}
+    for _, drawing in ipairs(sim.draws) do
+        if drawing.x >= 784 and drawing.x < 784 + 250 and drawing.y >= 200 and drawing.y < 200 + 8 * 26 then
+            rows[#rows + 1] = drawing.text
+        end
+    end
+    return rows
+end
+
+test("progressive crew member: tier 1 aboard, not yet in the menu", function()
+    catalog({})
+    sim.startRun(true)
+    local before = sim.player.vCrewList:size()
+    progressiveZoltan()
+    equals(sim.player.vCrewList:size(), before + 1, "a Zoltan joins the run")
+    check(shownKey("crew.progress.aboard"), "and the player knows the next one will go to the menu")
+    sim.startRun(true)
+    check(not menuShown(), "only one copy: nothing in the menu")
+end)
+
+test("progressive crew member: tier 2 in the menu, tier 3 the expert replaces the normal one", function()
+    catalog({})
+    sim.startRun(true)
+    progressiveZoltan()
+    progressiveZoltan()
+    sim.startRun(true)
+    check(menuShown(), "two copies: the Zoltan is in the menu")
+    local normal = crewRows()
+    equals(#normal, 1, "one row for the species")
+
+    progressiveZoltan()
+    sim.startRun(true)
+    menuShown()
+    local expert = crewRows()
+    equals(#expert, 1, "still only one row: the expert replaces the normal one")
+    check(expert[1]:find(apT("crew.skill.shields"), 1, true), "and it's the shields expert")
+
+    local before = sim.player.vCrewList:size()
+    sim.click(CREW_COLUMN_X, FIRST_ROW_Y)
+    local recruit = sim.player.vCrewList[sim.player.vCrewList:size() - 1]
+    equals(sim.player.vCrewList:size(), before + 1, "the click brings them aboard")
+    equals(recruit.maitrises[1], 2, "with shields mastered")
+end)

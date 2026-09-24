@@ -1,0 +1,26 @@
+name: Weighted
+description: Options drawn by weight, like a real player YAML
+game: "FTL: Faster Than Light"
+requires:
+  version: 0.6.7
+"FTL: Faster Than Light":
+  goal:
+    victory_count: 3
+    victory_selection: 1
+  victories_required:
+    1: 1
+    4: 1
+    8: 1
+  start_ship: random
+  victory_layouts:
+    - Zoltan Cruiser A
+  ship_layouts: all_layouts
+  sectorsanity:
+    disabled: 1
+    milestones: 1
+    full: 1
+  trap_chance:
+    0: 1
+    50: 1
+  skill_checks: per_skill
+  death_type_checks: true

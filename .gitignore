@@ -1,0 +1,16 @@
+vendor/
+*.zip
+*.7z
+*.so
+*.dll
+build/
+__pycache__/
+*.pyc
+.env
+mod/*.ftl
+apworld/*.apworld
+apworld/multiworld/seeds/
+apworld/multiworld/to-host/
+*.apsave
+# old output folder of host.sh, it may still hold seeds with their spoiler
+apworld/multiworld/a-heberger/

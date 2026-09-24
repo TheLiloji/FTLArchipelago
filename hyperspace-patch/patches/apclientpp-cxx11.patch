@@ -1,0 +1,14 @@
+Make apclientpp build as C++11 with the GCC 4.8 libstdc++.
+
+Hyperspace builds with --gcc-toolchain=/usr/gcc-4.8-clang-toolchain/ to match the ABI of the FTL
+binary. That libstdc++ has no std::make_unique, whatever -std is used, so the two calls are
+replaced by their plain equivalent. No change in behaviour.
+
+--- a/apclient.hpp
++++ b/apclient.hpp
+@@ -194 +194 @@
+-            _autoDataPackageStore = std::make_unique<DefaultDataPackageStore>();
++            _autoDataPackageStore.reset(new DefaultDataPackageStore());
+@@ -1704 +1704 @@
+-            _ws = std::make_unique<WS>(_uri,
++            _ws.reset(new WS(_uri,

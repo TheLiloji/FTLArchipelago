@@ -1,0 +1,45 @@
+# Preset B1: FTL alone, solo. New to FTL.
+# Every ship layout, sectors 3 to 8, three victories, no traps, relaxed logic.
+# Measured: 300 locations, 40 free shop slots, ~11.8 checks per hour,
+# ~7.0 h to the goal, ~13 minutes max wait with nothing to send.
+# Change the name line, then generate as usual.
+
+name: Player_B1
+description: FTL alone, solo. New to FTL.
+game: "FTL: Faster Than Light"
+requires:
+  version: 0.6.7
+progression_balancing: 50
+accessibility: full
+"FTL: Faster Than Light":
+  goal: victory_count
+  victories_required: 3
+  start_ship: kestrel_cruiser
+  ship_layouts: all_layouts
+  layout_unlocks: items
+  sectorsanity: full
+  sectorsanity_first_sector: 3
+  sectorsanity_last_sector: 8
+  ship_achievements: true
+  general_achievements: most
+  cross_run_achievements: false
+  shop_checks: 40
+  system_blueprints: true
+  progressive_systems: true
+  head_starts: true
+  trap_chance: 0
+  shop_weapons: 30
+  shop_drones: 11
+  shop_augments: 19
+  shop_unlock_mode: rarity_boost
+  shop_item_delivery: true
+  sector_logic: relaxed
+  shields_blueprint_logic: upgrade_only
+  sensors_blueprint_logic: upgrade_only
+  medbay_blueprint_logic: upgrade_only
+  engines_blueprint_logic: early
+  weapons_blueprint_logic: early
+  death_link: false
+  energy_link: false
+  trap_link: false
+  mod_language: game

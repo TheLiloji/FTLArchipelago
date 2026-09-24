@@ -1,0 +1,134 @@
+
+local TAG = "[AP-equip] "
+
+local function equipLog(message)
+    log(TAG .. message)
+end
+
+function apBlueprintFamily(name)
+    local blueprints = Hyperspace.Blueprints
+    local getters = {
+        weapon = "GetWeaponBlueprint",
+        drone = "GetDroneBlueprint",
+        augment = "GetAugmentBlueprint",
+    }
+    for family, getter in pairs(getters) do
+        local ok, blueprint = pcall(function()
+            return blueprints[getter](blueprints, name)
+        end)
+        if ok and blueprint ~= nil and tostring(blueprint.name) == name then
+            return family
+        end
+    end
+    return nil
+end
+
+local function deliverEquipped(name, family)
+    local equipment = Hyperspace.App.gui.equipScreen
+    if equipment == nil then
+        return nil, "equipment screen unavailable"
+    end
+    local blueprints = Hyperspace.Blueprints
+    if family == "weapon" then
+        equipment:AddWeapon(blueprints:GetWeaponBlueprint(name), true, false)
+    else
+        equipment:AddDrone(blueprints:GetDroneBlueprint(name), true, false)
+    end
+    return name
+end
+
+local function deliverAugment(name)
+    local player = Hyperspace.ships.player
+    if player == nil then
+        return nil, "no ship"
+    end
+    player:AddAugmentation(name)
+    return name
+end
+
+function apDeliverEquipment(descriptor)
+    local name = descriptor.bp
+    if name == nil or name == "" then
+        equipLog("descriptor without a blueprint, ignored")
+        return false
+    end
+
+    local family = apBlueprintFamily(name)
+    if family == nil then
+        equipLog("unknown blueprint, item NOT delivered: " .. tostring(name)
+            .. " (kind " .. tostring(descriptor.kind) .. ")")
+        if _G.apNotifyStatus then
+            _G.apNotifyStatus(apT("item.unknown",
+                { name = descriptor.display or tostring(name) }))
+        end
+        return false
+    end
+    if family ~= descriptor.kind then
+        equipLog(string.format("kind corrected for %s: %s -> %s", name, descriptor.kind, family))
+        descriptor = { kind = family, bp = name, display = descriptor.display,
+            sender = descriptor.sender, silent = descriptor.silent }
+    end
+
+    local delivered, err
+    if descriptor.kind == "weapon" or descriptor.kind == "drone" then
+        delivered, err = deliverEquipped(name, descriptor.kind)
+    elseif descriptor.kind == "augment" then
+        delivered, err = deliverAugment(name)
+    else
+        return false
+    end
+
+    if delivered == nil then
+        equipLog("delivery deferred for " .. tostring(name) .. ": " .. tostring(err))
+        return false, "retry"
+    end
+
+    local label = descriptor.display or (_G.apHumaniseId and _G.apHumaniseId(name)) or tostring(name)
+    equipLog("delivered: " .. name .. " (" .. descriptor.kind .. ")")
+    if _G.apNotifyItem and not descriptor.silent then
+        _G.apNotifyItem(label, descriptor.sender)
+    end
+    return true
+end
+
+local SKILLS = { pilot = 0, engines = 1, shields = 2, weapons = 3, repair = 4, combat = 5 }
+
+function apRecruitCrew(race, skill)
+    local player = Hyperspace.ships.player
+    if player == nil then
+        return false, "no ship"
+    end
+    local isFullOk, isFull = pcall(function() return player:IsCrewFull() end)
+    if isFullOk and isFull then
+        return false, "crew full"
+    end
+    local ok, member = pcall(function()
+        return player:AddCrewMemberFromString("", race, false, 0, false, math.random(0, 1) == 0)
+    end)
+    if not ok or member == nil then
+        return false, "recruit failed"
+    end
+    local number = SKILLS[skill or ""]
+    if number ~= nil then
+        pcall(function() member:MasterSkill(number) end)
+    end
+    equipLog("recruit: " .. tostring(race) .. (skill and (" expert in " .. skill) or ""))
+    return true
+end
+
+function apCargoStatus()
+    pcall(function()
+        local equipment = Hyperspace.App.gui.equipScreen
+        if equipment == nil then
+            equipLog("equipment screen unavailable (out of run?)")
+            return
+        end
+        local cargo = equipment:GetCargoHold()
+        equipLog("cargo: " .. cargo:size() .. " item(s)")
+        for i = 0, cargo:size() - 1 do
+            equipLog("  " .. tostring(cargo[i]))
+        end
+    end)
+end
+
+equipLog("equipment module loaded (console: LUA apCargoStatus())")
