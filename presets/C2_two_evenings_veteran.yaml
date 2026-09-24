@@ -1,0 +1,52 @@
+# Preset C2: FTL alone in a multiworld, played over two evenings. You know FTL well.
+# Sectors 5 to 7, chosen victories, traps and DeathLink on, standard logic.
+# Measured: 185 locations, 41 free shop slots, ~9.8 checks per hour,
+# ~5.8 h to the goal, ~13 minutes max wait with nothing to send.
+# Change the name line, then generate as usual.
+
+name: Player_C2
+description: FTL alone in a multiworld, played over two evenings. You know FTL well.
+game: "FTL: Faster Than Light"
+requires:
+  version: 0.6.7
+progression_balancing: 50
+accessibility: full
+"FTL: Faster Than Light":
+  goal: victory_selection
+  victory_layouts:
+    - Stealth Cruiser B
+    - Engi Cruiser B
+    - Rock Cruiser B
+  start_ship: lanius_cruiser
+  ship_layouts: up_to_type_b
+  layout_unlocks: items
+  sectorsanity: full
+  sectorsanity_first_sector: 5
+  sectorsanity_last_sector: 7
+  ship_achievements: true
+  general_achievements: most
+  cross_run_achievements: false
+  shop_checks: 30
+  minimum_filler: 5
+  crew_members: false
+  system_blueprints: true
+  progressive_systems: true
+  head_starts: true
+  trap_chance: 15
+  shop_weapons: 20
+  shop_drones: 8
+  shop_augments: 12
+  shop_unlock_mode: locked
+  shop_item_delivery: false
+  sector_logic: standard
+  shields_blueprint_logic: upgrade_only
+  sensors_blueprint_logic: upgrade_only
+  medbay_blueprint_logic: required
+  engines_blueprint_logic: early
+  weapons_blueprint_logic: early
+  death_link: true
+  death_link_trigger: crew_death
+  death_link_effect: varied
+  energy_link: true
+  trap_link: true
+  mod_language: game

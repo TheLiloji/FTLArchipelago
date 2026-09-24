@@ -1,0 +1,17 @@
+name: EtosanYaml
+description: Spelling of the Et0san Manual - option aliases and short layout names
+game: "FTL: Faster Than Light"
+requires:
+  version: 0.6.7
+"FTL: Faster Than Light":
+  goal: ship_win_selection
+  victory_layouts:
+    - Rock B
+    - Slug A
+  start_ship: rock
+  sectorsanity: five_and_eight
+  ship_layouts: up_to_type_b
+  general_achievements: most
+  sector_logic: standard
+  start_inventory_from_pool:
+    Shields blueprint: 1

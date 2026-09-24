@@ -1,0 +1,49 @@
+# Preset A2: FTL is one slot among several games. You know FTL well.
+# Short sessions between other games: traps and DeathLink on, ship achievements added.
+# Measured: 158 locations, 51 free shop slots, ~11.2 checks per hour,
+# ~3.4 h to the goal, ~13 minutes max wait with nothing to send.
+# Change the name line, then generate as usual.
+
+name: Player_A2
+description: FTL is one slot among several games. You know FTL well.
+game: "FTL: Faster Than Light"
+requires:
+  version: 0.6.7
+progression_balancing: 60
+accessibility: full
+"FTL: Faster Than Light":
+  goal: victory_count
+  victories_required: 1
+  start_ship: stealth_cruiser
+  ship_layouts: type_a_only
+  layout_unlocks: vanilla
+  sectorsanity: full
+  sectorsanity_first_sector: 2
+  sectorsanity_last_sector: 5
+  ship_achievements: true
+  general_achievements: basic
+  cross_run_achievements: false
+  shop_checks: 25
+  minimum_filler: 5
+  crew_members: false
+  system_blueprints: true
+  progressive_systems: true
+  head_starts: true
+  trap_chance: 20
+  shop_weapons: 15
+  shop_drones: 6
+  shop_augments: 9
+  shop_unlock_mode: locked
+  shop_item_delivery: true
+  sector_logic: standard
+  shields_blueprint_logic: required
+  sensors_blueprint_logic: upgrade_only
+  medbay_blueprint_logic: upgrade_only
+  engines_blueprint_logic: early
+  weapons_blueprint_logic: early
+  death_link: true
+  death_link_trigger: ship_destroyed
+  death_link_effect: varied
+  energy_link: true
+  trap_link: true
+  mod_language: game

@@ -1,0 +1,33 @@
+name: Navigator
+description: The FTL world, as it would really be played
+game: "FTL: Faster Than Light"
+requires:
+  version: 0.6.7
+"FTL: Faster Than Light":
+  goal: victory_count
+  victories_required: 5
+  victory_difficulty: hard
+  archives: 5
+  start_ship: kestrel_cruiser
+  ship_layouts: all_layouts
+  layout_unlocks: items
+  sectorsanity: milestones
+  ship_achievements: true
+  general_achievements: most
+  cross_run_achievements: false
+  system_blueprints: true
+  progressive_systems: true
+  head_starts: true
+  trap_chance: 15
+  sector_logic: standard
+  shop_weapons: 37
+  shop_drones: 14
+  shop_augments: 23
+  systemsanity: first_install
+  shop_unlock_mode: locked
+  shop_item_delivery: true
+  death_link: true
+  death_link_trigger: both
+  death_link_effect: major_incident
+  energy_link: true
+  trap_link: true

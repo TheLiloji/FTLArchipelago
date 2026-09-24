@@ -1,0 +1,77 @@
+
+<animSheet name="ap_gift" w="32" h="32" fw="32" fh="32">weapons/ap_gift_strip1.png</animSheet>
+
+<weaponAnim name="ap_gift">
+	<sheet>ap_gift</sheet>
+	<desc length="1" x="0" y="0"/>
+	<chargedFrame>0</chargedFrame>
+	<fireFrame>0</fireFrame>
+	<firePoint x="16" y="5"/>
+	<mountPoint x="5" y="22"/>
+</weaponAnim>
+
+<animSheet name="ap_deal" w="32" h="32" fw="32" fh="32">weapons/ap_deal_strip1.png</animSheet>
+
+<weaponAnim name="ap_deal">
+	<sheet>ap_deal</sheet>
+	<desc length="1" x="0" y="0"/>
+	<chargedFrame>0</chargedFrame>
+	<fireFrame>0</fireFrame>
+	<firePoint x="16" y="5"/>
+	<mountPoint x="5" y="22"/>
+</weaponAnim>
+
+<animSheet name="ap_gift_progression" w="32" h="32" fw="32" fh="32">weapons/ap_gift_progression_strip1.png</animSheet>
+
+<weaponAnim name="ap_gift_progression">
+	<sheet>ap_gift_progression</sheet>
+	<desc length="1" x="0" y="0"/>
+	<chargedFrame>0</chargedFrame>
+	<fireFrame>0</fireFrame>
+	<firePoint x="16" y="5"/>
+	<mountPoint x="5" y="22"/>
+</weaponAnim>
+
+<animSheet name="ap_gift_useful" w="32" h="32" fw="32" fh="32">weapons/ap_gift_useful_strip1.png</animSheet>
+
+<weaponAnim name="ap_gift_useful">
+	<sheet>ap_gift_useful</sheet>
+	<desc length="1" x="0" y="0"/>
+	<chargedFrame>0</chargedFrame>
+	<fireFrame>0</fireFrame>
+	<firePoint x="16" y="5"/>
+	<mountPoint x="5" y="22"/>
+</weaponAnim>
+
+<animSheet name="ap_gift_filler" w="32" h="32" fw="32" fh="32">weapons/ap_gift_filler_strip1.png</animSheet>
+
+<weaponAnim name="ap_gift_filler">
+	<sheet>ap_gift_filler</sheet>
+	<desc length="1" x="0" y="0"/>
+	<chargedFrame>0</chargedFrame>
+	<fireFrame>0</fireFrame>
+	<firePoint x="16" y="5"/>
+	<mountPoint x="5" y="22"/>
+</weaponAnim>
+
+<animSheet name="ap_gift_trap" w="32" h="32" fw="32" fh="32">weapons/ap_gift_trap_strip1.png</animSheet>
+
+<weaponAnim name="ap_gift_trap">
+	<sheet>ap_gift_trap</sheet>
+	<desc length="1" x="0" y="0"/>
+	<chargedFrame>0</chargedFrame>
+	<fireFrame>0</fireFrame>
+	<firePoint x="16" y="5"/>
+	<mountPoint x="5" y="22"/>
+</weaponAnim>
+
+<animSheet name="ap_package" w="32" h="32" fw="32" fh="32">weapons/ap_package_strip1.png</animSheet>
+
+<weaponAnim name="ap_package">
+	<sheet>ap_package</sheet>
+	<desc length="1" x="0" y="0"/>
+	<chargedFrame>0</chargedFrame>
+	<fireFrame>0</fireFrame>
+	<firePoint x="16" y="5"/>
+	<mountPoint x="5" y="22"/>
+</weaponAnim>

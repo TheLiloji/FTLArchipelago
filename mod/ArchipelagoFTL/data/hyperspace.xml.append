@@ -1,0 +1,344 @@
+
+<seeds enabled="true" allowUnlocks="true" allowAchievements="true" allowMetaVars="true"/>
+
+<saveFile>
+    <prefix>ap</prefix>
+    <inheritMode>2</inheritMode>
+</saveFile>
+
+<multipleOverCapacity enabled="true"/>
+
+<augments>
+    <aug name="ENERGY_SHIELD"><locked/></aug>
+    <aug name="SHIELD_RECHARGE"><locked/></aug>
+</augments>
+
+<ships>
+    <ship name="PLAYER_SHIP_ANAEROBIC" noAppend="true">
+        <unlock variant="a"><type>1</type><value>99</value><silent/></unlock>
+        <unlock variant="b"><type>1</type><value>99</value><silent/></unlock>
+    </ship>
+    <ship name="PLAYER_SHIP_CIRCLE" noAppend="true">
+        <unlock variant="a"><type>1</type><value>99</value><silent/></unlock>
+        <unlock variant="b"><type>1</type><value>99</value><silent/></unlock>
+        <unlock variant="c"><type>1</type><value>99</value><silent/></unlock>
+    </ship>
+    <ship name="PLAYER_SHIP_CRYSTAL" noAppend="true">
+        <unlock variant="a"><type>1</type><value>99</value><silent/></unlock>
+        <unlock variant="b"><type>1</type><value>99</value><silent/></unlock>
+    </ship>
+    <ship name="PLAYER_SHIP_ENERGY" noAppend="true">
+        <unlock variant="a"><type>1</type><value>99</value><silent/></unlock>
+        <unlock variant="b"><type>1</type><value>99</value><silent/></unlock>
+        <unlock variant="c"><type>1</type><value>99</value><silent/></unlock>
+    </ship>
+    <ship name="PLAYER_SHIP_FED" noAppend="true">
+        <unlock variant="a"><type>1</type><value>99</value><silent/></unlock>
+        <unlock variant="b"><type>1</type><value>99</value><silent/></unlock>
+        <unlock variant="c"><type>1</type><value>99</value><silent/></unlock>
+    </ship>
+    <ship name="PLAYER_SHIP_HARD" noAppend="true">
+        <unlock variant="a"><type>1</type><value>99</value><silent/></unlock>
+        <unlock variant="b"><type>1</type><value>99</value><silent/></unlock>
+        <unlock variant="c"><type>1</type><value>99</value><silent/></unlock>
+    </ship>
+    <ship name="PLAYER_SHIP_JELLY" noAppend="true">
+        <unlock variant="a"><type>1</type><value>99</value><silent/></unlock>
+        <unlock variant="b"><type>1</type><value>99</value><silent/></unlock>
+        <unlock variant="c"><type>1</type><value>99</value><silent/></unlock>
+    </ship>
+    <ship name="PLAYER_SHIP_MANTIS" noAppend="true">
+        <unlock variant="a"><type>1</type><value>99</value><silent/></unlock>
+        <unlock variant="b"><type>1</type><value>99</value><silent/></unlock>
+        <unlock variant="c"><type>1</type><value>99</value><silent/></unlock>
+    </ship>
+    <ship name="PLAYER_SHIP_ROCK" noAppend="true">
+        <unlock variant="a"><type>1</type><value>99</value><silent/></unlock>
+        <unlock variant="b"><type>1</type><value>99</value><silent/></unlock>
+        <unlock variant="c"><type>1</type><value>99</value><silent/></unlock>
+    </ship>
+    <ship name="PLAYER_SHIP_STEALTH" noAppend="true">
+        <unlock variant="a"><type>1</type><value>99</value><silent/></unlock>
+        <unlock variant="b"><type>1</type><value>99</value><silent/></unlock>
+        <unlock variant="c"><type>1</type><value>99</value><silent/></unlock>
+    </ship>
+</ships>
+
+<events>
+    <beaconType name="AP_BEACON" id="ap_beacon_label" global="true" persist="false"
+                hideVanillaLabel="false">
+        <color r="150" g="140" b="220" a="1.0"/>
+        <undiscoveredTooltip id="ap_beacon_undiscovered"/>
+        <unvisitedTooltip id="ap_beacon_unvisited"/>
+        <visitedTooltip id="ap_beacon_visited"/>
+    </beaconType>
+
+    <beaconType name="AP_BEACON_SIGNAL" id="ap_beacon_label" global="true" persist="false"
+                hideVanillaLabel="false">
+        <color r="150" g="140" b="220" a="1.0"/>
+        <undiscoveredTooltip id="ap_signal_undiscovered"/>
+        <unvisitedTooltip id="ap_signal_unvisited"/>
+        <visitedTooltip id="ap_signal_visited"/>
+    </beaconType>
+
+    <event name="AP_EVT_PACKAGE">
+        <changeBackground>AP_BACKGROUND</changeBackground>
+    </event>
+    <event name="AP_EVT_ZOLTAN_TITHE">
+        <changeBackground>AP_BACKGROUND</changeBackground>
+    </event>
+    <event name="AP_EVT_SLUG_WHISPER">
+        <changeBackground>AP_BACKGROUND</changeBackground>
+    </event>
+    <event name="AP_EVT_ANOTHER_WORLD">
+        <changeBackground>AP_BACKGROUND</changeBackground>
+    </event>
+</events>
+
+<store>
+    <customStore id="AP_STORE">
+        <category type="WEAPONS">
+            <customTitle>ARCHIPELAGO</customTitle>
+            <chance>100</chance>
+            <allowDuplicates/>
+            <item><blueprint>AP_GIFT_1</blueprint></item>
+            <item><blueprint>AP_GIFT_2</blueprint></item>
+            <item><blueprint>AP_GIFT_3</blueprint></item>
+        </category>
+
+        <category type="AUGMENTS">
+            <chance>100</chance>
+            <allowDuplicates/>
+            <item><blueprint>AP_DEAL_1</blueprint></item>
+            <item><blueprint>AP_DEAL_2</blueprint></item>
+            <item><blueprint>AP_DEAL_3</blueprint></item>
+        </category>
+
+        <resource>
+            <type>fuel</type>
+            <count min="3" max="9"/>
+            <price>3</price>
+        </resource>
+        <resource>
+            <type>missiles</type>
+            <count min="4" max="12"/>
+            <price>4</price>
+        </resource>
+        <resource>
+            <type>drones</type>
+            <count min="2" max="6"/>
+            <price>6</price>
+        </resource>
+
+        <hullRepair>
+            <price min="2" max="5"/>
+            <sectorScaled/>
+        </hullRepair>
+    </customStore>
+
+    <customStore id="AP_STORE_6">
+        <category type="WEAPONS">
+            <customTitle>ARCHIPELAGO</customTitle>
+            <chance>100</chance>
+            <allowDuplicates/>
+            <item><blueprint>AP_GIFT_1</blueprint></item>
+            <item><blueprint>AP_GIFT_2</blueprint></item>
+            <item><blueprint>AP_GIFT_3</blueprint></item>
+        </category>
+
+        <category type="AUGMENTS">
+            <chance>100</chance>
+            <allowDuplicates/>
+            <item><blueprint>AP_DEAL_1</blueprint></item>
+            <item><blueprint>AP_DEAL_2</blueprint></item>
+            <item><blueprint>AP_DEAL_3</blueprint></item>
+        </category>
+
+        <category type="WEAPONS">
+            <customTitle>ARCHIPELAGO</customTitle>
+            <chance>100</chance>
+            <allowDuplicates/>
+            <item><blueprint>AP_GIFT_4</blueprint></item>
+            <item><blueprint>AP_GIFT_5</blueprint></item>
+            <item><blueprint>AP_GIFT_6</blueprint></item>
+        </category>
+
+        <resource>
+            <type>fuel</type>
+            <count min="3" max="9"/>
+            <price>3</price>
+        </resource>
+        <resource>
+            <type>missiles</type>
+            <count min="4" max="12"/>
+            <price>4</price>
+        </resource>
+        <resource>
+            <type>drones</type>
+            <count min="2" max="6"/>
+            <price>6</price>
+        </resource>
+
+        <hullRepair>
+            <price min="2" max="5"/>
+            <sectorScaled/>
+        </hullRepair>
+    </customStore>
+
+    <customStore id="AP_STORE_9">
+        <category type="WEAPONS">
+            <customTitle>ARCHIPELAGO</customTitle>
+            <chance>100</chance>
+            <allowDuplicates/>
+            <item><blueprint>AP_GIFT_1</blueprint></item>
+            <item><blueprint>AP_GIFT_2</blueprint></item>
+            <item><blueprint>AP_GIFT_3</blueprint></item>
+        </category>
+
+        <category type="AUGMENTS">
+            <chance>100</chance>
+            <allowDuplicates/>
+            <item><blueprint>AP_DEAL_1</blueprint></item>
+            <item><blueprint>AP_DEAL_2</blueprint></item>
+            <item><blueprint>AP_DEAL_3</blueprint></item>
+        </category>
+
+        <category type="WEAPONS">
+            <customTitle>ARCHIPELAGO</customTitle>
+            <chance>100</chance>
+            <allowDuplicates/>
+            <item><blueprint>AP_GIFT_4</blueprint></item>
+            <item><blueprint>AP_GIFT_5</blueprint></item>
+            <item><blueprint>AP_GIFT_6</blueprint></item>
+        </category>
+
+        <category type="WEAPONS">
+            <customTitle>ARCHIPELAGO</customTitle>
+            <chance>100</chance>
+            <allowDuplicates/>
+            <item><blueprint>AP_GIFT_7</blueprint></item>
+            <item><blueprint>AP_GIFT_8</blueprint></item>
+            <item><blueprint>AP_GIFT_9</blueprint></item>
+        </category>
+
+        <resource>
+            <type>fuel</type>
+            <count min="3" max="9"/>
+            <price>3</price>
+        </resource>
+        <resource>
+            <type>missiles</type>
+            <count min="4" max="12"/>
+            <price>4</price>
+        </resource>
+        <resource>
+            <type>drones</type>
+            <count min="2" max="6"/>
+            <price>6</price>
+        </resource>
+
+        <hullRepair>
+            <price min="2" max="5"/>
+            <sectorScaled/>
+        </hullRepair>
+    </customStore>
+
+    <customStore id="AP_STORE_12">
+        <category type="WEAPONS">
+            <customTitle>ARCHIPELAGO</customTitle>
+            <chance>100</chance>
+            <allowDuplicates/>
+            <item><blueprint>AP_GIFT_1</blueprint></item>
+            <item><blueprint>AP_GIFT_2</blueprint></item>
+            <item><blueprint>AP_GIFT_3</blueprint></item>
+        </category>
+
+        <category type="AUGMENTS">
+            <chance>100</chance>
+            <allowDuplicates/>
+            <item><blueprint>AP_DEAL_1</blueprint></item>
+            <item><blueprint>AP_DEAL_2</blueprint></item>
+            <item><blueprint>AP_DEAL_3</blueprint></item>
+        </category>
+
+        <category type="WEAPONS">
+            <customTitle>ARCHIPELAGO</customTitle>
+            <chance>100</chance>
+            <allowDuplicates/>
+            <item><blueprint>AP_GIFT_4</blueprint></item>
+            <item><blueprint>AP_GIFT_5</blueprint></item>
+            <item><blueprint>AP_GIFT_6</blueprint></item>
+        </category>
+
+        <category type="WEAPONS">
+            <customTitle>ARCHIPELAGO</customTitle>
+            <chance>100</chance>
+            <allowDuplicates/>
+            <item><blueprint>AP_GIFT_7</blueprint></item>
+            <item><blueprint>AP_GIFT_8</blueprint></item>
+            <item><blueprint>AP_GIFT_9</blueprint></item>
+        </category>
+
+        <category type="WEAPONS">
+            <customTitle>ARCHIPELAGO</customTitle>
+            <chance>100</chance>
+            <allowDuplicates/>
+            <item><blueprint>AP_GIFT_10</blueprint></item>
+            <item><blueprint>AP_GIFT_11</blueprint></item>
+            <item><blueprint>AP_GIFT_12</blueprint></item>
+        </category>
+
+        <resource>
+            <type>fuel</type>
+            <count min="3" max="9"/>
+            <price>3</price>
+        </resource>
+        <resource>
+            <type>missiles</type>
+            <count min="4" max="12"/>
+            <price>4</price>
+        </resource>
+        <resource>
+            <type>drones</type>
+            <count min="2" max="6"/>
+            <price>6</price>
+        </resource>
+
+        <hullRepair>
+            <price min="2" max="5"/>
+            <sectorScaled/>
+        </hullRepair>
+    </customStore>
+</store>
+
+<scripts>
+    <script>data/archipelago/gamedata.lua</script>
+    <script>data/archipelago/lang.lua</script>
+    <script>data/archipelago/i18n.lua</script>
+    <script>data/archipelago/notify.lua</script>
+    <script>data/archipelago/main.lua</script>
+    <script>data/archipelago/runend.lua</script>
+    <script>data/archipelago/unlocks.lua</script>
+    <script>data/archipelago/inventory.lua</script>
+    <script>data/archipelago/systems.lua</script>
+    <script>data/archipelago/shop.lua</script>
+    <script>data/archipelago/equipment.lua</script>
+    <script>data/archipelago/gifts_demo.lua</script>
+    <script>data/archipelago/shopgift.lua</script>
+    <script>data/archipelago/filler.lua</script>
+    <script>data/archipelago/energylink.lua</script>
+    <script>data/archipelago/deathlink.lua</script>
+    <script>data/archipelago/traplink.lua</script>
+    <script>data/archipelago/hints.lua</script>
+    <script>data/archipelago/events.lua</script>
+    <script>data/archipelago/contract.lua</script>
+    <script>data/archipelago/checks.lua</script>
+    <script>data/archipelago/json.lua</script>
+    <script>data/archipelago/network.lua</script>
+    <script>data/archipelago/solo_order.lua</script>
+    <script>data/archipelago/solo.lua</script>
+    <script>data/archipelago/hud.lua</script>
+    <script>data/archipelago/connect.lua</script>
+    <script>data/archipelago/loadout.lua</script>
+    <script>data/archipelago/testkeys.lua</script>
+</scripts>

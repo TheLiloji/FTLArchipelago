@@ -1,0 +1,49 @@
+# Preset B2: FTL alone, solo. You know FTL well.
+# Every ship layout, chosen victories, strict logic, traps, more achievements.
+# Measured: 320 locations, 50 free shop slots, ~14.0 checks per hour,
+# ~7.0 h to the goal, ~13 minutes max wait with nothing to send.
+# Change the name line, then generate as usual.
+
+name: Player_B2
+description: FTL alone, solo. You know FTL well.
+game: "FTL: Faster Than Light"
+requires:
+  version: 0.6.7
+progression_balancing: 30
+accessibility: full
+"FTL: Faster Than Light":
+  goal: victory_selection
+  victory_layouts:
+    - Stealth Cruiser B
+    - Engi Cruiser B
+    - Rock Cruiser B
+    - Zoltan Cruiser B
+  start_ship: slug_cruiser
+  ship_layouts: all_layouts
+  layout_unlocks: items
+  sectorsanity: full
+  sectorsanity_first_sector: 3
+  sectorsanity_last_sector: 8
+  ship_achievements: true
+  general_achievements: all
+  cross_run_achievements: true
+  shop_checks: 50
+  system_blueprints: true
+  progressive_systems: true
+  head_starts: true
+  trap_chance: 30
+  shop_weapons: 30
+  shop_drones: 11
+  shop_augments: 19
+  shop_unlock_mode: locked
+  shop_item_delivery: false
+  sector_logic: strict
+  shields_blueprint_logic: upgrade_only
+  sensors_blueprint_logic: required
+  medbay_blueprint_logic: upgrade_only
+  engines_blueprint_logic: anywhere
+  weapons_blueprint_logic: anywhere
+  death_link: false
+  energy_link: false
+  trap_link: false
+  mod_language: game

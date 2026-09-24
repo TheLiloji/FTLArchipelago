@@ -1,0 +1,142 @@
+
+<event name="AP_STORE_EVENT">
+    <beaconType load="AP_BEACON"/>
+    <loadEventList first="true" default="AP_STORE_EVENT_3">
+        <event load="AP_STORE_EVENT_12" req="ap_shop_pages" lvl="4"/>
+        <event load="AP_STORE_EVENT_9" req="ap_shop_pages" lvl="3"/>
+        <event load="AP_STORE_EVENT_6" req="ap_shop_pages" lvl="2"/>
+    </loadEventList>
+</event>
+
+<event name="AP_STORE_EVENT_3">
+    <text id="ap_store_text"/>
+    <store>AP_STORE</store>
+    <beaconType load="AP_BEACON"/>
+</event>
+
+<event name="AP_STORE_EVENT_6">
+    <text id="ap_store_text"/>
+    <store>AP_STORE_6</store>
+    <beaconType load="AP_BEACON"/>
+</event>
+
+<event name="AP_STORE_EVENT_9">
+    <text id="ap_store_text"/>
+    <store>AP_STORE_9</store>
+    <beaconType load="AP_BEACON"/>
+</event>
+
+<event name="AP_STORE_EVENT_12">
+    <text id="ap_store_text"/>
+    <store>AP_STORE_12</store>
+    <beaconType load="AP_BEACON"/>
+</event>
+
+
+<event name="AP_EVT_PACKAGE">
+    <text id="ap_evt_package_text"/>
+    <img back="AP_BACKGROUND" planet="AP_PLANET"/>
+    <beaconType load="AP_BEACON_SIGNAL"/>
+    <choice>
+        <text id="ap_evt_package_c1"/>
+        <event name="AP_EVT_PACKAGE_A">
+            <text id="ap_evt_package_c1_text"/>
+            <item_modify>
+                <item type="scrap" min="-15" max="-15"/>
+            </item_modify>
+        </event>
+    </choice>
+    <choice>
+        <text id="ap_evt_package_c2"/>
+        <event name="AP_EVT_PACKAGE_B">
+            <text id="ap_evt_package_c2_text"/>
+            <item_modify>
+                <item type="scrap" min="-15" max="-15"/>
+            </item_modify>
+        </event>
+    </choice>
+    <choice>
+        <text id="ap_evt_package_c3"/>
+        <event name="AP_EVT_PACKAGE_C">
+            <text id="ap_evt_package_c3_text"/>
+        </event>
+    </choice>
+</event>
+
+
+<event name="AP_EVT_ZOLTAN_TITHE">
+    <text id="ap_evt_zoltan_tithe_text"/>
+    <img back="AP_BACKGROUND" planet="AP_PLANET"/>
+    <beaconType load="AP_BEACON_SIGNAL"/>
+    <choice>
+        <text id="ap_evt_zoltan_tithe_c1"/>
+        <event name="AP_EVT_ZOLTAN_TITHE_A">
+            <text id="ap_evt_zoltan_tithe_c1_text"/>
+            <item_modify>
+                <item type="scrap" min="-35" max="-35"/>
+                <item type="fuel" min="3" max="3"/>
+            </item_modify>
+        </event>
+    </choice>
+    <choice>
+        <text id="ap_evt_zoltan_tithe_c2"/>
+        <event name="AP_EVT_ZOLTAN_TITHE_B">
+            <text id="ap_evt_zoltan_tithe_c2_text"/>
+        </event>
+    </choice>
+</event>
+
+
+
+
+<event name="AP_EVT_SLUG_WHISPER">
+    <text id="ap_evt_slug_whisper_text"/>
+    <img back="AP_BACKGROUND" planet="AP_PLANET"/>
+    <beaconType load="AP_BEACON_SIGNAL"/>
+    <choice>
+        <text id="ap_evt_slug_whisper_c1"/>
+        <event name="AP_EVT_SLUG_WHISPER_A">
+            <text id="ap_evt_slug_whisper_c1_text"/>
+            <item_modify>
+                <item type="scrap" min="-20" max="-20"/>
+            </item_modify>
+        </event>
+    </choice>
+    <choice>
+        <text id="ap_evt_slug_whisper_c2"/>
+        <event name="AP_EVT_SLUG_WHISPER_B">
+            <text id="ap_evt_slug_whisper_c2_text"/>
+            <item_modify>
+                <item type="scrap" min="30" max="30"/>
+            </item_modify>
+            <damage amount="1"/>
+        </event>
+    </choice>
+</event>
+
+
+
+<event name="AP_EVT_ANOTHER_WORLD">
+    <text id="ap_evt_another_world_text"/>
+    <img back="AP_BACKGROUND" planet="AP_PLANET"/>
+    <beaconType load="AP_BEACON_SIGNAL"/>
+    <choice>
+        <text id="ap_evt_another_world_c1"/>
+        <event name="AP_EVT_ANOTHER_WORLD_A">
+            <text id="ap_evt_another_world_c1_text"/>
+            <item_modify>
+                <item type="fuel" min="2" max="2"/>
+            </item_modify>
+            <damage amount="1"/>
+        </event>
+    </choice>
+    <choice>
+        <text id="ap_evt_another_world_c2"/>
+        <event name="AP_EVT_ANOTHER_WORLD_B">
+            <text id="ap_evt_another_world_c2_text"/>
+            <item_modify>
+                <item type="scrap" min="40" max="40"/>
+            </item_modify>
+        </event>
+    </choice>
+</event>

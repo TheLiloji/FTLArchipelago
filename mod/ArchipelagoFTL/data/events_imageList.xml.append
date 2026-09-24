@@ -1,0 +1,9 @@
+
+<imageList name="AP_BACKGROUND">
+	<img w="1280" h="720">stars/bg_ap_archipelago.png</img>
+</imageList>
+
+<imageList name="AP_PLANET">
+	<img w="460" h="460">stars/planet_ap_archipelago.png</img>
+	<img w="460" h="460">stars/planet_ap_archipelago_2.png</img>
+</imageList>

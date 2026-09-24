@@ -1,0 +1,33 @@
+name: Links
+description: The three links on and the locked shop
+game: "FTL: Faster Than Light"
+requires:
+  version: 0.6.7
+"FTL: Faster Than Light":
+  goal: victory_count
+  victories_required: 2
+  start_ship: kestrel_cruiser
+  ship_layouts: all_layouts
+  layout_unlocks: items
+  sectorsanity: milestones
+  ship_achievements: true
+  general_achievements: most
+  cross_run_achievements: false
+  system_blueprints: true
+  progressive_systems: true
+  head_starts: true
+  trap_chance: 20
+  sector_logic: standard
+
+  shop_items: 40
+  shop_item_families:
+    - weapons
+    - drones
+    - augments
+  shop_unlock_mode: locked
+  shop_item_delivery: true
+  death_link: true
+  death_link_trigger: run_lost
+  death_link_effect: varied
+  energy_link: true
+  trap_link: true

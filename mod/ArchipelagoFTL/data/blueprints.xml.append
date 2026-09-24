@@ -1,0 +1,270 @@
+
+<weaponBlueprint name="AP_GIFT_1">
+    <type>LASER</type>
+    <title>Archipelago Item</title>
+    <short>AP Item</short>
+    <desc>An item for another player's world.</desc>
+    <tooltip>An item for another player's world.</tooltip>
+    <damage>0</damage>
+    <shots>1</shots>
+    <sp>0</sp>
+    <fireChance>0</fireChance>
+    <breachChance>0</breachChance>
+    <cooldown>99</cooldown>
+    <power>0</power>
+    <cost>30</cost>
+    <bp>1</bp>
+    <rarity>0</rarity>
+    <weaponArt>ap_gift</weaponArt>
+    <iconImage>ap</iconImage>
+</weaponBlueprint>
+
+<weaponBlueprint name="AP_GIFT_2">
+    <type>LASER</type>
+    <title>Archipelago Item</title>
+    <short>AP Item</short>
+    <desc>An item for another player's world.</desc>
+    <tooltip>An item for another player's world.</tooltip>
+    <damage>0</damage>
+    <shots>1</shots>
+    <sp>0</sp>
+    <fireChance>0</fireChance>
+    <breachChance>0</breachChance>
+    <cooldown>99</cooldown>
+    <power>0</power>
+    <cost>45</cost>
+    <bp>1</bp>
+    <rarity>0</rarity>
+    <weaponArt>ap_gift</weaponArt>
+    <iconImage>ap</iconImage>
+</weaponBlueprint>
+
+<weaponBlueprint name="AP_GIFT_3">
+    <type>LASER</type>
+    <title>Archipelago Item</title>
+    <short>AP Item</short>
+    <desc>An item for another player's world.</desc>
+    <tooltip>An item for another player's world.</tooltip>
+    <damage>0</damage>
+    <shots>1</shots>
+    <sp>0</sp>
+    <fireChance>0</fireChance>
+    <breachChance>0</breachChance>
+    <cooldown>99</cooldown>
+    <power>0</power>
+    <cost>60</cost>
+    <bp>1</bp>
+    <rarity>0</rarity>
+    <weaponArt>ap_gift</weaponArt>
+    <iconImage>ap</iconImage>
+</weaponBlueprint>
+
+<weaponBlueprint name="AP_GIFT_4">
+    <type>LASER</type>
+    <title>Archipelago Item</title>
+    <short>AP Item</short>
+    <desc>An item for another player's world.</desc>
+    <tooltip>An item for another player's world.</tooltip>
+    <damage>0</damage>
+    <shots>1</shots>
+    <sp>0</sp>
+    <fireChance>0</fireChance>
+    <breachChance>0</breachChance>
+    <cooldown>99</cooldown>
+    <power>0</power>
+    <cost>60</cost>
+    <bp>1</bp>
+    <rarity>0</rarity>
+    <weaponArt>ap_gift</weaponArt>
+    <iconImage>ap</iconImage>
+</weaponBlueprint>
+
+<weaponBlueprint name="AP_GIFT_5">
+    <type>LASER</type>
+    <title>Archipelago Item</title>
+    <short>AP Item</short>
+    <desc>An item for another player's world.</desc>
+    <tooltip>An item for another player's world.</tooltip>
+    <damage>0</damage>
+    <shots>1</shots>
+    <sp>0</sp>
+    <fireChance>0</fireChance>
+    <breachChance>0</breachChance>
+    <cooldown>99</cooldown>
+    <power>0</power>
+    <cost>60</cost>
+    <bp>1</bp>
+    <rarity>0</rarity>
+    <weaponArt>ap_gift</weaponArt>
+    <iconImage>ap</iconImage>
+</weaponBlueprint>
+
+<weaponBlueprint name="AP_GIFT_6">
+    <type>LASER</type>
+    <title>Archipelago Item</title>
+    <short>AP Item</short>
+    <desc>An item for another player's world.</desc>
+    <tooltip>An item for another player's world.</tooltip>
+    <damage>0</damage>
+    <shots>1</shots>
+    <sp>0</sp>
+    <fireChance>0</fireChance>
+    <breachChance>0</breachChance>
+    <cooldown>99</cooldown>
+    <power>0</power>
+    <cost>60</cost>
+    <bp>1</bp>
+    <rarity>0</rarity>
+    <weaponArt>ap_gift</weaponArt>
+    <iconImage>ap</iconImage>
+</weaponBlueprint>
+
+<weaponBlueprint name="AP_GIFT_7">
+    <type>LASER</type>
+    <title>Archipelago Item</title>
+    <short>AP Item</short>
+    <desc>An item for another player's world.</desc>
+    <tooltip>An item for another player's world.</tooltip>
+    <damage>0</damage>
+    <shots>1</shots>
+    <sp>0</sp>
+    <fireChance>0</fireChance>
+    <breachChance>0</breachChance>
+    <cooldown>99</cooldown>
+    <power>0</power>
+    <cost>60</cost>
+    <bp>1</bp>
+    <rarity>0</rarity>
+    <weaponArt>ap_gift</weaponArt>
+    <iconImage>ap</iconImage>
+</weaponBlueprint>
+
+<weaponBlueprint name="AP_GIFT_8">
+    <type>LASER</type>
+    <title>Archipelago Item</title>
+    <short>AP Item</short>
+    <desc>An item for another player's world.</desc>
+    <tooltip>An item for another player's world.</tooltip>
+    <damage>0</damage>
+    <shots>1</shots>
+    <sp>0</sp>
+    <fireChance>0</fireChance>
+    <breachChance>0</breachChance>
+    <cooldown>99</cooldown>
+    <power>0</power>
+    <cost>60</cost>
+    <bp>1</bp>
+    <rarity>0</rarity>
+    <weaponArt>ap_gift</weaponArt>
+    <iconImage>ap</iconImage>
+</weaponBlueprint>
+
+<weaponBlueprint name="AP_GIFT_9">
+    <type>LASER</type>
+    <title>Archipelago Item</title>
+    <short>AP Item</short>
+    <desc>An item for another player's world.</desc>
+    <tooltip>An item for another player's world.</tooltip>
+    <damage>0</damage>
+    <shots>1</shots>
+    <sp>0</sp>
+    <fireChance>0</fireChance>
+    <breachChance>0</breachChance>
+    <cooldown>99</cooldown>
+    <power>0</power>
+    <cost>60</cost>
+    <bp>1</bp>
+    <rarity>0</rarity>
+    <weaponArt>ap_gift</weaponArt>
+    <iconImage>ap</iconImage>
+</weaponBlueprint>
+
+<weaponBlueprint name="AP_GIFT_10">
+    <type>LASER</type>
+    <title>Archipelago Item</title>
+    <short>AP Item</short>
+    <desc>An item for another player's world.</desc>
+    <tooltip>An item for another player's world.</tooltip>
+    <damage>0</damage>
+    <shots>1</shots>
+    <sp>0</sp>
+    <fireChance>0</fireChance>
+    <breachChance>0</breachChance>
+    <cooldown>99</cooldown>
+    <power>0</power>
+    <cost>60</cost>
+    <bp>1</bp>
+    <rarity>0</rarity>
+    <weaponArt>ap_gift</weaponArt>
+    <iconImage>ap</iconImage>
+</weaponBlueprint>
+
+<weaponBlueprint name="AP_GIFT_11">
+    <type>LASER</type>
+    <title>Archipelago Item</title>
+    <short>AP Item</short>
+    <desc>An item for another player's world.</desc>
+    <tooltip>An item for another player's world.</tooltip>
+    <damage>0</damage>
+    <shots>1</shots>
+    <sp>0</sp>
+    <fireChance>0</fireChance>
+    <breachChance>0</breachChance>
+    <cooldown>99</cooldown>
+    <power>0</power>
+    <cost>60</cost>
+    <bp>1</bp>
+    <rarity>0</rarity>
+    <weaponArt>ap_gift</weaponArt>
+    <iconImage>ap</iconImage>
+</weaponBlueprint>
+
+<weaponBlueprint name="AP_GIFT_12">
+    <type>LASER</type>
+    <title>Archipelago Item</title>
+    <short>AP Item</short>
+    <desc>An item for another player's world.</desc>
+    <tooltip>An item for another player's world.</tooltip>
+    <damage>0</damage>
+    <shots>1</shots>
+    <sp>0</sp>
+    <fireChance>0</fireChance>
+    <breachChance>0</breachChance>
+    <cooldown>99</cooldown>
+    <power>0</power>
+    <cost>60</cost>
+    <bp>1</bp>
+    <rarity>0</rarity>
+    <weaponArt>ap_gift</weaponArt>
+    <iconImage>ap</iconImage>
+</weaponBlueprint>
+
+<augBlueprint name="AP_DEAL_1">
+    <title>Deal: +35 scrap</title>
+    <desc>Scrap now. A trap for someone - two times out of three, not you.</desc>
+    <cost>5</cost>
+    <bp>8</bp>
+    <rarity>0</rarity>
+    <stackable>false</stackable>
+    <value>0</value>
+</augBlueprint>
+
+<augBlueprint name="AP_DEAL_2">
+    <title>Deal: +55 scrap</title>
+    <desc>Scrap now. A trap for someone - two times out of three, not you.</desc>
+    <cost>10</cost>
+    <bp>8</bp>
+    <rarity>0</rarity>
+    <stackable>false</stackable>
+    <value>0</value>
+</augBlueprint>
+
+<augBlueprint name="AP_DEAL_3">
+    <title>Deal: +80 scrap</title>
+    <desc>Scrap now. A trap for someone - two times out of three, not you.</desc>
+    <cost>15</cost>
+    <bp>8</bp>
+    <rarity>0</rarity>
+    <stackable>false</stackable>
+    <value>0</value>
+</augBlueprint>

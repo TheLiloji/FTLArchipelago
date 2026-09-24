@@ -1,0 +1,21 @@
+# Desktop menu entry. To install it:
+#   sed "s|@ROOT@|$PWD|g" mod/tools/ftl-archipelago.desktop \
+#     > ~/.local/share/applications/ftl-archipelago.desktop
+#   update-desktop-database ~/.local/share/applications
+[Desktop Entry]
+Type=Application
+Name=FTL Archipelago
+GenericName=FTL: Faster Than Light with the Archipelago mod
+Comment=Reinstall the mod from source, then start the game
+Exec=@ROOT@/mod/tools/launch.sh
+Path=@ROOT@
+Icon=steam_icon_212680
+Terminal=false
+Categories=Game;
+Keywords=FTL;Archipelago;randomizer;mod;
+StartupNotify=true
+Actions=asis;
+
+[Desktop Action asis]
+Name=Start without reinstalling
+Exec=@ROOT@/mod/tools/launch.sh --as-is

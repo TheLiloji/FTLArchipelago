@@ -1,0 +1,29 @@
+name: NoChecks
+description: Regression - sectorsanity and ship achievements off, 22 of the 27 checks are victories
+game: "FTL: Faster Than Light"
+requires:
+  version: 0.6.7
+"FTL: Faster Than Light":
+  goal: victory_selection
+  victory_layouts:
+    - Federation Cruiser A
+    - Lanius Cruiser A
+    - Rock Cruiser B
+    - Slug Cruiser A
+    - Stealth Cruiser A
+    - Zoltan Cruiser B
+  start_ship: mantis_cruiser
+  ship_layouts: up_to_type_b
+  layout_unlocks: items
+  sectorsanity: disabled
+  ship_achievements: false
+  general_achievements: basic
+  cross_run_achievements: true
+  system_blueprints: true
+  progressive_systems: false
+  head_starts: false
+  trap_chance: 44
+  sector_logic: standard
+  skill_checks: crossed
+  death_type_checks: true
+  progressive_skills: true

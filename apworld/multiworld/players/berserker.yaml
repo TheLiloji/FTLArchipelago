@@ -1,0 +1,6 @@
+name: Berserker
+description: Another multiworld player, so gifts have real recipients
+game: "A Short Hike"
+requires:
+  version: 0.6.7
+"A Short Hike": {}
