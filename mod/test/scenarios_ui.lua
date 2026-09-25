@@ -369,3 +369,30 @@ test("a run that does not count keeps what it would use up for the next one", fu
     equals(#apFillerPendingForTesting(), 0, "a new run with the seed gets it")
     apFillerResetForTesting()
 end)
+
+test("browsing ships in the hangar mid-game sends no DeathLink", function()
+    apDeathLinkConfigure({ enabled = true, trigger = "both", effect = "fire" })
+    local sent = 0
+    local restore = stub("apNetSendDeath", function() sent = sent + 1 return true end)
+    sim.startRun(true)
+    sim.tick(120)
+    sim.hangarOpen = true
+    for i = 0, sim.player.vCrewList:size() - 1 do
+        sim.player.vCrewList[i]._name = "Preview" .. i
+    end
+    sim.tick(120)
+    sim.hangarOpen = false
+    sim.startRun(true)
+    sim.tick(120)
+    restore()
+    equals(sent, 0, "the crew of another ship in the list is not a crew that died")
+
+    sent = 0
+    restore = stub("apNetSendDeath", function() sent = sent + 1 return true end)
+    sim.tick(120)
+    sim.player.vCrewList[0].bDead = true
+    sim.tick(120)
+    restore()
+    equals(sent, 1, "a real death during the run still goes out")
+    apDeathLinkConfigure({ enabled = false })
+end)

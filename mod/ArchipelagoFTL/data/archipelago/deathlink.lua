@@ -307,9 +307,11 @@ local function livingCrewNames()
     return names
 end
 
+-- The hangar keeps bStartedGame on while you browse ships, and each ship shown comes with its own crew.
 local function runInProgress()
     local ok, started = pcall(function()
-        return Hyperspace.App.world.bStartedGame
+        local app = Hyperspace.App
+        return app.world.bStartedGame == true and app.menu.shipBuilder.bOpen ~= true
     end)
     return ok and started == true
 end
