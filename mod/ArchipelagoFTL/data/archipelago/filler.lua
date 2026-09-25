@@ -1,4 +1,3 @@
-
 local TAG = "[AP-filler] "
 
 local function fillerLog(message)
@@ -251,7 +250,7 @@ local function deliverOne(descriptor)
         fillerLog("delivered: " .. key)
         if _G.apNotifyItem then
             _G.apNotifyItem(descriptor.display or apT(key, params), descriptor.sender,
-                descriptor.sender == nil)
+                descriptor.sender == nil and not _G.apSoloEnabled)
         end
         return true
     end
@@ -265,8 +264,11 @@ local function deliverOne(descriptor)
         fillerLog("archive: " .. inventory.archives)
         if _G.apNotifyStatus and not descriptor.isReplay then
             local total = _G.apGoalArchives and _G.apGoalArchives() or nil
-            _G.apNotifyStatus(apT(total and "archive.received" or "archive.received.alone",
-                { done = inventory.archives, total = total or 0 }))
+            local key = "archive.received.alone"
+            if total ~= nil then
+                key = inventory.archives > total and "archive.received.extra" or "archive.received"
+            end
+            _G.apNotifyStatus(apT(key, { done = inventory.archives, total = total or 0 }))
         end
         if _G.apDeclareGoal then
             apTry(TAG, _G.apDeclareGoal)
@@ -296,7 +298,7 @@ local function deliverOne(descriptor)
             if descriptor.kind == "start" and _G.apNotifyStatus then
                 _G.apNotifyStatus(apT("start.received", { item = tostring(name) }))
             else
-                _G.apNotifyItem(name, descriptor.sender, descriptor.sender == nil)
+                _G.apNotifyItem(name, descriptor.sender, descriptor.sender == nil and not _G.apSoloEnabled)
             end
         end
         return true

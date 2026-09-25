@@ -1,4 +1,3 @@
-
 local function quote(value)
     return '"' .. tostring(value):gsub('"', '\\"') .. '"'
 end

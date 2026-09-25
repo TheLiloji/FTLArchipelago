@@ -1,4 +1,3 @@
-
 local TAG = "[AP-death] "
 
 local function deathLog(message)

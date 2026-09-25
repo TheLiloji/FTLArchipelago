@@ -1,4 +1,3 @@
-
 local function vector(items)
     local store = items or {}
     return setmetatable({}, {
@@ -237,6 +236,7 @@ function sim.makeLocation()
         space = { tex = nil, x = 0, y = 0, w = 0, h = 0 },
         planetImage = "",
         spaceImage = "",
+        loc = { x = 0, y = 0 },
     }
 end
 
@@ -659,6 +659,7 @@ _G.Defines = {
         PRE_CREATE_CHOICEBOX = "PRE_CREATE_CHOICEBOX",
         ON_KEY_UP = "ON_KEY_UP",
         ON_MOUSE_L_BUTTON_DOWN = "ON_MOUSE_L_BUTTON_DOWN",
+        ON_MOUSE_SCROLL = "ON_MOUSE_SCROLL",
     },
     RenderEvents = { MAIN_MENU = "MAIN_MENU", GUI_CONTAINER = "GUI_CONTAINER" },
     Chain = { CONTINUE = 0, PREEMPT = 1, HALT = 2 },
@@ -701,8 +702,10 @@ _G.Graphics = {
         easy_print = function(size, x, y, text)
             return noteDraw(size, x, y, text)
         end,
-        easy_printAutoNewlines = function(size, x, y, _, text)
-            return noteDraw(size, x, y, text)
+        easy_printAutoNewlines = function(size, x, y, lineLength, text)
+            local drawing = noteDraw(size, x, y, text)
+            sim.draws[#sim.draws].maxWidth = tonumber(lineLength) or 0
+            return drawing
         end,
         easy_printAutoShrink = function(size, x, y, maxWidth, _, text)
             noteDraw(size, x, y, text)
@@ -870,6 +873,9 @@ end
 
 function sim.startRun(newGame)
     sim.started = true
+    if newGame ~= false then
+        sim.runVariables = {}
+    end
     for _, fn in ipairs(sim.initHandlers) do
         local ok, err = pcall(fn, newGame ~= false)
         if not ok then
@@ -899,6 +905,10 @@ end
 
 function sim.click(x, y)
     fire("ON_MOUSE_L_BUTTON_DOWN", x, y)
+end
+
+function sim.scroll(direction)
+    fire("ON_MOUSE_SCROLL", direction)
 end
 
 function sim.type(text)

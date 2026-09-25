@@ -7,8 +7,8 @@ export a config file.
 
 ## Status
 
-The game joins a real multiworld **on Linux**. Hyperspace's Lua sandbox has no sockets, so the connection goes
-through a small C++ module built into this project's Hyperspace library; it has not been built for Windows yet.
+The game joins a real multiworld on **Linux** and **Windows**. Hyperspace's Lua sandbox has no sockets, so the
+connection goes through a small C++ module built into this project's Hyperspace library.
 Without a server, a **solo mode** (a button on the main menu) hands out the items of a real generated seed, one
 per check. The setup guide has the details.
 
@@ -184,12 +184,6 @@ would leave you with nothing to fly and no seed to generate. Since the Kestrel A
 shields, sensors and a medbay, those three blueprints start in your inventory as things stand.
 
 None of this changes what the game lets you do. It changes what the generator is willing to assume.
-
-## Not implemented yet
-
-Some options are accepted by the generator but do nothing in game yet, because the mod half is not written:
-progressive crew health, progressive skills, skill checks and death-type checks. Their option pages say so
-too. Leave them at their defaults unless you are testing seed generation.
 
 ## FTL-specific things you should know
 

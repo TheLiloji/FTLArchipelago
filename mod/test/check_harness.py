@@ -33,7 +33,6 @@ def wiki_returns() -> tuple[dict[str, set[str]], dict[str, set[int]]]:
 
 
 def strip_comments(text: str) -> str:
-
     out: list[str] = []
     in_block = False
     for line in text.splitlines():
@@ -61,7 +60,6 @@ def strip_comments(text: str) -> str:
 
 
 def mod_calls() -> list[tuple[str, str, int, int]]:
-
     found: list[tuple[str, str, int, int]] = []
     for path in sorted((ROOT / "ArchipelagoFTL" / "data" / "archipelago").glob("*.lua")):
         if path.name in ("lang.lua", "gamedata.lua", "solo_order.lua", "gifts_demo.lua"):

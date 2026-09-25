@@ -24,6 +24,3 @@ requires:
   head_starts: false
   trap_chance: 44
   sector_logic: standard
-  skill_checks: crossed
-  death_type_checks: true
-  progressive_skills: true

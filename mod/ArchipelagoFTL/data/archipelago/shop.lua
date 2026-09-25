@@ -1,4 +1,3 @@
-
 local TAG = "[AP-shop] "
 
 _G.apShopModes = {

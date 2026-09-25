@@ -1,4 +1,3 @@
-
 local TAG = "[AP-contract] "
 
 local function contractLog(message)
@@ -61,7 +60,7 @@ local function seedIdentity(slotData, slotName)
     return { hash = hash and tostring(hash) or nil, slot = slot and tostring(slot) or nil }
 end
 
-function apApplySlotData(slotData, slotName)
+function apApplySlotData(slotData, slotName, solo)
     if type(slotData) ~= "table" then
         return refuse(apT("contract.reason.nodata"))
     end
@@ -69,7 +68,7 @@ function apApplySlotData(slotData, slotName)
     local identity = seedIdentity(slotData, slotName)
 
     local onServer = _G.apNetConnected and _G.apNetConnected()
-    if onServer then
+    if onServer or solo then
         local stored = _G.apNetSeedTag and _G.apNetSeedTag() or 0
         local incoming = apSeedFingerprint(identity)
         contractLog(string.format("seed fingerprint: stored %d, incoming %d, hash %s",
@@ -79,7 +78,7 @@ function apApplySlotData(slotData, slotName)
             state.seedChangedWithUnlocks = true
             state.seedChangeReason = stored == 0 and "foreign" or "seedchange"
             state.refusedFingerprint = incoming
-            if _G.apNetDisconnect then pcall(_G.apNetDisconnect) end
+            if onServer and _G.apNetDisconnect then pcall(_G.apNetDisconnect) end
             if state.seedChangeReason == "foreign" then
                 return refuse(apT("contract.reason.foreign"))
             end
@@ -242,6 +241,10 @@ function apReceiveItem(itemName, sender, isReplay, index)
         return false
     end
 
+    if not isReplay and _G.apRecordReceived then
+        apRecordReceived(itemName, sender, index)
+    end
+
     return apQueueItem({
         kind = kind,
         bp = descriptor.bp,
@@ -386,6 +389,11 @@ function apContractResetForTesting()
     state.identity = nil
     state.systemCapsActive = true
     state.blueprintsActive = true
+end
+
+function apContractUnload()
+    apContractResetForTesting()
+    contractLog("seed unloaded")
 end
 
 function apContractStatus()

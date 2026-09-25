@@ -1,20 +1,20 @@
 
-<text name="ap_evt_package_text" language="it">Un ripetitore Archipelago vi chiama. Due pacchi aspettano una finestra di trasmissione e ce n'è una sola. Il vostro è già a bordo, qualunque cosa scegliate.</text>
-<text name="ap_evt_package_c1" language="it">Inoltrare il primo pacco. [Archipelago: invia un check, 15 rottami]</text>
-<text name="ap_evt_package_c1_text" language="it">Il pacco parte: viene inviato un check di Archipelago e quello che conteneva compare nella partita del suo proprietario, ovunque sia. Il ripetitore si prende la sua parte e chiude la finestra. L'altro pacco aspettera qualcun altro.</text>
-<text name="ap_evt_package_c2" language="it">Inoltrare il secondo pacco. [Archipelago: invia un check, 15 rottami]</text>
-<text name="ap_evt_package_c2_text" language="it">Il pacco parte: viene inviato un check di Archipelago e quello che conteneva compare nella partita del suo proprietario, ovunque sia. Il ripetitore si prende la sua parte e chiude la finestra. L'altro pacco aspettera qualcun altro.</text>
+<text name="ap_evt_package_text" language="it">Un relè Archipelago ti chiama. Due pacchi aspettano una finestra di trasmissione, e ce n'è una sola. Per 15 rottami, scegli quale parte.</text>
+<text name="ap_evt_package_c1" language="it">Inviare il primo pacco.</text>
+<text name="ap_evt_package_c1_text" language="it">Il pacco parte, proprio come se l'avessi comprato nel negozio Archipelago: il suo oggetto arriva al destinatario, te compreso. Il relè prende la sua commissione e chiude la finestra.</text>
+<text name="ap_evt_package_c2" language="it">Inviare il secondo pacco.</text>
+<text name="ap_evt_package_c2_text" language="it">Il pacco parte, proprio come se l'avessi comprato nel negozio Archipelago: il suo oggetto arriva al destinatario, te compreso. Il relè prende la sua commissione e chiude la finestra.</text>
 <text name="ap_evt_package_c3" language="it">Lasciar passare il ripetitore.</text>
 <text name="ap_evt_package_c3_text" language="it">Tenete i vostri rottami e il ripetitore si allontana. I pacchi troveranno un'altra finestra.</text>
 
 <text name="ap_evt_zoltan_tithe_text" language="it">Il posto di blocco è un solo incrociatore zoltan e moltissime scartoffie. "Ogni nave che attraversa il Terzo Anello contribuisce all'Anello", spiega l'ufficiale con la pazienza di chi l'ha spiegato diecimila volte. "Il contributo non è un pedaggio. Il pedaggio si prende. Il contributo si dà."</text>
-<text name="ap_evt_zoltan_tithe_c1" language="it">Pagare la decima. [Archipelago: aggiunge 900 J alla riserva comune (EnergyLink)]</text>
+<text name="ap_evt_zoltan_tithe_c1" language="it">Pagare la decima.</text>
 <text name="ap_evt_zoltan_tithe_c1_text" language="it">L'ufficiale accetta senza contare, il che inquieta più che se avesse contato. L'Anello manda l'energia verso l'esterno, nella riserva comune da cui attinge ogni giocatore di Archipelago. Anche voi, prima o poi.</text>
-<text name="ap_evt_zoltan_tithe_c2" language="it">Invocare il diritto di passaggio. [Archipelago: prende carburante dalla riserva comune (EnergyLink)]</text>
+<text name="ap_evt_zoltan_tithe_c2" language="it">Invocare il diritto di passaggio.</text>
 <text name="ap_evt_zoltan_tithe_c2_text" language="it">È un vostro diritto, lo dice l'ufficiale stesso, e vi lascia prendere quello che l'Anello custodisce. Nessuno vi ferma. Gli zoltan si limitano ad annotarlo. Da qualche parte, qualcun altro troverà la riserva più vuota di come l'aveva lasciata.</text>
 
 <text name="ap_evt_slug_whisper_text" language="it">Lo slug sta già parlando quando il canale si apre, e parla evidentemente da un po'. "Trasportate roba per gente che non vedete. Io sento dove sono le cose." Una pausa umida. "Chiederselo è gratis. Sapere costa un po'."</text>
-<text name="ap_evt_slug_whisper_c1" language="it">Pagare. Ascoltare quello che sa. [Archipelago: indizio casuale]</text>
+<text name="ap_evt_slug_whisper_c1" language="it">Pagare. Ascoltare quello che sa.</text>
 <text name="ap_evt_slug_whisper_c1_text" language="it">Vi dà una cosa che per caso sa: un oggetto e chi lo aspetta, oppure un posto dove c'è ancora qualcosa. Quale delle due, non lo scegliete voi. Sulle piccole cose gli slug mentono di rado. Sono le grandi a costare.</text>
 <text name="ap_evt_slug_whisper_c2" language="it">Chiudere il canale.</text>
 <text name="ap_evt_slug_whisper_c2_text" language="it">Lo slug se ne va offeso e andandosene sfiora lo scafo con una raffica d'addio che definirà senz'altro un incidente. Lascia cadere anche un carico che non gli serve più. Ci guadagnate in rottami e ci perdete in corazza.</text>
@@ -22,7 +22,7 @@
 <text name="ap_evt_another_world_text" language="it">La scarica arriva su una banda che questa galassia non usa. Porta un nome che non riconoscete e un orario che viene da un posto che non condivide il vostro orologio. Nessuno l'ha puntata su di voi. Sta solo passando, e da qualche parte deve atterrare.</text>
 <text name="ap_evt_another_world_c1" language="it">Prenderla. Scaricarla attraverso il vostro scafo.</text>
 <text name="ap_evt_another_world_c1_text" language="it">Un punto di scafo e un odore che riconoscerete solo due salti dopo. Il ripetitore sfiata due celle di carburante mentre si scarica. Nessun altro ha sentito niente.</text>
-<text name="ap_evt_another_world_c2" language="it">Rimetterla in linea. [Archipelago: manda una trappola a un altro giocatore (TrapLink)]</text>
+<text name="ap_evt_another_world_c2" language="it">Rimetterla in linea.</text>
 <text name="ap_evt_another_world_c2_text" language="it">Smontate il ripetitore e rispedite fuori la scarica, e da qualche parte finisce. Un altro giocatore, in un'altra partita, sta per passare un brutto minuto. Lo sentirà. Non saprà che siete stati voi. Il recupero vale buoni rottami.</text>
 
 <text name="list_tutorial_2" language="it">In una partita Archipelago le navi vengono dal multiworld: qualcuno là fuori trova la chiave della vostra nave e ve la manda. Può arrivare nella prima ora o molto più tardi.\n\nPremete TAB durante la partita per vedere cosa è già arrivato e cosa manca ancora.</text>
@@ -37,3 +37,9 @@
 
 
 <text name="ap_store_text" language="it">Un mercante vi chiama su una frequenza sconosciuta. Il suo manifesto elenca nomi che non riconoscete e merci indirizzate a persone che non sono a bordo.</text>
+<text name="ap_evt_zoltan_toll_c1_text" language="it">L'ufficiale la accetta senza contarla, il che è più imbarazzante che se l'avesse contata. In cambio ti consegna tre celle di carburante sigillate a nome dell'Anello. Tutto viene annotato.</text>
+<text name="ap_evt_zoltan_toll_c3" language="it">Proseguire per la tua strada.</text>
+<text name="ap_evt_zoltan_toll_c3_text" language="it">L'ufficiale annota il tuo rifiuto senza commenti e ti fa passare. Gli Zoltan annotano tutto.</text>
+<text name="ap_evt_another_world_void" language="it">Scaricarla nel vuoto.</text>
+<text name="ap_evt_another_world_void_text" language="it">Smonti il relè e lasci che la sovratensione si disperda nel vuoto. Uscendo, forma un arco sul tuo scafo. Il recupero vale buoni rottami.</text>
+<text name="ap_evt_zoltan_toll_c2_text" language="it">L'ufficiale conferma che è un tuo diritto e ti lascia prendere due celle dalla riserva dell'Anello. La scorta ti scansiona all'uscita, un po' troppo da vicino: qualcosa nello scafo cede.</text>

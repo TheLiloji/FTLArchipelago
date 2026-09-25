@@ -1,12 +1,17 @@
 # Credits and third-party notices — ArchipelagoFTL
 
+## FTL Archipelago logo, by Trapper444
+
+The logo (Archipelago's six circles carrying FTL's system icons) was drawn by **Trapper444** for this
+project. The original is `mod/art/ftl_archipelago_logo.png` in the repository;
+`mod/tools/gen_logo_art.py` builds the in-game copies from it: `img/ap_logo.png` (main menu and
+start-of-run menu), `img/upgradeUI/Equipment/aug_lock.png` and `img/systemUI/weapbox_icon_W_ap.png`.
+
 ## Archipelago logo
 
-`img/weapons/ap_gift_strip1.png`, `img/upgradeUI/Equipment/aug_lock.png` and
-`img/systemUI/weapbox_icon_W_ap.png` are resized copies of `data/icon.png` from the Archipelago
-project, used to mark Archipelago content inside the game so that a player can recognise it at a
-glance. The other Archipelago-themed images in `img/weapons/` and `img/stars/` are original or FTL-derived art
-and do not reuse the logo.
+The shop crates and packages in `img/weapons/` show a small copy of `data/icon.png` from the
+Archipelago project, so that a player recognises Archipelago content at a glance. The crate frames
+and the images in `img/stars/` are original or FTL-derived art.
 
 Archipelago is distributed under the MIT License:
 

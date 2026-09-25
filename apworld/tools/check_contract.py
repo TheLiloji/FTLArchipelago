@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -27,7 +29,6 @@ def check(condition: bool, message: str) -> bool:
 
 
 def load_data_module():
-
     import types
 
     path = APWORLD / "ftl" / "data.py"
@@ -44,11 +45,12 @@ def dump_mod_contract() -> dict:
         capture_output=True, text=True, check=True,
     ).stdout
 
-    scratch = Path("/tmp") / "ftlap_contract_dump.lua"
+    scratch = Path(tempfile.gettempdir()) / "ftlap_contract_dump.lua"
     scratch.write_text(assembled, encoding="utf-8")
 
     result = subprocess.run(
-        ["ftlman", "lua-run", str(scratch)], capture_output=True, text=True,
+        [os.environ.get("FTLMAN", "ftlman"), "lua-run", str(scratch)],
+        capture_output=True, text=True, encoding="utf-8",
     )
     output = result.stdout + result.stderr
     match = re.search(r"CONTRACT_DUMP_BEGIN\n(.*?)\nCONTRACT_DUMP_END", output, re.S)
@@ -60,7 +62,6 @@ def dump_mod_contract() -> dict:
 
 
 def load_options_module():
-
     import importlib
     import importlib.util
     import os
@@ -118,7 +119,6 @@ LUA_NON_BLUEPRINTS = {
 
 
 def mod_declared_names() -> set[str]:
-
     names: set[str] = set()
     data_dir = MOD / "ArchipelagoFTL" / "data"
     for path in data_dir.glob("*.append"):

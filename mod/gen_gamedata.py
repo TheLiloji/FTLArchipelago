@@ -56,7 +56,6 @@ def lua_string_list(values, indent="        "):
 
 
 def collect_systems():
-
     systems = {}
     for filename in ("blueprints.xml", "dlcBlueprints.xml", "dlcBlueprintsOverwrite.xml"):
         root = parse(filename)
@@ -134,7 +133,7 @@ def main():
         "",
     ]
 
-    OUT.write_text("\n".join(lines), encoding="utf-8")
+    OUT.write_text("\n".join(lines), encoding="utf-8", newline="\n")
     print(f"written: {OUT}")
     print(f"  {len(ships)} ships, {sum(ships.values())} layouts")
     print(f"  {len(general)} general achievements, {sum(len(v) for v in per_ship.values())} ship achievements")

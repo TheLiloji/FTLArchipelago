@@ -1,4 +1,3 @@
-
 from __future__ import annotations
 
 import re
@@ -662,7 +661,7 @@ class DeathLinkEffect(Choice):
     and never kills your last crew member.
 
     major_incident: a breach AND a fire in one of your system rooms, and that system takes
-    damage. This is the default, and it is by far the harshest of the four - it cannot destroy
+    damage. This is the default, and it is by far the harshest of them all - it cannot destroy
     your ship, but a breach and a fire in your shield room mid-fight can absolutely lose you the
     run. That is the point.
     crew_member: one random crew member dies. Never the last one.
@@ -685,100 +684,6 @@ class DeathLinkEffect(Choice):
     option_major_incident = 4
     option_boarding = 5
     default = option_major_incident
-
-
-class ProgressiveCrewHealth(Toggle):
-    """Whether your crew starts the multiworld weakened and heals back through items.
-
-    Not applied by the mod yet. Leave it off unless you are testing generation.
-
-    When on, every crew member's maximum health is multiplied by Crew Health Floor, and
-    "Progressive Crew Health" items raise that multiplier 25 points at a time, up to 200%. It is
-    a multiplier and not a fixed number on purpose: a Rock has 150 health and a Human 100, and
-    flattening that would erase what makes the species different.
-    """
-
-    display_name = "Progressive Crew Health"
-
-
-CREW_HEALTH_STEP_PERCENT = 25
-CREW_HEALTH_CAP_PERCENT = 200
-
-
-class CrewHealthFloor(Range):
-    """Percentage of their normal maximum health your crew starts the multiworld with.
-
-    Only used when Progressive Crew Health is on, and not applied by the mod yet.
-
-    The lower it is, the more "Progressive Crew Health" items exist. Below 50 a crew member dies
-    to the first fire, in the very sectors where you have neither an upgraded Medbay nor a Clone
-    Bay, so 50 is the recommended floor rather than the lowest one allowed.
-    """
-
-    display_name = "Crew Health Floor"
-    range_start = 25
-    range_end = 100
-    default = 50
-
-
-class ProgressiveSkills(Toggle):
-    """Whether your crew needs items before it may train its skills.
-
-    Not applied by the mod yet. Leave it off unless you are testing generation.
-
-    When on, each of the six skills (piloting, engines, shields, weapons, repair, combat) gets
-    two progressive items: the first opens the half star, the second the full star. FTL has no
-    cancellable skill-up event, so the mod will have to undo training rather than refuse it, and
-    you may briefly see the level-up animation before it is taken back.
-    """
-
-    display_name = "Progressive Skills"
-
-
-class SkillChecks(Choice):
-    """Whether reaching a skill milestone for the first time is a check.
-
-    Not applied by the mod yet, and the locations it describes do not exist in the seed. Leave
-    it disabled unless you are testing generation.
-
-    disabled: no skill checks.
-    per_species: one check per species, the first time any of its members earns any star.
-    per_skill: one check per skill, the first time any crew member earns a star in it.
-    crossed: species and skill crossed, restricted to non-human species and to the full star.
-
-    The crossed grid in full would be 108 locations, more than the rest of the game put
-    together, which is why none of these three is that grid.
-    """
-
-    display_name = "Skill Checks"
-    option_disabled = 0
-    option_per_species = 1
-    option_per_skill = 2
-    option_crossed = 3
-    default = option_disabled
-
-
-class DeathTypeChecks(Toggle):
-    """Whether losing a crew member to fire, to vacuum, to boarders and so on is a check.
-
-    Not applied by the mod yet, and the locations it describes do not exist in the seed. Leave
-    it off unless you are testing generation.
-
-    FTL records no cause of death, so the mod has to guess it from the state of the room at the
-    moment the crew member dies. A boarder burning in a breached room could match three causes
-    at once, and a fixed priority will decide between them.
-    """
-
-    display_name = "Death Type Checks"
-
-
-PLANNED_OPTION_NAMES: tuple[str, ...] = (
-    "progressive_crew_health",
-    "crew_health_floor",
-    "progressive_skills",
-    "skill_checks",
-    "death_type_checks",
-)
 
 
 class ModLanguage(Choice):
@@ -868,11 +773,6 @@ class FTLOptions(PerGameCommonOptions):
     engines_blueprint_logic: EnginesBlueprintLogic
     weapons_blueprint_logic: WeaponsBlueprintLogic
 
-    progressive_crew_health: ProgressiveCrewHealth
-    crew_health_floor: CrewHealthFloor
-    progressive_skills: ProgressiveSkills
-    skill_checks: SkillChecks
-    death_type_checks: DeathTypeChecks
 
 
 ftl_option_groups = [
@@ -905,34 +805,20 @@ ftl_option_groups = [
         [DeathLinkTrigger, DeathLinkEffect, EnergyLink, TrapLink],
     ),
     OptionGroup("Logic", [SectorLogic, *BLUEPRINT_LOGIC_OPTIONS]),
-    OptionGroup(
-        "Planned features (not applied yet)",
-        [
-            ProgressiveCrewHealth,
-            CrewHealthFloor,
-            ProgressiveSkills,
-            SkillChecks,
-            DeathTypeChecks,
-        ],
-        start_collapsed=True,
-    ),
 ]
 
 
 def mod_language(options: FTLOptions) -> str | None:
-
     return ModLanguage.MOD_CODES.get(options.mod_language.value)
 
 
 def apply_sector_floor(options: FTLOptions, sectors: Iterable[int]) -> tuple[int, ...]:
-
     floor = options.sectorsanity_first_sector.value
     ceiling = options.sectorsanity_last_sector.value
     return tuple(sector for sector in sectors if floor <= sector <= ceiling)
 
 
 def goal_layouts(options: FTLOptions) -> tuple[str, ...] | None:
-
     if options.goal != Goal.option_victory_selection:
         return None
 
@@ -953,18 +839,15 @@ def goal_layouts(options: FTLOptions) -> tuple[str, ...] | None:
 
 
 def goal_victory_count(options: FTLOptions) -> int:
-
     layouts = goal_layouts(options)
     return len(layouts) if layouts is not None else options.victories_required.value
 
 
 def archives_required(options: FTLOptions) -> int:
-
     return min(options.archives_required.value, options.archives.value)
 
 
 def blueprint_logic(options: FTLOptions) -> dict[str, str]:
-
     if not options.system_blueprints:
         return {}
     return {
@@ -974,14 +857,12 @@ def blueprint_logic(options: FTLOptions) -> dict[str, str]:
 
 
 def blueprints_required_to_fly(options: FTLOptions) -> tuple[str, ...]:
-
     return tuple(
         system for system, value in blueprint_logic(options).items() if value == "required"
     )
 
 
 def blueprints_gating_layout(options: FTLOptions, layout: data.Layout) -> tuple[str, ...]:
-
     start_systems = frozenset(layout.start_systems)
     return tuple(
         data.BLUEPRINT_ITEM_NAMES[system]
@@ -1013,16 +894,6 @@ def blueprints_placed_early(options: FTLOptions) -> tuple[str, ...]:
     )
 
 
-def enabled_planned_options(options: FTLOptions) -> tuple[str, ...]:
-
-    touched = []
-    for name in PLANNED_OPTION_NAMES:
-        option = getattr(options, name)
-        if option.value != type(option).default:
-            touched.append(name)
-    return tuple(touched)
-
-
 def _field_name(option: type[Choice]) -> str:
     return f"{option.system}_blueprint_logic"  # type: ignore[attr-defined]
 
@@ -1043,10 +914,6 @@ def _check() -> None:
                 f"is {declared.get(field_name)!r}"
             )
 
-    for name in PLANNED_OPTION_NAMES:
-        if name not in declared:
-            raise ValueError(f"PLANNED_OPTION_NAMES cites {name!r}, missing from FTLOptions")
-
     shorts = [ship.display.split()[0] for ship in data.SHIPS]
     if len(set(shorts)) != len(shorts):
         raise ValueError(f"ambiguous ship aliases: {sorted(shorts)}")
@@ -1058,11 +925,6 @@ def _check() -> None:
     for key in collisions:
         if _LAYOUT_SHORT_NAMES[key] is not _LAYOUT_BY_DISPLAY[key]:
             raise ValueError(f"layout name {key!r} refers to two different layouts")
-
-    if not 0 < CREW_HEALTH_STEP_PERCENT <= CREW_HEALTH_CAP_PERCENT - CrewHealthFloor.range_end:
-        raise ValueError(
-            "the crew HP tier leaves no item to create at the highest floor"
-        )
 
 
 _check()

@@ -1,4 +1,3 @@
-
 from __future__ import annotations
 
 from pathlib import Path
@@ -170,7 +169,6 @@ class TestContextCHardConstraints(TestCase):
                 self.assertLessEqual(len(addressed), 200, f"{name}: seed too big")
 
     def test_a_lost_run_never_costs_a_check(self) -> None:
-
         known_groups = {
             data.GROUP_SECTORS, data.GROUP_VICTORIES, data.GROUP_SHIP_ACHIEVEMENTS,
             data.GROUP_GENERAL_ACHIEVEMENTS, data.GROUP_SHOP_SLOTS, data.GROUP_SYSTEMS,

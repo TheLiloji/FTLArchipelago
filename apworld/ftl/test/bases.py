@@ -1,4 +1,3 @@
-
 from __future__ import annotations
 
 from BaseClasses import CollectionState
@@ -13,7 +12,6 @@ class FTLTestBase(WorldTestBase):
     world: FTLWorld
 
     def addressed_locations(self):
-
         return [
             location for location in self.multiworld.get_locations(self.player)
             if location.address is not None
@@ -26,7 +24,6 @@ class FTLTestBase(WorldTestBase):
         ]
 
     def test_the_seed_can_be_beaten_by_playing_it(self) -> None:
-
         if not self.run_default_tests:
             self.skipTest("class without options: nothing generated to check")
         if not getattr(self, "auto_construct", True):

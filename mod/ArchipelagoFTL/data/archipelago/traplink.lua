@@ -1,4 +1,3 @@
-
 local TAG = "[AP-traplink] "
 
 local function trapLog(message)

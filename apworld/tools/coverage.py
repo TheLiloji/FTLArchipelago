@@ -11,7 +11,6 @@ APWORLD = HERE.parent / "ftl"
 
 
 def executable_lines(path: Path) -> set[int]:
-
     code = compile(path.read_text(encoding="utf-8"), str(path), "exec")
     lines: set[int] = set()
     stack: list[CodeType] = [code]

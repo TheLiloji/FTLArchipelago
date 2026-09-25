@@ -1,4 +1,3 @@
-
 from __future__ import annotations
 
 import os
@@ -56,7 +55,6 @@ class TestShopItemsLocked(FTLTestBase):
             self.assertIn(blueprint, unlockable, blueprint)
 
     def test_shop_items_are_never_progression(self) -> None:
-
         for item in self.world.enabled_items:
             if item.kind == data.KIND_SHOP:
                 self.assertEqual(item.classification, "useful", item.name)
@@ -91,7 +89,6 @@ class TestLinks(FTLTestBase):
         self.assertEqual(links["trap"]["enabled"], True)
 
     def test_the_old_trigger_names_still_read(self) -> None:
-
         from ..options import DeathLinkTrigger
 
         for old_name in ("run_lost", "hull_destroyed_only", "any_crew_death"):
@@ -103,7 +100,6 @@ class TestLinks(FTLTestBase):
         self.assertEqual(DeathLinkTrigger.default, DeathLinkTrigger.option_both)
 
     def test_death_link_trigger_is_a_string_and_not_an_index(self) -> None:
-
         links = self.world.fill_slot_data()["links"]
         self.assertIsInstance(links["death"]["trigger"], str)
         self.assertIsInstance(links["death"]["effect"], str)
@@ -123,7 +119,6 @@ class TestSelectionIsReproducible(FTLTestBase):
     options = {"shop_weapons": 15, "shop_drones": 0, "shop_augments": 0}
 
     def test_the_same_options_and_seed_give_the_same_objects(self) -> None:
-
         first = [
             item.blueprint
             for item in items.selected_shop_items(self.world.options, random.Random(1234))
@@ -136,7 +131,6 @@ class TestSelectionIsReproducible(FTLTestBase):
         self.assertTrue(first, "the selection is empty: the test would pass for nothing")
 
     def test_two_processes_choose_the_same_objects(self) -> None:
-
         snippet = (
             "import os, sys, random;"
             "sys.path.insert(0, os.environ['AP_SOURCE']);"
@@ -190,7 +184,6 @@ class TestShopChecks(FTLTestBase):
         self.assertEqual(len(shop), 12)
 
     def test_they_are_reachable_from_the_start(self) -> None:
-
         state = self.multiworld.get_all_state(False)
         for location in self.multiworld.get_locations(self.player):
             if location.name.startswith("Archipelago Shop "):

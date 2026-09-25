@@ -5,11 +5,15 @@ HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 OUT="${TMPDIR:-/tmp}/ftlap_tests.lua"
 LOG="${TMPDIR:-/tmp}/ftlap_checks.log"
 
-LOCK="${TMPDIR:-/tmp}/ftl-archipelago-install.lock"
-exec 9>"$LOCK"
-if ! flock -w 600 9; then
-    echo "an install has held the lock for more than ten minutes: $LOCK" >&2
-    exit 2
+export PYTHONUTF8=1
+
+if command -v flock >/dev/null 2>&1; then
+    LOCK="${TMPDIR:-/tmp}/ftl-archipelago-install.lock"
+    exec 9>"$LOCK"
+    if ! flock -w 600 9; then
+        echo "an install has held the lock for more than ten minutes: $LOCK" >&2
+        exit 2
+    fi
 fi
 
 : > "$LOG"
@@ -41,7 +45,7 @@ runcheck python3 "$HERE/check_keys.py" || exit 2
 
 python3 "$HERE/build.py" "$@" > "$OUT" || exit 2
 
-OUTPUT="$(ftlman lua-run "$OUT" 2>&1 | grep -v "Failed to get locale")"
+OUTPUT="$("${FTLMAN:-ftlman}" lua-run "$OUT" 2>&1 | grep -v "Failed to get locale")"
 echo "$OUTPUT"
 
 if ! grep -q "^TESTS OK" <<< "$OUTPUT"; then

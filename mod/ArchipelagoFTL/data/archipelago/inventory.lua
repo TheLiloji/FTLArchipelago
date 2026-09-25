@@ -1,4 +1,3 @@
-
 local TAG = "[AP-inv] "
 
 local function invLog(message)

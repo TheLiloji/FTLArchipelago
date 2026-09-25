@@ -1,4 +1,3 @@
-
 local TAG = "[AP-net] "
 
 local function netLog(message)
@@ -37,6 +36,7 @@ function apNetResetForTesting()
     state.scoutsPending = false
     state.scouted = {}
     state.seedRefused = false
+    state.refusal = nil
     if _G.apNetForgetDurableStore then _G.apNetForgetDurableStore() end
 end
 
@@ -65,6 +65,7 @@ function apNetConnect(uri, slot, password)
         return false
     end
     state.connecting = true
+    state.refusal = nil
     state.unreachableShown = false
     state.unreachableSince = nil
     state.seedRefused = false
@@ -258,7 +259,7 @@ local function meta(key)
     local ap = store()
     if ap ~= nil then
         local ok, value = pcall(function() return ap:RecallState(key) end)
-        if ok then return tonumber(value) or 0 end
+        if ok and value ~= nil and value ~= "" then return tonumber(value) or 0 end
     end
     local ok, value = pcall(function() return Hyperspace.metaVariables[key] end)
     return ok and tonumber(value) or 0
@@ -282,6 +283,20 @@ end
 
 function apNetRemember(key, value)
     writeMeta(key, value)
+end
+
+function apNetRememberText(key, value)
+    local ap = store()
+    if ap ~= nil then
+        pcall(function() ap:RememberState(key, tostring(value)) end)
+    end
+end
+
+function apNetRecallText(key)
+    local ap = store()
+    if ap == nil then return "" end
+    local ok, value = pcall(function() return ap:RecallState(key) end)
+    return ok and value ~= nil and tostring(value) or ""
 end
 
 function apNetRememberSeed(fingerprint)
@@ -445,7 +460,7 @@ local function onItem(event)
         return
     end
     if tostring(event.name) == UNKNOWN then
-        netLog("item received before the data packet, held for the next connection")
+        netLog("item received before the data packet, asked again once it is in")
         return
     end
     if event.index >= 0 then
@@ -492,6 +507,7 @@ local REFUSAL_KEYS = {
 local function onRefused(event)
     state.connecting = false
     state.connected = false
+    state.unreachableSince = nil
     state.retryAt = nil
     state.retries = 0
     state.lastConnection = nil
@@ -499,20 +515,24 @@ local function onRefused(event)
     local reasons = tostring(event.extra or "")
     netLog("connection refused by the server: " .. (reasons ~= "" and reasons or "no reason given"))
 
-    local said = false
+    local said = {}
     for reason in reasons:gmatch("[^,]+") do
         reason = reason:match("^%s*(.-)%s*$")
         local key = REFUSAL_KEYS[reason]
-        if key ~= nil and _G.apNotifyStatus then
-            _G.apNotifyStatus(apT(key))
-            said = true
-        elseif reason ~= "" and _G.apNotifyStatus then
-            _G.apNotifyStatus(apT("net.refused.other", { reason = reason }))
-            said = true
+        if key ~= nil then
+            said[#said + 1] = apT(key)
+        elseif reason ~= "" then
+            said[#said + 1] = apT("net.refused.other", { reason = reason })
         end
     end
-    if not said and _G.apNotifyStatus then
-        _G.apNotifyStatus(apT("net.refused.unknown"))
+    if #said == 0 then
+        said[1] = apT("net.refused.unknown")
+    end
+    state.refusal = said[1]
+    if _G.apNotifyStatus then
+        for _, line in ipairs(said) do
+            _G.apNotifyStatus(line)
+        end
     end
 end
 

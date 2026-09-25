@@ -1,4 +1,3 @@
-
 from __future__ import annotations
 
 import logging
@@ -69,13 +68,6 @@ class FTLWorld(World):
         for message in self.logic.warnings:
             logging.getLogger("FTL").warning("FTL (%s) : %s", self.player_name, message)
 
-        planned = options.enabled_planned_options(self.options)
-        if planned:
-            logging.getLogger("FTL").warning(
-                "FTL (%s): %s set, but the mod does not apply them yet; "
-                "they will have no effect in game.", self.player_name, ", ".join(planned)
-            )
-
         for name in self.logic.starting_blueprints:
             self.push_precollected(self.create_item(name))
 
@@ -83,7 +75,6 @@ class FTLWorld(World):
             self.multiworld.local_early_items[self.player][name] = 1
 
     def _resolve_start_ship(self) -> data.Ship:
-
         by_slot = {ship.slot: ship for ship in data.SHIPS}
         slot = self.options.start_ship.value
         if slot not in by_slot:  # pragma: no cover
@@ -91,7 +82,6 @@ class FTLWorld(World):
         return by_slot[slot]
 
     def _starting_keys(self) -> tuple[str, ...]:
-
         always = {
             data.LAYOUTS_BY_BLUEPRINT[blueprint].ship for blueprint in data.ALWAYS_UNLOCKED_LAYOUTS
         }
@@ -100,7 +90,6 @@ class FTLWorld(World):
 
     @property
     def precollected_item_names(self) -> list[str]:
-
         return [item.name for item in self.multiworld.precollected_items[self.player]]
 
     def create_regions(self) -> None:
@@ -136,7 +125,6 @@ class FTLWorld(World):
         rules.set_rules(self)
 
     def fill_slot_data(self) -> Mapping[str, Any]:
-
         descriptors = {item.name: data.item_descriptor(item) for item in self._items_in_seed()}
 
         kinds = {descriptor["k"] for descriptor in descriptors.values()}
@@ -168,7 +156,6 @@ class FTLWorld(World):
         return slot_data
 
     def _balance_shop_and_filler(self) -> None:
-
         items_needed = items.items_wanting_a_place(self)
         non_shop_checks = sum(
             1 for location in self.created_locations if location.shop_slot is None
@@ -192,7 +179,6 @@ class FTLWorld(World):
             self.created_locations = locations.selected_locations(self.options)
 
     def _shop_for_the_mod(self) -> dict[str, Any]:
-
         mode = self.options.shop_unlock_mode.current_key
         shop: dict[str, Any] = {
             "mode": mode,
@@ -205,7 +191,6 @@ class FTLWorld(World):
         return shop
 
     def _shop_offers(self) -> dict[str, dict[str, Any]]:
-
         spheres = pricing.spheres_of(self.multiworld)
         offers: dict[str, dict[str, Any]] = {}
         for location in self.created_locations:
@@ -224,7 +209,6 @@ class FTLWorld(World):
         return offers
 
     def _links_for_the_mod(self) -> dict[str, Any]:
-
         return {
             "death": {
                 "enabled": bool(self.options.death_link),
@@ -240,7 +224,6 @@ class FTLWorld(World):
         }
 
     def _goal_for_the_mod(self) -> dict[str, Any]:
-
         chosen = options.goal_layouts(self.options)
         goal: dict[str, Any] = {
             "kind": "victories",
@@ -264,13 +247,11 @@ class FTLWorld(World):
                 yield item.name
 
     def _items_in_seed(self) -> tuple[data.Item, ...]:
-
         names = {item.name for item in self.enabled_items}
         names.update(name for name in self._player_item_names() if name in data.ITEMS_BY_NAME)
         return tuple(item for item in data.ITEMS if item.name in names)
 
     def _cap_totals(self) -> dict[str, int]:
-
         totals: dict[str, int] = {}
         for name in self._player_item_names():
             entry = data.ITEMS_BY_NAME.get(name)
@@ -279,7 +260,6 @@ class FTLWorld(World):
         return totals
 
     def _check_key_table(self) -> dict[str, str]:
-
         table: dict[str, str] = {}
         for location in self.get_locations():
             if location.address is None:

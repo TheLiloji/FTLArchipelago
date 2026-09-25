@@ -1,4 +1,3 @@
-
 local TAG = "[AP-energy] "
 
 local function energyLog(message)
@@ -61,8 +60,10 @@ local function humanJoules(joules)
 end
 
 _G.apEnergyLinkHuman = humanJoules
+_G.apEnergyLinkJoulesPerFuel = JOULES_PER_FUEL
 
-function apEnergyLinkDeposit(joules)
+-- whole: skip the deposit loss (energy going back to the pool, or already net).
+function apEnergyLinkDeposit(joules, whole)
     if joules <= 0 then
         return 0
     end
@@ -70,7 +71,7 @@ function apEnergyLinkDeposit(joules)
         energyLog("energy link disabled by the seed: nothing deposited")
         return 0
     end
-    local net = math.floor(joules * (1 - DEPOSIT_LOSS))
+    local net = whole and math.floor(joules) or math.floor(joules * (1 - DEPOSIT_LOSS))
     if net <= 0 then
         return 0
     end
@@ -204,14 +205,17 @@ function apEnergyLinkGranted(joules)
 
     local units, remainder = joulesToFuel(joules)
     if units <= 0 then
-        apEnergyLinkDeposit(joules)
+        apEnergyLinkDeposit(joules, true)
         energyLog("granted " .. humanJoules(joules) .. ", not enough for one unit: returned")
+        if _G.apNotifyStatus then
+            _G.apNotifyStatus(apT("energylink.empty"))
+        end
         return 0
     end
 
     local player = Hyperspace.ships.player
     if player == nil then
-        apEnergyLinkDeposit(joules)
+        apEnergyLinkDeposit(joules, true)
         return 0
     end
 
@@ -220,7 +224,7 @@ function apEnergyLinkGranted(joules)
     state.pool = math.max(0, state.pool - joules)
 
     if remainder > 0 then
-        apEnergyLinkDeposit(remainder)
+        apEnergyLinkDeposit(remainder, true)
     end
 
     energyLog("received " .. units .. " fuel unit(s) from the shared pool")

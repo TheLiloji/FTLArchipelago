@@ -35,7 +35,15 @@ SRC="$ROOT/mod/ArchipelagoFTL/data"
 events=$(grep -c '<event name="AP_EVT_' "$SRC/events.xml.append")
 texts=$(grep -c '<text name="ap_' "$SRC/text_misc.xml.append")
 placements=$(grep -c '<mod-append:event name="AP_EVT_' "$SRC/sector_data.xml.append")
-modules=$(ls "$SRC/archipelago"/*.lua | wc -l)
+DEBUG_ONLY="testkeys.lua gifts_demo.lua"
+if [ -f "$D/archipelago/testkeys.lua" ]; then
+    build="debug"
+    modules=$(ls "$SRC/archipelago"/*.lua | wc -l)
+else
+    build="player"
+    modules=$(ls "$SRC/archipelago"/*.lua | grep -vcE "/(testkeys|gifts_demo)\.lua$")
+fi
+echo "  installed build: $build"
 
 expect "events in events.xml"          "$(grep -c '<event name="AP_EVT_' "$D/events.xml")" "$events"
 expect "english texts in text_misc.xml" "$(grep -o 'name="ap_[a-z0-9_.]*"' "$D/text_misc.xml" | wc -l)" "$texts"
@@ -52,6 +60,7 @@ stale=0
 first=""
 for src in "$SRC/archipelago"/*.lua; do
     name="$(basename "$src")"
+    [ "$build" = player ] && [[ " $DEBUG_ONLY " == *" $name "* ]] && continue
     installed="$D/archipelago/$name"
     if [ ! -f "$installed" ]; then
         stale=$((stale + 1))
@@ -61,6 +70,11 @@ for src in "$SRC/archipelago"/*.lua; do
         [ -z "$first" ] && first="$name"
     fi
 done
+if [ "$build" = player ] && grep -qE "testkeys|gifts_demo" "$D/hyperspace.xml"; then
+    echo "  player build still loads a debug script from hyperspace.xml" >&2
+    failures=$((failures + 1))
+fi
+
 if [ "$stale" -eq 0 ]; then
     printf '  %-38s %s\n' "Lua modules identical to source" "$modules"
 else

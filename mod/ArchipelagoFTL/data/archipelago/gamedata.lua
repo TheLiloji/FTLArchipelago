@@ -1,4 +1,3 @@
-
 local gamedata = {}
 
 gamedata.ships = {

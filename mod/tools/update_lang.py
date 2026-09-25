@@ -64,7 +64,7 @@ def apply(language, additions=None, replacements=None, renames=None, removals=No
     after = json.loads(final)
     if after["strings"] != expected or after.get("language") != before.get("language"):
         raise ValueError(f"{language}: the resulting file does not match the requested change")
-    path.write_text(final, encoding="utf-8")
+    path.write_text(final, encoding="utf-8", newline="\n")
 
 
 def from_spec(spec):

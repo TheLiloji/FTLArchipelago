@@ -57,7 +57,6 @@ def load_options(path: Path) -> tuple[str, dict]:
 
 
 def spheres(multiworld, player: int) -> list[list[str]]:
-
     from BaseClasses import CollectionState
 
     state = CollectionState(multiworld)
@@ -129,7 +128,6 @@ def estimate_hours(
 
 
 def checks_per_hour(options, by_family: collections.Counter, level: str) -> float:
-
     depth = DEPTH_REACHED[level]
     minutes_per_run = depth * MINUTES_PER_SECTOR + MINUTES_BETWEEN_RUNS
 
@@ -143,14 +141,12 @@ def checks_per_hour(options, by_family: collections.Counter, level: str) -> floa
 
 
 def worst_wait(options, by_family: collections.Counter, level: str) -> float:
-
     depth = DEPTH_REACHED[level]
     run_length = depth * MINUTES_PER_SECTOR
     floor = options.sectorsanity_first_sector.value
     ceiling = options.sectorsanity_last_sector.value
 
     def worst_for_a_phase(phase: int) -> float:
-
         instants: list[float] = []
         for sector in range(1, int(depth) + 1):
             minute = (sector - 1) * MINUTES_PER_SECTOR

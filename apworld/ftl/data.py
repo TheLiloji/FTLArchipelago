@@ -1,4 +1,3 @@
-
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -617,7 +616,6 @@ class Location:
 
 
 def item_descriptor(item: Item) -> dict[str, object]:
-
     descriptor: dict[str, object] = {"k": item.kind}
     if item.blueprint is not None:
         descriptor["bp"] = item.blueprint
@@ -1098,7 +1096,6 @@ def _check() -> None:
 
 
 def _check_vanilla_totals() -> None:
-
     expected = {
         "ships": (len(SHIPS), 10),
         "layouts": (len(LAYOUTS), 28),

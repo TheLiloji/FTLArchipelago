@@ -1,6 +1,5 @@
-
 local MOD_NAME = "ArchipelagoFTL"
-local MOD_VERSION = "0.0.1"
+local MOD_VERSION = "0.3.0"
 local TAG = "[AP] "
 
 local function apLog(message)
@@ -45,6 +44,18 @@ function apMenuSubScreen()
         end
     end
     return false
+end
+
+-- Mouse events carry window pixels, which only match the 1280x720 layout when the window is not scaled.
+function apMousePosition(x, y)
+    local ok, px, py = pcall(function()
+        local position = Hyperspace.Mouse.position
+        return position.x, position.y
+    end)
+    if ok and px ~= nil then
+        return px, py
+    end
+    return x, y
 end
 
 function apPauseMenuOpen()

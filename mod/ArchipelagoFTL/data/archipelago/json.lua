@@ -1,4 +1,3 @@
-
 local TAG = "[AP-json] "
 
 local ESCAPES = {

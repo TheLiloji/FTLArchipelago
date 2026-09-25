@@ -1,4 +1,3 @@
-
 from __future__ import annotations
 
 import dataclasses
@@ -42,7 +41,6 @@ class TestSourceManifest(unittest.TestCase):
 
 class TestOptionsSurvivePickle(unittest.TestCase):
     def test_every_default_can_be_pickled(self) -> None:
-
         hints = typing.get_type_hints(FTLOptions)
         for field in dataclasses.fields(FTLOptions):
             option = hints[field.name]

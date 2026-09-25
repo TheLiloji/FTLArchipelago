@@ -1,4 +1,3 @@
-
 _G.apCoverage = { calls = {}, names = {} }
 
 do

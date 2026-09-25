@@ -1,4 +1,3 @@
-
 local TAG = "[AP-check] "
 
 local function checkLog(message)
@@ -61,8 +60,59 @@ end
 local tutorialWarned = false
 local outOfSeed = {}
 
+-- A run only counts for a seed that was loaded when it started, and still is: a run played without one
+-- has none of the seed's limits. The seed is written in the run's own save, so Continue cannot bring
+-- back a run from another seed.
+local runSeed = nil
+local runFromSave = false
+local seedlessWarned = false
+
+local function savedRunSeed()
+    local ok, value = pcall(function() return Hyperspace.playerVariables.ap_run_seed end)
+    if ok and type(value) == "number" and value ~= 0 then
+        return value
+    end
+    return nil
+end
+
+local function saveRunSeed(seed)
+    pcall(function() Hyperspace.playerVariables.ap_run_seed = seed or 0 end)
+end
+
+local function seedLoaded()
+    local contract = _G.apContractState
+    return contract ~= nil and contract.connected == true
+end
+
+local function currentSeed()
+    return seedLoaded() and (_G.apSeedFingerprint and apSeedFingerprint() or 0) or nil
+end
+
+function apRunCounts()
+    if runFromSave then
+        runSeed = savedRunSeed()
+    end
+    local seed = currentSeed()
+    local started = runSeed == seed or (_G.apRunStartCheckForTesting == false and seed ~= nil)
+    if seed ~= nil and started then
+        return true
+    end
+    if not seedlessWarned then
+        seedlessWarned = true
+        checkLog("this run was not started with the current seed loaded: nothing it does counts")
+        if _G.apNotifyStatus then
+            _G.apNotifyStatus(apT("check.run_without_seed"))
+        end
+    end
+    return false
+end
+
 function apSendCheck(id, label)
     if sent[id] then
+        return false
+    end
+
+    if not apRunCounts() then
         return false
     end
 
@@ -75,7 +125,7 @@ function apSendCheck(id, label)
     end
 
     local name = _G.apLocationNameFor and _G.apLocationNameFor(id) or nil
-    local onServer = _G.apNetConnected and _G.apNetConnected()
+    local onServer = (_G.apNetConnected and _G.apNetConnected()) or _G.apSoloEnabled
     if name == nil and onServer and _G.apSeedKnowsLocations and _G.apSeedKnowsLocations() then
         if not outOfSeed[id] then
             outOfSeed[id] = true
@@ -155,6 +205,18 @@ function apAdoptCheckedLocations(names)
         end
     end
     return adopted
+end
+
+function apForgetChecks()
+    sent = {}
+    unsent = {}
+    outOfSeed = {}
+end
+
+function apRestoreSentChecks(keys)
+    for _, key in ipairs(keys) do
+        sent[key] = true
+    end
 end
 
 function apForgetChecksForTesting()
@@ -328,13 +390,74 @@ function apOnRunEnd(cause, detail)
     end)
 end
 
-script.on_init(function()
+-- Hyperspace loads the run's variables after on_init, so a continued run reads its seed later.
+script.on_init(function(newGame)
     lastSector = nil
     startingRaces = nil
+    seedlessWarned = false
+    runFromSave = newGame == false
+    if runFromSave then
+        runSeed = nil
+    else
+        runSeed = currentSeed()
+        saveRunSeed(runSeed)
+    end
 end)
+
+-- Solo started during a run that had no seed: the run takes this one.
+function apRunAdoptSeed()
+    if runFromSave then
+        runSeed = savedRunSeed()
+    end
+    if runSeed == nil then
+        runSeed = currentSeed()
+        runFromSave = false
+        saveRunSeed(runSeed)
+    end
+end
+
+function apRunSeedForTesting(value)
+    runSeed = value
+    runFromSave = false
+    seedlessWarned = false
+end
 
 local victories = {}
 local goalAnnounced = false
+local victoriesFor = nil
+
+local function victoryKey(layout)
+    return "ap_goalwin_" .. tostring(_G.apSeedFingerprint and apSeedFingerprint() or 0) .. "_" .. layout
+end
+
+local function allLayouts()
+    local layouts = {}
+    local data = _G.apGameData or {}
+    for _, ship in ipairs(data.ships or {}) do
+        for index = 0, (ship.layouts or 1) - 1 do
+            layouts[#layouts + 1] = ship.name .. ((data.variantSuffix or {})[index] or "")
+        end
+    end
+    return layouts
+end
+
+-- Victories that counted are kept per seed, so a goal of several wins can span several sessions.
+local function loadVictories()
+    local contract = _G.apContractState
+    if contract == nil or contract.connected ~= true or not _G.apNetRecall then
+        return
+    end
+    local seed = apSeedFingerprint()
+    if victoriesFor == seed then
+        return
+    end
+    victoriesFor = seed
+    for _, layout in ipairs(allLayouts()) do
+        if apNetRecall(victoryKey(layout)) == 1 then
+            victories[layout] = true
+        end
+    end
+end
 
 local LEVELS = { any = 0, normal = 1, hard = 2 }
 
@@ -385,7 +508,20 @@ function apGoalDifficulty()
     return apT(DIFFICULTY_NAME[LEVELS[requested]] or "difficulty.normal")
 end
 
+local function archivesMissing()
+    local archives = apGoalArchives()
+    if archives == nil then
+        return 0
+    end
+    return math.max(0, archives - apReceivedArchives())
+end
+
+function apGoalArchivesMissing()
+    return archivesMissing()
+end
+
 local function goalIsReached()
+    loadVictories()
     local goal = _G.apGoal and _G.apGoal() or nil
     if type(goal) ~= "table" or goal.kind ~= "victories" then
         return false, 0
@@ -420,6 +556,16 @@ local function goalIsReached()
     return counted >= (goal.count or 1), counted
 end
 
+function apGoalWonWith()
+    loadVictories()
+    local won = {}
+    for layout in pairs(victories) do
+        won[#won + 1] = layout
+    end
+    table.sort(won)
+    return won
+end
+
 function apGoalProgress()
     local goal = _G.apGoal and _G.apGoal() or nil
     if type(goal) ~= "table" or goal.kind ~= "victories" then
@@ -434,7 +580,11 @@ function apGoalProgress()
 end
 
 function apVictoryWith(layout)
+    loadVictories()
     if layout == nil or victories[layout] then
+        return
+    end
+    if not apRunCounts() then
         return
     end
 
@@ -449,6 +599,7 @@ function apVictoryWith(layout)
     end
 
     victories[layout] = true
+    if _G.apNetRemember then apNetRemember(victoryKey(layout), 1) end
 
     local reached, counted = goalIsReached()
     local goal = _G.apGoal and _G.apGoal() or nil
@@ -460,7 +611,12 @@ function apVictoryWith(layout)
 
     if not reached or goalAnnounced then
         if needed and _G.apNotifyStatus then
-            _G.apNotifyStatus(apT("goal.progress", { done = counted, total = needed }))
+            local missing = archivesMissing()
+            if counted >= needed and missing > 0 then
+                _G.apNotifyStatus(apT("goal.archives_missing", { n = missing, done = counted, total = needed }))
+            else
+                _G.apNotifyStatus(apT("goal.progress", { done = counted, total = needed }))
+            end
         end
         return
     end
@@ -501,6 +657,7 @@ function apChecksForgetSeed()
     unsent = {}
     outOfSeed = {}
     victories = {}
+    victoriesFor = nil
     goalAnnounced = false
     lastSector = nil
     checkLog("new seed: checks, victories and goal reset")
@@ -508,6 +665,7 @@ end
 
 function apVictoriesResetForTesting()
     victories = {}
+    victoriesFor = nil
     goalAnnounced = false
 end
 

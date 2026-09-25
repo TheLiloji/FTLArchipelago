@@ -93,6 +93,18 @@
     <event name="AP_EVT_ANOTHER_WORLD">
         <changeBackground>AP_BACKGROUND</changeBackground>
     </event>
+    <event name="AP_EVT_ZOLTAN_TITHE_LINK">
+        <changeBackground>AP_BACKGROUND</changeBackground>
+    </event>
+    <event name="AP_EVT_ZOLTAN_TOLL">
+        <changeBackground>AP_BACKGROUND</changeBackground>
+    </event>
+    <event name="AP_EVT_ANOTHER_WORLD_LINK">
+        <changeBackground>AP_BACKGROUND</changeBackground>
+    </event>
+    <event name="AP_EVT_ANOTHER_WORLD_PLAIN">
+        <changeBackground>AP_BACKGROUND</changeBackground>
+    </event>
 </events>
 
 <store>
@@ -315,6 +327,7 @@
     <script>data/archipelago/gamedata.lua</script>
     <script>data/archipelago/lang.lua</script>
     <script>data/archipelago/i18n.lua</script>
+    <script>data/archipelago/ui.lua</script>
     <script>data/archipelago/notify.lua</script>
     <script>data/archipelago/main.lua</script>
     <script>data/archipelago/runend.lua</script>
@@ -338,6 +351,7 @@
     <script>data/archipelago/solo_order.lua</script>
     <script>data/archipelago/solo.lua</script>
     <script>data/archipelago/hud.lua</script>
+    <script>data/archipelago/dashboard.lua</script>
     <script>data/archipelago/connect.lua</script>
     <script>data/archipelago/loadout.lua</script>
     <script>data/archipelago/testkeys.lua</script>

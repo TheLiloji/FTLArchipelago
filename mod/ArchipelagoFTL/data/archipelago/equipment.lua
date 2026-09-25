@@ -1,4 +1,3 @@
-
 local TAG = "[AP-equip] "
 
 local function equipLog(message)

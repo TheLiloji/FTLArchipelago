@@ -18,6 +18,9 @@ local function forMe(hint)
 end
 
 function apHintText(hint)
+    if hint.solo then
+        return apT("hint.received.solo", { item = hint.item, location = hint.location })
+    end
     if forMe(hint) then
         return apT("hint.received.mine", { item = hint.item, finder = hint.finder,
                                            location = hint.location })
@@ -27,6 +30,9 @@ function apHintText(hint)
 end
 
 function apHintLine(hint)
+    if hint.solo then
+        return apT("hud.hint.solo", { item = hint.item, location = hint.location })
+    end
     if forMe(hint) then
         return apT("hud.hint.mine", { item = hint.item, finder = hint.finder,
                                       location = hint.location })
@@ -80,7 +86,40 @@ local function alreadyHinted(name)
     return false
 end
 
+-- A check tied to a ship layout the player has not unlocked cannot be done yet.
+function apCheckPlayable(key)
+    local layout = tostring(key):match("^(PLAYER_SHIP_[%u%d_]+):")
+    if layout == nil then
+        return true
+    end
+    for _, name in ipairs(((_G.apInventory or {}).ships) or {}) do
+        if name == layout then return true end
+    end
+    return false
+end
+
+-- Hints point at checks the player can go and do now, when there are any.
+function apHintPick(candidates, keyOf)
+    local playable = {}
+    for _, candidate in ipairs(candidates) do
+        if apCheckPlayable(keyOf(candidate)) then playable[#playable + 1] = candidate end
+    end
+    local pool = #playable > 0 and playable or candidates
+    if #pool == 0 then
+        return nil
+    end
+    return pool[math.random(1, #pool)]
+end
+
 function apHintPurchase()
+    if _G.apSoloEnabled and _G.apSoloHint then
+        local entry = _G.apSoloHint(alreadyHinted)
+        if entry == nil then
+            return false
+        end
+        requested[entry.location] = true
+        return apHintReceived({ item = entry.item, location = entry.location, solo = true })
+    end
     if not (_G.apNetConnected and _G.apNetConnected()) or _G.apNetHintLocation == nil then
         return false
     end
@@ -90,17 +129,19 @@ function apHintPurchase()
         return false
     end
     local candidates = {}
+    local keys = {}
     for id, name in pairs(names) do
         local done = _G.apCheckAlreadySent and _G.apCheckAlreadySent(id)
         if not done and not alreadyHinted(name) then
             candidates[#candidates + 1] = name
+            keys[name] = id
         end
     end
     if #candidates == 0 then
         return false
     end
     table.sort(candidates)
-    local chosen = candidates[math.random(1, #candidates)]
+    local chosen = apHintPick(candidates, function(name) return keys[name] end)
     if _G.apNetHintLocation(chosen) ~= true then
         return false
     end

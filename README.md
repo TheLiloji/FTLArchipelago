@@ -1,118 +1,127 @@
-# FTL Archipelago
+<p align="center"><img src="docs/images/banner.png" alt="FTL Archipelago" width="620"></p>
 
-An [Archipelago](https://archipelago.gg) randomizer for **FTL: Faster Than Light** (Advanced Edition), built on
-[Hyperspace](https://github.com/FTL-Hyperspace/FTL-Hyperspace). The game really applies what you receive: ships
-unlock, systems are capped, shop items appear, traps go off.
+<h1 align="center">FTL Archipelago</h1>
 
-Status: works on **Linux** (FTL 1.6.13, Hyperspace 1.23.1), connected to a real Archipelago server.
+<p align="center">
+<b>FTL: Faster Than Light</b> in an <a href="https://archipelago.gg">Archipelago</a> multiworld.<br>
+Your ships, systems and weapons are scattered across your friends' games. Theirs are hidden in yours.
+</p>
 
-## Known limitations
+<p align="center">
+<a href="https://github.com/TheLiloji/FTLArchipelago/releases">Download</a> ·
+<a href="docs/wiki/Installing-on-Windows.md">Install on Windows</a> ·
+<a href="docs/wiki/Installing-on-Linux.md">Install on Linux</a> ·
+<a href="docs/wiki/Home.md">Wiki</a>
+</p>
 
-- **Windows is not supported.** The connection to the Archipelago server lives in a small C++ module added to
-  Hyperspace, and that module has only been built for Linux so far.
-- **A few options do nothing in game yet.** Progressive crew health, progressive skills, skill checks and
-  death-type checks are accepted by the generator but not wired into the mod. Their option pages say so.
-- **Prebuilt files are Linux only.** The GitHub release carries the patched Hyperspace library for FTL 1.6.13
-  (Linux), `ArchipelagoFTL.ftl` and `ftl.apworld`; everything can also be built from source as below.
+> **Beta.** Played from start to goal on Windows and Linux. Found something odd? Open an
+> [issue](https://github.com/TheLiloji/FTLArchipelago/issues) with your `FTL_HS.log`.
 
-## What is in the repo
+![Main menu](docs/images/main-menu.jpg)
 
-| Folder | What it is |
+## How it plays
+
+**You start with almost nothing.** One ship, few systems, and every other cruiser locked in the hangar.
+
+![Locked ships in the hangar](docs/images/hangar.jpg)
+
+**Every run you play sends items to the others.** Reaching a sector, installing a system, recruiting a new race,
+earning an achievement or beating the Flagship are all checks.
+
+**What they find for you arrives on its own.** A ship key opens a cruiser, a blueprint lets stores sell a system,
+a weapon lands on your ship and shows up more in stores.
+
+![Items arriving during a run](docs/images/in-game.jpg)
+
+**Each new run starts stronger.** Head starts give free system levels, and the start-of-run menu lets you bring
+one weapon, one drone and one crew member from everything you have collected.
+
+![The start-of-run menu](docs/images/start-menu.jpg)
+
+**ARCHIPELAGO beacons** appear on every sector map. They hold a shop full of packages for the other players
+(and some FOR YOU), or one of four small events: a relay, a Zoltan checkpoint, a Slug selling hints, a surge
+from another world.
+
+| | |
 |---|---|
-| `apworld/` | the Archipelago world (Python) |
-| `mod/` | the FTL mod (Lua + XML, loaded by Hyperspace) |
-| `hyperspace-patch/` | a small C++ module added to Hyperspace, it talks to the Archipelago server |
-| `presets/` | ready-to-use player YAML files |
-| `tests/` | `run_all.sh`, the entry point that runs every check |
+| ![ARCHIPELAGO beacons](docs/images/map.jpg) | ![The Archipelago shop](docs/images/shop.jpg) |
 
-## Checks (what you do in the game)
+**Press `TAB`** for the dashboard: your goal, your checks, what you received and your hints.
 
-| Check | Example |
-|---|---|
-| Reach a sector with a ship layout | Kestrel Cruiser A: Reach sector 5 |
-| Beat the flagship with a layout | Engi Cruiser B: Defeat the Flagship |
-| Ship achievements | Kestrel Cruiser: Full Arsenal |
-| General achievements | Achievement: Technophobia |
-| Install a system (or each level) | Install Cloaking |
-| First crew member of each race | First Zoltan aboard |
-| Archipelago shop (one beacon per sector) | Archipelago Shop 7 |
+![The dashboard](docs/images/dashboard.png)
 
-## Items (what you receive)
+**Traps** (if the seed has them): fire, hull breach, fuel leak, system damage, a boarding party, the rebel fleet
+getting closer. They wait for a quiet beacon and can never destroy your ship on their own.
 
-| Item | What it does |
-|---|---|
-| Ship keys and layouts | unlock ships and their Type B / C in the hangar |
-| System blueprints | allow buying a system in stores |
-| Progressive system upgrades | raise the max level of a system |
-| Weapons and drones (2 copies) | 1st: unlocked in stores and one given now, 2nd: in the start-of-run menu |
-| Augments | unlocked in stores |
-| Crew members (progressive) | 1st: joins your run, 2nd: in the start-of-run menu, 3rd: becomes an expert |
-| Head starts and bonuses | a free system level or reactor power at the start of every run |
-| Filler and traps | scrap, fuel, missiles, drone parts, and some traps |
+**Death Link, Energy Link, Trap Link** (optional): your deaths reach the other players and theirs hit you (a
+breach and a fire by default, never enough to destroy your ship), a fuel reserve is shared with everyone, and traps travel between
+games.
 
-The seed balances itself: if there are more items than checks, the Archipelago shop gets more slots; if there are
-more checks than items, more filler is added.
+**Losing a run only costs the run.** Everything you received stays.
 
-## Dependencies
+## How you win
 
-- **In game:** FTL: Faster Than Light 1.6.13 (Advanced Edition content on), the official
-  [Hyperspace](https://github.com/FTL-Hyperspace/FTL-Hyperspace) 1.23.1 release, this project's patched
-  Hyperspace library, and the `ArchipelagoFTL.ftl` mod, all applied with
-  [ftlman](https://github.com/afishhh/ftlman).
-- **To generate or host a seed:** [Archipelago](https://github.com/ArchipelagoMW/Archipelago) 0.6.7 or newer,
-  with `ftl.apworld` dropped into its `custom_worlds` folder.
-- **To build from source:** Docker (compiles the patched Hyperspace library) and clones of
-  [FTL-Hyperspace](https://github.com/FTL-Hyperspace/FTL-Hyperspace),
-  [apclientpp](https://github.com/black-sliver/apclientpp),
-  [wswrap](https://github.com/black-sliver/wswrap) and
-  [websocketpp](https://github.com/zaphoyd/websocketpp) in `vendor/`, plus Python 3.
+Beat the Flagship with several **different** ships: five by default, the seed decides. A seed can also ask for
+**Archives**, pieces scattered in the other players' worlds: then you need both the wins and enough Archives.
+The main menu always shows where you stand.
 
-## Install (Linux)
+## Checks
 
-1. Install [ftlman](https://github.com/afishhh/ftlman), use it to install the official Hyperspace 1.23.1 into
-   the game, and put `Hyperspace.ftl` (1.23.1) in `~/.local/share/ftl-mods/` as well.
-2. Clone the four C++ dependencies listed above into `vendor/`.
-3. Build the Hyperspace library with the Archipelago module and put it in place of the official one:
-   `hyperspace-patch/build-linux.sh --install` (uses Docker).
-4. Install the mod: `mod/install.sh`.
-5. Build the world into the `custom_worlds` folder of Archipelago:
-   `python3 apworld/tools/build_apworld.py --output <Archipelago>/custom_worlds/ftl.apworld`,
-   then generate as usual (the `presets/` files are a good start).
-6. Start FTL and fill the connection panel at the bottom left of the main menu.
+| What you do | Example | How many |
+|---|---|---|
+| Reach a sector with a ship layout | Kestrel Cruiser A: Reach sector 5 | 8 per layout, up to 224 |
+| Beat the Flagship with a layout | Engi Cruiser B: Defeat the Flagship | 1 per layout, up to 28 |
+| Install a system | Install Cloaking | 16, or 68 counting every level |
+| Recruit the first crew member of a race | First Zoltan aboard | 7 |
+| Earn a ship achievement | Kestrel Cruiser: Full Arsenal | 30 |
+| Earn a general achievement | Achievement: Technophobia | up to 21 |
+| Buy a package in the Archipelago shop | Archipelago Shop 7 | 20 or more |
 
-Exact commands and troubleshooting: `apworld/ftl/docs/setup_en.md`.
+Your YAML decides which of these are in the seed. A short seed has around 130 checks, a long one 300 and more.
 
-## Setting up an Archipelago game
+## Items
 
-Pick one of the `presets/` YAML files, change its `name:` line, and generate as usual with `ftl.apworld`
-installed. `apworld/ftl/docs/en_FTL Faster Than Light.md` explains what each option changes in game (it is
-also what Archipelago's WebHost serves as this world's game page); `apworld/ftl/docs/setup_en.md` covers
-installing everything and joining a room, including troubleshooting.
+| Item | How many | What it does |
+|---|---|---|
+| Ship keys | 10 | unlock a cruiser (Type A) in the hangar |
+| Layouts B and C | 18 | unlock the other layouts of a cruiser |
+| System blueprints | 16 | stores can now sell that system |
+| Progressive system upgrades | one per level | raise how far a system can be upgraded |
+| Head starts | 16 | a free level of that system at the start of every run |
+| Reactor Power | 8 | one more reactor bar at the start of every run |
+| Weapons | 37, twice each | 1st copy: one on board and more common in stores. 2nd: in the start-of-run menu |
+| Drones | 14, twice each | same as weapons |
+| Augments | 23 | one on board and more common in stores |
+| Crew members | 8 races | 1st: joins your run. 2nd: in the start-of-run menu. 3rd: becomes an expert |
+| Archives | 0 to 50 | needed for the goal, if the seed uses them |
+| Filler | | scrap, fuel, missiles, drone parts, hull repair, a new crew member |
+| Traps | 7 kinds | fire, hull breach, fuel leak, system damage, hull damage, boarding party, rebel fleet |
 
-## Tests
+## Getting started
 
-- `mod/test/run.sh`: the Lua mod against a simulated Hyperspace, plus static checks (language keys, glyphs,
-  events, wiring).
-- `apworld/run_tests.sh`: the Archipelago world (clones Archipelago's sources on first run).
-- `tests/run_all.sh`: both suites, the installed-mod check, presets and docs numbers. `FULL=1 tests/run_all.sh`
-  adds the long ones (option sweep, real multiworlds with other games).
+1. Download `ArchipelagoFTL.ftl` and the Hyperspace library for your system from the
+   [release](https://github.com/TheLiloji/FTLArchipelago/releases), then follow the install page for
+   [Windows](docs/wiki/Installing-on-Windows.md) or [Linux](docs/wiki/Installing-on-Linux.md).
+2. Make your YAML from a [preset](docs/wiki/Options.md). Whoever generates the seed needs `ftl.apworld`.
+3. Start FTL, type the server, the port and your slot name in the panel at the bottom left, and connect.
 
-A check that cannot run (no `ftl.dat`, no `ftlman`, a missing Python module) prints `SKIPPED: <reason>` and is
-listed at the end of the run as not verified, never counted as passed.
+![Connection panel](docs/images/connect-panel.jpg)
 
-## Contributing
+No server? **Solo mode** plays a real seed alone, one item per check.
 
-Contributions are welcome. The conventions: code, identifiers, logs and comments are in English (player-facing text goes through
-`mod/lang/*.json` instead, edited with `python3 mod/tools/update_lang.py` then `python3 mod/gen_lang.py`,
-never by hand); the tests above stay green; `apworld/ftl/docs/*.md` and this README get updated when behaviour
-changes.
+More in the wiki: [playing](docs/wiki/Playing.md), [options](docs/wiki/Options.md),
+[hosting a seed](docs/wiki/Hosting-a-seed.md), [FAQ](docs/wiki/FAQ.md).
 
 ## Languages
 
-The texts are written in French. The English, German, Spanish, Italian and Portuguese translations were made with
-AI and may have mistakes.
+English, French, Spanish, German, Italian and Portuguese, following FTL's own language. The French text was
+written by hand; the other translations were made with AI and may have mistakes, fixes are welcome.
 
 ## Credits
 
 The first design of the items and locations comes from the [FTL Manual by Et0san](https://github.com/Et0san/Manual)
-(MIT). Hyperspace is CC-BY-SA 4.0. See `apworld/ftl/LICENSE.md` and `mod/ArchipelagoFTL/CREDITS.md`.
+(MIT). The FTL Archipelago logo was drawn by Trapper444. Built on
+[FTL: Hyperspace](https://github.com/FTL-Hyperspace/FTL-Hyperspace) (CC-BY-SA 4.0). See
+`apworld/ftl/LICENSE.md` and `mod/ArchipelagoFTL/CREDITS.md`.
+
+Building from source and running the tests: [docs/BUILDING.md](docs/BUILDING.md).

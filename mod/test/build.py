@@ -16,7 +16,6 @@ ONE_LINE = re.compile(r"\bthen\b.+\bend\b")
 
 
 def instrument(source: str, module: str) -> tuple[str, list[str]]:
-
     lines: list[str] = []
     names: list[str] = []
     branches: list[str] = []
@@ -91,7 +90,6 @@ NOT_TESTED = {"testkeys.lua"}
 
 
 def order_from_hyperspace_xml() -> list[str]:
-
     xml = (ROOT / "ArchipelagoFTL" / "data" / "hyperspace.xml.append").read_text(encoding="utf-8")
     names = re.findall(r"<script>data/archipelago/([a-z0-9_]+\.lua)</script>", xml)
     return [name for name in names if name not in NOT_TESTED]
