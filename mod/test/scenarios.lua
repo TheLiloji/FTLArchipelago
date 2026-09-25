@@ -6086,3 +6086,18 @@ test("shop: joining a real game while solo mode is still on leaves solo behind",
         "a check does not restock the shop with solo packages marked FOR YOU")
     apNetResetForTesting()
 end)
+
+test("solo: starting it cancels a reconnection still pending from a lost server", function()
+    apNetResetForTesting()
+    connectWithShop(1)
+    sim.netEvent("disconnected", {})
+    sim.net.connected = false
+    sim.tick(1)
+    local before = sim.netCalls("Connect")
+    if not apSoloStart() then return end
+    sim.tick(60 * 70)
+    equals(sim.netCalls("Connect"), before, "no reconnection comes to load the old seed over solo")
+    check(_G.apSoloEnabled, "solo stays on")
+    apSoloStop()
+    apNetResetForTesting()
+end)
