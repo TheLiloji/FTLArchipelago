@@ -88,13 +88,17 @@ local function currentSeed()
     return seedLoaded() and (_G.apSeedFingerprint and apSeedFingerprint() or 0) or nil
 end
 
-function apRunCounts()
+function apRunMatchesSeed()
     if runFromSave then
         runSeed = savedRunSeed()
     end
     local seed = currentSeed()
     local started = runSeed == seed or (_G.apRunStartCheckForTesting == false and seed ~= nil)
-    if seed ~= nil and started then
+    return seed ~= nil and started
+end
+
+function apRunCounts()
+    if apRunMatchesSeed() then
         return true
     end
     if not seedlessWarned then

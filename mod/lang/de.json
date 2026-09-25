@@ -25,7 +25,7 @@
     "check.label.victory": "Sieg mit {ship}",
     "check.resent": "{n} Checks beim Server nachgeholt.",
     "check.resent.one": "{n} Check beim Server nachgeholt.",
-    "check.run_without_seed": "Beim Start dieses Laufs war kein Seed geladen: seine Checks und Siege zählen nicht. Verbinde dich zuerst im Hauptmenü.",
+    "check.run_without_seed": "Dieser Lauf hat nicht mit dem aktuellen Seed begonnen: seine Checks und Siege zählen nicht. Starte nach dem Verbinden ein neues Spiel. Gegenstände für den Lauf warten auf den nächsten.",
     "check.sent": "Check gesendet: {location}",
     "check.sent.many": "{n} Checks gesendet.",
     "check.victory.unknown_ship": "Sieg! Aber das Schiff wurde nicht erkannt, der Check ging nicht raus. Siehe FTL_HS.log.",

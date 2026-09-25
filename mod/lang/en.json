@@ -25,7 +25,7 @@
     "check.label.victory": "Victory with {ship}",
     "check.resent": "{n} checks caught up with the server.",
     "check.resent.one": "{n} check caught up with the server.",
-    "check.run_without_seed": "No seed was loaded when this run started: its checks and victories do not count. Connect from the main menu first.",
+    "check.run_without_seed": "This run did not start with the seed you are playing now: its checks and victories do not count. Start a new game once connected. Items for the run wait for the next one.",
     "check.sent": "Checked: {location}",
     "check.sent.many": "{n} checks sent.",
     "check.victory.unknown_ship": "Victory! But the ship was not recognised, so the check did not go out. See FTL_HS.log.",

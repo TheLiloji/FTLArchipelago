@@ -346,3 +346,26 @@ test("a wrong slot name is reported as such, not later as a silent server", func
     check(not shownKey("net.error.unreachable"), "and no 'server not answering' comes after it")
     apNetResetForTesting()
 end)
+
+test("a run that does not count keeps what it would use up for the next one", function()
+    _G.apRunStartCheckForTesting = nil
+    apContractResetForTesting()
+    apFillerResetForTesting()
+    apApplySlotData({ contract = 2, kinds = { "filler" }, kinds_required = {}, items = {}, loc = {},
+                      seed_hash = "old-run-seed" })
+    sim.startRun(true)
+    apContractResetForTesting()
+    apApplySlotData({ contract = 2, kinds = { "filler" }, kinds_required = {}, items = {}, loc = {},
+                      seed_hash = "new-seed" })
+    sim.startRun(false)
+    local scrapBefore = sim.player.currentScrap
+    apQueueItem({ kind = "filler", res = "scrap", n = 20, display = "20 Scrap" })
+    apDeliverPending()
+    equals(#apFillerPendingForTesting(), 1, "the scrap waits")
+    equals(sim.player.currentScrap, scrapBefore, "and is not spent on a run that counts for nothing")
+
+    sim.startRun(true)
+    apDeliverPending()
+    equals(#apFillerPendingForTesting(), 0, "a new run with the seed gets it")
+    apFillerResetForTesting()
+end)
