@@ -347,7 +347,9 @@ script.on_render_event(
 local SCREEN_H = 720
 local SCREEN_W = 1280
 local GOAL_FONT = 24
+local GOAL_X = 62
 local GOAL_Y = 182
+local GOAL_MAX_RIGHT = 850
 local GOAL_H = 52
 local GOAL_BASELINE = 0
 local GOAL_PADDING = 28
@@ -430,19 +432,20 @@ script.on_render_event(
                         width = math.max(width,
                             Graphics.freetype.easy_measureWidth(GOAL_SUB_FONT, item.text))
                     end
-                    local frame = math.min(width + GOAL_PADDING * 2, SCREEN_W - 40)
-                    local left = math.floor((SCREEN_W - frame) / 2)
+                    local frame = math.min(width + GOAL_PADDING * 2, GOAL_MAX_RIGHT - GOAL_X)
+                    local left = GOAL_X
+                    local center = left + frame / 2
                     local height = GOAL_H + #subLines * GOAL_SUB_H
                     Graphics.CSurface.GL_DrawRect(left, GOAL_Y, frame, height, color("panel"))
                     Graphics.CSurface.GL_DrawRect(left, GOAL_Y, frame, 2, color("border"))
                     Graphics.CSurface.GL_DrawRect(left, GOAL_Y + height - 2, frame, 2,
                         color("border"))
                     Graphics.CSurface.GL_SetColor(color(reached and "good" or "title"))
-                    Graphics.freetype.easy_printCenter(GOAL_FONT, SCREEN_W / 2,
+                    Graphics.freetype.easy_printCenter(GOAL_FONT, center,
                         GOAL_Y + GOAL_BASELINE, goal)
                     for index, item in ipairs(subLines) do
                         Graphics.CSurface.GL_SetColor(color(item.tone))
-                        Graphics.freetype.easy_printCenter(GOAL_SUB_FONT, SCREEN_W / 2,
+                        Graphics.freetype.easy_printCenter(GOAL_SUB_FONT, center,
                             GOAL_Y + GOAL_H - 4 + (index - 1) * GOAL_SUB_H, item.text)
                     end
                 end

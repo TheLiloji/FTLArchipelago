@@ -387,6 +387,11 @@ function apContractResetForTesting()
     state.blueprintsActive = true
 end
 
+function apContractUnload()
+    apContractResetForTesting()
+    contractLog("seed unloaded")
+end
+
 function apContractStatus()
     if state.refusal then
         contractLog("seed REFUSED: " .. state.refusal)

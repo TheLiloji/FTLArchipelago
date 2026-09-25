@@ -25,6 +25,8 @@ local LINE_H = 15
 local FIELD_X, FIELD_W = 96, 194
 local BUTTON_H = 17
 local SOLO_W = 96
+local LEAVE_W = 130
+local LEAVE_H = 14
 
 local FIELDS = {
     { key = "uri", label = "connect.field.address", value = "archipelago.gg", max = 40 },
@@ -47,6 +49,7 @@ local onMenu = false
 
 local AUTO_KEY = "ap_autoconnect"
 local autoTried = false
+local soloTried = false
 
 local function autoActive()
     if _G.apNetRecall then
@@ -58,14 +61,45 @@ local function autoActive()
     return ok and value == 1
 end
 
+local soloQuestion = false
+
 local function toggleSolo()
     if _G.apSoloEnabled then
         connectLog("solo mode stopped from the panel")
         if _G.apSoloStop then _G.apSoloStop() end
+    elseif _G.apSoloSaved and _G.apSoloSaved() then
+        soloQuestion = true
     else
         connectLog("solo mode started from the panel")
         if _G.apSoloStart then _G.apSoloStart() end
     end
+end
+
+local function continueSolo()
+    soloQuestion = false
+    connectLog("saved solo run resumed from the panel")
+    if _G.apSoloResume then _G.apSoloResume() end
+end
+
+local function restartSolo()
+    soloQuestion = false
+    connectLog("solo run restarted from the panel")
+    if _G.apSoloStart then _G.apSoloStart(true) end
+end
+
+local function seedActive()
+    return _G.apContractState ~= nil and _G.apContractState.connected == true
+end
+
+local function leaveSeed()
+    message, messageTone = nil, "dim"
+    if _G.apSoloEnabled then
+        toggleSolo()
+        return
+    end
+    connectLog("disconnected from the panel")
+    if _G.apNetDisconnect then pcall(_G.apNetDisconnect) end
+    if _G.apContractUnload then apContractUnload() end
 end
 
 local function toggleAuto()
@@ -96,7 +130,7 @@ local function resetQuestionText()
     return apT("reset.question.seedchange")
 end
 
-local function questionOpen()
+local function resetQuestionOpen()
     if resetAsked then
         return false
     end
@@ -137,6 +171,21 @@ local function declineReset()
     connectLog("the player keeps their progress despite the seed change")
 end
 
+local function currentQuestion()
+    if soloQuestion then
+        local saved = _G.apSoloSaved and _G.apSoloSaved() or { done = 0, total = 0 }
+        return { text = apT("solo.question", saved),
+                 yes = "solo.continue", yesTone = "good", accept = continueSolo,
+                 no = "solo.restart", noTone = "warn", decline = restartSolo }
+    end
+    if resetQuestionOpen() then
+        return { text = resetQuestionText(),
+                 yes = "reset.yes", yesTone = "warn", accept = acceptReset,
+                 no = "reset.no", noTone = "dim", decline = declineReset }
+    end
+    return nil
+end
+
 local function hangarOpen()
     local ok, closed = pcall(function()
         return Hyperspace.App.menu.bOpen ~= true
@@ -151,7 +200,7 @@ end
 local function geometry()
     local bottom = 720 - 10 - 14
     local shortcutsHeight = LINE_H
-    local panelHeight = LINE_H + #FIELDS * LINE_H + BUTTON_H + LINE_H + 12
+    local panelHeight = LINE_H + #FIELDS * LINE_H + BUTTON_H + 3 * LINE_H + 12
     local panelTop = bottom - shortcutsHeight - panelHeight
     local g = { panel = { x = PANEL_X, y = panelTop, w = PANEL_W, h = panelHeight },
                 fields = {}, button = nil }
@@ -161,10 +210,10 @@ local function geometry()
         y = y + LINE_H
     end
     g.button = { x = PANEL_X + 6, y = y + 2, w = 112, h = BUTTON_H }
-    g.auto = { x = PANEL_X + 6, y = y + 2 + BUTTON_H + 3, w = PANEL_W - 12 - SOLO_W - 6,
-               h = LINE_H - 2 }
-    g.solo = { x = PANEL_X + PANEL_W - 6 - SOLO_W, y = y + 2 + BUTTON_H + 3, w = SOLO_W,
-               h = LINE_H - 2 }
+    g.solo = { x = PANEL_X + PANEL_W - 6 - SOLO_W, y = y + 2, w = SOLO_W, h = BUTTON_H }
+    g.auto = { x = PANEL_X + 6, y = y + 2 + BUTTON_H + 3, w = PANEL_W - 12, h = LINE_H - 2 }
+    g.message = { x = PANEL_X + 6, y = g.auto.y + LINE_H, w = PANEL_W - 12 }
+    g.leave = { x = PANEL_X, y = bottom - LEAVE_H - BUTTON_H - 4, w = LEAVE_W, h = BUTTON_H }
     local width = QUESTION_W
     local left = math.floor((SCREEN_W - width) / 2)
     g.question = { x = left, y = QUESTION_Y, w = width, h = QUESTION_H }
@@ -269,6 +318,8 @@ function apConnectResetForTesting()
     focus, message, messageTone, shiftHeld = FOCUS_INITIAL, nil, "dim", false
     onMenu = false
     autoTried = false
+    soloTried = false
+    soloQuestion = false
     resetAsked = false
 end
 
@@ -311,7 +362,7 @@ script.on_internal_event(Defines.InternalEvents.ON_KEY_UP, function(key)
 end)
 
 script.on_internal_event(Defines.InternalEvents.ON_KEY_DOWN, function(key)
-    if not onMenu then
+    if not onMenu or seedActive() then
         return Defines.Chain.CONTINUE
     end
     if key == Defines.SDL.KEY_LSHIFT or key == Defines.SDL.KEY_RSHIFT then
@@ -355,7 +406,26 @@ script.on_internal_event(Defines.InternalEvents.ON_MOUSE_L_BUTTON_DOWN, function
     if not onMenu then
         return Defines.Chain.CONTINUE
     end
+    x, y = apMousePosition(x, y)
     local g = geometry()
+    local question = currentQuestion()
+    if question ~= nil then
+        if inside(g.resetYes, x, y) then
+            question.accept()
+            return Defines.Chain.PREEMPT
+        end
+        if inside(g.resetNo, x, y) then
+            question.decline()
+            return Defines.Chain.PREEMPT
+        end
+    end
+    if seedActive() then
+        if inside(g.leave, x, y) then
+            leaveSeed()
+            return Defines.Chain.PREEMPT
+        end
+        return Defines.Chain.CONTINUE
+    end
     for index, box in ipairs(g.fields) do
         if inside(box, x, y) then
             focus = index
@@ -374,16 +444,6 @@ script.on_internal_event(Defines.InternalEvents.ON_MOUSE_L_BUTTON_DOWN, function
         toggleSolo()
         return Defines.Chain.PREEMPT
     end
-    if questionOpen() then
-        if inside(g.resetYes, x, y) then
-            acceptReset()
-            return Defines.Chain.PREEMPT
-        end
-        if inside(g.resetNo, x, y) then
-            declineReset()
-            return Defines.Chain.PREEMPT
-        end
-    end
     return Defines.Chain.CONTINUE
 end)
 
@@ -400,7 +460,15 @@ script.on_render_event(
         if not onMenu then
             pcall(resumeLast)
 
-            if not autoTried and autoActive() then
+            if not soloTried then
+                soloTried = true
+                if _G.apSoloWasActive and _G.apSoloWasActive() and not seedActive() then
+                    connectLog("solo run active at the last session: resuming")
+                    pcall(_G.apSoloResume)
+                end
+            end
+
+            if not autoTried and autoActive() and not seedActive() then
                 autoTried = true
                 local state = apConnectState()
                 if state.slot ~= "" then
@@ -416,7 +484,8 @@ script.on_render_event(
         end
         onMenu = true
 
-        if questionOpen() then
+        local question = currentQuestion()
+        if question ~= nil then
             pcall(function()
                 local g = geometry()
                 local q = g.question
@@ -427,10 +496,10 @@ script.on_render_event(
 
                 Graphics.CSurface.GL_SetColor(color("warn"))
                 Graphics.freetype.easy_printNewlinesCentered(13, q.x + q.w / 2, q.y + 20,
-                    q.w - 40, resetQuestionText())
+                    q.w - 40, question.text)
 
-                for _, button in ipairs({ { g.resetYes, "reset.yes", "warn" },
-                                          { g.resetNo, "reset.no", "dim" } }) do
+                for _, button in ipairs({ { g.resetYes, question.yes, question.yesTone },
+                                          { g.resetNo, question.no, question.noTone } }) do
                     local b = button[1]
                     Graphics.CSurface.GL_DrawRect(b.x, b.y, b.w, b.h, color("focus"))
                     Graphics.CSurface.GL_DrawRect(b.x, b.y, b.w, 2, color(button[3]))
@@ -441,7 +510,15 @@ script.on_render_event(
             end)
         end
 
-        if _G.apContractState ~= nil and _G.apContractState.connected then
+        if seedActive() then
+            pcall(function()
+                local l = geometry().leave
+                Graphics.CSurface.GL_DrawRect(l.x, l.y, l.w, l.h, color("focus"))
+                Graphics.CSurface.GL_DrawRect(l.x, l.y, l.w, 1, color("border"))
+                Graphics.CSurface.GL_SetColor(color("title"))
+                Graphics.freetype.easy_printAutoShrink(10, l.x + 8, l.y + 2, l.w - 16, false,
+                    apT(_G.apSoloEnabled and "connect.solo.stop" or "connect.disconnect"))
+            end)
             return
         end
         pcall(function()
@@ -478,23 +555,23 @@ script.on_render_event(
             Graphics.freetype.easy_printAutoShrink(10, b.x + 8, b.y + 2, b.w - 16, false,
                 apT("connect.button"))
 
-            if message ~= nil then
-                Graphics.CSurface.GL_SetColor(color(messageTone))
-                Graphics.freetype.easy_printAutoShrink(9, b.x + b.w + 8, b.y + 3,
-                    p.w - b.w - 20, false, message)
-            end
+            local s = g.solo
+            Graphics.CSurface.GL_DrawRect(s.x, s.y, s.w, s.h, color("focus"))
+            Graphics.CSurface.GL_DrawRect(s.x, s.y, s.w, 1, color("border"))
+            Graphics.CSurface.GL_SetColor(color("title"))
+            Graphics.freetype.easy_printAutoShrink(10, s.x + 8, s.y + 2, s.w - 16, false,
+                apT("connect.solo"))
 
             local a = g.auto
             Graphics.CSurface.GL_SetColor(color(autoActive() and "good" or "dim"))
             Graphics.freetype.easy_printAutoShrink(9, a.x, a.y, a.w, false,
                 (autoActive() and "[x] " or "[ ] ") .. apT("connect.auto"))
 
-            local s = g.solo
-            Graphics.CSurface.GL_DrawRect(s.x, s.y, s.w, s.h, color("focus"))
-            Graphics.CSurface.GL_DrawRect(s.x, s.y, s.w, 1, color("border"))
-            Graphics.CSurface.GL_SetColor(color(_G.apSoloEnabled and "good" or "title"))
-            Graphics.freetype.easy_printAutoShrink(9, s.x + 4, s.y, s.w - 8, false,
-                apT(_G.apSoloEnabled and "connect.solo.stop" or "connect.solo"))
+            if message ~= nil then
+                local m = g.message
+                Graphics.CSurface.GL_SetColor(color(messageTone))
+                Graphics.freetype.easy_printAutoNewlines(9, m.x, m.y, m.w, message)
+            end
 
             Graphics.CSurface.GL_SetColor(color("dim"))
             Graphics.freetype.easy_printAutoShrink(9, p.x, g.shortcuts, p.w, false,

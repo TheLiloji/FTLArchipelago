@@ -4926,8 +4926,8 @@ test("the main menu shows the goal and progress at the top", function()
     for _, draw in ipairs(sim.draws) do
         if draw.centered and draw.text:find("5", 1, true) then line = draw end
     end
-    check(line ~= nil, "it's centered, not stuck in a corner")
-    check(line and line.x == 640, "in the middle of the screen")
+    check(line ~= nil, "it's centered in its frame")
+    check(line and line.x < 640, "on the Archipelago side of the screen, under its logo")
     check(line and line.size >= 20, "and written large")
 
     local frame = nil
@@ -4935,6 +4935,7 @@ test("the main menu shows the goal and progress at the top", function()
         if rect.y < 240 and rect.w > 100 then frame = rect end
     end
     check(frame ~= nil, "inside a frame, at the top of the screen")
+    check(frame and frame.x + frame.w <= 850, "clear of FTL's logo on the right")
 
     local title, image = false, false
     for _, draw in ipairs(sim.draws) do

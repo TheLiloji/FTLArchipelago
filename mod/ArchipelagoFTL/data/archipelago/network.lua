@@ -257,7 +257,7 @@ local function meta(key)
     local ap = store()
     if ap ~= nil then
         local ok, value = pcall(function() return ap:RecallState(key) end)
-        if ok then return tonumber(value) or 0 end
+        if ok and value ~= nil and value ~= "" then return tonumber(value) or 0 end
     end
     local ok, value = pcall(function() return Hyperspace.metaVariables[key] end)
     return ok and tonumber(value) or 0
@@ -444,7 +444,7 @@ local function onItem(event)
         return
     end
     if tostring(event.name) == UNKNOWN then
-        netLog("item received before the data packet, held for the next connection")
+        netLog("item received before the data packet, asked again once it is in")
         return
     end
     if event.index >= 0 then

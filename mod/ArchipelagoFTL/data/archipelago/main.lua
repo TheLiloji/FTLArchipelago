@@ -46,6 +46,18 @@ function apMenuSubScreen()
     return false
 end
 
+-- Mouse events carry window pixels, which only match the 1280x720 layout when the window is not scaled.
+function apMousePosition(x, y)
+    local ok, px, py = pcall(function()
+        local position = Hyperspace.Mouse.position
+        return position.x, position.y
+    end)
+    if ok and px ~= nil then
+        return px, py
+    end
+    return x, y
+end
+
 function apPauseMenuOpen()
     local ok, open = pcall(function()
         return Hyperspace.App.gui.menu_pause

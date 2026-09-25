@@ -4,25 +4,28 @@ local DISPLAY = {
     x = 100,
     y = 100,
     font = 10,
-    lineLength = 460,
+    lineLength = 185,
     messageLimit = 6,
     duration = 7,
 }
 
-local Y_MENU = 250
+-- In a run the text stays left of FTL's windows (store, upgrades, events all start past x = 290).
+local MENU = { y = 350, lineLength = 460 }
 
-local function place(y)
+local function place(y, lineLength)
     pcall(function()
-        Hyperspace.PrintHelper.GetInstance().y = y
+        local helper = Hyperspace.PrintHelper.GetInstance()
+        helper.y = y
+        helper.lineLength = lineLength
     end)
 end
 
 function apNotifyPlaceMenu()
-    place(Y_MENU)
+    place(MENU.y, MENU.lineLength)
 end
 
 function apNotifyPlaceRun()
-    place(DISPLAY.y)
+    place(DISPLAY.y, DISPLAY.lineLength)
 end
 
 local function configureDisplay()

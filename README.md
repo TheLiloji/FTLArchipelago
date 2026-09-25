@@ -4,16 +4,15 @@ An [Archipelago](https://archipelago.gg) randomizer for **FTL: Faster Than Light
 [Hyperspace](https://github.com/FTL-Hyperspace/FTL-Hyperspace). The game really applies what you receive: ships
 unlock, systems are capped, shop items appear, traps go off.
 
-Status: works on **Linux** (FTL 1.6.13, Hyperspace 1.23.1), connected to a real Archipelago server.
+Status: works on **Linux** (FTL 1.6.13) and **Windows** (FTL 1.6.9), Hyperspace 1.23.1, connected to a real
+Archipelago server.
 
 ## Known limitations
 
-- **Windows is not supported.** The connection to the Archipelago server lives in a small C++ module added to
-  Hyperspace, and that module has only been built for Linux so far.
 - **A few options do nothing in game yet.** Progressive crew health, progressive skills, skill checks and
   death-type checks are accepted by the generator but not wired into the mod. Their option pages say so.
-- **Prebuilt files are Linux only.** The GitHub release carries the patched Hyperspace library for FTL 1.6.13
-  (Linux), `ArchipelagoFTL.ftl` and `ftl.apworld`; everything can also be built from source as below.
+- **The v0.1.0 release has no Windows library.** It carries the patched Hyperspace library for FTL 1.6.13
+  (Linux), `ArchipelagoFTL.ftl` and `ftl.apworld`. On Windows, build `Hyperspace.dll` from source as below.
 
 ## What is in the repo
 
@@ -55,13 +54,14 @@ more checks than items, more filler is added.
 
 ## Dependencies
 
-- **In game:** FTL: Faster Than Light 1.6.13 (Advanced Edition content on), the official
+- **In game:** FTL: Faster Than Light 1.6.13 on Linux, 1.6.9 on Windows (Advanced Edition content on), the official
   [Hyperspace](https://github.com/FTL-Hyperspace/FTL-Hyperspace) 1.23.1 release, this project's patched
   Hyperspace library, and the `ArchipelagoFTL.ftl` mod, all applied with
   [ftlman](https://github.com/afishhh/ftlman).
 - **To generate or host a seed:** [Archipelago](https://github.com/ArchipelagoMW/Archipelago) 0.6.7 or newer,
   with `ftl.apworld` dropped into its `custom_worlds` folder.
-- **To build from source:** Docker (compiles the patched Hyperspace library) and clones of
+- **To build from source:** Docker (compiles the patched Hyperspace library, for Linux and Windows alike, in
+  Hyperspace's own container) and clones of
   [FTL-Hyperspace](https://github.com/FTL-Hyperspace/FTL-Hyperspace),
   [apclientpp](https://github.com/black-sliver/apclientpp),
   [wswrap](https://github.com/black-sliver/wswrap) and
@@ -80,6 +80,16 @@ more checks than items, more filler is added.
    then generate as usual (the `presets/` files are a good start).
 6. Start FTL and fill the connection panel at the bottom left of the main menu.
 
+## Install (Windows)
+
+1. Install [ftlman](https://github.com/afishhh/ftlman) and use it to install the official Hyperspace 1.23.1; on
+   a Steam copy it downgrades FTL to 1.6.9 by itself. Put `Hyperspace.ftl` (1.23.1) in ftlman's `mods` folder.
+2. Clone the four C++ dependencies listed above into `vendor/`.
+3. In Git Bash, with Docker Desktop running and FTL closed:
+   `hyperspace-patch/build-windows.sh --install`, then `FTLMAN=/path/to/ftlman.exe mod/install.sh`.
+   Both find the game through Steam's library list.
+4. Build the world as on Linux, drop it in `custom_worlds`, and start FTL through Steam.
+
 Exact commands and troubleshooting: `apworld/ftl/docs/setup_en.md`.
 
 ## Setting up an Archipelago game
@@ -91,7 +101,8 @@ installing everything and joining a room, including troubleshooting.
 
 ## Tests
 
-- `mod/test/run.sh`: the Lua mod against a simulated Hyperspace, plus static checks (language keys, glyphs,
+- `mod/test/run.sh`: the Lua mod against a simulated Hyperspace (runs in Git Bash on Windows too, give
+  ftlman's path in `FTLMAN`), plus static checks (language keys, glyphs,
   events, wiring).
 - `apworld/run_tests.sh`: the Archipelago world (clones Archipelago's sources on first run).
 - `tests/run_all.sh`: both suites, the installed-mod check, presets and docs numbers. `FULL=1 tests/run_all.sh`

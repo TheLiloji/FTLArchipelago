@@ -156,6 +156,18 @@ function apAdoptCheckedLocations(names)
     return adopted
 end
 
+function apForgetChecks()
+    sent = {}
+    unsent = {}
+    outOfSeed = {}
+end
+
+function apRestoreSentChecks(keys)
+    for _, key in ipairs(keys) do
+        sent[key] = true
+    end
+end
+
 function apForgetChecksForTesting()
     sent = {}
     unsent = {}

@@ -117,7 +117,7 @@ def main() -> int:
         print(f"lang.lua up to date ({len(languages)} languages)")
         return 0
 
-    OUT.write_text(content, encoding="utf-8")
+    OUT.write_text(content, encoding="utf-8", newline="\n")
     print(f"{OUT.relative_to(ROOT.parent)}: {len(languages)} languages")
     return 0
 

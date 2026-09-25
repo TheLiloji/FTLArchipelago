@@ -292,7 +292,7 @@ script.on_internal_event(Defines.InternalEvents.ON_MOUSE_L_BUTTON_DOWN, function
     if not open then
         return Defines.Chain.CONTINUE
     end
-    local ok, consumed = pcall(handleClick, x, y)
+    local ok, consumed = pcall(handleClick, apMousePosition(x, y))
     if ok and consumed then
         return Defines.Chain.PREEMPT
     end

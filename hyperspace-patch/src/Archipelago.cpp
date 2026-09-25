@@ -17,6 +17,7 @@
 #include <vector>
 #ifdef _WIN32
 #include <direct.h>
+#include <windows.h>
 #else
 #include <sys/stat.h>
 #include <unistd.h>
@@ -239,7 +240,44 @@ std::string Client::RecallState(const std::string& key) const
 bool Client::RelaunchWhenClosed()
 {
 #ifdef _WIN32
-    return false;
+    char path[MAX_PATH];
+    const DWORD len = GetModuleFileNameA(nullptr, path, MAX_PATH);
+    if (len == 0 || len >= MAX_PATH) return false;
+    const std::string exe(path);
+    const std::string dir = exe.substr(0, exe.find_last_of("\\/"));
+
+    // PowerShell takes single-quoted literals, where a quote is escaped by doubling it.
+    auto quoted = [](const std::string& text) {
+        std::string out = "'";
+        for (size_t i = 0; i < text.size(); ++i) {
+            out += text[i];
+            if (text[i] == '\'') out += '\'';
+        }
+        return out + "'";
+    };
+
+    const bool fromSteam = std::getenv("SteamAppId") != nullptr || std::getenv("SteamGameId") != nullptr;
+    const std::string start = fromSteam
+        ? "Start-Process 'steam://rungameid/212680'"
+        : "Start-Process -FilePath " + quoted(exe) + " -WorkingDirectory " + quoted(dir);
+    std::string command =
+        "powershell.exe -NoProfile -NonInteractive -WindowStyle Hidden -Command \""
+        "Wait-Process -Id " + std::to_string(static_cast<unsigned long>(GetCurrentProcessId())) +
+        " -ErrorAction SilentlyContinue; Start-Sleep -Seconds 1; " + start + "\"";
+
+    STARTUPINFOA startup;
+    ZeroMemory(&startup, sizeof(startup));
+    startup.cb = sizeof(startup);
+    PROCESS_INFORMATION process;
+    ZeroMemory(&process, sizeof(process));
+    if (!CreateProcessA(nullptr, &command[0], nullptr, nullptr, FALSE,
+                        CREATE_NO_WINDOW | CREATE_NEW_PROCESS_GROUP, nullptr, nullptr,
+                        &startup, &process)) {
+        return false;
+    }
+    CloseHandle(process.hThread);
+    CloseHandle(process.hProcess);
+    return true;
 #else
     char path[4096];
     const ssize_t len = readlink("/proc/self/exe", path, sizeof(path) - 1);
@@ -408,6 +446,12 @@ bool Client::Connect(const std::string& uri, const std::string& slot, const std:
             e.index = item.index;
             impl->push(std::move(e));
         }
+    });
+
+    // On a first connection items can arrive before their names; ask for them again once the
+    // names are known, the Lua side skips the indices it already handled.
+    ap->set_data_package_changed_handler([ap](const nlohmann::json&) {
+        ap->Sync();
     });
 
     ap->set_location_info_handler([impl, ap](const std::list<APClient::NetworkItem>& items) {

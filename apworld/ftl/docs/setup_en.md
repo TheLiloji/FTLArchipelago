@@ -2,9 +2,7 @@
 
 ## Current status
 
-The mod connects to a real Archipelago server and plays a full multiworld **on Linux**. Windows is not
-supported yet: the networking lives in a small C++ module inside Hyperspace, and that module has only been
-built for Linux so far.
+The mod connects to a real Archipelago server and plays a full multiworld on **Linux** and **Windows**.
 
 Hyperspace's Lua sandbox has no sockets and no file access, so the mod cannot talk to a server on its own. You
 need this project's **Hyperspace build with the Archipelago module**, not the regular Hyperspace release. It is
@@ -14,21 +12,24 @@ the same Hyperspace with one extra module; everything else behaves the same.
 
 - [Archipelago](https://github.com/ArchipelagoMW/Archipelago/releases/latest) 0.6.7 or newer, on the machine
   that generates the seed and hosts the room.
-- **FTL: Faster Than Light, Advanced Edition**, version **1.6.13** (what Steam ships today on Linux).
+- **FTL: Faster Than Light, Advanced Edition**: 1.6.13 on Linux (what Steam ships), 1.6.9 on Windows, the
+  only Windows version Hyperspace runs on. ftlman downgrades the Steam version by itself when it installs
+  Hyperspace.
 - [ftlman](https://github.com/afishhh/ftlman) to install Hyperspace and apply the mods.
 - `Hyperspace.ftl`, from the official [Hyperspace release](https://github.com/FTL-Hyperspace/FTL-Hyperspace/releases)
   1.23.1.
-- This project's own build of `Hyperspace.1.6.13.amd64.so` (Hyperspace with the Archipelago module),
-  `ArchipelagoFTL.ftl` (the mod) and `ftl.apworld`. They are attached to the project's GitHub release, or can be
-  built from source with `hyperspace-patch/build-linux.sh`, `mod/install.sh` and
-  `apworld/tools/build_apworld.py` (see the project's README for the build dependencies).
+- This project's own build of the Hyperspace library with the Archipelago module: `Hyperspace.1.6.13.amd64.so`
+  on Linux, `Hyperspace.dll` on Windows. Then `ArchipelagoFTL.ftl` (the mod) and `ftl.apworld`. They are
+  attached to the project's GitHub release, or can be built from source with `hyperspace-patch/build.sh`,
+  `mod/install.sh` and `apworld/tools/build_apworld.py` (see the project's README for the build dependencies).
 
 ## Before you touch anything
 
 **Turn off Steam Cloud for FTL** (right-click the game in Steam, Properties, General). Steam Cloud can overwrite
 the save folder while the mod runs.
 
-**Back up your save folder**, `~/.local/share/FasterThanLight/`:
+**Back up your save folder**: `~/.local/share/FasterThanLight/` on Linux,
+`Documents\My Games\FasterThanLight` on Windows.
 
 ```sh
 cp -r ~/.local/share/FasterThanLight ~/.local/share/FasterThanLight.backup
@@ -40,7 +41,7 @@ The mod plays on a profile of its own (`hs_ap_prof.sav`) and never touches your 
 cruiser, hacking, mind control, the clone bay and the backup battery, none of which exist with it off. The main
 menu reminds you in orange if it is off.
 
-## Installing
+## Installing on Linux
 
 The game lives in `~/.steam/steam/steamapps/common/FTL Faster Than Light/`, and everything happens in its
 `data` subfolder. From the root of this project:
@@ -74,6 +75,31 @@ Hyperspace from the game.
 **Launch the game through Steam or through its `FTL` script**, not `data/FTL.amd64` directly: only the script
 preloads Hyperspace. The main menu then shows `HS-1.23.1 x64` in the top right corner, the Archipelago title
 and logo at the top left, and a connection panel at the bottom left.
+
+## Installing on Windows
+
+The game lives in `steamapps\common\FTL Faster Than Light` of your Steam library, next to `FTLGame.exe`.
+Everything goes in that folder; there is no `data` subfolder on Windows.
+
+1. With ftlman, install Hyperspace 1.23.1 (Hyperspace tab, or `ftlman hyperspace-install 1.23.1 -d <game folder>`).
+   On a Steam copy it downgrades FTL to 1.6.9 first and keeps the original as `FTLGame_orig.exe`.
+2. Keep a copy of the official `Hyperspace.dll` from the game folder, then put this project's
+   `Hyperspace.dll` in its place.
+3. Put `Hyperspace.ftl` and `ArchipelagoFTL.ftl` in ftlman's `mods` folder, Hyperspace first in the order,
+   and apply.
+
+From a source build, in Git Bash, steps 2 and 3 are:
+
+```sh
+hyperspace-patch/build-windows.sh --install
+FTLMAN=/path/to/ftlman.exe mod/install.sh
+```
+
+Both find the game through Steam's library list, `FTL_DATA` / `FTL_DIR` point them elsewhere. The build runs
+in Hyperspace's Docker container, so Docker Desktop is needed. FTL has to be closed while installing: Windows
+locks `ftl.dat` and `Hyperspace.dll` while the game runs.
+
+The main menu then shows `HS-1.23.1` in the top right corner and the same Archipelago title, logo and panel.
 
 ## Installing the apworld
 
@@ -115,11 +141,12 @@ password. Press ENTER or click the button. `TAB` moves between fields.
 - A successful connection is remembered: next time the fields are filled in. The password never is.
 - Tick **auto-connect** to reconnect on every launch.
 - If the connection drops, the mod retries on its own (after 5, 10, 20, 40, then 60 seconds).
+- Once connected the panel folds into a **Disconnect** button, which brings the panel back.
 
 **Changing seed.** Hyperspace can unlock a ship but never lock one again, so a profile that played another seed
 keeps its ships. When you connect to a different seed with such a profile, the mod refuses the seed and asks.
 "Yes" makes a dated copy of your profile next to it, erases the Archipelago progress and restarts FTL on its
-own (through Steam if you launched it from Steam); the new seed begins from nothing. "No" keeps everything and plays the new seed with the old ships.
+own (through Steam if you launched it from Steam, on Linux and Windows alike); the new seed begins from nothing. "No" keeps everything and plays the new seed with the old ships.
 The same question comes up the first time you connect with a profile that already unlocked ships without
 Archipelago.
 
@@ -146,6 +173,10 @@ Without a server, click **Solo mode** in the connection panel. Solo mode applies
 out its items one per check, in the order a real fill produced. It is a way to try the loop and the pacing
 alone.
 
+A solo run is saved in the FTL profile: the items received and the checks sent survive a restart, and a solo
+run that was going when FTL closed picks up again at the next launch. **Stop solo** puts it aside; clicking
+**Solo mode** later asks whether to continue it or start over.
+
 ## Troubleshooting
 
 **The game hangs on the loading screen at 100% CPU.** A Hyperspace bug with an `ae_prof.sav` that was created but
@@ -158,5 +189,5 @@ build with the Archipelago module, or Hyperspace is not loaded at all. Check `da
 **My unlocks disappear between sessions.** Steam Cloud is still enabled, or the mods were re-applied without
 Hyperspace.
 
-**Where is the log?** `data/FTL_HS.log` in the game folder, rewritten at every launch. Lines from the mod start
-with `[AP`.
+**Where is the log?** `FTL_HS.log` in the game folder (in `data/` on Linux), rewritten at every launch. Lines
+from the mod start with `[AP`.

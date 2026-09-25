@@ -6,9 +6,30 @@ replaced by their plain equivalent. No change in behaviour.
 
 --- a/apclient.hpp
 +++ b/apclient.hpp
-@@ -194 +194 @@
+@@ -191,7 +191,7 @@
+ 
+         if (!_dataPackageStore) {
+         #ifndef AP_NO_DEFAULT_DATA_PACKAGE_STORE
 -            _autoDataPackageStore = std::make_unique<DefaultDataPackageStore>();
 +            _autoDataPackageStore.reset(new DefaultDataPackageStore());
-@@ -1704 +1704 @@
+             _dataPackageStore =_autoDataPackageStore.get();
+         #else
+             const char* msg = "dataPackageStore is required if compiled with AP_NO_DEFAULT_DATA_PACKAGE_STORE";
+@@ -1701,7 +1701,7 @@
+         _state = State::SOCKET_CONNECTING;
+ 
+         try {
 -            _ws = std::make_unique<WS>(_uri,
 +            _ws.reset(new WS(_uri,
+                     [this]() { onopen(); },
+                     [this]() { onclose(); },
+                     [this](const std::string& s) { onmessage(s); },
+@@ -1713,7 +1713,7 @@
+ #if WSWRAP_VERSION >= 10100
+                     , _certStore
+ #endif
+-            );
++            ));
+         } catch (const std::exception& ex) {
+             _ws = nullptr;
+             if (_tryWSS && _uri.rfind("ws://", 0) == 0) {

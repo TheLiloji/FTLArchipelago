@@ -2,9 +2,36 @@
 set -euo pipefail
 
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-FTL_DATA="${FTL_DATA:-$HOME/.steam/steam/steamapps/common/FTL Faster Than Light/data}"
-MODS_DIR="${MODS_DIR:-$HOME/.local/share/ftl-mods}"
-FTLMAN="${FTLMAN:-$(command -v ftlman || echo "$HOME/.local/bin/ftlman")}"
+
+steam_ftl_windows() {
+    local vdf="/c/Program Files (x86)/Steam/steamapps/libraryfolders.vdf" library
+    [ -f "$vdf" ] || return 0
+    grep -o '"path"[[:space:]]*"[^"]*"' "$vdf" | sed 's/.*"\([^"]*\)"$/\1/; s#\\\\#/#g' |
+        while read -r library; do
+            if [ -d "$library/steamapps/common/FTL Faster Than Light" ]; then
+                echo "$library/steamapps/common/FTL Faster Than Light"
+                break
+            fi
+        done
+}
+
+case "$(uname -s)" in
+    MINGW* | MSYS* | CYGWIN*)
+        FTL_DATA="${FTL_DATA:-$(steam_ftl_windows)}"
+        FTLMAN="${FTLMAN:-$(command -v ftlman || command -v ftlman.exe || echo ftlman.exe)}"
+        MODS_DIR="${MODS_DIR:-$(dirname "$FTLMAN")/mods}"
+        ;;
+    *)
+        FTL_DATA="${FTL_DATA:-$HOME/.steam/steam/steamapps/common/FTL Faster Than Light/data}"
+        MODS_DIR="${MODS_DIR:-$HOME/.local/share/ftl-mods}"
+        FTLMAN="${FTLMAN:-$(command -v ftlman || echo "$HOME/.local/bin/ftlman")}"
+        ;;
+esac
+
+if [ "${1:-}" = "--print-game-dir" ]; then
+    echo "$FTL_DATA"
+    exit 0
+fi
 
 [ -d "$FTL_DATA" ] || { echo "FTL data folder not found: $FTL_DATA" >&2; exit 1; }
 [ -x "$FTLMAN" ]   || { echo "ftlman not found: $FTLMAN" >&2; exit 1; }
@@ -13,11 +40,13 @@ FTLMAN="${FTLMAN:-$(command -v ftlman || echo "$HOME/.local/bin/ftlman")}"
     exit 1
 }
 
-LOCK="${TMPDIR:-/tmp}/ftl-archipelago-install.lock"
-exec 9>"$LOCK"
-if ! flock -w 300 9; then
-    echo "another install has held the lock for more than 5 minutes: $LOCK" >&2
-    exit 1
+if command -v flock >/dev/null 2>&1; then
+    LOCK="${TMPDIR:-/tmp}/ftl-archipelago-install.lock"
+    exec 9>"$LOCK"
+    if ! flock -w 300 9; then
+        echo "another install has held the lock for more than 5 minutes: $LOCK" >&2
+        exit 1
+    fi
 fi
 
 header_ok() {
