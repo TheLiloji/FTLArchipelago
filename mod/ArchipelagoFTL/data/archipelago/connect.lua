@@ -340,6 +340,9 @@ local function followAttempt()
     elseif _G.apNetConnected and _G.apNetConnected() and contract ~= nil and contract.connected then
         message, messageTone = apT("net.connected", { slot = attempt.slot }), "good"
         attempt = nil
+    elseif _G.apNetState ~= nil and _G.apNetState.refusal ~= nil then
+        message, messageTone = _G.apNetState.refusal, "warn"
+        attempt = nil
     elseif _G.apNetState ~= nil and _G.apNetState.unreachableShown then
         message, messageTone = apT("net.error.unreachable"), "warn"
         attempt = nil

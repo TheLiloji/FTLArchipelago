@@ -428,6 +428,22 @@ test("network: the panel says why the seed was refused", function()
         "instead of staying on 'connecting to...' forever")
 end)
 
+test("network: the panel says the server refused the slot, and a new attempt clears it", function()
+    tryConnect()
+    sim.netEvent("error", { name = "unreachable", extra = "TLS handshake failed" })
+    sim.netEvent("refused", { extra = "InvalidSlot" })
+    sim.tick(600)
+    sim.renderMenu()
+    equals(apConnectState().message, apT("net.refused.slot"),
+        "the reason stays in the panel after the notice fades")
+    check(apConnectNow(), "a second attempt goes out")
+    sim.tick(1)
+    sim.renderMenu()
+    equals(apConnectState().message, apT("connect.trying", { uri = "localhost:38281" }),
+        "the old refusal does not end the new attempt")
+    apNetResetForTesting()
+end)
+
 test("notify: a burst of items gets summarized instead of overflowing the screen", function()
     apNotifyResetForTesting()
     sim.clearLog()

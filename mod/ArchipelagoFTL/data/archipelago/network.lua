@@ -36,6 +36,7 @@ function apNetResetForTesting()
     state.scoutsPending = false
     state.scouted = {}
     state.seedRefused = false
+    state.refusal = nil
     if _G.apNetForgetDurableStore then _G.apNetForgetDurableStore() end
 end
 
@@ -64,6 +65,7 @@ function apNetConnect(uri, slot, password)
         return false
     end
     state.connecting = true
+    state.refusal = nil
     state.unreachableShown = false
     state.unreachableSince = nil
     state.seedRefused = false
@@ -513,20 +515,24 @@ local function onRefused(event)
     local reasons = tostring(event.extra or "")
     netLog("connection refused by the server: " .. (reasons ~= "" and reasons or "no reason given"))
 
-    local said = false
+    local said = {}
     for reason in reasons:gmatch("[^,]+") do
         reason = reason:match("^%s*(.-)%s*$")
         local key = REFUSAL_KEYS[reason]
-        if key ~= nil and _G.apNotifyStatus then
-            _G.apNotifyStatus(apT(key))
-            said = true
-        elseif reason ~= "" and _G.apNotifyStatus then
-            _G.apNotifyStatus(apT("net.refused.other", { reason = reason }))
-            said = true
+        if key ~= nil then
+            said[#said + 1] = apT(key)
+        elseif reason ~= "" then
+            said[#said + 1] = apT("net.refused.other", { reason = reason })
         end
     end
-    if not said and _G.apNotifyStatus then
-        _G.apNotifyStatus(apT("net.refused.unknown"))
+    if #said == 0 then
+        said[1] = apT("net.refused.unknown")
+    end
+    state.refusal = said[1]
+    if _G.apNotifyStatus then
+        for _, line in ipairs(said) do
+            _G.apNotifyStatus(line)
+        end
     end
 end
 
