@@ -118,6 +118,9 @@ any single crew member, or **both**, which is the default. Know what "both" mean
 members far more often than you lose runs, so most of what you send will come from that half. If your
 multiworld finds it too noisy, `ship_destroyed` is the quiet setting.
 
+Deaths that come in a burst count once: when your last crew member dies and the run ends with them, the
+others receive one death, not two. The same goes for several crew members lost within ten seconds.
+
 Deaths you *receive* can never destroy your ship. Losing a run in FTL costs an hour, so a death link that
 outright killed you would turn the multiworld into a punishment. Your hull is never taken below 1 and your
 last crew member is never killed.

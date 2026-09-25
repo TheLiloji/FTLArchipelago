@@ -3190,6 +3190,7 @@ test("'both' is the default and covers both kinds of death", function()
     equals(_G.apDeathLinkState.sent, before + 1, "destruction counts")
 
     apDeathLinkConfigure({ graceSeconds = 0 })
+    sim.tick(60 * 11)
     sim.player.vCrewList[0].bDead = true
     sim.tick(30)
     equals(_G.apDeathLinkState.sent, before + 2, "so does a crew member's death")

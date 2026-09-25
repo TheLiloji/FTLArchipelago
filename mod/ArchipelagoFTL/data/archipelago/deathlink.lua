@@ -65,6 +65,8 @@ local function inGracePeriod()
     return (state.ticks - state.lastReceivedAt) < grace
 end
 
+local SEND_COOLDOWN_SECONDS = 10
+
 function apDeathLinkSend(cause)
     local config = _G.apDeathLink
     if not config.enabled then
@@ -78,6 +80,12 @@ function apDeathLinkSend(cause)
     if inGracePeriod() then
         state.ignored = state.ignored + 1
         deathLog("death not sent: grace period active")
+        return false
+    end
+    -- The last crew member dying also ends the run: one event, so the others die once.
+    if state.lastSentAt ~= nil and state.ticks - state.lastSentAt < SEND_COOLDOWN_SECONDS * TICKS_PER_SECOND then
+        state.ignored = state.ignored + 1
+        deathLog("death not sent: one already went out a moment ago (" .. tostring(cause) .. ")")
         return false
     end
 
@@ -362,6 +370,7 @@ end)
 
 script.on_init(function()
     state.knownCrew = nil
+    state.lastSentAt = nil
     state.lastReceivedAt = nil
 end)
 
