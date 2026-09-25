@@ -35,6 +35,16 @@ end
 
 local SMALLEST_FONT = 9
 
+-- The big title fonts do not shrink on their own: pick the largest one the text fits in.
+function ui.fittingFont(sizes, maxWidth, value)
+    for _, size in ipairs(sizes) do
+        if ui.width(size, value) <= maxWidth then
+            return size
+        end
+    end
+    return sizes[#sizes]
+end
+
 -- FTL shrinks a text down to its smallest font and no further: past that it would overflow, so it is cut.
 local function fit(value, maxWidth)
     if ui.width(SMALLEST_FONT, value) <= maxWidth then

@@ -300,7 +300,8 @@ local function drawGoalCard(x, y, w, h)
         text(12, x + 16, y + 36, w - 32, "dim", apT("dash.goal.unknown"))
         return
     end
-    text(18, x + 16, y + 32, w - 32, goal.reached and "good" or "title", goal.headline)
+    local font = ui.fittingFont({ 18, 12 }, w - 32, goal.headline)
+    text(font, x + 16, y + (font == 18 and 32 or 36), w - 32, goal.reached and "good" or "title", goal.headline)
     local lineY = y + 60
     for _, line in ipairs(goal.lines) do
         text(9, x + 16, lineY, w - 32, line.tone, line.text)
