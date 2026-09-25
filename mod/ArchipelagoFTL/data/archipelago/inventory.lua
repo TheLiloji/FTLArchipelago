@@ -89,8 +89,6 @@ local PROFILES = {
     },
 }
 
-_G.apInventory = PROFILES[AP_PROFILE] or PROFILES.mid
-
 local function deepCopy(value)
     if type(value) ~= "table" then
         return value
@@ -102,10 +100,14 @@ local function deepCopy(value)
     return copy
 end
 
+-- The live inventory must not be the profile table itself, or clearing it would copy it onto itself.
+local EMPTY = deepCopy(PROFILES.empty)
+_G.apInventory = deepCopy(PROFILES[AP_PROFILE] or PROFILES.mid)
+
 local pristine = deepCopy(_G.apInventory)
 
 function apInventoryClear()
-    local reset = deepCopy(PROFILES.empty)
+    local reset = EMPTY
     for key in pairs(_G.apInventory) do
         _G.apInventory[key] = nil
     end

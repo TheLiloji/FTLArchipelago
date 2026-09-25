@@ -412,3 +412,14 @@ test("the last crew member dying and the run ending send one DeathLink, not two"
     restore()
     apDeathLinkConfigure({ enabled = false })
 end)
+
+test("clearing the inventory really empties it", function()
+    _G.apInventory.ships = { "PLAYER_SHIP_ROCK", "PLAYER_SHIP_MANTIS" }
+    _G.apInventory.systemCaps = { shields = 4 }
+    apInventoryClear()
+    equals(#_G.apInventory.ships, 0, "no ship from the previous seed is left")
+    equals(_G.apInventory.systemCaps.shields, nil, "nor any system level")
+    _G.apInventory.ships[1] = "PLAYER_SHIP_ROCK"
+    apInventoryClear()
+    equals(#_G.apInventory.ships, 0, "and a second clear works as well as the first")
+end)
