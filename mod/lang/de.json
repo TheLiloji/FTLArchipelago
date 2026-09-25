@@ -102,6 +102,7 @@
     "dash.status.offline": "Offline, Seed behalten",
     "dash.status.online": "Online als {slot}",
     "dash.status.solo": "Solomodus",
+    "dash.system.aboard": "An Bord, Ausbau gesperrt",
     "dash.system.locked": "Gesperrt",
     "dash.system.start": "+{n} beim Start",
     "dash.systems.header": "Systeme: {done} von {total} freigeschaltet",

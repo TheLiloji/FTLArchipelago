@@ -102,6 +102,7 @@
     "dash.status.offline": "Offline, seed mantida",
     "dash.status.online": "Online como {slot}",
     "dash.status.solo": "Modo solo",
+    "dash.system.aboard": "A bordo, melhorias bloqueadas",
     "dash.system.locked": "Bloqueado",
     "dash.system.start": "+{n} no início",
     "dash.systems.header": "Sistemas: {done} de {total} desbloqueados",

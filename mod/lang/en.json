@@ -102,6 +102,7 @@
     "dash.status.offline": "Offline, seed kept",
     "dash.status.online": "Online as {slot}",
     "dash.status.solo": "Solo mode",
+    "dash.system.aboard": "On board, upgrades locked",
     "dash.system.locked": "Locked",
     "dash.system.start": "+{n} at start",
     "dash.systems.header": "Systems: {done} of {total} unlocked",

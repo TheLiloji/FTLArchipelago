@@ -154,7 +154,19 @@ local function shipRows()
     return rows, open, total
 end
 
+local function systemsAboard()
+    local aboard = {}
+    pcall(function()
+        local list = Hyperspace.ships.player.vSystemList
+        for i = 0, list:size() - 1 do
+            aboard[Hyperspace.ShipSystem.SystemIdToName(list[i].iSystemType)] = true
+        end
+    end)
+    return aboard
+end
+
 local function systemRows()
+    local aboard = systemsAboard()
     local inventory = _G.apInventory or {}
     local caps = inventory.systemCaps or {}
     local starts = inventory.startingUpgrades or {}
@@ -165,6 +177,7 @@ local function systemRows()
         rows[#rows + 1] = {
             name = _G.apSystemLabel and apSystemLabel(system.id) or system.id,
             locked = cap <= 0,
+            aboard = aboard[system.id] == true,
             received = math.max(0, cap - 1),
             total = total,
             start = starts[system.id] or 0,
@@ -537,7 +550,9 @@ local function drawSystems(x, y, w, h)
         rect(cx, cy, 3, cardH, row.locked and "faint" or (full and "good" or "border"))
         text(10, cx + 14, cy + 10, cardW - 26, row.locked and "dim" or "text", row.name)
         local status
-        if row.locked then
+        if row.locked and row.aboard then
+            status = apT("dash.system.aboard")
+        elseif row.locked then
             status = apT("dash.system.locked")
         elseif full then
             status = apT("hud.system.max")
