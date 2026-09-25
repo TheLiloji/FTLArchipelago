@@ -32,8 +32,16 @@ should be.
 Only the ships you own can be picked. The others stay locked until their key arrives, and new ships show up the
 next time you are back in the hangar, never in the middle of a run. Type B and C layouts are items of their own.
 
-When you have received second copies of weapons, drones or crew, a small **Archipelago menu** opens at the start
-of each run so you can take one of each for that run.
+## The start-of-run menu
+
+![The start-of-run menu](../images/start-menu.jpg)
+
+Weapons and drones exist twice in the item pool, and crew members come in up to three steps. Once you have
+received a second copy of something, a menu opens at the very start of each new run: pick **one weapon, one
+drone and one crew member** from everything you have collected, and they come along for that run. Click
+**Done** to close it, or just jump: the menu only stays until the first jump.
+
+It comes back at the start of every run, so a good second copy is worth something every time.
 
 ## During a run
 
@@ -44,8 +52,11 @@ What you receive arrives by itself, at the next quiet beacon if you are in a fig
 - a **ship key** or **layout**: in the hangar next time;
 - a **system blueprint**: stores can now sell that system;
 - a **Progressive** system item: one more upgrade level allowed;
-- a **weapon, drone or augment**: more common in stores, and one copy put on board (in the cargo hold if your
-  slots are full);
+- a **weapon or drone**, first copy: one is put on board (in the cargo hold if your slots are full) and it
+  shows up more often in stores. Second copy: it joins the start-of-run menu;
+- an **augment**: one is put on board and it shows up more often in stores;
+- a **crew member**: the first joins your run, the second goes into the start-of-run menu, the third makes that
+  menu entry an expert with one skill mastered;
 - a **Head Start**: a free system level or reactor bar at the start of every future run;
 - **filler** (scrap, fuel, missiles, drone parts) and, if the seed has them, **traps**.
 
