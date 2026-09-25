@@ -117,6 +117,8 @@ function apGoalText()
         headline = apT("hud.goal", { n = total })
     elseif progress.reached then
         headline = apT("hud.goal.done", { done = progress.total })
+    elseif progress.done >= progress.total and _G.apGoalArchivesMissing and apGoalArchivesMissing() > 0 then
+        headline = apT("hud.goal.archives_missing", { n = apGoalArchivesMissing() })
     else
         headline = apT("hud.goal.progress", { done = progress.done, total = progress.total })
     end

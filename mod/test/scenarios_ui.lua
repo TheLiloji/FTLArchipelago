@@ -292,3 +292,22 @@ test("the goal says in plain words that each victory needs another ship", functi
           "and the ship already used is named")
     apLangResolve(nil)
 end)
+
+test("with every victory but not enough Archives, the goal says what is still missing", function()
+    apLangResolve("fr")
+    apContractResetForTesting()
+    apVictoriesResetForTesting()
+    apApplySlotData({ contract = 2, kinds = { "filler" }, kinds_required = {}, items = {}, loc = {},
+                      goal = { kind = "victories", count = 1, archives = 8 }, seed_hash = "archives-left" })
+    apLangResolve("fr")
+    _G.apInventory.archives = 3
+    local sent = false
+    local restoreGoal = stub("apNetSendGoal", function() sent = true return true end)
+    sim.clearLog()
+    apVictoryWith("PLAYER_SHIP_HARD")
+    restoreGoal()
+    check(not sent, "the goal is not sent")
+    check(shownKey("goal.archives_missing"), "the toast says Archives are missing, not just 1 of 1")
+    equals(apGoalText().headline, "Il reste 5 Archives à trouver", "and so does the goal box")
+    apLangResolve(nil)
+end)

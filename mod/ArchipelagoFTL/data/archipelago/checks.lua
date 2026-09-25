@@ -478,6 +478,18 @@ function apGoalDifficulty()
     return apT(DIFFICULTY_NAME[LEVELS[requested]] or "difficulty.normal")
 end
 
+local function archivesMissing()
+    local archives = apGoalArchives()
+    if archives == nil then
+        return 0
+    end
+    return math.max(0, archives - apReceivedArchives())
+end
+
+function apGoalArchivesMissing()
+    return archivesMissing()
+end
+
 local function goalIsReached()
     loadVictories()
     local goal = _G.apGoal and _G.apGoal() or nil
@@ -569,7 +581,12 @@ function apVictoryWith(layout)
 
     if not reached or goalAnnounced then
         if needed and _G.apNotifyStatus then
-            _G.apNotifyStatus(apT("goal.progress", { done = counted, total = needed }))
+            local missing = archivesMissing()
+            if counted >= needed and missing > 0 then
+                _G.apNotifyStatus(apT("goal.archives_missing", { n = missing, done = counted, total = needed }))
+            else
+                _G.apNotifyStatus(apT("goal.progress", { done = counted, total = needed }))
+            end
         end
         return
     end
