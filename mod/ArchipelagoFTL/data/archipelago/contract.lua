@@ -204,6 +204,9 @@ function apApplySlotData(slotData, slotName, solo)
     state.connected = true
     contractLog(string.format("seed accepted: contract %d, %d item descriptor(s)",
         contract, descriptorCount))
+    if not solo and _G.apSoloLeave then
+        _G.apSoloLeave()
+    end
 
     if #failed > 0 then
         if _G.apNotifyStatus then

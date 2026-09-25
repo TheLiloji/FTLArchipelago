@@ -6055,3 +6055,34 @@ test("home screen: typing doesn't hijack the keyboard during a run", function()
     sim.type("abc")
     equals(apConnectState().slot, "", "nothing is typed outside the home screen")
 end)
+
+test("shop: after solo mode, a real game shows who each package is for", function()
+    apNetResetForTesting()
+    if not apSoloStart() then return end
+    apSoloStop()
+    connectWithShop(2)
+    sim.netEvent("scout", { name = "Archipelago Shop 1", sender = "Berserker",
+        extra = "Seashell", value = 1 })
+    sim.netEvent("scout", { name = "Archipelago Shop 2", sender = "Axel",
+        extra = "Roll Fragment", value = 2 })
+    sim.tick(1)
+    equals(sim.rarityFor("AP_GIFT_1", 0).shortTitle.data, "Berserker", "not FOR YOU left over from solo")
+    equals(sim.rarityFor("AP_GIFT_2", 0).shortTitle.data, "Axel", "for every package")
+    apNetResetForTesting()
+end)
+
+test("shop: joining a real game while solo mode is still on leaves solo behind", function()
+    apNetResetForTesting()
+    if not apSoloStart() then return end
+    connectWithShop(2)
+    sim.netEvent("scout", { name = "Archipelago Shop 1", sender = "Berserker",
+        extra = "Seashell", value = 1 })
+    sim.netEvent("scout", { name = "Archipelago Shop 2", sender = "Axel",
+        extra = "Roll Fragment", value = 2 })
+    sim.tick(1)
+    check(not _G.apSoloEnabled, "solo mode is off once a real seed is loaded")
+    apSendCheck("shop:2", "Archipelago Shop 2")
+    equals(sim.rarityFor("AP_GIFT_1", 0).shortTitle.data, "Berserker",
+        "a check does not restock the shop with solo packages marked FOR YOU")
+    apNetResetForTesting()
+end)

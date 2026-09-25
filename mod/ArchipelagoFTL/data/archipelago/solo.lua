@@ -332,6 +332,16 @@ function apSoloStop()
     if _G.apContractUnload then apContractUnload() end
 end
 
+-- A real seed takes over: solo steps aside without unloading the seed that just arrived.
+function apSoloLeave()
+    if not _G.apSoloEnabled then
+        return
+    end
+    _G.apSoloEnabled = false
+    remember(KEY_ACTIVE, 0)
+    soloLog("a server seed is loaded: solo mode stopped, progress kept")
+end
+
 function apSoloResetForTesting()
     _G.apSoloEnabled = false
     state.delivered, state.given, state.done, state.byKey = 0, {}, false, nil
