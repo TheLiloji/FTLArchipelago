@@ -283,6 +283,20 @@ function apNetRemember(key, value)
     writeMeta(key, value)
 end
 
+function apNetRememberText(key, value)
+    local ap = store()
+    if ap ~= nil then
+        pcall(function() ap:RememberState(key, tostring(value)) end)
+    end
+end
+
+function apNetRecallText(key)
+    local ap = store()
+    if ap == nil then return "" end
+    local ok, value = pcall(function() return ap:RecallState(key) end)
+    return ok and value ~= nil and tostring(value) or ""
+end
+
 function apNetRememberSeed(fingerprint)
     writeMeta(SEED_KEY, fingerprint or 0)
     writeMeta(CONSUMED_KEY, 0)

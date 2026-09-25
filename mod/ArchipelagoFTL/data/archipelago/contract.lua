@@ -242,7 +242,7 @@ function apReceiveItem(itemName, sender, isReplay, index)
     end
 
     if not isReplay and _G.apRecordReceived then
-        apRecordReceived(itemName, sender)
+        apRecordReceived(itemName, sender, index)
     end
 
     return apQueueItem({

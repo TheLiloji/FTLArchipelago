@@ -327,6 +327,7 @@
     <script>data/archipelago/gamedata.lua</script>
     <script>data/archipelago/lang.lua</script>
     <script>data/archipelago/i18n.lua</script>
+    <script>data/archipelago/ui.lua</script>
     <script>data/archipelago/notify.lua</script>
     <script>data/archipelago/main.lua</script>
     <script>data/archipelago/runend.lua</script>

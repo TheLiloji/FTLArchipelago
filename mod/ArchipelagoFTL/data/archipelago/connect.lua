@@ -4,29 +4,16 @@ local function connectLog(message)
     log(TAG .. message)
 end
 
-local COLOR = {
-    panel = { 0.08, 0.09, 0.12, 0.92 },
-    border = { 0.59, 0.55, 0.86, 1.0 },
-    title = { 0.72, 0.68, 0.92, 1.0 },
-    text = { 0.88, 0.92, 0.86, 1.0 },
-    dim = { 0.52, 0.55, 0.52, 1.0 },
-    focus = { 0.16, 0.14, 0.24, 1.0 },
-    good = { 0.55, 0.80, 0.55, 1.0 },
-    warn = { 0.85, 0.72, 0.42, 1.0 },
-}
+local ui = apUi
 
-local function color(name)
-    local c = COLOR[name]
-    return Graphics.GL_Color(c[1], c[2], c[3], c[4])
-end
-
-local PANEL_X, PANEL_W = 10, 300
-local LINE_H = 15
-local FIELD_X, FIELD_W = 96, 194
-local BUTTON_H = 17
-local SOLO_W = 96
-local LEAVE_W = 130
-local LEAVE_H = 14
+local PANEL = { x = 24, w = 372, bottom = 682 }
+local PAD = 16
+local ROW_H = 28
+local LABEL_W = 100
+local BUTTON_H = 28
+local STATUS_H = 162
+local QUESTION = { x = 320, y = 200, w = 640, h = 220 }
+local QUESTION_BUTTON_H = 34
 
 local FIELDS = {
     { key = "uri", label = "connect.field.address", value = "archipelago.gg", max = 40 },
@@ -114,12 +101,6 @@ local function toggleAuto()
     connectLog("automatic connection: " .. (newValue == 1 and "enabled" or "disabled"))
 end
 
-local SCREEN_W = 1280
-local QUESTION_W = 720
-local QUESTION_Y = 150
-local QUESTION_H = 190
-local QUESTION_BUTTON_H = 34
-
 local resetAsked = false
 
 local function resetQuestionText()
@@ -178,22 +159,28 @@ local function declineReset()
         elseif _G.apSoloStart then
             _G.apSoloStart()
         end
+    elseif FIELDS[3].value ~= "" then
+        apConnectNow()
     end
 end
 
 local function currentQuestion()
     if soloQuestion then
         local saved = _G.apSoloSaved and _G.apSoloSaved() or { done = 0, total = 0 }
-        return { text = apT("solo.question", saved),
+        return { title = apT("question.solo.title"), text = apT("solo.question", saved),
                  yes = "solo.continue", yesTone = "good", accept = continueSolo,
                  no = "solo.restart", noTone = "warn", decline = restartSolo }
     end
     if resetQuestionOpen() then
-        return { text = resetQuestionText(),
+        return { title = apT("question.seed.title"), text = resetQuestionText(),
                  yes = "reset.yes", yesTone = "warn", accept = acceptReset,
                  no = "reset.no", noTone = "dim", decline = declineReset }
     end
     return nil
+end
+
+function apConnectQuestionOpen()
+    return currentQuestion() ~= nil
 end
 
 local function hangarOpen()
@@ -208,31 +195,29 @@ local function hangarOpen()
 end
 
 local function geometry()
-    local bottom = 720 - 10 - 14
-    local shortcutsHeight = LINE_H
-    local panelHeight = LINE_H + #FIELDS * LINE_H + BUTTON_H + 3 * LINE_H + 12
-    local panelTop = bottom - shortcutsHeight - panelHeight
-    local g = { panel = { x = PANEL_X, y = panelTop, w = PANEL_W, h = panelHeight },
-                fields = {}, button = nil }
-    local y = panelTop + LINE_H + 2
+    local fieldsH = #FIELDS * ROW_H
+    local height = 44 + fieldsH + 24 + BUTTON_H + 78
+    local top = PANEL.bottom - height
+    local g = { panel = { x = PANEL.x, y = top, w = PANEL.w, h = height }, fields = {} }
+    local y = top + 40
     for index = 1, #FIELDS do
-        g.fields[index] = { x = PANEL_X + FIELD_X, y = y, w = FIELD_W, h = LINE_H - 2 }
-        y = y + LINE_H
+        g.fields[index] = { x = PANEL.x + PAD + LABEL_W, y = y, w = PANEL.w - PAD * 2 - LABEL_W, h = 22 }
+        y = y + ROW_H
     end
-    g.button = { x = PANEL_X + 6, y = y + 2, w = 112, h = BUTTON_H }
-    g.solo = { x = PANEL_X + PANEL_W - 6 - SOLO_W, y = y + 2, w = SOLO_W, h = BUTTON_H }
-    g.auto = { x = PANEL_X + 6, y = y + 2 + BUTTON_H + 3, w = PANEL_W - 12, h = LINE_H - 2 }
-    g.message = { x = PANEL_X + 6, y = g.auto.y + LINE_H, w = PANEL_W - 12 }
-    g.leave = { x = PANEL_X, y = bottom - LEAVE_H - BUTTON_H - 4, w = LEAVE_W, h = BUTTON_H }
-    local width = QUESTION_W
-    local left = math.floor((SCREEN_W - width) / 2)
-    g.question = { x = left, y = QUESTION_Y, w = width, h = QUESTION_H }
-    local buttonsBottom = QUESTION_Y + QUESTION_H - QUESTION_BUTTON_H - 14
-    local buttonWidth = math.floor((width - 3 * 16) / 2)
-    g.resetYes = { x = left + 16, y = buttonsBottom, w = buttonWidth, h = QUESTION_BUTTON_H }
-    g.resetNo = { x = left + 32 + buttonWidth, y = buttonsBottom,
-                   w = buttonWidth, h = QUESTION_BUTTON_H }
-    g.shortcuts = panelTop + panelHeight + 2
+    g.auto = { x = PANEL.x + PAD, y = y + 2, w = PANEL.w - PAD * 2, h = 16 }
+    y = y + 24
+    local primaryW = math.floor((PANEL.w - PAD * 2 - 10) * 0.55)
+    g.button = { x = PANEL.x + PAD, y = y, w = primaryW, h = BUTTON_H }
+    g.solo = { x = PANEL.x + PAD + primaryW + 10, y = y, w = PANEL.w - PAD * 2 - primaryW - 10, h = BUTTON_H }
+    g.message = { x = PANEL.x + PAD, y = y + BUTTON_H + 10, w = PANEL.w - PAD * 2 }
+    g.status = { x = PANEL.x, y = PANEL.bottom - STATUS_H, w = PANEL.w, h = STATUS_H }
+    g.leave = { x = PANEL.x + PAD, y = PANEL.bottom - PAD - BUTTON_H, w = PANEL.w - PAD * 2, h = BUTTON_H }
+    g.question = QUESTION
+    local buttonsTop = QUESTION.y + QUESTION.h - QUESTION_BUTTON_H - 18
+    local buttonWidth = math.floor((QUESTION.w - 3 * 18) / 2)
+    g.resetYes = { x = QUESTION.x + 18, y = buttonsTop, w = buttonWidth, h = QUESTION_BUTTON_H }
+    g.resetNo = { x = QUESTION.x + 36 + buttonWidth, y = buttonsTop, w = buttonWidth, h = QUESTION_BUTTON_H }
+    g.shortcuts = PANEL.bottom - 34
     return g
 end
 
@@ -246,6 +231,82 @@ local function displayValue(field)
         return string.rep("*", #field.value)
     end
     return field.value
+end
+
+local function drawQuestion(question)
+    local g = geometry()
+    local q = g.question
+    ui.shade()
+    ui.window(q.x, q.y, q.w, q.h, "warn")
+    ui.text(13, q.x + 24, q.y + 20, q.w - 48, "warn", question.title)
+    ui.rect(q.x + 24, q.y + 46, q.w - 48, 1, "faint")
+    ui.wrapped(10, q.x + 24, q.y + 60, q.w - 48, "text", question.text)
+    ui.button(g.resetYes, apT(question.yes), question.yesTone == "warn" and "danger" or "primary")
+    ui.button(g.resetNo, apT(question.no), "secondary")
+end
+
+local function drawForm()
+    local g = geometry()
+    local p = g.panel
+    ui.rect(p.x, p.y, p.w, p.h, "window", 0.94)
+    ui.rect(p.x, p.y, p.w, 2, "border")
+    ui.text(10, p.x + PAD, p.y + 14, p.w - PAD * 2, "title", apT("connect.title"))
+
+    for index, field in ipairs(FIELDS) do
+        local box = g.fields[index]
+        local focused = index == focus
+        ui.text(9, p.x + PAD, box.y + 5, LABEL_W - 8, focused and "text" or "dim", apT(field.label))
+        ui.rect(box.x, box.y, box.w, box.h, focused and "hover" or "card")
+        ui.outline(box.x, box.y, box.w, box.h, focused and "border" or "faint", 1)
+        local value = displayValue(field)
+        if focused then
+            value = value .. "_"
+        end
+        ui.text(10, box.x + 8, box.y + 5, box.w - 16, focused and "title" or "text", value)
+    end
+
+    ui.checkbox(g.auto.x, g.auto.y, autoActive(), apT("connect.auto"), g.auto.w)
+    ui.button(g.button, apT("connect.button"), "primary")
+    ui.button(g.solo, apT("connect.solo"), "secondary")
+
+    if message ~= nil then
+        ui.wrapped(9, g.message.x, g.message.y, g.message.w, messageTone, message)
+    end
+    ui.wrapped(9, p.x + PAD, g.shortcuts, p.w - PAD * 2, "dim", apT("connect.keys"))
+end
+
+local function drawStatus()
+    local g = geometry()
+    local s = g.status
+    local solo = _G.apSoloEnabled == true
+    local online = _G.apNetConnected and apNetConnected()
+    ui.rect(s.x, s.y, s.w, s.h, "window", 0.94)
+    ui.rect(s.x, s.y, s.w, 2, solo and "good" or (online and "good" or "warn"))
+
+    local status
+    if solo then
+        status = apT("dash.status.solo")
+    elseif online then
+        status = apT("dash.status.online", { slot = tostring(_G.apOwnSlotName and apOwnSlotName() or "?") })
+    else
+        status = apT("dash.status.offline")
+    end
+    ui.text(12, s.x + PAD, s.y + 14, s.w - PAD * 2, "title", status)
+
+    local counts = _G.apCheckCount and apCheckCount() or { sent = 0, total = 0 }
+    if counts.total > 0 then
+        local line = apT("dash.checks.count", { done = counts.sent, total = counts.total })
+        ui.text(10, s.x + PAD, s.y + 44, s.w - PAD * 2 - 60, "text", apT("dash.checks.title") .. "  " .. line)
+        ui.textRight(10, s.x + s.w - PAD, s.y + 44, 60, "dim",
+            apT("dash.percent", { n = math.floor(100 * counts.sent / counts.total) }))
+        ui.bar(s.x + PAD, s.y + 62, s.w - PAD * 2, 5, counts.sent / counts.total,
+            counts.sent >= counts.total and "good" or "border")
+    end
+    if _G.apSeedSummaryLine then
+        ui.text(9, s.x + PAD, s.y + 76, s.w - PAD * 2, "dim", apSeedSummaryLine())
+    end
+    ui.text(9, s.x + PAD, s.y + 94, s.w - PAD * 2, "dim", apT("connect.keys.run"))
+    ui.button(g.leave, apT(solo and "connect.solo.stop" or "connect.disconnect"), "secondary")
 end
 
 local function resumeLast()
@@ -495,98 +556,14 @@ script.on_render_event(
         onMenu = true
 
         local question = currentQuestion()
-        if question ~= nil then
-            pcall(function()
-                local g = geometry()
-                local q = g.question
-
-                Graphics.CSurface.GL_DrawRect(q.x, q.y, q.w, q.h, color("panel"))
-                Graphics.CSurface.GL_DrawRect(q.x, q.y, q.w, 3, color("warn"))
-                Graphics.CSurface.GL_DrawRect(q.x, q.y + q.h - 3, q.w, 3, color("warn"))
-
-                Graphics.CSurface.GL_SetColor(color("warn"))
-                Graphics.freetype.easy_printNewlinesCentered(13, q.x + q.w / 2, q.y + 20,
-                    q.w - 40, question.text)
-
-                for _, button in ipairs({ { g.resetYes, question.yes, question.yesTone },
-                                          { g.resetNo, question.no, question.noTone } }) do
-                    local b = button[1]
-                    Graphics.CSurface.GL_DrawRect(b.x, b.y, b.w, b.h, color("focus"))
-                    Graphics.CSurface.GL_DrawRect(b.x, b.y, b.w, 2, color(button[3]))
-                    Graphics.CSurface.GL_SetColor(color(button[3]))
-                    Graphics.freetype.easy_printCenter(13, b.x + b.w / 2, b.y + 8,
-                        apT(button[2]))
-                end
-            end)
-        end
-
         if seedActive() then
-            pcall(function()
-                local l = geometry().leave
-                Graphics.CSurface.GL_DrawRect(l.x, l.y, l.w, l.h, color("focus"))
-                Graphics.CSurface.GL_DrawRect(l.x, l.y, l.w, 1, color("border"))
-                Graphics.CSurface.GL_SetColor(color("title"))
-                Graphics.freetype.easy_printAutoShrink(10, l.x + 8, l.y + 2, l.w - 16, false,
-                    apT(_G.apSoloEnabled and "connect.solo.stop" or "connect.disconnect"))
-            end)
-            return
+            pcall(drawStatus)
+        else
+            pcall(drawForm)
         end
-        pcall(function()
-            local g = geometry()
-            local p = g.panel
-
-            Graphics.CSurface.GL_DrawRect(p.x, p.y, p.w, p.h, color("panel"))
-            Graphics.CSurface.GL_DrawRect(p.x, p.y, p.w, 1, color("border"))
-
-            Graphics.CSurface.GL_SetColor(color("title"))
-            Graphics.freetype.easy_printAutoShrink(10, p.x + 6, p.y + 3, p.w - 12, false,
-                apT("connect.title"))
-
-            for index, field in ipairs(FIELDS) do
-                local box = g.fields[index]
-                Graphics.CSurface.GL_SetColor(color("dim"))
-                Graphics.freetype.easy_printAutoShrink(9, p.x + 6, box.y, box.x - p.x - 10, false,
-                    apT(field.label))
-
-                Graphics.CSurface.GL_DrawRect(box.x, box.y - 1, box.w, box.h,
-                    color(index == focus and "focus" or "panel"))
-                Graphics.CSurface.GL_SetColor(color(index == focus and "title" or "text"))
-                local text = displayValue(field)
-                if index == focus then
-                    text = text .. "_"
-                end
-                Graphics.freetype.easy_print(9, box.x + 3, box.y, text)
-            end
-
-            local b = g.button
-            Graphics.CSurface.GL_DrawRect(b.x, b.y, b.w, b.h, color("focus"))
-            Graphics.CSurface.GL_DrawRect(b.x, b.y, b.w, 1, color("border"))
-            Graphics.CSurface.GL_SetColor(color("title"))
-            Graphics.freetype.easy_printAutoShrink(10, b.x + 8, b.y + 2, b.w - 16, false,
-                apT("connect.button"))
-
-            local s = g.solo
-            Graphics.CSurface.GL_DrawRect(s.x, s.y, s.w, s.h, color("focus"))
-            Graphics.CSurface.GL_DrawRect(s.x, s.y, s.w, 1, color("border"))
-            Graphics.CSurface.GL_SetColor(color("title"))
-            Graphics.freetype.easy_printAutoShrink(10, s.x + 8, s.y + 2, s.w - 16, false,
-                apT("connect.solo"))
-
-            local a = g.auto
-            Graphics.CSurface.GL_SetColor(color(autoActive() and "good" or "dim"))
-            Graphics.freetype.easy_printAutoShrink(9, a.x, a.y, a.w, false,
-                (autoActive() and "[x] " or "[ ] ") .. apT("connect.auto"))
-
-            if message ~= nil then
-                local m = g.message
-                Graphics.CSurface.GL_SetColor(color(messageTone))
-                Graphics.freetype.easy_printAutoNewlines(9, m.x, m.y, m.w, message)
-            end
-
-            Graphics.CSurface.GL_SetColor(color("dim"))
-            Graphics.freetype.easy_printAutoShrink(9, p.x, g.shortcuts, p.w, false,
-                apT("connect.keys"))
-        end)
+        if question ~= nil then
+            pcall(drawQuestion, question)
+        end
     end
 )
 

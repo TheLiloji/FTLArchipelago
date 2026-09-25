@@ -4,13 +4,17 @@ local function menuLog(message)
     log(TAG .. message)
 end
 
-local PANEL = { x = 240, y = 110, w = 800, h = 470 }
-local COLUMN_W = 250
-local COLUMN_GAP = 12
-local LINE_H = 26
-local PER_PAGE = 8
-local LIST_TOP = 200
-local DONE_BUTTON = { w = 160, h = 30 }
+local ui = apUi
+
+local PANEL = { x = 190, y = 86, w = 900, h = 548 }
+local COLUMN_GAP = 16
+local COLUMN_TOP = 90
+local COLUMN_BOTTOM = 70
+local ROW_H = 34
+local ROW_GAP = 6
+local LIST_OFFSET = 44
+local PAGER_H = 24
+local DONE_BUTTON = { w = 220, h = 34 }
 local CATEGORIES = { "weapon", "drone", "crew" }
 local COLUMN_KEYS = {
     weapon = "loadout.column.weapon", drone = "loadout.column.drone", crew = "loadout.column.crew",
@@ -31,16 +35,6 @@ local logoTexture = nil
 local open = false
 local taken = {}
 local pages = {}
-
-local function color(name)
-    local shades = {
-        panel = { 18, 22, 34, 235 }, border = { 150, 140, 220, 255 }, title = { 230, 225, 255, 255 },
-        text = { 210, 210, 220, 255 }, dim = { 140, 140, 160, 255 }, good = { 120, 220, 140, 255 },
-        focus = { 45, 50, 75, 255 },
-    }
-    local t = shades[name] or shades.text
-    return Graphics.GL_Color(t[1] / 255, t[2] / 255, t[3] / 255, t[4] / 255)
-end
 
 local function blueprintTitle(name, family)
     local ok, text = pcall(function()
@@ -123,24 +117,41 @@ end
 
 local function geometry()
     local g = { columns = {} }
+    local columnW = math.floor((PANEL.w - 40 - COLUMN_GAP * (#CATEGORIES - 1)) / #CATEGORIES)
+    local columnH = PANEL.h - COLUMN_TOP - COLUMN_BOTTOM
+    local perPage = math.floor((columnH - LIST_OFFSET - PAGER_H - 16) / (ROW_H + ROW_GAP))
     for index, category in ipairs(CATEGORIES) do
-        local x = PANEL.x + 20 + (index - 1) * (COLUMN_W + COLUMN_GAP)
+        local x = PANEL.x + 20 + (index - 1) * (columnW + COLUMN_GAP)
+        local y = PANEL.y + COLUMN_TOP
+        local pagerY = y + columnH - PAGER_H - 10
         g.columns[category] = {
-            x = x,
-            previous = { x = x, y = LIST_TOP + PER_PAGE * LINE_H + 6, w = 30, h = 22 },
-            next = { x = x + COLUMN_W - 30, y = LIST_TOP + PER_PAGE * LINE_H + 6, w = 30, h = 22 },
+            x = x, y = y, w = columnW, h = columnH,
+            listY = y + LIST_OFFSET,
+            previous = { x = x + 12, y = pagerY, w = 32, h = PAGER_H },
+            next = { x = x + columnW - 44, y = pagerY, w = 32, h = PAGER_H },
         }
     end
+    g.perPage = perPage
     g.done = {
-        x = PANEL.x + (PANEL.w - DONE_BUTTON.w) / 2,
-        y = PANEL.y + PANEL.h - DONE_BUTTON.h - 16,
+        x = PANEL.x + math.floor((PANEL.w - DONE_BUTTON.w) / 2),
+        y = PANEL.y + PANEL.h - DONE_BUTTON.h - 18,
         w = DONE_BUTTON.w, h = DONE_BUTTON.h,
     }
     return g
 end
 
-local function inside(box, x, y)
-    return x >= box.x and x <= box.x + box.w and y >= box.y and y <= box.y + box.h
+local function rowArea(column, row)
+    return { x = column.x + 12, y = column.listY + (row - 1) * (ROW_H + ROW_GAP), w = column.w - 24, h = ROW_H }
+end
+
+function apLoadoutPoint(target, category, row)
+    local g = geometry()
+    if target == "done" then
+        return g.done.x + g.done.w / 2, g.done.y + g.done.h / 2
+    end
+    local column = g.columns[category]
+    local area = target == "row" and rowArea(column, row or 1) or column[target]
+    return area.x + area.w / 2, area.y + area.h / 2
 end
 
 local function take(category, entry)
@@ -171,106 +182,96 @@ end
 local function draw()
     local catalog = receivedCatalog()
     local g = geometry()
-    Graphics.CSurface.GL_DrawRect(PANEL.x, PANEL.y, PANEL.w, PANEL.h, color("panel"))
-    Graphics.CSurface.GL_DrawRectOutline(PANEL.x, PANEL.y, PANEL.w, PANEL.h, color("border"), 2)
+    ui.shade()
+    ui.window(PANEL.x, PANEL.y, PANEL.w, PANEL.h)
     if logoTexture == nil then
         local ok, texture = pcall(function() return Hyperspace.Resources:GetImageId(LOGO) end)
         logoTexture = (ok and texture) or false
     end
     local titleX = PANEL.x + 20
     if logoTexture then
-        Graphics.CSurface.GL_BlitPixelImage(logoTexture, titleX, PANEL.y + 10, LOGO_SIZE, LOGO_SIZE,
+        Graphics.CSurface.GL_BlitPixelImage(logoTexture, titleX, PANEL.y + 14, LOGO_SIZE, LOGO_SIZE,
             0, Graphics.GL_Color(1, 1, 1, 1), false)
-        titleX = titleX + LOGO_SIZE + 8
+        titleX = titleX + LOGO_SIZE + 10
     end
-    Graphics.CSurface.GL_SetColor(color("title"))
-    Graphics.freetype.easy_printAutoShrink(18, titleX, PANEL.y + 16, PANEL.x + PANEL.w - 20 - titleX, false,
-        apT("loadout.title"))
-    Graphics.CSurface.GL_SetColor(color("dim"))
-    Graphics.freetype.easy_printAutoShrink(10, PANEL.x + 20, PANEL.y + 46, PANEL.w - 40, false,
-        apT("loadout.hint"))
+    ui.text(24, titleX, PANEL.y + 14, PANEL.x + PANEL.w - 20 - titleX, "title", apT("loadout.title"))
+    ui.text(10, PANEL.x + 20, PANEL.y + 56, PANEL.w - 40, "dim", apT("loadout.hint"))
 
     for _, category in ipairs(CATEGORIES) do
         local column = g.columns[category]
         local list = catalog[category]
-        Graphics.CSurface.GL_SetColor(color("title"))
-        Graphics.freetype.easy_printAutoShrink(13, column.x, LIST_TOP - 26, COLUMN_W, false,
-            apT(COLUMN_KEYS[category]))
-        if taken[category] then
-            Graphics.CSurface.GL_SetColor(color("good"))
-            Graphics.freetype.easy_printAutoShrink(10, column.x, LIST_TOP, COLUMN_W, false,
-                apT("loadout.taken.short", { name = taken[category] }))
-        elseif #list == 0 then
-            Graphics.CSurface.GL_SetColor(color("dim"))
-            Graphics.freetype.easy_printAutoShrink(10, column.x, LIST_TOP, COLUMN_W, false,
-                apT(EMPTY_KEYS[category]))
+        local chosen = taken[category]
+        ui.rect(column.x, column.y, column.w, column.h, "card")
+        ui.rect(column.x, column.y, column.w, 2, chosen and "good" or "border")
+        local badge = chosen and apT("loadout.chosen") or apT("loadout.count", { n = #list })
+        local badgeW = ui.width(9, badge)
+        ui.text(13, column.x + 12, column.y + 14, column.w - 36 - badgeW, "title", apT(COLUMN_KEYS[category]))
+        ui.textRight(9, column.x + column.w - 12, column.y + 18, badgeW, chosen and "good" or "dim", badge)
+
+        if #list == 0 then
+            ui.wrapped(10, column.x + 12, column.listY, column.w - 24, "dim", apT(EMPTY_KEYS[category]))
         else
-            local total = math.ceil(#list / PER_PAGE)
+            local total = math.ceil(#list / g.perPage)
             local page = math.min(pages[category] or 1, total)
-            for row = 1, PER_PAGE do
-                local entry = list[(page - 1) * PER_PAGE + row]
+            for row = 1, g.perPage do
+                local entry = list[(page - 1) * g.perPage + row]
                 if entry == nil then break end
-                local y = LIST_TOP + (row - 1) * LINE_H
-                Graphics.CSurface.GL_DrawRect(column.x, y - 2, COLUMN_W, LINE_H - 4, color("focus"))
-                Graphics.CSurface.GL_SetColor(color("text"))
-                Graphics.freetype.easy_printAutoShrink(10, column.x + 6, y + 2, COLUMN_W - 12, false,
-                    entry.label)
+                local area = rowArea(column, row)
+                local isChosen = chosen ~= nil and entry.label == chosen
+                local available = chosen == nil
+                local over = available and ui.hovered(area)
+                ui.rect(area.x, area.y, area.w, area.h, isChosen and "hover" or (over and "hover" or "window"))
+                ui.rect(area.x, area.y, 3, area.h, isChosen and "good" or (over and "border" or "faint"))
+                ui.text(10, area.x + 14, area.y + 10, area.w - 24,
+                    isChosen and "good" or (available and "text" or "dim"), entry.label)
             end
             if total > 1 then
-                for _, button in ipairs({ { column.previous, "<", page > 1 },
-                                          { column.next, ">", page < total } }) do
-                    local zone = button[1]
-                    Graphics.CSurface.GL_DrawRect(zone.x, zone.y, zone.w, zone.h, color("focus"))
-                    Graphics.CSurface.GL_DrawRectOutline(zone.x, zone.y, zone.w, zone.h,
-                        color(button[3] and "border" or "dim"), 1)
-                    Graphics.CSurface.GL_SetColor(color(button[3] and "title" or "dim"))
-                    Graphics.freetype.easy_printCenter(12, zone.x + zone.w / 2, zone.y + 4, button[2])
-                end
-                Graphics.CSurface.GL_SetColor(color("dim"))
-                Graphics.freetype.easy_printCenter(10, column.x + COLUMN_W / 2, column.previous.y + 5,
+                ui.button(column.previous, apT("loadout.previous"), "secondary", page <= 1)
+                ui.button(column.next, apT("loadout.next"), "secondary", page >= total)
+                ui.textCenter(9, column.x + column.w / 2, column.previous.y + 6, column.w - 100, "dim",
                     apT("loadout.page", { n = page, total = total }))
             end
         end
     end
 
-    local done = g.done
-    Graphics.CSurface.GL_DrawRect(done.x, done.y, done.w, done.h, color("focus"))
-    Graphics.CSurface.GL_DrawRectOutline(done.x, done.y, done.w, done.h, color("border"), 1)
-    Graphics.CSurface.GL_SetColor(color("title"))
-    Graphics.freetype.easy_printAutoShrink(12, done.x + 10, done.y + 8, done.w - 20, false, apT("loadout.done"))
+    ui.button(g.done, apT("loadout.done"), "primary")
+end
+
+function apLoadoutOpen()
+    return open
 end
 
 local function handleClick(x, y)
     local catalog = receivedCatalog()
     local g = geometry()
-    if inside(g.done, x, y) then
+    if ui.inside(g.done, x, y) then
         close("finished by the player")
         return true
     end
     for _, category in ipairs(CATEGORIES) do
         local column = g.columns[category]
         local list = catalog[category]
-        local total = math.max(1, math.ceil(#list / PER_PAGE))
-        if inside(column.previous, x, y) then
+        local total = math.max(1, math.ceil(#list / g.perPage))
+        if ui.inside(column.previous, x, y) then
             pages[category] = math.max(1, (pages[category] or 1) - 1)
             return true
         end
-        if inside(column.next, x, y) then
+        if ui.inside(column.next, x, y) then
             pages[category] = math.min(total, (pages[category] or 1) + 1)
             return true
         end
-        if not taken[category] and x >= column.x and x <= column.x + COLUMN_W then
-            local row = math.floor((y - LIST_TOP + 2) / LINE_H) + 1
-            if row >= 1 and row <= PER_PAGE then
-                local entry = list[((pages[category] or 1) - 1) * PER_PAGE + row]
-                if entry ~= nil then
+        if not taken[category] then
+            local page = math.min(pages[category] or 1, total)
+            for row = 1, g.perPage do
+                local entry = list[(page - 1) * g.perPage + row]
+                if entry ~= nil and ui.inside(rowArea(column, row), x, y) then
                     take(category, entry)
                     return true
                 end
             end
         end
     end
-    return inside(PANEL, x, y)
+    return ui.inside(PANEL, x, y)
 end
 
 script.on_init(function(newGame)

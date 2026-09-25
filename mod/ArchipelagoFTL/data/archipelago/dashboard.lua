@@ -1,19 +1,5 @@
 local TAG = "[AP-dash] "
 
-local COLOR = {
-    shade = { 0.0, 0.0, 0.0, 0.72 },
-    window = { 0.07, 0.075, 0.10, 0.97 },
-    card = { 0.12, 0.125, 0.17, 1.0 },
-    hover = { 0.17, 0.165, 0.24, 1.0 },
-    faint = { 0.22, 0.23, 0.30, 1.0 },
-    border = { 0.59, 0.55, 0.86, 1.0 },
-    title = { 0.78, 0.74, 0.96, 1.0 },
-    text = { 0.90, 0.93, 0.88, 1.0 },
-    dim = { 0.55, 0.57, 0.62, 1.0 },
-    good = { 0.55, 0.82, 0.55, 1.0 },
-    warn = { 0.88, 0.74, 0.42, 1.0 },
-    bad = { 0.88, 0.45, 0.42, 1.0 },
-}
 
 local WINDOW = { x = 140, y = 56, w = 1000, h = 608 }
 local HEADER_H = 46
@@ -53,45 +39,10 @@ local function dashLog(message)
     log(TAG .. message)
 end
 
-local function color(name)
-    local c = COLOR[name]
-    return Graphics.GL_Color(c[1], c[2], c[3], c[4])
-end
-
-local function rect(x, y, w, h, tone)
-    Graphics.CSurface.GL_DrawRect(x, y, w, h, color(tone))
-end
-
-local function outline(x, y, w, h, tone, thickness)
-    Graphics.CSurface.GL_DrawRectOutline(x, y, w, h, color(tone), thickness or 1)
-end
-
-local function width(font, text)
-    return Graphics.freetype.easy_measureWidth(font, text)
-end
-
-local function text(font, x, y, maxWidth, tone, value)
-    Graphics.CSurface.GL_SetColor(color(tone))
-    Graphics.freetype.easy_printAutoShrink(font, x, y, math.max(8, maxWidth), false, tostring(value))
-end
-
-local function textRight(font, right, y, maxWidth, tone, value)
-    local w = math.min(width(font, tostring(value)), maxWidth)
-    text(font, right - w, y, w, tone, value)
-end
-
-local function textCenter(font, center, y, maxWidth, tone, value)
-    local w = math.min(width(font, tostring(value)), maxWidth)
-    text(font, math.floor(center - w / 2), y, w, tone, value)
-end
-
-local function bar(x, y, w, h, ratio, tone)
-    rect(x, y, w, h, "faint")
-    local filled = math.floor(w * math.max(0, math.min(1, ratio)))
-    if filled > 0 then
-        rect(x, y, filled, h, tone or "border")
-    end
-end
+local ui = apUi
+local color, rect, outline, width = ui.color, ui.rect, ui.outline, ui.width
+local text, textRight, textCenter, bar = ui.text, ui.textRight, ui.textCenter, ui.bar
+local inside, mouse, hovered = ui.inside, ui.mouse, ui.hovered
 
 local function card(x, y, w, h, tone)
     rect(x, y, w, h, tone or "card")
@@ -247,12 +198,69 @@ local function statusLine()
     return apT("dash.status.noseed"), "dim"
 end
 
-function apRecordReceived(itemName, sender)
+local JOURNAL_SAVED = 40
+local journalFor = nil
+
+local function journalKey()
+    return "ap_journal_" .. tostring(_G.apSeedFingerprint and apSeedFingerprint() or 0)
+end
+
+-- The journal is kept per seed in the network module's memory, so it survives a restart.
+local function loadJournal()
+    local key = journalKey()
+    if not hasSeed() or (journalFor == key and #_G.apReceivedHistory > 0) then
+        return
+    end
+    journalFor = key
+    local stored = _G.apNetRecallText and apNetRecallText(key) or ""
+    local history = {}
+    for entry in stored:gmatch("[^\30]+") do
+        local item, sender = entry:match("^([^\31]*)\31?(.*)$")
+        if item and item ~= "" then
+            history[#history + 1] = { item = item, sender = sender ~= "" and sender or nil }
+        end
+    end
+    _G.apReceivedHistory = history
+end
+
+local function saveJournal()
+    if not _G.apNetRememberText then return end
+    local parts = {}
+    for index = 1, math.min(JOURNAL_SAVED, #_G.apReceivedHistory) do
+        local entry = _G.apReceivedHistory[index]
+        parts[#parts + 1] = entry.item .. "\31" .. (entry.sender or "")
+    end
+    apNetRememberText(journalKey(), table.concat(parts, "\30"))
+end
+
+-- The server sends every item again at each connection; its index tells the new ones apart.
+local function alreadyInJournal(index)
+    if index == nil or index < 0 or not _G.apNetRecall then
+        return false
+    end
+    local key = journalKey() .. "_last"
+    if index < apNetRecall(key) then
+        return true
+    end
+    apNetRemember(key, index + 1)
+    return false
+end
+
+function apRecordReceived(itemName, sender, index)
+    loadJournal()
+    if alreadyInJournal(index) then
+        return
+    end
+    local own = _G.apOwnSlotName and apOwnSlotName() or nil
+    if sender ~= nil and own ~= nil and tostring(sender) == tostring(own) then
+        sender = nil
+    end
     local history = _G.apReceivedHistory
     table.insert(history, 1, { item = tostring(itemName), sender = sender })
     while #history > HISTORY_MAX do
         table.remove(history)
     end
+    saveJournal()
 end
 
 
@@ -669,6 +677,7 @@ end
 
 local function drawWindow()
     state.areas = {}
+    loadJournal()
     local x, y, w, h = WINDOW.x, WINDOW.y, WINDOW.w, WINDOW.h
     rect(0, 0, 1280, 720, "shade")
     rect(x, y, w, h, "window")

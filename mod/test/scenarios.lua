@@ -4747,7 +4747,7 @@ test("connection panel: no text can overflow, whatever the language", function()
         if found then
             check(found.maxWidth ~= nil and found.maxWidth > 0,
                 expected .. " has a maximum width, so it shrinks instead of overflowing")
-            check(found.x + (found.maxWidth or 0) <= 10 + 300,
+            check(found.x + (found.maxWidth or 0) <= 24 + 372,
                 expected .. " stays inside the panel")
         end
     end
@@ -5965,7 +5965,7 @@ end)
 test("home screen: clicking a field gives it focus", function()
     onTheHomeScreen()
     local found = false
-    for y = 560, 700 do
+    for y = 380, 700 do
         sim.click(200, y)
         if apConnectState().focus == 1 then found = true; break end
     end

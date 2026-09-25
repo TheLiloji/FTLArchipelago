@@ -1,53 +1,102 @@
 local TAG = "[AP-notify] "
 
-local DISPLAY = {
-    x = 100,
-    y = 100,
-    font = 10,
-    lineLength = 185,
-    messageLimit = 6,
-    duration = 7,
+-- FTL keeps the text of every message (and the tests read it there), but the mod draws them itself.
+local HIDDEN_X = -4000
+
+local TOAST = {
+    life = 6 * 60,
+    fade = 45,
+    max = 4,
+    width = { run = 300, menu = 460 },
+    gap = 6,
 }
 
--- In a run the text stays left of FTL's windows (store, upgrades, events all start past x = 290).
-local MENU = { y = 350, lineLength = 460 }
+local AREA = {
+    run = { x = 12, bottom = 588 },
+    menu = { x = 62, top = 262 },
+}
 
-local function place(y, lineLength)
-    pcall(function()
-        local helper = Hyperspace.PrintHelper.GetInstance()
-        helper.y = y
-        helper.lineLength = lineLength
-    end)
-end
-
--- FTL draws its messages on top of everything, the dashboard hides them while open.
-function apNotifyHide(hidden)
-    pcall(function()
-        Hyperspace.PrintHelper.GetInstance().x = hidden and -4000 or DISPLAY.x
-    end)
-end
-
-function apNotifyPlaceMenu()
-    place(MENU.y, MENU.lineLength)
-end
-
-function apNotifyPlaceRun()
-    place(DISPLAY.y, DISPLAY.lineLength)
-end
+local toasts = {}
+local area = "run"
+local hidden = false
 
 local function configureDisplay()
     local ok, err = pcall(function()
         local helper = Hyperspace.PrintHelper.GetInstance()
-        helper.x = DISPLAY.x
-        helper.y = DISPLAY.y
-        helper.font = DISPLAY.font
-        helper.lineLength = DISPLAY.lineLength
-        helper.messageLimit = DISPLAY.messageLimit
-        helper.duration = DISPLAY.duration
+        helper.x = HIDDEN_X
+        helper.messageLimit = 6
+        helper.duration = 7
     end)
     if not ok then
         log(TAG .. "display setup failed: " .. tostring(err))
     end
+end
+
+local function push(text, tone)
+    toasts[#toasts + 1] = { text = tostring(text), tone = tone or "text", age = 0 }
+    while #toasts > TOAST.max do
+        table.remove(toasts, 1)
+    end
+end
+
+function apNotifyHide(value)
+    hidden = value == true
+end
+
+function apNotifyPlaceMenu()
+    area = "menu"
+end
+
+function apNotifyPlaceRun()
+    area = "run"
+end
+
+local function toastHeight(text, w)
+    local lines
+    local ok, size = pcall(function()
+        return Graphics.freetype.easy_measurePrintLines(10, 0, 0, w, text)
+    end)
+    if ok and size ~= nil and tonumber(size.y) then
+        lines = math.max(1, math.floor((size.y + 4) / 14))
+    else
+        lines = math.max(1, math.ceil(apUi.width(10, text) / w))
+    end
+    return 12 + lines * 14
+end
+
+function apDrawToasts()
+    if hidden or #toasts == 0 then
+        return
+    end
+    local ui = apUi
+    local w = TOAST.width[area]
+    local y = area == "menu" and AREA.menu.top or AREA.run.bottom
+    for index = #toasts, 1, -1 do
+        local toast = toasts[index]
+        local h = toastHeight(toast.text, w - 24)
+        local left = TOAST.life - toast.age
+        local alpha = left < TOAST.fade and math.max(0, left / TOAST.fade) or 1
+        local top = area == "menu" and y or (y - h)
+        local x = AREA[area].x
+        ui.rect(x, top, w, h, "window", 0.92 * alpha)
+        ui.rect(x, top, 3, h, toast.tone, alpha)
+        ui.wrapped(10, x + 14, top + 6, w - 24, "text", toast.text, alpha)
+        if area == "menu" then
+            y = y + h + TOAST.gap
+        else
+            y = top - TOAST.gap
+        end
+    end
+    for index = #toasts, 1, -1 do
+        toasts[index].age = toasts[index].age + 1
+        if toasts[index].age >= TOAST.life then
+            table.remove(toasts, index)
+        end
+    end
+end
+
+function apToastsForTesting()
+    return toasts
 end
 
 local GROUP_ABOVE = 3
@@ -72,27 +121,31 @@ function apNotifyCheck(locationName)
     pendingChecks[#pendingChecks + 1] = tostring(locationName)
 end
 
--- A quiet tick prints one line per entry; a burst (several checks/items landing at once,
+-- A quiet tick shows one line per entry; a burst (several checks/items landing at once,
 -- e.g. after reconnecting) collapses to a single "N received" line instead of flooding it.
-local function flushQueue(queue, lineFor, manyKey)
+local function flushQueue(queue, lineFor, manyKey, tone)
     local count = #queue
     if count == 0 then
         return queue
     end
     if count <= GROUP_ABOVE then
         for _, entry in ipairs(queue) do
-            print(lineFor(entry))
+            local line = lineFor(entry)
+            print(line)
+            push(line, tone)
         end
     else
-        print(apT(manyKey, { n = count }))
+        local line = apT(manyKey, { n = count })
+        print(line)
+        push(line, tone)
     end
     return {}
 end
 
 local function flushAll()
-    pendingItems = flushQueue(pendingItems, itemLine, "item.received.many")
+    pendingItems = flushQueue(pendingItems, itemLine, "item.received.many", "good")
     pendingChecks = flushQueue(pendingChecks,
-        function(name) return apT("check.sent", { location = name }) end, "check.sent.many")
+        function(name) return apT("check.sent", { location = name }) end, "check.sent.many", "border")
 end
 
 script.on_internal_event(Defines.InternalEvents.ON_TICK, flushAll)
@@ -104,15 +157,24 @@ end
 function apNotifyResetForTesting()
     pendingChecks = {}
     pendingItems = {}
+    toasts = {}
 end
 
 function apNotifyTrap(description)
-    print(apT("trap.sprung", { what = description }))
+    local line = apT("trap.sprung", { what = description })
+    print(line)
+    push(line, "bad")
 end
 
 function apNotifyStatus(message)
     print(apT("status.prefix", { message = message }))
+    push(message, "title")
 end
+
+script.on_render_event(Defines.RenderEvents.GUI_CONTAINER, function() end, function()
+    if (_G.apDashboardOpen and apDashboardOpen()) or (_G.apLoadoutOpen and apLoadoutOpen()) then return end
+    pcall(apDrawToasts)
+end)
 
 configureDisplay()
 script.on_init(function()

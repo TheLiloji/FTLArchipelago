@@ -702,8 +702,10 @@ _G.Graphics = {
         easy_print = function(size, x, y, text)
             return noteDraw(size, x, y, text)
         end,
-        easy_printAutoNewlines = function(size, x, y, _, text)
-            return noteDraw(size, x, y, text)
+        easy_printAutoNewlines = function(size, x, y, lineLength, text)
+            local drawing = noteDraw(size, x, y, text)
+            sim.draws[#sim.draws].maxWidth = tonumber(lineLength) or 0
+            return drawing
         end,
         easy_printAutoShrink = function(size, x, y, maxWidth, _, text)
             noteDraw(size, x, y, text)

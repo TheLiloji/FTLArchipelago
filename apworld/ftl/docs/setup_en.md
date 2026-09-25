@@ -163,7 +163,9 @@ Pick a ship in the hangar (locked ships are simply not there) and play. The mod 
   Slug in one of them sells a real Archipelago hint.
 - Hints about your world, whoever asked for them, show up in game and in the dashboard.
 
-`TAB` opens the dashboard during a run: goal, checks sent, ships, systems, head starts and hints.
+`TAB` opens the dashboard during a run and pauses the game. Its pages: an overview (goal, checks, links,
+latest items), the ship layouts, the systems, the checks still to do by category, and a journal of the items
+received and the hints. Left/Right or 1-5 change page, the wheel scrolls the lists, Esc closes it.
 
 Losing a run costs you only the run. Your items are kept.
 

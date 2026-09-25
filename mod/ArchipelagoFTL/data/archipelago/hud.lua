@@ -68,11 +68,11 @@ local function snapshot()
     return info
 end
 
-local function summary()
+local function summary(withoutChecks)
     local info = snapshot()
     local parts = {}
 
-    if info.checks then
+    if info.checks and not withoutChecks then
         parts[#parts + 1] = apT("hud.summary.checks",
             { done = info.checks.sent, total = info.checks.total })
     end
@@ -87,6 +87,10 @@ local function summary()
     parts[#parts + 1] = apT("hud.summary.start_levels", { levels = levels })
 
     return table.concat(parts, "   ")
+end
+
+function apSeedSummaryLine()
+    return summary(true)
 end
 
 local function goalLine()
@@ -214,9 +218,6 @@ script.on_render_event(
             if _G.apNotifyPlaceMenu then _G.apNotifyPlaceMenu() end
 
             if hasSeed() then
-                Graphics.CSurface.GL_SetColor(color("title"))
-                Graphics.freetype.easy_print(10, 10, bottom - BANNER_STEP,
-                    apT("hud.menu_line", { summary = summary() }))
 
                 local goal, reached, subLine = goalLine()
                 if goal ~= nil then
@@ -252,8 +253,10 @@ script.on_render_event(
             end
 
             if _G.apModBanner then
-                Graphics.CSurface.GL_SetColor(color("dim"))
-                Graphics.freetype.easy_print(10, 10, bottom, _G.apModBanner())
+                apUi.text(9, 24, bottom + 4, 372, "dim", _G.apModBanner())
+            end
+            if _G.apDrawToasts and not (_G.apConnectQuestionOpen and apConnectQuestionOpen()) then
+                pcall(apDrawToasts)
             end
         end)
     end

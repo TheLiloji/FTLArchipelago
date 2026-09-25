@@ -1,5 +1,3 @@
-local WEAPON_COLUMN_X, DRONE_COLUMN_X, CREW_COLUMN_X = 270, 532, 794
-local FIRST_ROW_Y = 205
 
 local function catalog(weapons, crewList)
     apInventoryClear()
@@ -39,12 +37,12 @@ test("start-of-run menu: a click gives the weapon, only one per run", function()
     sim.startRun(true)
     menuShown()
     local before = sim.delivered()
-    sim.click(WEAPON_COLUMN_X, FIRST_ROW_Y)
+    sim.click(apLoadoutPoint("row", "weapon", 1))
     equals(sim.delivered(), before + 1, "the weapon is delivered")
-    sim.click(WEAPON_COLUMN_X, FIRST_ROW_Y + 26)
+    sim.click(apLoadoutPoint("row", "weapon", 2))
     equals(sim.delivered(), before + 1, "the second weapon is refused: one per category")
     sim.renderGui()
-    check(sim.drawnText(apT("loadout.taken.short", { name = "" })), "the column says what was taken")
+    check(sim.drawnText(apT("loadout.chosen")), "the column says something was taken")
 end)
 
 test("start-of-run menu: the expert crew member arrives with their specialty", function()
@@ -52,7 +50,7 @@ test("start-of-run menu: the expert crew member arrives with their specialty", f
     sim.startRun(true)
     menuShown()
     local before = sim.player.vCrewList:size()
-    sim.click(CREW_COLUMN_X, FIRST_ROW_Y)
+    sim.click(apLoadoutPoint("row", "crew", 1))
     equals(sim.player.vCrewList:size(), before + 1, "one more crew member")
     local recruit = sim.player.vCrewList[sim.player.vCrewList:size() - 1]
     equals(recruit.species, "energy", "a Zoltan")
@@ -72,7 +70,7 @@ test("start-of-run menu: Done closes it without taking anything", function()
     sim.startRun(true)
     menuShown()
     local before = sim.delivered()
-    sim.click(640, 110 + 470 - 16 - 15)
+    sim.click(apLoadoutPoint("done"))
     check(not menuShown(), "the button closes the menu")
     equals(sim.delivered(), before, "and nothing was given")
 end)
@@ -108,15 +106,18 @@ test("start-of-run menu: the arrows change page", function()
     sim.startRun(true)
     check(menuShown(), "open")
     check(sim.drawnText(apT("loadout.page", { n = 1, total = 2 })), "page 1 of 2 at the start")
+    local nextX, nextY = apLoadoutPoint("next", "weapon")
     local rightArrow = nil
     for _, drawing in ipairs(sim.draws) do
-        if drawing.text == ">" and drawing.x > 260 and drawing.x < 260 + 250 then rightArrow = drawing end
+        if drawing.text == ">" and math.abs(drawing.x - nextX) < 20 and math.abs(drawing.y - nextY) < 20 then
+            rightArrow = drawing
+        end
     end
-    check(rightArrow ~= nil and rightArrow.x >= 260 + 250 - 30, "the > is drawn where you click, at the end of the column")
-    sim.click(WEAPON_COLUMN_X + 250 - 15, 200 + 8 * 26 + 12)
+    check(rightArrow ~= nil, "the > is drawn where you click")
+    sim.click(nextX, nextY)
     sim.renderGui()
     check(sim.drawnText(apT("loadout.page", { n = 2, total = 2 })), "the right arrow moves to page 2")
-    sim.click(WEAPON_COLUMN_X - 5, 200 + 8 * 26 + 12)
+    sim.click(apLoadoutPoint("previous", "weapon"))
     sim.renderGui()
     check(sim.drawnText(apT("loadout.page", { n = 1, total = 2 })), "the left arrow goes back to page 1")
 end)
@@ -166,7 +167,7 @@ test("progressive crew member: tier 2 in the menu, tier 3 the expert replaces th
     check(expert[1]:find(apT("crew.skill.shields"), 1, true), "and it's the shields expert")
 
     local before = sim.player.vCrewList:size()
-    sim.click(CREW_COLUMN_X, FIRST_ROW_Y)
+    sim.click(apLoadoutPoint("row", "crew", 1))
     local recruit = sim.player.vCrewList[sim.player.vCrewList:size() - 1]
     equals(sim.player.vCrewList:size(), before + 1, "the click brings them aboard")
     equals(recruit.maitrises[1], 2, "with shields mastered")

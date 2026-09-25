@@ -295,6 +295,9 @@ function apSoloHint(alreadyHinted)
             candidates[#candidates + 1] = entry
         end
     end
+    if _G.apHintPick then
+        return apHintPick(candidates, checkKey)
+    end
     if #candidates == 0 then
         return nil
     end
