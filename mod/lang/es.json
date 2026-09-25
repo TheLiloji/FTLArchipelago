@@ -20,7 +20,7 @@
     "check.label.achievement": "Logro: {name}",
     "check.label.crew": "Primer tripulante {name} a bordo",
     "check.label.sector": "Sector {n} alcanzado con {ship}",
-    "check.label.system": "{name} instalado",
+    "check.label.system": "Instalado: {name}",
     "check.label.system.level": "{name} al nivel {n}",
     "check.label.victory": "Victoria con {ship}",
     "check.resent": "{n} checks recuperados con el servidor.",

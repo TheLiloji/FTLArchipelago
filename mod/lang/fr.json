@@ -19,7 +19,7 @@
     "check.label.achievement": "Succès : {name}",
     "check.label.crew": "Premier équipier {name} à bord",
     "check.label.sector": "Secteur {n} atteint avec {ship}",
-    "check.label.system": "{name} installé",
+    "check.label.system": "Installé : {name}",
     "check.label.system.level": "{name} au niveau {n}",
     "check.label.victory": "Victoire avec {ship}",
     "check.resent": "{n} checks rattrapés auprès du serveur.",
