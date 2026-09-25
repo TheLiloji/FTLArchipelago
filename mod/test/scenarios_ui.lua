@@ -423,3 +423,19 @@ test("clearing the inventory really empties it", function()
     apInventoryClear()
     equals(#_G.apInventory.ships, 0, "and a second clear works as well as the first")
 end)
+
+test("a refusal the player answered is taken back once the seed goes through", function()
+    apContractResetForTesting()
+    apNotifyResetForTesting()
+    apApplySlotData({ contract = 99, kinds = {}, kinds_required = {}, items = {}, loc = {}, seed_hash = "too-new" })
+    local refused = false
+    for _, toast in ipairs(apToastsForTesting()) do
+        if toast.text:find(apT("contract.refused", { reason = "" }):sub(1, 12), 1, true) then refused = true end
+    end
+    check(refused, "the refusal is shown")
+    apApplySlotData({ contract = 2, kinds = { "filler" }, kinds_required = {}, items = {}, loc = {}, seed_hash = "fine" })
+    for _, toast in ipairs(apToastsForTesting()) do
+        check(not toast.text:find(apT("contract.refused", { reason = "" }):sub(1, 12), 1, true),
+              "and gone once a seed is accepted")
+    end
+end)

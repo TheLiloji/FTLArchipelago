@@ -251,6 +251,7 @@ script.on_render_event(
             pcall(drawTitle)
             if _G.apNotifyPlaceMenu then _G.apNotifyPlaceMenu() end
 
+            _G.apGoalBoxBottom = nil
             if hasSeed() then
 
                 local goalText = apGoalText()
@@ -270,6 +271,7 @@ script.on_render_event(
                     local left = GOAL_X
                     local center = left + frame / 2
                     local height = GOAL_H + #subLines * GOAL_SUB_H
+                    _G.apGoalBoxBottom = GOAL_Y + height
                     Graphics.CSurface.GL_DrawRect(left, GOAL_Y, frame, height, color("panel"))
                     Graphics.CSurface.GL_DrawRect(left, GOAL_Y, frame, 2, color("border"))
                     Graphics.CSurface.GL_DrawRect(left, GOAL_Y + height - 2, frame, 2,

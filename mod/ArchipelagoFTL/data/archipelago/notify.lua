@@ -39,6 +39,15 @@ local function push(text, tone)
     end
 end
 
+-- Takes back a message that is no longer true, such as a refusal the player just answered.
+function apNotifyWithdraw(text)
+    for index = #toasts, 1, -1 do
+        if toasts[index].text == tostring(text) then
+            table.remove(toasts, index)
+        end
+    end
+end
+
 function apNotifyHide(value)
     hidden = value == true
 end
@@ -70,7 +79,10 @@ function apDrawToasts()
     end
     local ui = apUi
     local w = TOAST.width[area]
-    local y = area == "menu" and AREA.menu.top or AREA.run.bottom
+    local y = AREA.run.bottom
+    if area == "menu" then
+        y = math.max(AREA.menu.top, (_G.apGoalBoxBottom or 0) + 12)
+    end
     for index = #toasts, 1, -1 do
         local toast = toasts[index]
         local h = toastHeight(toast.text, w - 24)

@@ -106,6 +106,7 @@ function apApplySlotData(slotData, slotName, solo)
         slot = identity.slot or (state.identity and state.identity.slot) or nil,
     }
 
+    local earlierRefusal = state.refusal
     state.refusal = nil
     state.unknownItems = 0
     state.unknownKinds = {}
@@ -204,6 +205,10 @@ function apApplySlotData(slotData, slotName, solo)
     state.connected = true
     contractLog(string.format("seed accepted: contract %d, %d item descriptor(s)",
         contract, descriptorCount))
+    if earlierRefusal ~= nil and _G.apNotifyWithdraw then
+        _G.apNotifyWithdraw(apT("contract.refused", { reason = earlierRefusal }))
+    end
+    state.refusal = nil
     if not solo and _G.apSoloLeave then
         _G.apSoloLeave()
     end
