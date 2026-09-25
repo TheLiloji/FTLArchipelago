@@ -181,3 +181,41 @@ test("journal: items sent again at a reconnection are not written twice", functi
     apRecordReceived("Hull Missile", "Axel", 2)
     equals(#_G.apReceivedHistory, 3, "a new index goes in")
 end)
+
+test("back to the hangar from a store: the new ship keeps all its systems", function()
+    sim.startRun(true)
+    sim.jumpArrive()
+    sim.setStore(true)
+    sim.player.currentScrap = 785
+    sim.tick(1)
+    sim.player.currentScrap = 0
+    for _, name in ipairs({ "shields", "engines", "pilot", "doors", "sensors", "medbay", "oxygen" }) do
+        sim.constructSystem(name, 0, 0)
+    end
+    sim.tick(5)
+    equals(#sim.player._removed, 0, "nothing is removed from a ship being built")
+    equals(sim.player.currentScrap, 0, "and no scrap comes out of nowhere")
+    check(not sim.logged("PURCHASE REFUSED"), "no refusal in the log")
+end)
+
+test("in the hangar, a single system being built is not a purchase either", function()
+    sim.startRun(true)
+    sim.jumpArrive()
+    sim.setStore(true)
+    sim.hangarOpen = true
+    sim.constructSystem("cloaking", 0, 90)
+    sim.tick(5)
+    sim.hangarOpen = false
+    equals(#sim.player._removed, 0, "the hangar ship keeps its cloaking")
+end)
+
+test("a real purchase at a store is still refused after those changes", function()
+    sim.startRun(true)
+    _G.apInventory.systemCaps.cloaking = nil
+    sim.jumpArrive()
+    sim.setStore(true)
+    sim.player.currentScrap = 0
+    sim.constructSystem("cloaking", 0, 90)
+    sim.tick(5)
+    equals(#sim.player._removed, 1, "one locked system bought: removed")
+end)

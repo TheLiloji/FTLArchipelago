@@ -226,6 +226,25 @@ end
 
 local lastScrap = nil
 
+-- Stores never sell these, every ship has them: removing one would break the ship.
+local NEVER_SOLD = { pilot = true, oxygen = true, shields = true, engines = true, weapons = true }
+
+local function inRun()
+    local ok, running = pcall(function()
+        local app = Hyperspace.App
+        return app.world.bStartedGame == true and app.menu.shipBuilder.bOpen ~= true
+    end)
+    return ok and running
+end
+
+local function disarm(reason)
+    if purchaseGuardArmed then
+        sysLog("anti-purchase guard off: " .. reason)
+    end
+    purchaseGuardArmed = false
+    pendingRefusal = {}
+end
+
 local function recordScrap()
     local ok, value = pcall(function() return Hyperspace.ships.player.currentScrap end)
     lastScrap = ok and tonumber(value) or nil
@@ -238,14 +257,13 @@ script.on_internal_event(Defines.InternalEvents.CONSTRUCT_SHIP_SYSTEM, function(
             return
         end
 
+        if purchaseGuardArmed and not inRun() then
+            disarm("left the run")
+        end
+
         if not purchaseGuardArmed then
             startingSystems[name] = true
             sysLog("starting system: " .. name .. " (AP cap " .. allowedCap(name) .. ")")
-            return
-        end
-
-        if startingSystems[name] or purchaseAllowed(name) then
-            sysLog("system added: " .. name .. " (cap applied next tick)")
             return
         end
 
@@ -253,6 +271,11 @@ script.on_internal_event(Defines.InternalEvents.CONSTRUCT_SHIP_SYSTEM, function(
             return system._shipObj.iShipId == 0
         end)
         if not ownOk or not isPlayer then
+            return
+        end
+
+        if startingSystems[name] or purchaseAllowed(name) or NEVER_SOLD[name] then
+            sysLog("system added: " .. name .. " (cap applied next tick)")
             return
         end
 
@@ -276,6 +299,14 @@ end)
 
 local function processRefusals()
     if #pendingRefusal == 0 then
+        return
+    end
+    -- A purchase adds one system; several in the same tick means a whole ship is being built.
+    if #pendingRefusal > 1 or not inRun() then
+        for _, refusal in ipairs(pendingRefusal) do
+            startingSystems[refusal.name] = true
+        end
+        disarm(#pendingRefusal .. " system(s) built at once, a new ship rather than a purchase")
         return
     end
 
@@ -342,6 +373,10 @@ script.on_internal_event(Defines.InternalEvents.ON_TICK, function()
     if capDivider == 0 then
         apApplySystemRules()
     end
+end)
+
+script.on_internal_event(Defines.InternalEvents.MAIN_MENU, function()
+    disarm("main menu")
 end)
 
 script.on_internal_event(Defines.InternalEvents.JUMP_ARRIVE, function(shipManager)
