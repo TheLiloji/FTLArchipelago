@@ -407,30 +407,6 @@ class TestSectorsanityMilestones(FTLTestBase):
         self.assertTrue(chosen <= set(locations.MILESTONE_SECTORS))
 
 
-class TestPlannedOptionsAreAnnouncedAtGeneration(FTLTestBase):
-
-    options = {"skill_checks": "per_skill"}
-    auto_construct = False
-
-    def test_the_option_is_named_in_the_warning(self) -> None:
-        previous = logging.root.manager.disable
-        logging.disable(logging.NOTSET)
-        try:
-            with self.assertLogs("FTL", level="WARNING") as log:
-                self.world_setup()
-        finally:
-            logging.disable(previous)
-        self.assertTrue(any("skill_checks" in line for line in log.output),
-                        f"no warning names the option: {log.output}")
-        self.assertEqual(options.enabled_planned_options(self.world.options), ("skill_checks",))
-
-
-class TestOptionsLeftAloneSayNothing(FTLTestBase):
-
-    def test_nothing_is_announced_by_default(self) -> None:
-        self.assertEqual(options.enabled_planned_options(self.world.options), ())
-
-
 class TestTheVictoryItemIsCreatedByName(FTLTestBase):
 
     def test_it_is_progression_and_carries_no_code(self) -> None:

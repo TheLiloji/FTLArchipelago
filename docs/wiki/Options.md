@@ -58,8 +58,3 @@ The comment at the top of each file gives its size and a rough play time.
   (losing the run, losing a crew member, or both) and `death_link_effect` what a received death does.
 - `energy_link`: a fuel reserve shared with every Energy Link player.
 - `trap_link`: traps are shared with the other Trap Link players.
-
-## Options that do nothing yet
-
-A few options are listed as planned features: progressive crew health, progressive skills, skill checks and
-death-type checks. The generator accepts them but the game ignores them for now. Leave them at their default.

@@ -13,7 +13,11 @@ Please report anything odd (see [Reporting a problem](#reporting-a-problem)).
 
 - **Ships are locked** until you receive their key. The hangar only shows what you own.
 - **Systems need a blueprint** before a store will sell them, and each upgrade level is an item.
-- **Weapons, drones and augments** you receive become more common in stores, and one copy is put on your ship.
+- **Weapons and drones come in two copies.** The first puts one on your ship and makes it show up more often
+  in stores. The second adds it to the **start-of-run menu**, where each new run you pick one weapon, one drone
+  and one crew member to take along. Augments come once.
+- **Crew members** are items too: the first joins your current run, the second goes into that menu, the third
+  makes it an expert.
 - **ARCHIPELAGO beacons** on the map hold a shop with packages for other players, or one of four small events.
 - **A dashboard** (press `TAB` in a run) shows your goal, your checks, what you received and your hints.
 - **The goal:** beat the Flagship with a few different ships. Archives, a second currency, can be added on top.
@@ -78,13 +82,6 @@ More in the wiki: [how to play](docs/wiki/Playing.md), [the options](docs/wiki/O
 Open an [issue](https://github.com/TheLiloji/FTLArchipelago/issues) and attach `FTL_HS.log` from the game folder
 (on Linux, from its `data` folder). It is written again each time FTL starts, so copy it right after the
 problem. Say which seed options you used if it looks seed related.
-
-## Known limits
-
-- A few options do nothing in game yet: progressive crew health, progressive skills, skill checks and
-  death-type checks. Their descriptions say so.
-- FTL has to stay on version 1.6.9 on Windows, the only one Hyperspace runs on.
-- The package tooltip in the Archipelago shop still shows weapon stats. Ignore them, it is a package.
 
 ## Building from source
 

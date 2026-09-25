@@ -68,13 +68,6 @@ class FTLWorld(World):
         for message in self.logic.warnings:
             logging.getLogger("FTL").warning("FTL (%s) : %s", self.player_name, message)
 
-        planned = options.enabled_planned_options(self.options)
-        if planned:
-            logging.getLogger("FTL").warning(
-                "FTL (%s): %s set, but the mod does not apply them yet; "
-                "they will have no effect in game.", self.player_name, ", ".join(planned)
-            )
-
         for name in self.logic.starting_blueprints:
             self.push_precollected(self.create_item(name))
 

@@ -27,10 +27,5 @@ requires:
   medbay_blueprint_logic: required
   engines_blueprint_logic: anywhere
   weapons_blueprint_logic: anywhere
-  progressive_crew_health: true
-  crew_health_floor: 25
-  progressive_skills: true
-  skill_checks: crossed
-  death_type_checks: true
   death_link: true
   death_link_effect: hull_damage

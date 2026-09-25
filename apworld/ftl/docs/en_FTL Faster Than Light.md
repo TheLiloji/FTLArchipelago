@@ -185,12 +185,6 @@ shields, sensors and a medbay, those three blueprints start in your inventory as
 
 None of this changes what the game lets you do. It changes what the generator is willing to assume.
 
-## Not implemented yet
-
-Some options are accepted by the generator but do nothing in game yet, because the mod half is not written:
-progressive crew health, progressive skills, skill checks and death-type checks. Their option pages say so
-too. Leave them at their defaults unless you are testing seed generation.
-
 ## FTL-specific things you should know
 
 **The Kestrel Type A is always playable.** Hyperspace can unlock a vanilla ship but it cannot re-lock one, so

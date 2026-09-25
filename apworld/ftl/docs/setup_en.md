@@ -131,8 +131,6 @@ other game. The options worth a second look:
   worlds, of which the Flagship waits for a number. Leave a few spare.
 - **Death Link**, **Energy Link** and **Trap Link** connect your runs to the other players.
 
-Options grouped under "Planned features (not applied yet)" do nothing in game and create no checks.
-
 ## Connecting to a room
 
 On the main menu, the panel at the bottom left takes the server address, the port, your slot name and the room

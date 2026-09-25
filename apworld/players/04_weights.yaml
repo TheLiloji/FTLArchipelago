@@ -22,5 +22,3 @@ requires:
   trap_chance:
     0: 1
     50: 1
-  skill_checks: per_skill
-  death_type_checks: true
