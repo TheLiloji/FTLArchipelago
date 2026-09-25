@@ -60,8 +60,42 @@ end
 local tutorialWarned = false
 local outOfSeed = {}
 
+-- A run only counts for a seed that was loaded when it started, and still is: a run played without one
+-- has none of the seed's limits.
+local runSeed = nil
+local seedlessWarned = false
+
+local function seedLoaded()
+    local contract = _G.apContractState
+    return contract ~= nil and contract.connected == true
+end
+
+local function currentSeed()
+    return seedLoaded() and (_G.apSeedFingerprint and apSeedFingerprint() or 0) or nil
+end
+
+function apRunCounts()
+    local seed = currentSeed()
+    local started = runSeed == seed or (_G.apRunStartCheckForTesting == false and seed ~= nil)
+    if seed ~= nil and started then
+        return true
+    end
+    if not seedlessWarned then
+        seedlessWarned = true
+        checkLog("this run was not started with the current seed loaded: nothing it does counts")
+        if _G.apNotifyStatus then
+            _G.apNotifyStatus(apT("check.run_without_seed"))
+        end
+    end
+    return false
+end
+
 function apSendCheck(id, label)
     if sent[id] then
+        return false
+    end
+
+    if not apRunCounts() then
         return false
     end
 
@@ -342,10 +376,58 @@ end
 script.on_init(function()
     lastSector = nil
     startingRaces = nil
+    runSeed = currentSeed()
+    seedlessWarned = false
 end)
+
+-- Solo started from the test key during a run: the run had no seed yet and takes this one.
+function apRunAdoptSeed()
+    if runSeed == nil then
+        runSeed = currentSeed()
+    end
+end
+
+function apRunSeedForTesting(value)
+    runSeed = value
+    seedlessWarned = false
+end
 
 local victories = {}
 local goalAnnounced = false
+local victoriesFor = nil
+
+local function victoryKey(layout)
+    return "ap_goalwin_" .. tostring(_G.apSeedFingerprint and apSeedFingerprint() or 0) .. "_" .. layout
+end
+
+local function allLayouts()
+    local layouts = {}
+    local data = _G.apGameData or {}
+    for _, ship in ipairs(data.ships or {}) do
+        for index = 0, (ship.layouts or 1) - 1 do
+            layouts[#layouts + 1] = ship.name .. ((data.variantSuffix or {})[index] or "")
+        end
+    end
+    return layouts
+end
+
+-- Victories that counted are kept per seed, so a goal of several wins can span several sessions.
+local function loadVictories()
+    local contract = _G.apContractState
+    if contract == nil or contract.connected ~= true or not _G.apNetRecall then
+        return
+    end
+    local seed = apSeedFingerprint()
+    if victoriesFor == seed then
+        return
+    end
+    victoriesFor = seed
+    for _, layout in ipairs(allLayouts()) do
+        if apNetRecall(victoryKey(layout)) == 1 then
+            victories[layout] = true
+        end
+    end
+end
 
 local LEVELS = { any = 0, normal = 1, hard = 2 }
 
@@ -397,6 +479,7 @@ function apGoalDifficulty()
 end
 
 local function goalIsReached()
+    loadVictories()
     local goal = _G.apGoal and _G.apGoal() or nil
     if type(goal) ~= "table" or goal.kind ~= "victories" then
         return false, 0
@@ -445,7 +528,11 @@ function apGoalProgress()
 end
 
 function apVictoryWith(layout)
+    loadVictories()
     if layout == nil or victories[layout] then
+        return
+    end
+    if not apRunCounts() then
         return
     end
 
@@ -460,6 +547,7 @@ function apVictoryWith(layout)
     end
 
     victories[layout] = true
+    if _G.apNetRemember then apNetRemember(victoryKey(layout), 1) end
 
     local reached, counted = goalIsReached()
     local goal = _G.apGoal and _G.apGoal() or nil
@@ -512,6 +600,7 @@ function apChecksForgetSeed()
     unsent = {}
     outOfSeed = {}
     victories = {}
+    victoriesFor = nil
     goalAnnounced = false
     lastSector = nil
     checkLog("new seed: checks, victories and goal reset")
@@ -519,6 +608,7 @@ end
 
 function apVictoriesResetForTesting()
     victories = {}
+    victoriesFor = nil
     goalAnnounced = false
 end
 

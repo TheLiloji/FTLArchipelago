@@ -1,12 +1,12 @@
-test("network: a check made before any seed waits for the connection instead of being lost", function()
+test("network: a check made with no seed loaded is not kept for later", function()
     apContractResetForTesting()
     apForgetChecksForTesting()
     apNetResetForTesting()
     _G.apNetState.connected = false
     sim.clearLog()
 
-    apSendCheck("PLAYER_SHIP_HARD:sector:3", "Sector 3")
-    equals(apPendingCheckCount(), 1, "with no seed, the check stays queued")
+    equals(apSendCheck("PLAYER_SHIP_HARD:sector:3", "Sector 3"), false, "with no seed, nothing is recorded")
+    equals(apPendingCheckCount(), 0, "and nothing waits for a connection")
 
     apNetConnect("ws://localhost:38281", "Navigator", "")
     sim.netEvent("connected", { name = "Navigator", extra = slotData({
@@ -18,30 +18,11 @@ test("network: a check made before any seed waits for the connection instead of 
 
     local wasSent = false
     for _, call in ipairs(sim.net.calls) do
-        if call[1] == "SendCheck" and call.name == "Kestrel Cruiser A: Reach sector 3" then
-            wasSent = true
-        end
+        if call[1] == "SendCheck" then wasSent = true end
     end
-    check(wasSent, "once the seed is received, the check goes to the server")
-    equals(apPendingCheckCount(), 0, "and the queue is emptied")
+    check(not wasSent, "connecting later sends nothing from that seedless moment")
 
     apNetResetForTesting()
-    apForgetChecksForTesting()
-end)
-
-test("network: a queued check that does not belong to the seed is dropped silently", function()
-    apContractResetForTesting()
-    apForgetChecksForTesting()
-    apNetResetForTesting()
-    _G.apNetState.connected = false
-
-    apSendCheck("PLAYER_SHIP_HARD:sector:1", "Sector 1")
-    equals(apPendingCheckCount(), 1, "queued while we don't know yet")
-
-    applySeed({ loc = { ["PLAYER_SHIP_HARD:sector:3"] = "Kestrel Cruiser A: Reach sector 3" } })
-    equals(apResendPendingChecks(), 0, "nothing is counted as recovered")
-    equals(apPendingCheckCount(), 0, "and the queue doesn't keep it forever")
-
     apForgetChecksForTesting()
 end)
 

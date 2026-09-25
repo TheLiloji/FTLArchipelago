@@ -190,6 +190,7 @@ local function loadSeed()
     state.byKey = nil
 
     if _G.apForgetChecks then apForgetChecks() end
+    if _G.apRunAdoptSeed then apRunAdoptSeed() end
     return true
 end
 

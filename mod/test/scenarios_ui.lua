@@ -219,3 +219,54 @@ test("a real purchase at a store is still refused after those changes", function
     sim.tick(5)
     equals(#sim.player._removed, 1, "one locked system bought: removed")
 end)
+
+test("a run started without a seed counts for nothing, even once connected", function()
+    _G.apRunStartCheckForTesting = nil
+    apContractResetForTesting()
+    apForgetChecksForTesting()
+    apVictoriesResetForTesting()
+    sim.startRun(false)
+    local restoreGoal = stub("apNetSendGoal", function() return true end)
+    apApplySlotData({ contract = 2, kinds = { "filler" }, kinds_required = {}, items = {},
+                      loc = { ["PLAYER_SHIP_HARD:victory"] = "Kestrel Cruiser A: Defeat the Flagship" },
+                      goal = { kind = "victories", count = 2 }, seed_hash = "late-seed" })
+    sim.clearLog()
+    equals(apSendCheck("PLAYER_SHIP_HARD:victory", "victory"), false, "the victory check is refused")
+    apVictoryWith("PLAYER_SHIP_HARD")
+    restoreGoal()
+    equals(apGoalProgress().done, 0, "and the goal does not move")
+    check(shownKey("check.run_without_seed"), "the player is told why")
+    equals(apPendingCheckCount(), 0, "nothing is kept to be sent later")
+end)
+
+test("a run started with the seed counts, and keeps counting offline", function()
+    _G.apRunStartCheckForTesting = nil
+    apContractResetForTesting()
+    apForgetChecksForTesting()
+    apApplySlotData({ contract = 2, kinds = { "filler" }, kinds_required = {}, items = {},
+                      loc = { ["shop:1"] = "Archipelago Shop 1" }, seed_hash = "early-seed" })
+    sim.startRun(true)
+    _G.apNetState.connected = false
+    equals(apSendCheck("shop:1", "shop"), true, "the check counts, even with the server away")
+end)
+
+test("goal: victories that counted survive a restart of the game", function()
+    sim.durable = {}
+    apVictoriesResetForTesting()
+    sim.startRun(true)
+    applySeed({ goal = { kind = "victories", count = 2 }, seed_hash = "keep-wins" })
+    local restore = stub("apNetSendGoal", function() return true end)
+    apVictoryWith("PLAYER_SHIP_HARD")
+    restore()
+    equals(apGoalProgress().done, 1, "one victory")
+
+    apVictoriesResetForTesting()
+    apContractResetForTesting()
+    applySeed({ goal = { kind = "victories", count = 2 }, seed_hash = "keep-wins" })
+    equals(apGoalProgress().done, 1, "still one after the game is restarted")
+
+    apVictoriesResetForTesting()
+    apContractResetForTesting()
+    applySeed({ goal = { kind = "victories", count = 2 }, seed_hash = "another-seed-entirely" })
+    equals(apGoalProgress().done, 0, "and none for another seed")
+end)

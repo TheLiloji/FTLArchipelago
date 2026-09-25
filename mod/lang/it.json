@@ -24,6 +24,7 @@
     "check.label.victory": "Vittoria con {ship}",
     "check.resent": "{n} check recuperati presso il server.",
     "check.resent.one": "{n} check recuperato presso il server.",
+    "check.run_without_seed": "Nessuna seed era caricata all'inizio di questa run: i suoi check e le sue vittorie non contano. Connettiti prima dal menu.",
     "check.sent": "Check inviato: {location}",
     "check.sent.many": "{n} check inviati.",
     "check.victory.unknown_ship": "Vittoria! Ma la nave non è stata riconosciuta e il check non è partito. Vedi FTL_HS.log.",

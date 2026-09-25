@@ -74,6 +74,7 @@ local function test(name, body)
     if _G.apNotifyResetForTesting then _G.apNotifyResetForTesting() end
     if _G.apNetResetForTesting then _G.apNetResetForTesting() end
     if _G.apSoloResetForTesting then _G.apSoloResetForTesting() end
+    _G.apRunStartCheckForTesting = false
     local ok, err = pcall(body)
     if not ok then
         failed = failed + 1
@@ -106,6 +107,7 @@ local function applySeed(fields)
     end
     local accepted = apApplySlotData(seed)
     check(accepted ~= false, "the test seed is accepted by the contract")
+    if accepted ~= false and _G.apRunSeedForTesting then apRunSeedForTesting(apSeedFingerprint()) end
     return accepted
 end
 
@@ -686,6 +688,7 @@ end)
 
 test("a check outside the seed is still announced, with what is known", function()
     sim.startRun(true)
+    applySeed({})
     sim.clearLog()
     apSendCheck("unknown:1", "an achievement")
     apNotifyFlushForTesting()

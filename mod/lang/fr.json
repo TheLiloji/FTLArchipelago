@@ -23,6 +23,7 @@
     "check.label.victory": "Victoire avec {ship}",
     "check.resent": "{n} checks rattrapés auprès du serveur.",
     "check.resent.one": "{n} check rattrapé auprès du serveur.",
+    "check.run_without_seed": "Aucune seed n'était chargée au début de cette run : ses checks et ses victoires ne comptent pas. Connectez-vous d'abord depuis le menu.",
     "check.sent": "Check validé : {location}",
     "check.sent.many": "{n} checks envoyés.",
     "check.victory.unknown_ship": "Victoire ! Mais le vaisseau n'a pas été reconnu : le check n'est pas parti. Voir FTL_HS.log.",
