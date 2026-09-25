@@ -13,6 +13,7 @@
   "strings": {
     "archive.received": "Archive {done} sur {total}",
     "archive.received.alone": "Archive trouvée : {done}",
+    "archive.received.extra": "Archive en plus : {done} reçues, {total} suffisaient",
     "check.adopted": "{n} checks déjà connus du serveur.",
     "check.adopted.one": "1 check déjà connu du serveur.",
     "check.label.achievement": "Succès : {name}",

@@ -462,7 +462,7 @@ local function drawOverview(x, y, w, h)
     local archives = _G.apGoalArchives and apGoalArchives() or nil
     if archives ~= nil then
         drawTile(x + (tileW + GAP) * 3, tileY, tileW, tileH, "dash.tile.archives",
-            apT("dash.fraction", { done = _G.apReceivedArchives and apReceivedArchives() or 0,
+            apT("dash.fraction", { done = math.min(archives, _G.apReceivedArchives and apReceivedArchives() or 0),
                                    total = archives }), nil)
     else
         local hintCount = #(_G.apHintsForDisplay and apHintsForDisplay(999) or {})

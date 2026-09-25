@@ -14,6 +14,7 @@
   "strings": {
     "archive.received": "Archive {done} of {total}",
     "archive.received.alone": "Archive found: {done}",
+    "archive.received.extra": "Extra Archive: {done} received, {total} were enough",
     "check.adopted": "{n} checks already known to the server.",
     "check.adopted.one": "1 check already known to the server.",
     "check.label.achievement": "Achievement: {name}",

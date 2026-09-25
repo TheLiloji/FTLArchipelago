@@ -14,6 +14,7 @@
   "strings": {
     "archive.received": "Arquivo {done} de {total}",
     "archive.received.alone": "Arquivo encontrado: {done}",
+    "archive.received.extra": "Arquivo a mais: {done} recebidos, {total} bastavam",
     "check.adopted": "O servidor lembra de {n} checks. Nada se perdeu.",
     "check.adopted.one": "O servidor lembra de um único check. Nada se perdeu.",
     "check.label.achievement": "Conquista: {name}",

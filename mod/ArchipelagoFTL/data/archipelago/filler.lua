@@ -264,8 +264,11 @@ local function deliverOne(descriptor)
         fillerLog("archive: " .. inventory.archives)
         if _G.apNotifyStatus and not descriptor.isReplay then
             local total = _G.apGoalArchives and _G.apGoalArchives() or nil
-            _G.apNotifyStatus(apT(total and "archive.received" or "archive.received.alone",
-                { done = inventory.archives, total = total or 0 }))
+            local key = "archive.received.alone"
+            if total ~= nil then
+                key = inventory.archives > total and "archive.received.extra" or "archive.received"
+            end
+            _G.apNotifyStatus(apT(key, { done = inventory.archives, total = total or 0 }))
         end
         if _G.apDeclareGoal then
             apTry(TAG, _G.apDeclareGoal)

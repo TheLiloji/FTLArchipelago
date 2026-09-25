@@ -135,7 +135,7 @@ function apGoalText()
     local archives = _G.apGoalArchives and _G.apGoalArchives() or nil
     if archives ~= nil then
         rules = rules .. "   " .. apT("hud.goal.archives",
-            { done = _G.apReceivedArchives and _G.apReceivedArchives() or 0, total = archives })
+            { done = math.min(archives, _G.apReceivedArchives and _G.apReceivedArchives() or 0), total = archives })
     end
     lines[#lines + 1] = { text = rules, tone = "dim" }
 
