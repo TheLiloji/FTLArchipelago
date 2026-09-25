@@ -4144,6 +4144,28 @@ test("resources already received don't come back on the next launch", function()
         "the server replays everything, but the scrap is only given once")
 end)
 
+test("coming back to a seed played before does not hand out its resources again", function()
+    _G.apInventory = { ships = {}, shopAvailability = {} }
+    sim.startRun(true)
+    connectOnSeed("SEED-A")
+    sim.netEvent("item", { name = "20 Scrap", sender = "Nina", index = 0 })
+    sim.tick(1)
+    drain()
+
+    apNetResetForTesting()
+    connectOnSeed("SEED-B")
+    sim.tick(1)
+    drain()
+
+    apNetResetForTesting()
+    connectOnSeed("SEED-A")
+    local scrap = sim.player.currentScrap
+    sim.netEvent("item", { name = "20 Scrap", sender = "Nina", index = 0 })
+    sim.tick(1)
+    drain()
+    equals(sim.player.currentScrap, scrap, "seed A remembers its scrap was already given, even after seed B")
+end)
+
 test("a cap, though, reapplies on every launch", function()
     _G.apInventory = { ships = {}, shopAvailability = {} }
     sim.startRun(true)

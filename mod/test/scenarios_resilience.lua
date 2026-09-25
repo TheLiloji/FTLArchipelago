@@ -133,7 +133,7 @@ test("filler: an item that cannot be delivered does not block the counter for th
     apQueueItem({ kind = "filler", res = "scrap", n = 5, index = 2 })
     drain()
 
-    equals(sim.durable["ap_items_done"], "3",
+    equals(sim.durable["ap_items_done_0"], "3",
         "all three are processed: otherwise scrap and fuel would come back on every launch")
     sim.durable = {}
 end)

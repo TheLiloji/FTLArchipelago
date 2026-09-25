@@ -299,10 +299,23 @@ function apNetRecallText(key)
     return ok and value ~= nil and tostring(value) or ""
 end
 
+-- Each seed keeps its own count of consumed items, so coming back to a seed played before does not hand out
+-- its scrap and traps a second time.
+local function consumedKey(fingerprint)
+    return CONSUMED_KEY .. "_" .. tostring(fingerprint or 0)
+end
+
+local function consumedFor(fingerprint)
+    local count = meta(consumedKey(fingerprint))
+    if count == 0 and meta(SEED_KEY) == fingerprint then
+        count = meta(CONSUMED_KEY)
+    end
+    return count
+end
+
 function apNetRememberSeed(fingerprint)
     writeMeta(SEED_KEY, fingerprint or 0)
-    writeMeta(CONSUMED_KEY, 0)
-    state.consumedUntil = -1
+    state.consumedUntil = consumedFor(fingerprint) - 1
     state.delivered = {}
     netLog("seed fingerprint recorded: " .. tostring(fingerprint))
 end
@@ -317,15 +330,15 @@ end
 
 local function reloadConsumed()
     local fingerprint = _G.apSeedFingerprint and _G.apSeedFingerprint() or 0
+    state.consumedUntil = consumedFor(fingerprint) - 1
+    state.delivered = {}
     if meta(SEED_KEY) ~= fingerprint then
         writeMeta(SEED_KEY, fingerprint)
-        writeMeta(CONSUMED_KEY, 0)
-        state.consumedUntil = -1
-        netLog("new seed: resources already received start over from zero")
-        return
+        if state.consumedUntil < 0 then
+            netLog("new seed: resources already received start over from zero")
+            return
+        end
     end
-    state.consumedUntil = meta(CONSUMED_KEY) - 1
-    state.delivered = {}
     if state.consumedUntil >= 0 then
         netLog(string.format("%d resource(s) already consumed in previous sessions",
             state.consumedUntil + 1))
@@ -494,7 +507,8 @@ function apNetItemDelivered(index)
         advanced = true
     end
     if advanced then
-        writeMeta(CONSUMED_KEY, state.consumedUntil + 1)
+        local fingerprint = _G.apSeedFingerprint and _G.apSeedFingerprint() or 0
+        writeMeta(consumedKey(fingerprint), state.consumedUntil + 1)
     end
     return advanced
 end
