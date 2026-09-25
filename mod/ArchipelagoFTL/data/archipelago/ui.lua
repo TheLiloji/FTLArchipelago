@@ -33,7 +33,6 @@ function ui.width(font, value)
     return Graphics.freetype.easy_measureWidth(font, tostring(value))
 end
 
-local SMALLEST_FONT = 9
 
 -- The big title fonts do not shrink on their own: pick the largest one the text fits in.
 function ui.fittingFont(sizes, maxWidth, value)
@@ -45,13 +44,13 @@ function ui.fittingFont(sizes, maxWidth, value)
     return sizes[#sizes]
 end
 
--- FTL shrinks a text down to its smallest font and no further: past that it would overflow, so it is cut.
-local function fit(value, maxWidth)
-    if ui.width(SMALLEST_FONT, value) <= maxWidth then
+-- FTL does not always shrink a text to fit, so a text too wide for its font is cut with an ellipsis.
+local function fit(font, value, maxWidth)
+    if ui.width(font, value) <= maxWidth then
         return value
     end
     local cut = value
-    while #cut > 1 and ui.width(SMALLEST_FONT, cut .. "...") > maxWidth do
+    while #cut > 1 and ui.width(font, cut .. "...") > maxWidth do
         local last = utf8 and utf8.offset(cut, -1) or #cut
         cut = cut:sub(1, (last or #cut) - 1)
     end
@@ -61,7 +60,7 @@ end
 function ui.text(font, x, y, maxWidth, tone, value, alpha)
     maxWidth = math.max(8, maxWidth)
     Graphics.CSurface.GL_SetColor(ui.color(tone, alpha))
-    Graphics.freetype.easy_printAutoShrink(font, x, y, maxWidth, false, fit(tostring(value), maxWidth))
+    Graphics.freetype.easy_printAutoShrink(font, x, y, maxWidth, false, fit(font, tostring(value), maxWidth))
 end
 
 function ui.textRight(font, right, y, maxWidth, tone, value, alpha)

@@ -652,9 +652,10 @@ local function drawJournal(x, y, w, h)
         Graphics.CSurface.GL_SetColor(color("dim"))
         Graphics.freetype.easy_printAutoNewlines(10, hx + 16, y + 44, colW - 32, apT("dash.hints.none"))
     else
-        scrollList("journal:hints", { x = hx + 16, y = y + 44, w = colW - 32, h = h - 56 }, hints, 20,
+        -- Location and item names are long: each hint gets two lines rather than an ellipsis.
+        scrollList("journal:hints", { x = hx + 16, y = y + 44, w = colW - 32, h = h - 56 }, hints, 34,
             function(hint, rx, ry, rw)
-                text(10, rx, ry, rw, "text", apHintLine(hint))
+                ui.wrapped(10, rx, ry, rw, "text", apHintLine(hint))
             end)
     end
 end
