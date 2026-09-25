@@ -8,8 +8,8 @@ players' games. You get them from your friends, and you send them theirs by play
 
 ## Pages
 
-- [Installing on Windows](Installing-on-Windows.md)
-- [Installing on Linux](Installing-on-Linux.md)
+- [Setup on Windows](Setup-Windows.md)
+- [Setup on Linux](Setup-Linux.md)
 - [Playing](Playing.md): the main menu, the hangar, the map, the shop, the dashboard and the goal
 - [Options](Options.md): what to put in your YAML, and the ready-made presets
 - [Hosting a seed](Hosting-a-seed.md): generating and running a room with FTL in it

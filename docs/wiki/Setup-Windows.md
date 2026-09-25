@@ -1,16 +1,24 @@
-# Installing on Windows
+# Setup on Windows
+
+**English** · [Français](Setup-Windows.fr.md) · [Deutsch](Setup-Windows.de.md) · [Español](Setup-Windows.es.md) ·
+[Italiano](Setup-Windows.it.md) · [Português](Setup-Windows.pt.md)
 
 Takes about ten minutes. You need FTL from Steam (or GOG), with the Advanced Edition content, which every copy
 sold today has.
 
 ## What to download
 
-- From the [FTL Archipelago release](https://github.com/TheLiloji/FTLArchipelago/releases): `ArchipelagoFTL.ftl`
-  and `Hyperspace.dll`.
-- [ftlman](https://github.com/afishhh/ftlman/releases), the Windows build. Unzip it anywhere, for example in
-  your Documents.
-- `Hyperspace.ftl` from the [Hyperspace 1.23.1 release](https://github.com/FTL-Hyperspace/FTL-Hyperspace/releases/tag/v1.23.1)
-  (it is inside the zip).
+Put everything in the same folder, for example `Downloads`.
+
+- From the [FTL Archipelago release](https://github.com/TheLiloji/FTLArchipelago/releases/latest):
+  `ArchipelagoFTL.ftl` and `Hyperspace.dll`.
+- From the [ftlman release](https://github.com/afishhh/ftlman/releases/latest):
+  `ftlman-x86_64-pc-windows-gnu.zip`.
+- From the [Hyperspace 1.23.1 release](https://github.com/FTL-Hyperspace/FTL-Hyperspace/releases/tag/v1.23.1):
+  `FTL.Hyperspace.1.23.1-Windows.zip`.
+
+Unzip both zips. You get a `ftlman` folder, with `ftlman.exe` and an empty `mods` folder inside, and
+`Hyperspace.ftl` from the Hyperspace zip.
 
 ## 1. Protect your saves
 
@@ -30,8 +38,8 @@ the original as `FTLGame_orig.exe`. That is normal: 1.6.9 is the only Windows ve
 
 ## 3. Add the mod
 
-Put `Hyperspace.ftl` and `ArchipelagoFTL.ftl` in ftlman's `mods` folder. In ftlman, tick both, with Hyperspace
-**above** ArchipelagoFTL, and click **Apply**. Close ftlman once it is done.
+Copy `Hyperspace.ftl` and `ArchipelagoFTL.ftl` into the `mods` folder, the one inside the `ftlman` folder. In
+ftlman, tick both, with Hyperspace **above** ArchipelagoFTL, and click **Apply**. Close ftlman once it is done.
 
 ## 4. Swap in the Archipelago library
 
@@ -40,8 +48,7 @@ the `Hyperspace.dll` from the FTL Archipelago release in its place.
 
 FTL must be closed for this: Windows locks the file while the game runs.
 
-If you ever click Apply again in ftlman, check that the file is still the Archipelago one afterwards, and copy it
-again if needed.
+If you ever click Apply again in ftlman, copy the Archipelago `Hyperspace.dll` again afterwards.
 
 ## 5. Start the game
 
@@ -54,5 +61,10 @@ Start FTL from Steam. You should see:
 - a **Connect to a multiworld** panel at the bottom left.
 
 If the panel is missing, or connecting never works, see the [FAQ](FAQ.md).
+
+## Updating to a new version
+
+Put the new `ArchipelagoFTL.ftl` in ftlman's `mods` folder, click **Apply** again, then copy the new
+`Hyperspace.dll` over the one in the FTL folder.
 
 Next: [Playing](Playing.md).
