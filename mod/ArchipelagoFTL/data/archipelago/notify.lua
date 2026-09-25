@@ -20,6 +20,13 @@ local function place(y, lineLength)
     end)
 end
 
+-- FTL draws its messages on top of everything, the dashboard hides them while open.
+function apNotifyHide(hidden)
+    pcall(function()
+        Hyperspace.PrintHelper.GetInstance().x = hidden and -4000 or DISPLAY.x
+    end)
+end
+
 function apNotifyPlaceMenu()
     place(MENU.y, MENU.lineLength)
 end

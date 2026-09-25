@@ -241,6 +241,10 @@ function apReceiveItem(itemName, sender, isReplay, index)
         return false
     end
 
+    if not isReplay and _G.apRecordReceived then
+        apRecordReceived(itemName, sender)
+    end
+
     return apQueueItem({
         kind = kind,
         bp = descriptor.bp,

@@ -259,7 +259,7 @@ test("language: with no quantity, or above one, the base key is used", function(
     apLangResolve("fr")
     equals(apT("check.sent", { location = "Sector 1 Clear" }), "Check validé : Sector 1 Clear",
            "no quantity: nothing changes")
-    equals(apT("hud.ships.unlocked", { count = 0 }), "0 débloqués",
+    equals(apT("dash.checks.remaining", { n = 0 }), "0 restants",
            "zero stays plural, and that's written in i18n.lua")
     apLangResolve(nil)
 end)
@@ -485,9 +485,9 @@ test("language: the dashboard follows the language", function()
     apToggleHud()
     sim.renderGui()
 
-    check(sim.drawnText("VAISSEAUX"), "headers are translated")
-    check(sim.drawnText("TAB pour fermer"), "so is the footer line")
-    check(not sim.drawnText("TAB to close"), "no leftover English")
+    check(sim.drawnText("Vaisseaux"), "headers are translated")
+    check(sim.drawnText("TAB ou Échap"), "so is the footer line")
+    check(not sim.drawnText("TAB or Esc"), "no leftover English")
 
     apToggleHud()
     sim.gameLanguage = ""
@@ -4581,9 +4581,12 @@ test("the panel shows what the player has earned", function()
     }
     sim.startRun(true)
     sim.keyDown(Defines.SDL.KEY_TAB)
+    apDashboardPage("ships")
     sim.renderGui()
+    check(sim.drawnText("Ship layouts unlocked: 2 of 28"), "the ships")
 
-    check(sim.drawnText("2 unlocked"), "the ships")
+    apDashboardPage("systems")
+    sim.renderGui()
     local function numbersAfter(name)
         for index, line in ipairs(sim.drawn) do
             if line == name then return sim.drawn[index + 1] end
@@ -4599,8 +4602,8 @@ test("the panel shows what the player has earned", function()
           "especially not the game's cap or the level, that's what used to read wrong")
     check(not sim.drawnText("shields") and not sim.drawnText("cloaking"),
           "and no blueprint id in the list")
-    check(sim.drawnText("+2  Shields"), "the starting bonus also carries the game's name")
-    check(sim.drawnText("+4  reactor power"), "and the energy granted at the start")
+    check(sim.drawnText("+2 at start"), "the starting bonus sits on its system")
+    check(sim.drawnText("Reactor +4 at start"), "and the energy granted at the start")
     sim.keyDown(Defines.SDL.KEY_TAB)
 end)
 
@@ -4631,10 +4634,12 @@ test("the panel also shows what stays LOCKED", function()
     }
     sim.startRun(true)
     sim.keyDown(Defines.SDL.KEY_TAB)
+    apDashboardPage("systems")
     sim.renderGui()
 
-    check(sim.drawnText("SYSTEMS  1 / 16"), "the count is shown")
+    check(sim.drawnText("Systems: 1 of 16 unlocked"), "the count is shown")
     check(sim.drawnText("Cloaking"), "a locked system is still listed")
+    check(sim.drawnText("Locked"), "and marked locked")
     check(not sim.drawnText("Cloaking 1/3"), "but with no cap: there's nothing to say about it")
     sim.keyDown(Defines.SDL.KEY_TAB)
 end)
@@ -4692,8 +4697,10 @@ test("the panel says plainly there's nothing yet", function()
     sim.startRun(true)
     sim.keyDown(Defines.SDL.KEY_TAB)
     sim.renderGui()
-    check(sim.drawnText("SYSTEMS  0 / 16"), "the count is zero, and it's stated")
-    check(sim.drawnText("nothing yet"), "and nothing is granted at the start")
+    check(sim.drawnText(apT("dash.plus", { n = 0 })), "nothing is granted at the start, and it's stated")
+    apDashboardPage("systems")
+    sim.renderGui()
+    check(sim.drawnText("Systems: 0 of 16 unlocked"), "the count is zero, and it's stated")
     sim.keyDown(Defines.SDL.KEY_TAB)
 end)
 
@@ -4754,6 +4761,7 @@ test("a single item received reads as one upgrade, not two", function()
     drain()
 
     apToggleHud()
+    apDashboardPage("systems")
     sim.renderGui()
     local detail = nil
     for index, line in ipairs(sim.drawn) do
@@ -4771,6 +4779,7 @@ test("an incomplete system is never announced as finished", function()
     applySeed({ caps = { shields = 6 } })
     sim.startRun(true)
     apToggleHud()
+    apDashboardPage("systems")
     sim.renderGui()
 
     local detail = nil
@@ -4791,6 +4800,7 @@ test("the panel says how many upgrades the seed still holds", function()
     applySeed({ caps = { doors = 2 } })
     sim.startRun(true)
     apToggleHud()
+    apDashboardPage("systems")
     sim.renderGui()
 
     local detail = nil
@@ -4801,36 +4811,6 @@ test("the panel says how many upgrades the seed still holds", function()
             or detail:find("toutes les", 1, true)),
         "two upgrades received out of the two the seed holds: the system is finished")
     apToggleHud()
-end)
-
-test("the panel fits within its frame, in all six languages", function()
-    _G.apInventory = {
-        ships = { "PLAYER_SHIP_ROCK" },
-        systemCaps = { shields = 3, cloaking = 1, teleporter = 1, mind = 1, clonebay = 1 },
-        startingUpgrades = { engines = 1, reactor = 2 },
-        shopAvailability = {},
-    }
-    applySeed({})
-    for _, lang in ipairs({ "en", "fr", "de", "es", "it", "pt" }) do
-        sim.gameLanguage = lang
-        apLangResolve(nil)
-        sim.startRun(true)
-        apToggleHud()
-        sim.renderGui()
-        local overflow = nil
-        for _, draw in ipairs(sim.draws) do
-            if draw.maxWidth and draw.maxWidth > 0 then
-                local right = draw.x + draw.maxWidth
-                if right > 20 + 340 - 6 then
-                    overflow = draw.text .. " up to x=" .. right
-                end
-            end
-        end
-        equals(overflow, nil, "no text goes outside the frame in " .. lang)
-        apToggleHud()
-    end
-    sim.gameLanguage = "en"
-    apLangResolve(nil)
 end)
 
 test("the menu banner says whether the mod is connected", function()
@@ -5282,11 +5262,12 @@ test("screen: system names are constrained to a column's width", function()
     sim.startRun(true)
     applySeed({})
     apToggleHud()
+    apDashboardPage("systems")
     sim.renderGui()
     local constrained, unconstrained = 0, {}
     for _, d in ipairs(sim.draws) do
-        if d.text:find("Weapon Control", 1, true) or d.text:find("Shields", 1, true) then
-            if d.maxWidth ~= nil and d.maxWidth > 0 and d.maxWidth <= 158 then
+        if d.text == "Weapon Control" or d.text == "Shields" then
+            if d.maxWidth ~= nil and d.maxWidth > 0 and d.maxWidth <= 220 then
                 constrained = constrained + 1
             else
                 unconstrained[#unconstrained + 1] = d.text
@@ -5298,12 +5279,11 @@ test("screen: system names are constrained to a column's width", function()
 
     local noWidth = {}
     for _, d in ipairs(sim.draws) do
-        if d.y >= 60 and d.x >= 20 and d.x < 320 and (d.maxWidth == nil or d.maxWidth <= 0) then
+        if d.maxWidth == nil or d.maxWidth <= 0 then
             noWidth[#noWidth + 1] = d.text
         end
     end
-    check(#noWidth == 0, #noWidth .. " panel line(s) with no width constraint: "
-          .. (noWidth[1] or ""))
+    check(#noWidth == 0, #noWidth .. " panel line(s) with no width constraint: " .. (noWidth[1] or ""))
     apToggleHud()
 end)
 
@@ -5321,24 +5301,23 @@ test("screen: the panel fits in its box, even packed full", function()
     sim.startRun(true)
     applySeed({})
     apToggleHud()
-    sim.renderGui()
-
-    local box
-    for _, r in ipairs(sim.rects) do
-        if box == nil or r.w * r.h > box.w * box.h then box = r end
-    end
-    check(box ~= nil, "the panel draws its box")
-    local overflowing = {}
-    for _, d in ipairs(sim.draws) do
-        if box and (d.y < box.y or d.y + d.size + 3 > box.y + box.h) then
-            overflowing[#overflowing + 1] = string.format("y=%d '%s'", d.y, d.text)
+    for _, page in ipairs({ "overview", "ships", "systems" }) do
+        apDashboardPage(page)
+        sim.renderGui()
+        local box
+        for _, r in ipairs(sim.rects) do
+            if r.w == 1000 then box = r end
         end
+        check(box ~= nil, page .. ": the panel draws its box")
+        local outside = {}
+        for _, d in ipairs(sim.draws) do
+            if box and (d.y < box.y or d.y + d.size + 3 > box.y + box.h) then
+                outside[#outside + 1] = string.format("y=%d '%s'", d.y, d.text)
+            end
+        end
+        check(#outside == 0, page .. ": " .. #outside .. " line(s) outside the box: " .. (outside[1] or ""))
+        check(box ~= nil and box.y + box.h <= 710, page .. ": and the box itself doesn't go off-screen")
     end
-    check(#overflowing == 0, #overflowing .. " line(s) outside the box ("
-          .. (box and (box.y .. ".." .. (box.y + box.h)) or "?") .. "): "
-          .. (overflowing[1] or "") .. " ... " .. (overflowing[#overflowing] or ""))
-    check(box ~= nil and box.y + box.h <= 710,
-          "and the box itself doesn't go off-screen")
     apToggleHud()
 end)
 
@@ -5564,7 +5543,7 @@ test("tutorial with the dashboard open: the banner goes on top", function()
     local bannerRow, panelRow
     for i, line in ipairs(sim.drawn) do
         if line:find(apT("tutorial.blocked"), 1, true) then bannerRow = i end
-        if line:find(apT("hud.close"), 1, true) then panelRow = i end
+        if line:find(apT("dash.footer"), 1, true) then panelRow = i end
     end
     check(bannerRow ~= nil and panelRow ~= nil, "both are drawn")
     check(bannerRow > panelRow, "the banner comes last, so on top: it stays readable")

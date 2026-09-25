@@ -16,7 +16,6 @@ local KEY_SEED = "ap_solo_seed"
 local KEY_CHECK = "ap_solo_check_"
 local KEY_ITEM = "ap_solo_item_"
 
--- The item kinds the seed treats as progression; the rest of the pool is useful, filler or trap.
 local GIFT_KIND = {
     ship = "progression", cap = "progression", start = "progression", archive = "progression",
     filler = "filler", trap = "trap",
@@ -76,8 +75,8 @@ local function indexByKey()
     return state.byKey
 end
 
--- A check hands out the item placed at that location, as a server would. A check the seed has no item
--- for takes the next one, keeping what sits in the shop for when that shop slot is bought.
+-- Same as a server: the item placed at that location. A check with no item of its own takes the next
+-- one that is not on sale in the shop.
 local function pick(reason)
     local index = indexByKey()[reason]
     if index ~= nil and not state.given[index] then
@@ -259,7 +258,7 @@ function apSoloResume()
             listed[index] = true
         end
     end
-    -- Saves from before items were stored one by one only kept a count, taken from the top of the list.
+    -- Older saves only kept a count.
     local legacy = math.min(recall(KEY_GIVEN), #order) - #indices
     for index = 1, #order do
         if legacy <= 0 then break end
@@ -287,7 +286,6 @@ function apSoloResume()
     return true
 end
 
--- A location still holding one of the player's items, for the Slug to whisper about.
 function apSoloHint(alreadyHinted)
     local candidates = {}
     for index, entry in ipairs(_G.apSoloOrder or {}) do
@@ -312,7 +310,7 @@ function apSoloSaved()
     return { done = done, total = total }
 end
 
--- After a profile wipe the solo run starts over; with startAfter it does so on its own at the next launch.
+-- startAfter: solo starts again by itself at the next launch.
 function apSoloForgetProgress(startAfter)
     remember(KEY_GIVEN, 0)
     remember(KEY_SEED, 0)

@@ -30,7 +30,7 @@ local function drainTheLink(eventName)
         record(eventName, "energy link missing, nothing drawn")
         return
     end
-    -- The pool answers later: what arrives, or that nothing did, is told when the server replies.
+    -- The answer comes later, through apEnergyLinkGranted.
     local ok, asked = pcall(_G.apEnergyLinkRequestFuel, 5)
     if not ok or asked ~= true then
         record(eventName, "no request possible, the shared pool is out of reach")
@@ -193,8 +193,7 @@ for _, name in ipairs({ "AP_EVT_ZOLTAN_TITHE_LINK", "AP_EVT_ZOLTAN_TOLL", "AP_EV
     OUR_DECOR[name] = true
 end
 
--- The tithe and the surge only use their Archipelago version when the seed turned that link on and a
--- server is there to carry it; otherwise the beacon loads a version that stands on its own.
+-- The loadEventList of the tithe and the surge picks the link version only when it can work.
 local flagTicks = 0
 script.on_internal_event(Defines.InternalEvents.ON_TICK, function()
     flagTicks = flagTicks + 1
@@ -218,8 +217,7 @@ local function setDecor()
     loc.space = space:SwitchBackground("AP_BACKGROUND")
     loc.spaceImage = "AP_BACKGROUND"
 
-    -- Asking again for a planet the beacon already shows froze FTL; a reloaded save keeps the name but
-    -- comes back with a 0x0 image, drawn as FTL's missing-image sign.
+    -- SwitchPlanet on the planet already shown froze FTL. After a reload the image is 0x0 though.
     local shown = tostring(loc.planetImage) == "AP_PLANET" and loc.planet ~= nil and (loc.planet.w or 0) > 0
     if not shown then
         loc.planet = space:SwitchPlanet("AP_PLANET")

@@ -15,8 +15,6 @@ local function color(name)
     return Graphics.GL_Color(c[1], c[2], c[3], c[4])
 end
 
-local open = false
-
 local function hasSeed()
     local contract = _G.apContractState
     return contract ~= nil and contract.connected == true
@@ -117,205 +115,15 @@ local function goalLine()
     return line, progress.reached, subLine
 end
 
-local PANEL = { x = 20, y = 60, w = 340, h = 420 }
-
-local COLUMN_GAP = 12
-local LINE_H = 13
-
--- keep the panel clear of the 720px screen edge even when it grows tall
-local PANEL_MAX_BOTTOM = 710
-
-local function layoutPanel(x, y, w, emitting, limit)
-    local info = snapshot()
-    local line = y + 16
-    local hidden = 0
-
-    local function visible(height)
-        if limit == nil or line + height <= limit then
-            return true
-        end
-        hidden = hidden + 1
-        return false
-    end
-
-    local function write(text, tint, indent, size)
-        local height = (size == 12) and 20 or 14
-        if emitting and visible(height) then
-            Graphics.CSurface.GL_SetColor(color(tint or "text"))
-            Graphics.freetype.easy_printAutoShrink(size or 10, x + 12 + (indent or 0), line,
-                w - 24 - (indent or 0), false, text)
-        end
-        line = line + height
-    end
-
-    write(apT("hud.title"), "title", 0, 12)
-
-    if not hasSeed() then
-        write(apT("hud.no_seed"), "warn", 0, 9)
-        write(apT("hud.no_seed.how"), "dim", 0, 9)
-        write(apT("hud.no_seed.solo"), "dim", 0, 9)
-    end
-
-    local seed = _G.apSeedSummary and _G.apSeedSummary() or nil
-    if seed then
-        local goal = seed.goal
-        if goal and goal.kind == "victories" then
-            local progress = _G.apGoalProgress and _G.apGoalProgress() or nil
-            if progress then
-                write(apT(progress.reached and "hud.goal.done" or "hud.goal.progress",
-                          { done = progress.done, total = progress.total, n = progress.total }),
-                      progress.reached and "good" or "dim", 0, 9)
-            else
-                write(apT("hud.goal", { n = goal.layouts and #goal.layouts or goal.count }),
-                      "dim", 0, 9)
-            end
-        end
-        local links = {}
-        if seed.links.death then links[#links + 1] = "DeathLink" end
-        if seed.links.energy then links[#links + 1] = "EnergyLink" end
-        if seed.links.trap then links[#links + 1] = "TrapLink" end
-        if #links > 0 then
-            write(table.concat(links, "  "), "dim", 0, 9)
-        end
-    end
-
-    if info.checks and info.checks.total > 0 then
-        local done = info.checks.sent
-        local total = info.checks.total
-        write(apT("hud.checks_sent", { done = done, total = total }),
-              done >= total and "good" or "text")
-
-        local barWidth = w - 24
-        local filled = total > 0 and math.floor(barWidth * done / total) or 0
-        if emitting and visible(18) then
-            Graphics.CSurface.GL_DrawRect(x + 12, line, barWidth, 6, color("dim"))
-            if filled > 0 then
-                Graphics.CSurface.GL_DrawRect(x + 12, line, filled, 6, color("border"))
-            end
-        end
-        line = line + 18
-
-        local waiting = _G.apPendingCheckCount and _G.apPendingCheckCount() or 0
-        if waiting > 0 then
-            write(apT("hud.checks_waiting", { n = waiting }), "warn", 12)
-        end
-        if not info.connected and not _G.apSoloEnabled then
-            write(apT("hud.link_lost"), "warn", 12)
-        end
-    else
-        write(apT("hud.not_connected"), "dim")
-    end
-
-    line = line + 6
-    write(apT("hud.ships"), "title")
-    write(apT("hud.ships.unlocked", { count = info.ships }),
-          info.ships > 0 and "text" or "dim", 12)
-
-    line = line + 6
-    if info.systemTotal and info.systemTotal > 0 then
-        write(apT("hud.systems.counted",
-                  { unlocked = info.unlockedCount, total = info.systemTotal }), "title")
-    else
-        write(apT("hud.systems"), "title")
-    end
-
-    if #info.systems == 0 then
-        write(apT("hud.systems.none"), "dim", 12)
-    else
-        local half = math.ceil(#info.systems / 2)
-        local startLine = line
-        local column = math.floor((w - 24 - COLUMN_GAP) / 2)
-        for index, entry in ipairs(info.systems) do
-            if index == half + 1 then
-                line = startLine
-            end
-            local textX = x + 12 + (index <= half and 0 or (column + COLUMN_GAP))
-            if entry.locked then
-                if emitting and visible(LINE_H) then
-                    Graphics.CSurface.GL_SetColor(color("dim"))
-                    Graphics.freetype.easy_printAutoShrink(10, textX, line, column, false,
-                        entry.name)
-                end
-                line = line + LINE_H
-            else
-                local known = entry.total ~= nil and entry.total > 0
-                local full = known and entry.received >= entry.total
-                if emitting and visible(LINE_H * 2) then
-                    Graphics.CSurface.GL_SetColor(color(full and "good" or "text"))
-                    Graphics.freetype.easy_printAutoShrink(10, textX, line, column, false,
-                        entry.name)
-                    local countText
-                    if full then
-                        countText = apT("hud.system.max")
-                    elseif known then
-                        countText = apT("hud.system.progress",
-                            { received = entry.received, total = entry.total })
-                    else
-                        countText = apT("hud.system.received", { n = entry.received })
-                    end
-                    Graphics.CSurface.GL_SetColor(color(full and "good" or "dim"))
-                    Graphics.freetype.easy_printAutoShrink(9, textX + 10, line + LINE_H,
-                        column - 10, false, countText)
-                end
-                line = line + LINE_H * 2
-            end
-        end
-    end
-
-    line = line + 6
-    write(apT("hud.starts"), "title")
-    if #info.starts == 0 and info.reactor == 0 then
-        write(apT("hud.starts.none"), "dim", 12)
-    else
-        for _, entry in ipairs(info.starts) do
-            write("+" .. entry.levels .. "  " .. entry.name, "good", 12)
-        end
-        if info.reactor > 0 then
-            write("+" .. info.reactor .. "  " .. apT("hud.starts.reactor"), "good", 12)
-        end
-    end
-
-    local hints = _G.apHintsForDisplay and _G.apHintsForDisplay(3) or {}
-    if #hints > 0 then
-        line = line + 6
-        write(apT("hud.hints"), "title", 0, 10)
-        for _, hint in ipairs(hints) do
-            write(_G.apHintLine(hint), "text", 12, 9)
-        end
-    end
-
-    return line, hidden
-end
-
-local function drawPanel()
-    local x, y, w = PANEL.x, PANEL.y, PANEL.w
-
-    local bottom = layoutPanel(x, y, w, false) + 18
-    local h = math.max(PANEL.h, bottom - y)
-    if y + h > PANEL_MAX_BOTTOM then
-        h = PANEL_MAX_BOTTOM - y
-    end
-
-    Graphics.CSurface.GL_DrawRect(x, y, w, h, color("panel"))
-    Graphics.CSurface.GL_DrawRectOutline(x, y, w, h, color("border"), 2)
-
-    local _, hidden = layoutPanel(x, y, w, true, y + h - 32)
-    if hidden > 0 then
-        Graphics.CSurface.GL_SetColor(color("dim"))
-        Graphics.freetype.easy_printAutoShrink(9, x + 12, y + h - 32, w - 24, false,
-            apT("hud.more", { n = hidden }))
-    end
-
-    Graphics.CSurface.GL_SetColor(color("dim"))
-    Graphics.freetype.easy_printAutoShrink(9, x + 12, y + h - 18, w - 24, false, apT("hud.close"))
-end
-
 local TUTORIAL_W = 660
 local TUTORIAL_H = 72
 local TUTORIAL_Y = math.floor((720 - TUTORIAL_H) / 2)
 local TUTORIAL_FONT = 24
 
-local function drawTutorialBanner()
+function apDrawTutorialBanner()
+    if not (_G.apTutorialRunning and apTutorialRunning()) or (_G.apPauseMenuOpen and apPauseMenuOpen()) then
+        return
+    end
     local title = apT("tutorial.blocked")
     local width = math.max(TUTORIAL_W,
         Graphics.freetype.easy_measureWidth(TUTORIAL_FONT, title) + 48)
@@ -330,16 +138,8 @@ script.on_render_event(
     Defines.RenderEvents.GUI_CONTAINER,
     function() end,
     function()
-        if open then
-            local ok, err = pcall(drawPanel)
-            if not ok then
-                open = false
-                log(TAG .. "render interrupted, panel closed: " .. tostring(err))
-            end
-        end
-        if _G.apTutorialRunning and _G.apTutorialRunning()
-            and not (_G.apPauseMenuOpen and _G.apPauseMenuOpen()) then
-            pcall(drawTutorialBanner)
+        if not (_G.apDashboardOpen and apDashboardOpen()) then
+            pcall(apDrawTutorialBanner)
         end
     end
 )
@@ -459,21 +259,4 @@ script.on_render_event(
     end
 )
 
-script.on_internal_event(Defines.InternalEvents.ON_KEY_DOWN, function(key)
-    if key ~= Defines.SDL.KEY_TAB then
-        return Defines.Chain.CONTINUE
-    end
-    local okRunning, running = pcall(function() return Hyperspace.App.world.bStartedGame == true end)
-    if not (okRunning and running) then
-        return Defines.Chain.CONTINUE
-    end
-    open = not open
-    return Defines.Chain.CONTINUE
-end)
-
-function apToggleHud()
-    open = not open
-    return open
-end
-
-log(TAG .. "dashboard loaded (TAB in-game)")
+log(TAG .. "main menu title and goal loaded")

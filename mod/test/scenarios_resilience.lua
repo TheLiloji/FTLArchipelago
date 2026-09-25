@@ -222,12 +222,12 @@ test("home screen: TAB in the connection form does not open the dashboard", func
 
     sim.startRun(true)
     sim.renderGui()
-    check(not sim.drawnText(apT("hud.close")),
+    check(not sim.drawnText(apT("dash.footer")),
         "three TABs to move between fields don't leave the panel open in a run")
 
     sim.keyDown(Defines.SDL.KEY_TAB)
     sim.renderGui()
-    check(sim.drawnText(apT("hud.close")), "in a run, TAB does open the panel")
+    check(sim.drawnText(apT("dash.footer")), "in a run, TAB does open the panel")
     sim.keyDown(Defines.SDL.KEY_TAB)
 end)
 

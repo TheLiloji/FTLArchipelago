@@ -62,7 +62,7 @@ end
 _G.apEnergyLinkHuman = humanJoules
 _G.apEnergyLinkJoulesPerFuel = JOULES_PER_FUEL
 
--- whole: energy that was already in the pool going back, or a gift sized in net joules, loses nothing.
+-- whole: skip the deposit loss (energy going back to the pool, or already net).
 function apEnergyLinkDeposit(joules, whole)
     if joules <= 0 then
         return 0

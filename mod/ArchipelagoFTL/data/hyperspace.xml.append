@@ -350,6 +350,7 @@
     <script>data/archipelago/solo_order.lua</script>
     <script>data/archipelago/solo.lua</script>
     <script>data/archipelago/hud.lua</script>
+    <script>data/archipelago/dashboard.lua</script>
     <script>data/archipelago/connect.lua</script>
     <script>data/archipelago/loadout.lua</script>
     <script>data/archipelago/testkeys.lua</script>

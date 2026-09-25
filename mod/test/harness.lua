@@ -659,6 +659,7 @@ _G.Defines = {
         PRE_CREATE_CHOICEBOX = "PRE_CREATE_CHOICEBOX",
         ON_KEY_UP = "ON_KEY_UP",
         ON_MOUSE_L_BUTTON_DOWN = "ON_MOUSE_L_BUTTON_DOWN",
+        ON_MOUSE_SCROLL = "ON_MOUSE_SCROLL",
     },
     RenderEvents = { MAIN_MENU = "MAIN_MENU", GUI_CONTAINER = "GUI_CONTAINER" },
     Chain = { CONTINUE = 0, PREEMPT = 1, HALT = 2 },
@@ -899,6 +900,10 @@ end
 
 function sim.click(x, y)
     fire("ON_MOUSE_L_BUTTON_DOWN", x, y)
+end
+
+function sim.scroll(direction)
+    fire("ON_MOUSE_SCROLL", direction)
 end
 
 function sim.type(text)
