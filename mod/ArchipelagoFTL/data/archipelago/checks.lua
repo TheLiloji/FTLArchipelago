@@ -61,9 +61,23 @@ local tutorialWarned = false
 local outOfSeed = {}
 
 -- A run only counts for a seed that was loaded when it started, and still is: a run played without one
--- has none of the seed's limits.
+-- has none of the seed's limits. The seed is written in the run's own save, so Continue cannot bring
+-- back a run from another seed.
 local runSeed = nil
+local runFromSave = false
 local seedlessWarned = false
+
+local function savedRunSeed()
+    local ok, value = pcall(function() return Hyperspace.playerVariables.ap_run_seed end)
+    if ok and type(value) == "number" and value ~= 0 then
+        return value
+    end
+    return nil
+end
+
+local function saveRunSeed(seed)
+    pcall(function() Hyperspace.playerVariables.ap_run_seed = seed or 0 end)
+end
 
 local function seedLoaded()
     local contract = _G.apContractState
@@ -75,6 +89,9 @@ local function currentSeed()
 end
 
 function apRunCounts()
+    if runFromSave then
+        runSeed = savedRunSeed()
+    end
     local seed = currentSeed()
     local started = runSeed == seed or (_G.apRunStartCheckForTesting == false and seed ~= nil)
     if seed ~= nil and started then
@@ -373,22 +390,35 @@ function apOnRunEnd(cause, detail)
     end)
 end
 
-script.on_init(function()
+-- Hyperspace loads the run's variables after on_init, so a continued run reads its seed later.
+script.on_init(function(newGame)
     lastSector = nil
     startingRaces = nil
-    runSeed = currentSeed()
     seedlessWarned = false
+    runFromSave = newGame == false
+    if runFromSave then
+        runSeed = nil
+    else
+        runSeed = currentSeed()
+        saveRunSeed(runSeed)
+    end
 end)
 
--- Solo started from the test key during a run: the run had no seed yet and takes this one.
+-- Solo started during a run that had no seed: the run takes this one.
 function apRunAdoptSeed()
+    if runFromSave then
+        runSeed = savedRunSeed()
+    end
     if runSeed == nil then
         runSeed = currentSeed()
+        runFromSave = false
+        saveRunSeed(runSeed)
     end
 end
 
 function apRunSeedForTesting(value)
     runSeed = value
+    runFromSave = false
     seedlessWarned = false
 end
 

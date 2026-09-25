@@ -873,6 +873,9 @@ end
 
 function sim.startRun(newGame)
     sim.started = true
+    if newGame ~= false then
+        sim.runVariables = {}
+    end
     for _, fn in ipairs(sim.initHandlers) do
         local ok, err = pcall(fn, newGame ~= false)
         if not ok then

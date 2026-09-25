@@ -311,3 +311,26 @@ test("with every victory but not enough Archives, the goal says what is still mi
     equals(apGoalText().headline, "Il reste 5 Archives à trouver", "and so does the goal box")
     apLangResolve(nil)
 end)
+
+test("a continued run keeps the seed it started with, not the one loaded now", function()
+    _G.apRunStartCheckForTesting = nil
+    apContractResetForTesting()
+    apForgetChecksForTesting()
+    apApplySlotData({ contract = 2, kinds = { "filler" }, kinds_required = {}, items = {},
+                      loc = { ["shop:1"] = "Archipelago Shop 1", ["shop:2"] = "Archipelago Shop 2" },
+                      seed_hash = "first-seed" })
+    sim.startRun(true)
+    sim.startRun(false)
+    equals(apSendCheck("shop:1", "shop"), true, "continuing a run of this seed still counts")
+
+    apContractResetForTesting()
+    apForgetChecksForTesting()
+    apApplySlotData({ contract = 2, kinds = { "filler" }, kinds_required = {}, items = {},
+                      loc = { ["shop:2"] = "Archipelago Shop 2" }, seed_hash = "second-seed" })
+    sim.startRun(false)
+    equals(apSendCheck("shop:2", "shop"), false, "a run saved under another seed does not count")
+
+    sim.runVariables = {}
+    sim.startRun(false)
+    equals(apSendCheck("shop:2", "shop"), false, "nor does a run saved with no seed at all")
+end)

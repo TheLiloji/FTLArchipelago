@@ -259,10 +259,9 @@ def main() -> int:
                 f"lang/{code}.json: \"connect.keys\" promises the S key, which the connect "
                 "form swallows: solo mode starts from its button"
             )
-        if "F10" not in greeting:
+        if "F10" in greeting:
             failures.append(
-                f"lang/{code}.json: \"connect.keys\" does not name F10, the only way "
-                "to arm the test keys once in a run"
+                f"lang/{code}.json: \"connect.keys\" names F10, but the test keys are only in debug builds"
             )
 
     failures.extend(hardcoded_display_strings())

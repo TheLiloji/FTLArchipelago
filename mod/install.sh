@@ -59,7 +59,7 @@ if ! header_ok "$FTL_DATA/ftl.dat"; then
     exit 1
 fi
 
-"$here/build.sh" >/dev/null
+"$here/build.sh" ${DEBUG:+--debug}
 
 CAP=()
 if command -v systemd-run >/dev/null 2>&1; then
