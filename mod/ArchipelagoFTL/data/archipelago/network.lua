@@ -505,6 +505,7 @@ local REFUSAL_KEYS = {
 local function onRefused(event)
     state.connecting = false
     state.connected = false
+    state.unreachableSince = nil
     state.retryAt = nil
     state.retries = 0
     state.lastConnection = nil
