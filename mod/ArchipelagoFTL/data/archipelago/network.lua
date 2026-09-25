@@ -339,10 +339,7 @@ local function onConnected(event)
     state.retries = 0
     state.retryAt = nil
     netLog("connected as \"" .. tostring(event.name) .. "\"")
-    if _G.apNotifyStatus then
-        _G.apNotifyStatus(apT(wasRetrying and "net.reconnected" or "net.connected",
-                              { slot = tostring(event.name) }))
-    end
+    state.seedRefused = false
 
     local slotData = event.extra
     if type(slotData) == "string" and _G.apJsonDecode then
@@ -368,6 +365,12 @@ local function onConnected(event)
         if _G.apNotifyStatus then
             _G.apNotifyStatus(apT("net.slot_data_unreadable"))
         end
+    end
+
+    -- Said after the seed check: "nothing was lost" followed by a refusal would contradict itself.
+    if _G.apNotifyStatus and not state.seedRefused then
+        _G.apNotifyStatus(apT(wasRetrying and "net.reconnected" or "net.connected",
+                              { slot = tostring(event.name) }))
     end
 
     if _G.apOnSlotData then

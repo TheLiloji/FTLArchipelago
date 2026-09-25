@@ -547,3 +547,22 @@ test("systems: building a system runs its hook without error, before maxLevel ex
     sim.tick(5)
     check(not sim.logged("[AP-sys] error:"), "the hook does not read fields Hyperspace has not set yet")
 end)
+
+test("network: a reconnection to a room whose seed changed does not claim nothing was lost", function()
+    apNetResetForTesting()
+    apContractResetForTesting()
+    apNetConnect("ws://localhost:38281", "Navigator", "")
+    sim.netEvent("connected", { name = "Navigator", extra = slotData({ seed_hash = "FIRST" }) })
+    sim.net.connected = true
+    sim.tick(1)
+    sim.netEvent("disconnected", {})
+    sim.net.connected = false
+    sim.tick(60 * 6)
+    local restoreRefuse = stub("apApplySlotData", function() return false end)
+    sim.clearLog()
+    sim.netEvent("connected", { name = "Navigator", extra = slotData({ seed_hash = "SECOND" }) })
+    sim.tick(1)
+    restoreRefuse()
+    check(not shownKey("net.reconnected"), "no 'signal back, nothing lost' before a refusal")
+    apNetResetForTesting()
+end)

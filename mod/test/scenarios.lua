@@ -1489,7 +1489,10 @@ end
 
 test("network: a successful connection is told to the player", function()
     sim.startRun(true)
-    connectNow()
+    apNetConnect("ws://localhost:38281", "Navigator", "")
+    sim.netEvent("connected", { name = "Navigator", extra = {
+        contract = CONTRACT, kinds = { "filler" }, kinds_required = {}, items = {}, loc = {} } })
+    sim.tick(1)
     check(_G.apNetState.connected, "the mod knows it's connected")
     check(sim.shown("Navigator"), "and the player sees under which slot")
 end)
@@ -1764,7 +1767,8 @@ test("network: the connection's return is reported, and isn't confused with a fr
     seconds(6)
     sim.clearLog()
 
-    sim.netEvent("connected", { name = "Navigator", extra = "{}" })
+    sim.netEvent("connected", { name = "Navigator", extra = {
+        contract = CONTRACT, kinds = { "filler" }, kinds_required = {}, items = {}, loc = {} } })
     sim.tick(1)
     check(_G.apNetState.connected, "we're connected again")
     check(shownKey("net.reconnected"),
