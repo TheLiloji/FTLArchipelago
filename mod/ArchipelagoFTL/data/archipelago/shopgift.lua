@@ -1,4 +1,3 @@
-
 local TAG = "[AP-gift] "
 
 local function giftLog(message)

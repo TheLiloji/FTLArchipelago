@@ -23,7 +23,11 @@ local SKILL_KEYS = {
     weapons = "crew.skill.weapons", repair = "crew.skill.repair", combat = "crew.skill.combat",
 }
 
+local LOGO = "ap_logo.png"
+local LOGO_SIZE = 30
+
 local pending = false
+local logoTexture = nil
 local open = false
 local taken = {}
 local pages = {}
@@ -169,8 +173,18 @@ local function draw()
     local g = geometry()
     Graphics.CSurface.GL_DrawRect(PANEL.x, PANEL.y, PANEL.w, PANEL.h, color("panel"))
     Graphics.CSurface.GL_DrawRectOutline(PANEL.x, PANEL.y, PANEL.w, PANEL.h, color("border"), 2)
+    if logoTexture == nil then
+        local ok, texture = pcall(function() return Hyperspace.Resources:GetImageId(LOGO) end)
+        logoTexture = (ok and texture) or false
+    end
+    local titleX = PANEL.x + 20
+    if logoTexture then
+        Graphics.CSurface.GL_BlitPixelImage(logoTexture, titleX, PANEL.y + 10, LOGO_SIZE, LOGO_SIZE,
+            0, Graphics.GL_Color(1, 1, 1, 1), false)
+        titleX = titleX + LOGO_SIZE + 8
+    end
     Graphics.CSurface.GL_SetColor(color("title"))
-    Graphics.freetype.easy_printAutoShrink(18, PANEL.x + 20, PANEL.y + 16, PANEL.w - 40, false,
+    Graphics.freetype.easy_printAutoShrink(18, titleX, PANEL.y + 16, PANEL.x + PANEL.w - 20 - titleX, false,
         apT("loadout.title"))
     Graphics.CSurface.GL_SetColor(color("dim"))
     Graphics.freetype.easy_printAutoShrink(10, PANEL.x + 20, PANEL.y + 46, PANEL.w - 40, false,

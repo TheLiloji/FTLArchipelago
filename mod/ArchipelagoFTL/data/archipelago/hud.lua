@@ -1,4 +1,3 @@
-
 local TAG = "[AP-hud] "
 
 local COLOR = {
@@ -357,11 +356,11 @@ local GOAL_SUB_H = 22
 
 local TITLE_FONT = 63
 local TITLE_Y = 92
-local LOGO = "stars/planet_ap_archipelago.png"
-local LOGO_SIZE = 210
-local LOGO_X = 4
-local LOGO_Y = -6
-local LOGO_ALPHA = 0.7
+local LOGO = "ap_logo.png"
+local LOGO_SIZE = 120
+local LOGO_X = 62
+local LOGO_Y = 40
+local LOGO_ALPHA = 1
 local TITLE_X = 196
 
 local function atMainMenuHome()

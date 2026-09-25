@@ -1,4 +1,3 @@
-
 from __future__ import annotations
 
 import logging
@@ -13,7 +12,6 @@ LANG_DIR = Path(__file__).resolve().parents[3] / "mod" / "lang"
 
 
 def _a_ship_that_is_not_given_for_free(world) -> data.Ship:
-
     free = {world.start_ship.blueprint}
     free.update(
         data.LAYOUTS_BY_BLUEPRINT[blueprint].ship for blueprint in data.ALWAYS_UNLOCKED_LAYOUTS
@@ -57,7 +55,6 @@ class TestMinimalSeed(FTLTestBase):
         self.assertEqual(len(self.multiworld.itempool), len(self.addressed_locations()))
 
     def test_ship_keys_won_the_arbitration(self) -> None:
-
         pooled = {item.name for item in self.multiworld.itempool}
         pooled.update(self.world.precollected_item_names)
         for ship in data.SHIPS:
@@ -192,7 +189,6 @@ class TestEverythingEnabled(FTLTestBase):
         self.assertTrue(traps)
 
     def test_strict_logic_actually_gates_the_deep_sectors(self) -> None:
-
         blueprints = tuple(data.BLUEPRINT_ITEM_NAMES.values())
         self.collect_all_but(blueprints)
         deep = next(
@@ -272,7 +268,6 @@ class TestGatingBlueprintLogic(FTLTestBase):
     }
 
     def test_the_sliders_are_really_set(self) -> None:
-
         for system in _GATING_SYSTEMS:
             option = getattr(self.world.options, f"{system}_blueprint_logic")
             self.assertEqual(option.current_key, "required")
@@ -311,7 +306,6 @@ class TestVictorySelection(FTLTestBase):
     }
 
     def test_finishing_other_layouts_is_not_enough(self) -> None:
-
         withheld = data.LAYOUT_ITEM_NAMES[_CHOSEN_VICTORIES[0].blueprint]
         self.collect_all_but(withheld)
         self.assertFalse(self.can_reach_location(self.world.goal_location_name))
@@ -475,7 +469,6 @@ class TestVictoriesBehindLockedShips(FTLTestBase):
         self.assertTrue(self.world.logic.warnings, "a silent downgrade would be a surprise")
 
     def test_the_victories_are_not_the_only_way_to_find_a_blueprint(self) -> None:
-
         level = self.world.logic.sector_logic
         free = [
             location for location in self.world.created_locations

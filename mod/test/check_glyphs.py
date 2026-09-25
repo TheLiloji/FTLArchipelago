@@ -16,7 +16,6 @@ DAT = Path(os.environ.get(
 
 
 def glyphs(path: Path) -> set[int]:
-
     raw = path.read_bytes()
     if raw[:4] != b"FONT":
         raise ValueError(f"{path.name} is not an FTL font")

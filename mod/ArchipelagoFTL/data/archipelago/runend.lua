@@ -1,4 +1,3 @@
-
 local TAG = "[AP-end] "
 
 local function endLog(message)

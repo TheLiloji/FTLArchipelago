@@ -115,4 +115,4 @@ AI and may have mistakes.
 ## Credits
 
 The first design of the items and locations comes from the [FTL Manual by Et0san](https://github.com/Et0san/Manual)
-(MIT). Hyperspace is CC-BY-SA 4.0. See `apworld/ftl/LICENSE.md` and `mod/ArchipelagoFTL/CREDITS.md`.
+(MIT). The FTL Archipelago logo was drawn by Trapper444. Hyperspace is CC-BY-SA 4.0. See `apworld/ftl/LICENSE.md` and `mod/ArchipelagoFTL/CREDITS.md`.

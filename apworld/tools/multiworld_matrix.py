@@ -88,7 +88,6 @@ CASES = {
 
 
 def write_player(directory: Path, source: str, name: str, extra: str = "") -> None:
-
     if source.endswith(".yaml"):
         document = (PRESETS / source).read_text(encoding="utf-8")
         lines = [
@@ -125,7 +124,6 @@ def read_multidata(path: Path) -> dict:
 
 
 def slots_ftl(multidata: dict) -> list:
-
     return [
         slot for slot, info in multidata["slot_info"].items()
         if info.game == GAME and int(getattr(info, "type", 1)) == 1
@@ -138,7 +136,6 @@ def pool_items_by_id() -> dict[int, str]:
 
 
 def check_items_match(name: str, multidata: dict) -> list[str]:
-
     problems: list[str] = []
     by_id = pool_items_by_id()
     for slot in slots_ftl(multidata):
@@ -159,7 +156,6 @@ def check_items_match(name: str, multidata: dict) -> list[str]:
 
 
 def pool_locations_by_name() -> dict[str, int]:
-
     return {location.name: location.code for location in _pool_data_module().LOCATIONS}
 
 
@@ -181,7 +177,6 @@ def _pool_data_module():
 
 
 def check_locations_match(name: str, multidata: dict) -> list[str]:
-
     problems: list[str] = []
     by_name = pool_locations_by_name()
     for slot in slots_ftl(multidata):
@@ -233,7 +228,6 @@ def check_slot_data(name: str, multidata: dict) -> list[str]:
 
 
 def check_reproducible(name: str) -> tuple[bool, str]:
-
     firsts = []
     for _ in range(2):
         ok, message, multidata = _generate(name)
@@ -255,7 +249,6 @@ def check_reproducible(name: str) -> tuple[bool, str]:
 
 
 def _generate(name: str, keep: Path | None = None) -> tuple[bool, str, dict]:
-
     players = CASES[name]
     workdir = Path(tempfile.mkdtemp(prefix=f"ftl-mw-{name}-"))
     player_dir = workdir / "players"

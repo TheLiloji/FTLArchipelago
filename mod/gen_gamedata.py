@@ -56,7 +56,6 @@ def lua_string_list(values, indent="        "):
 
 
 def collect_systems():
-
     systems = {}
     for filename in ("blueprints.xml", "dlcBlueprints.xml", "dlcBlueprintsOverwrite.xml"):
         root = parse(filename)

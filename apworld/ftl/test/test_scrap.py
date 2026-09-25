@@ -1,4 +1,3 @@
-
 from __future__ import annotations
 
 from .. import data, items
@@ -19,7 +18,6 @@ class TestScrapTable(FTLTestBase):
         self.assertEqual(by_name["50 Scrap"].amount, 50)
 
     def test_the_amount_matches_the_name(self) -> None:
-
         for item in self.scrap_items():
             announced = int(item.name.split()[0])
             self.assertEqual(announced, item.amount, item.name)
@@ -39,7 +37,6 @@ class TestScrapTable(FTLTestBase):
         self.assertIn("scrap", data.RESOURCES_IMPLEMENTED)
 
     def test_the_descriptor_says_filler_scrap_and_the_amount(self) -> None:
-
         descriptor = data.item_descriptor(data.ITEMS_BY_NAME["50 Scrap"])
         self.assertEqual(descriptor, {"k": "filler", "res": "scrap", "n": 50})
 

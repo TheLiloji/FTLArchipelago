@@ -1,4 +1,3 @@
-
 local TAG = "[AP-test] "
 
 local function testLog(message)
@@ -19,7 +18,7 @@ local function eventPossible()
             return "an event or the menu is open"
         end
         local loc = Hyperspace.App.world.starMap.currentLoc
-        if loc ~= nil and loc.event ~= nil and loc.event.store ~= nil then
+        if loc ~= nil and loc.event ~= nil and loc.event.store == true then
             return "this beacon already has a shop"
         end
         return nil

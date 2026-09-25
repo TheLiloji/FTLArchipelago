@@ -1,4 +1,3 @@
-
 local function vector(items)
     local store = items or {}
     return setmetatable({}, {

@@ -1,4 +1,3 @@
-
 local passed, failed = 0, 0
 local failures = {}
 local currentTest = "?"

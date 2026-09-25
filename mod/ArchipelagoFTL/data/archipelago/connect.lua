@@ -1,4 +1,3 @@
-
 local TAG = "[AP-connect] "
 
 local function connectLog(message)

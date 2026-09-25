@@ -55,7 +55,6 @@ def build(output: Path) -> None:
 
 
 def verify() -> int:
-
     import tempfile
 
     problems: list[str] = []

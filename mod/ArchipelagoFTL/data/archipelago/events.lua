@@ -1,4 +1,3 @@
-
 local TAG = "[AP-events] "
 
 local function eventLog(message)

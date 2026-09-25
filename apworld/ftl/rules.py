@@ -1,4 +1,3 @@
-
 from __future__ import annotations
 
 import re
@@ -124,12 +123,10 @@ def blueprints_for_sector(level: int, sector: int) -> int:
 
 
 def blueprints_for_flagship(level: int) -> int:
-
     return max(SECTOR_LOGIC_TIERS[level].flagship, blueprints_for_sector(level, data.SECTOR_COUNT))
 
 
 def blueprints_required(level: int, location: data.Location) -> int:
-
     required = blueprints_for_sector(level, location_depth(location))
     if location_needs_flagship(location):
         required = max(required, blueprints_for_flagship(level))
@@ -231,7 +228,6 @@ def _free_ship_keys(world: "FTLWorld") -> tuple[str, ...]:
 
 
 def _start_ship_layouts(world: "FTLWorld") -> tuple[data.Layout, ...]:
-
     unlocks = world.options.layout_unlocks
     return tuple(
         layout
@@ -242,7 +238,6 @@ def _start_ship_layouts(world: "FTLWorld") -> tuple[data.Layout, ...]:
 
 
 def _reachable_regions(world: "FTLWorld", start_items: set[str]) -> set[str]:
-
     reachable = {MENU_REGION}
     reachable.update(
         region_name(layout)
@@ -262,7 +257,6 @@ def _sphere_zero_room(world: "FTLWorld", level: int, start_items: set[str]) -> i
 
 
 def _bootstrap_cost(world: "FTLWorld", start_items: set[str]) -> int:
-
     costs = [
         len(set(layout_requirements(world, layout)) - start_items)
         for layout in selected_layouts(world.options)
@@ -293,7 +287,6 @@ def _fits(
 
 
 def _progression_item_count(world: "FTLWorld", level: int) -> int:
-
     if level == SectorLogic.option_relaxed:
         progression_blueprints = {
             name
@@ -326,7 +319,6 @@ def _progression_item_count(world: "FTLWorld", level: int) -> int:
 
 
 def _early_blueprints(world: "FTLWorld", level: int, start_items: set[str]) -> tuple[str, ...]:
-
     room = _sphere_zero_room(world, level, start_items) - _bootstrap_cost(world, start_items)
     wanted = dict.fromkeys(
         [*_keystone_blueprints(world), *blueprints_placed_early(world.options)]
@@ -335,7 +327,6 @@ def _early_blueprints(world: "FTLWorld", level: int, start_items: set[str]) -> t
 
 
 def _keystone_blueprints(world: "FTLWorld") -> tuple[str, ...]:
-
     layouts = selected_layouts(world.options)
     gated: dict[str, int] = {}
     for layout in layouts:
@@ -346,7 +337,6 @@ def _keystone_blueprints(world: "FTLWorld") -> tuple[str, ...]:
 
 
 def layout_requirements(world: "FTLWorld", layout: data.Layout) -> tuple[str, ...]:
-
     unlocks = world.options.layout_unlocks
     names = [data.SHIP_KEY_NAMES[layout.ship]]
     if layout.variant > 0 and unlocks == unlocks.option_items:
@@ -356,7 +346,6 @@ def layout_requirements(world: "FTLWorld", layout: data.Layout) -> tuple[str, ..
 
 
 def _has_blueprints(player: int, count: int) -> Callable[[CollectionState], bool]:
-
     group = data.GROUP_BLUEPRINTS
     return lambda state: state.has_group(group, player, count)
 
@@ -495,7 +484,6 @@ def _system_rule(world: "FTLWorld", location: data.Location) -> Callable[[Collec
 
 
 def _set_system_rules(world: "FTLWorld", layouts) -> None:
-
     player = world.player
     options = world.options
 
@@ -521,7 +509,6 @@ def _set_system_rules(world: "FTLWorld", layouts) -> None:
 
 
 def _goal_rule(world: "FTLWorld") -> Callable[[CollectionState], bool]:
-
     player = world.player
     blueprints = blueprints_for_flagship(world.sector_logic_level)
     group = data.GROUP_BLUEPRINTS
@@ -563,7 +550,6 @@ def _goal_rule(world: "FTLWorld") -> Callable[[CollectionState], bool]:
 
 
 def validate_goal(world: "FTLWorld") -> None:
-
     available = {layout.blueprint for layout in selected_layouts(world.options)}
     chosen = goal_layouts(world.options)
 

@@ -1,4 +1,3 @@
-
 local TAG = "[AP-unlock] "
 
 local function unlockLog(message)

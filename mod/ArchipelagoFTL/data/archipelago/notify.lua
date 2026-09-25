@@ -1,4 +1,3 @@
-
 local TAG = "[AP-notify] "
 
 local DISPLAY = {

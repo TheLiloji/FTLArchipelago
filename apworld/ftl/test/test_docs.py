@@ -1,4 +1,3 @@
-
 from __future__ import annotations
 
 import re
@@ -13,7 +12,6 @@ APWORLD = Path(__file__).parents[1]
 
 
 def game_info_pages(language: str) -> list[Path]:
-
     wanted = f"{language}_{secure_name(data.GAME_NAME)}.md"
     return [path for path in DOCS.iterdir() if path.is_file() and secure_name(path.name) == wanted]
 
@@ -49,7 +47,6 @@ class TestDocumentationFiles(unittest.TestCase):
             )
 
     def test_the_credit_to_et0san_is_where_it_was_promised(self) -> None:
-
         pages = game_info_pages("en")
         self.assertEqual(len(pages), 1)
         for path in (pages[0], APWORLD / "LICENSE.md"):

@@ -1,4 +1,3 @@
-
 local MOD_NAME = "ArchipelagoFTL"
 local MOD_VERSION = "0.0.1"
 local TAG = "[AP] "

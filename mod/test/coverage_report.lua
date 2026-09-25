@@ -1,4 +1,3 @@
-
 local out = sim.realPrint
 local coverage = _G.apCoverage
 local untested, tested = {}, 0

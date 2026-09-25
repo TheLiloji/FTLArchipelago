@@ -45,7 +45,6 @@ SOLO_OUT = (ROOT / "mod" / "ArchipelagoFTL" / "data" / "archipelago" / "solo_ord
 
 
 def lua_table(value, indent: int = 0) -> str:
-
     pad = "    " * (indent + 1)
     closing = "    " * indent
     if isinstance(value, bool):
@@ -68,7 +67,6 @@ def lua_table(value, indent: int = 0) -> str:
 
 
 def write_solo_order(data, slot_info, ftl_slot, datapackage) -> None:
-
     table = datapackage.get("FTL: Faster Than Light", {})
     item_names = {code: name for name, code in table.get("item_name_to_id", {}).items()}
     location_names = {code: name for name, code in table.get("location_name_to_id", {}).items()}

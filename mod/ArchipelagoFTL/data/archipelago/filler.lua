@@ -1,4 +1,3 @@
-
 local TAG = "[AP-filler] "
 
 local function fillerLog(message)

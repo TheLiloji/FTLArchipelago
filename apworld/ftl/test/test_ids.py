@@ -1,4 +1,3 @@
-
 from __future__ import annotations
 
 import importlib.util
@@ -15,7 +14,6 @@ REGENERATE = "Regenerate with: python3 apworld/tools/gen_id_baseline.py"
 
 
 def _load_data_copy():
-
     spec = importlib.util.spec_from_file_location("ftl_data_reordered", Path(data.__file__))
     assert spec is not None and spec.loader is not None
     module = importlib.util.module_from_spec(spec)
@@ -60,7 +58,6 @@ class TestIdentifiersAreWellFormed(unittest.TestCase):
         self.assertLess(highest, 2 ** 31)
 
     def test_check_keys_follow_the_formats_the_mod_emits(self) -> None:
-
         for location in data.LOCATIONS:
             if location.group == data.GROUP_SECTORS:
                 expected = data.SECTOR_CHECK_FORMAT.format(
@@ -86,7 +83,6 @@ class TestIdentifiersAreWellFormed(unittest.TestCase):
             self.assertEqual(location.check_id, expected, location.name)
 
     def test_sector_numbers_have_no_decimal_point(self) -> None:
-
         for location in data.LOCATIONS:
             if location.group == data.GROUP_SECTORS:
                 self.assertTrue(location.check_id.split(":")[-1].isdigit(), location.check_id)

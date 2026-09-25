@@ -1,4 +1,3 @@
-
 local TAG = "[AP-sys] "
 
 local function sysLog(message)

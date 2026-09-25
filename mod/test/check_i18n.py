@@ -44,7 +44,6 @@ def lua_sources() -> list[Path]:
 
 
 def used_keys(english: dict[str, str]) -> dict[str, list[str]]:
-
     found: dict[str, list[str]] = {}
     looks_like_a_key = re.compile(r"^[a-z][a-z0-9_]*(?:\.[a-z0-9_]+)+$")
     for path in sorted(MODULES.glob("*.lua")):
@@ -60,7 +59,6 @@ def used_keys(english: dict[str, str]) -> dict[str, list[str]]:
 
 
 def send_check_labels() -> list[str]:
-
     problems: list[str] = []
     for path in lua_sources():
         text = path.read_text(encoding="utf-8")
@@ -135,7 +133,6 @@ def hardcoded_display_strings() -> list[str]:
 
 
 def bad_sentence_joins(languages: dict[str, dict[str, str]]) -> list[str]:
-
     COMPOSED = [("deathlink.received", "{effect}", "deathlink.effect."),
                 ("trap.sprung", "{what}", "trap."),
                 ("status.prefix", "{message}", None)]

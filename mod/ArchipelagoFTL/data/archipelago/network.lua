@@ -1,4 +1,3 @@
-
 local TAG = "[AP-net] "
 
 local function netLog(message)

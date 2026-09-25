@@ -1,4 +1,3 @@
-
 local TAG = "[AP-solo] "
 
 local function soloLog(message)

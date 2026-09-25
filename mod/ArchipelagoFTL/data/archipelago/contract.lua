@@ -1,4 +1,3 @@
-
 local TAG = "[AP-contract] "
 
 local function contractLog(message)

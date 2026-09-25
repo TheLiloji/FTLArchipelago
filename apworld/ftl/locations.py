@@ -1,4 +1,3 @@
-
 from __future__ import annotations
 
 from BaseClasses import Location
@@ -46,7 +45,6 @@ def selected_layouts(options) -> tuple[data.Layout, ...]:
 
 
 def selected_sectors(options) -> tuple[int, ...]:
-
     if options.sectorsanity == options.sectorsanity.option_disabled:
         return ()
     if options.sectorsanity == options.sectorsanity.option_milestones:
@@ -57,7 +55,6 @@ def selected_sectors(options) -> tuple[int, ...]:
 
 
 def selected_locations(options) -> tuple[data.Location, ...]:
-
     layouts = {layout.blueprint for layout in selected_layouts(options)}
     sectors = set(selected_sectors(options))
     tiers = set(_ACHIEVEMENT_TIERS_BY_LEVEL[options.general_achievements.value])
@@ -109,7 +106,6 @@ def region_of(location: data.Location) -> str:
 
 
 def location_plan(options) -> dict[str, dict[str, int]]:
-
     plan: dict[str, dict[str, int]] = {MENU_REGION: {}}
     for layout in selected_layouts(options):
         plan[region_name(layout)] = {}

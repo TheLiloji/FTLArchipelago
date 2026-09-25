@@ -27,7 +27,6 @@ def check(condition: bool, message: str) -> bool:
 
 
 def load_data_module():
-
     import types
 
     path = APWORLD / "ftl" / "data.py"
@@ -60,7 +59,6 @@ def dump_mod_contract() -> dict:
 
 
 def load_options_module():
-
     import importlib
     import importlib.util
     import os
@@ -118,7 +116,6 @@ LUA_NON_BLUEPRINTS = {
 
 
 def mod_declared_names() -> set[str]:
-
     names: set[str] = set()
     data_dir = MOD / "ArchipelagoFTL" / "data"
     for path in data_dir.glob("*.append"):

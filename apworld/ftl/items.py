@@ -1,4 +1,3 @@
-
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -28,7 +27,6 @@ ITEM_NAME_TO_ID: dict[str, int] = {item.name: item.code for item in data.ITEMS}
 
 
 def effective_classification(world: "FTLWorld", item: data.Item) -> str:
-
     if item.group == data.GROUP_SYSTEM_LEVELS:
         options = getattr(world, "options", None)
         if options is not None and item.system in rules.systems_whose_levels_the_rules_read(options):
@@ -43,7 +41,6 @@ def effective_classification(world: "FTLWorld", item: data.Item) -> str:
 
 
 def create_item(world: "FTLWorld", name: str) -> FTLItem:
-
     if name == data.VICTORY_ITEM_NAME:
         return FTLItem(name, ItemClassification.progression, None, world.player)
     item = data.ITEMS_BY_NAME.get(name)
@@ -54,7 +51,6 @@ def create_item(world: "FTLWorld", name: str) -> FTLItem:
 
 
 def selected_shop_items(options, rng) -> tuple[data.ShopItem, ...]:
-
     requested = {
         "weapon": options.shop_weapons.value,
         "drone": options.shop_drones.value,
@@ -74,7 +70,6 @@ def selected_shop_items(options, rng) -> tuple[data.ShopItem, ...]:
 
 
 def enabled_items(options, shop_items: tuple[data.ShopItem, ...] = ()) -> tuple[data.Item, ...]:
-
     layouts = {layout.blueprint for layout in locations.selected_layouts(options)}
     layout_items = options.layout_unlocks == options.layout_unlocks.option_items
     shop_blueprints = {item.blueprint for item in shop_items}
@@ -119,7 +114,6 @@ def enabled_items(options, shop_items: tuple[data.ShopItem, ...] = ()) -> tuple[
 
 
 def items_wanting_a_place(world: "FTLWorld") -> int:
-
     options = world.options
     total = 0
     for item in world.enabled_items:
@@ -130,7 +124,6 @@ def items_wanting_a_place(world: "FTLWorld") -> int:
 
 
 def build_item_pool(world: "FTLWorld") -> list[FTLItem]:
-
     options = world.options
     capacity = len(world.multiworld.get_unfilled_locations(world.player))
     precollected = list(world.precollected_item_names)
@@ -171,7 +164,6 @@ def build_item_pool(world: "FTLWorld") -> list[FTLItem]:
 
 
 def roll_filler(world: "FTLWorld", count: int) -> list[str]:
-
     if count <= 0:
         return []
 

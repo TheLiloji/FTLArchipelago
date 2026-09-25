@@ -1,4 +1,3 @@
-
 local TAG = "[AP-energy] "
 
 local function energyLog(message)

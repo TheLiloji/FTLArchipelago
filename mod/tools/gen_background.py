@@ -46,7 +46,6 @@ SPARKLES_2 = [(0.38, 0.18, 6), (0.68, 0.28, 4), (0.24, 0.52, 5),
 
 
 def tint(planet: Image.Image, color, brightness: float) -> Image.Image:
-
     px = planet.load()
     out_img = Image.new("RGBA", planet.size)
     sp = out_img.load()

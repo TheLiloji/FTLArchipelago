@@ -1,4 +1,3 @@
-
 local TAG = "[AP-i18n] "
 
 local FALLBACK = "en"

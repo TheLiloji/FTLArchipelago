@@ -16,7 +16,6 @@ PLACEHOLDER = re.compile(r"\{(\w+)\}")
 
 
 def lua_string(value: str) -> str:
-
     escaped = (
         value.replace("\\", "\\\\")
         .replace('"', '\\"')

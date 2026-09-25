@@ -1,4 +1,3 @@
-
 local LANGUAGE = _G.apScriptLanguage or "fr"
 
 sim.reset()

@@ -1,4 +1,3 @@
-
 from __future__ import annotations
 
 import re
@@ -920,19 +919,16 @@ ftl_option_groups = [
 
 
 def mod_language(options: FTLOptions) -> str | None:
-
     return ModLanguage.MOD_CODES.get(options.mod_language.value)
 
 
 def apply_sector_floor(options: FTLOptions, sectors: Iterable[int]) -> tuple[int, ...]:
-
     floor = options.sectorsanity_first_sector.value
     ceiling = options.sectorsanity_last_sector.value
     return tuple(sector for sector in sectors if floor <= sector <= ceiling)
 
 
 def goal_layouts(options: FTLOptions) -> tuple[str, ...] | None:
-
     if options.goal != Goal.option_victory_selection:
         return None
 
@@ -953,18 +949,15 @@ def goal_layouts(options: FTLOptions) -> tuple[str, ...] | None:
 
 
 def goal_victory_count(options: FTLOptions) -> int:
-
     layouts = goal_layouts(options)
     return len(layouts) if layouts is not None else options.victories_required.value
 
 
 def archives_required(options: FTLOptions) -> int:
-
     return min(options.archives_required.value, options.archives.value)
 
 
 def blueprint_logic(options: FTLOptions) -> dict[str, str]:
-
     if not options.system_blueprints:
         return {}
     return {
@@ -974,14 +967,12 @@ def blueprint_logic(options: FTLOptions) -> dict[str, str]:
 
 
 def blueprints_required_to_fly(options: FTLOptions) -> tuple[str, ...]:
-
     return tuple(
         system for system, value in blueprint_logic(options).items() if value == "required"
     )
 
 
 def blueprints_gating_layout(options: FTLOptions, layout: data.Layout) -> tuple[str, ...]:
-
     start_systems = frozenset(layout.start_systems)
     return tuple(
         data.BLUEPRINT_ITEM_NAMES[system]
@@ -1014,7 +1005,6 @@ def blueprints_placed_early(options: FTLOptions) -> tuple[str, ...]:
 
 
 def enabled_planned_options(options: FTLOptions) -> tuple[str, ...]:
-
     touched = []
     for name in PLANNED_OPTION_NAMES:
         option = getattr(options, name)

@@ -11,8 +11,6 @@ ROOT = Path(__file__).resolve().parent.parent
 
 def preset_table() -> list[str]:
 
-    import re as _re
-
     report = subprocess.run(
         [sys.executable, str(ROOT / "apworld" / "tools" / "preset_report.py"),
          *sorted(str(p) for p in (ROOT / "presets").glob("*.yaml"))],
@@ -22,7 +20,7 @@ def preset_table() -> list[str]:
     measured: dict[str, dict[str, float]] = {}
     current = None
     for line in report.splitlines():
-        header = _re.match(r"=== (\w+?)_\S+\.yaml", line)
+        header = re.match(r"=== (\w+?)_\S+\.yaml", line)
         if header:
             current = header.group(1)
             measured[current] = {}
@@ -34,7 +32,7 @@ def preset_table() -> list[str]:
                              (r"throughput: ~([\d.]+) checks", "throughput"),
                              (r"~([\d.]+) h to the goal", "goal"),
                              (r"worst wait with nothing to give: ~([\d.]+) min", "wait")):
-            found = _re.search(pattern, line)
+            found = re.search(pattern, line)
             if found:
                 measured[current][key] = float(found.group(1))
 
@@ -43,7 +41,7 @@ def preset_table() -> list[str]:
     for path in sorted((ROOT / "presets").glob("*.yaml")):
         name = path.name.split("_")[0]
         text = path.read_text(encoding="utf-8")
-        found = _re.search(r"# Measured: (\d+) locations, (\d+) free shop slots, ~([\d.]+) checks per hour,"
+        found = re.search(r"# Measured: (\d+) locations, (\d+) free shop slots, ~([\d.]+) checks per hour,"
                            r"\s*# ~([\d.]+) h to the goal, ~([\d.]+) minutes max wait", text)
         if not found:
             issues.append(f"presets/{path.name}: no Measured header")

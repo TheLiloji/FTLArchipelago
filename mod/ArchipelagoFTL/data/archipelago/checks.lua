@@ -1,4 +1,3 @@
-
 local TAG = "[AP-check] "
 
 local function checkLog(message)
