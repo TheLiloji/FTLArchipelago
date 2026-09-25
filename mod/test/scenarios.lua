@@ -2886,6 +2886,7 @@ end)
 test("the planet the beacon already shows isn't requested again - the game used to freeze there", function()
     sim.startRun(true)
     sim.starMap.currentLoc.planetImage = "AP_PLANET"
+    sim.starMap.currentLoc.planet.w = 460
 
     sim.openChoiceBox("AP_EVT_ANOTHER_WORLD")
 
@@ -3775,17 +3776,17 @@ test("event: the toll draws from the shared pool", function()
     sim.startRun(true)
     apEventsResetForTesting()
     local asked = 0
-    local restore = stub("apEnergyLinkRequestFuel", function(units) asked = units; return 4 end)
+    local restore = stub("apEnergyLinkRequestFuel", function(units) asked = units; return true end)
     playBranch("AP_EVT_ZOLTAN_TITHE_B")
     restore()
     check(asked > 0, "fuel was requested from the pool")
-    check(sim.shown("4"), "and the player sees what they took")
+    check(not shownKey("event.link.empty"), "and the player is not told the pool is empty before it answers")
 end)
 
 test("event: an empty pool doesn't lie to the player", function()
     sim.startRun(true)
     apEventsResetForTesting()
-    local restore = stub("apEnergyLinkRequestFuel", function() return 0 end)
+    local restore = stub("apEnergyLinkRequestFuel", function() return false end)
     playBranch("AP_EVT_ZOLTAN_TITHE_B")
     restore()
     check(shownKey("event.link.empty"), "the player knows the pool was empty")
@@ -5005,8 +5006,11 @@ test("solo: the status says how many items remain, and never drops below zero", 
     check(sim.logged("0/" .. total .. " items received, " .. total .. " remaining"),
         "before the first check, everything is still to be earned")
 
-    for i = 1, total + 2 do
-        apSendCheck("PLAYER_SHIP_HARD:sector:" .. i, "a sector")
+    local keys = {}
+    for key in pairs(_G.apContractState.locNames) do keys[#keys + 1] = key end
+    table.sort(keys)
+    for _, key in ipairs(keys) do
+        apSendCheck(key, "a check of the seed")
         drain()
     end
 
@@ -5027,14 +5031,15 @@ test("solo: an ENTIRE run, from the first check to the last item", function()
     local received = 0
 
     for index = 1, #order do
-        if apSendCheck("test:check:" .. index, "simulated run") then
+        if apSendCheck(apCheckKeyFor(order[index].location), "simulated run") then
             received = received + 1
         end
         drain(1)
     end
     drain(3)
 
-    equals(received, #order, "all checks went out")
+    check(received > 0, "the checks went out")
+    equals(_G.apSoloState.delivered, #order, "each location of the seed handed out its item")
     local waiting = 0
     for _, descriptor in ipairs(_G.apFillerPendingForTesting()) do
         if descriptor.kind == "filler" and descriptor.res == "crew" and sim.player:IsCrewFull() then
@@ -5165,8 +5170,8 @@ test("the end of the list is announced only once", function()
     sim.startRun(true)
     apSoloStart()
 
-    apSendCheck("shop:1")
     sim.clearLog()
+    apSendCheck("shop:1")
     apSendCheck("shop:2")
     apSendCheck("shop:3")
     local count = 0

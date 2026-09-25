@@ -74,7 +74,7 @@ function apSendCheck(id, label)
     end
 
     local name = _G.apLocationNameFor and _G.apLocationNameFor(id) or nil
-    local onServer = _G.apNetConnected and _G.apNetConnected()
+    local onServer = (_G.apNetConnected and _G.apNetConnected()) or _G.apSoloEnabled
     if name == nil and onServer and _G.apSeedKnowsLocations and _G.apSeedKnowsLocations() then
         if not outOfSeed[id] then
             outOfSeed[id] = true

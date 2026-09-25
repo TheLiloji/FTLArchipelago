@@ -236,6 +236,7 @@ function sim.makeLocation()
         space = { tex = nil, x = 0, y = 0, w = 0, h = 0 },
         planetImage = "",
         spaceImage = "",
+        loc = { x = 0, y = 0 },
     }
 end
 

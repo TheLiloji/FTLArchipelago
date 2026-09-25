@@ -11,12 +11,13 @@ local function record(name, detail)
     eventLog(name .. " : " .. detail)
 end
 
-local function feedTheLink(eventName, joules)
+local function feedTheLink(eventName, fuel)
     if _G.apEnergyLinkDeposit == nil then
         record(eventName, "energy link missing, nothing deposited")
         return
     end
-    local ok, deposited = pcall(_G.apEnergyLinkDeposit, joules)
+    local joules = fuel * (_G.apEnergyLinkJoulesPerFuel or 1000000)
+    local ok, deposited = pcall(_G.apEnergyLinkDeposit, joules, true)
     local sent = ok and tonumber(deposited) ~= nil and tonumber(deposited) > 0
     record(eventName, sent and ("deposited to the link: " .. joules .. " J") or "nothing deposited to the link")
     if sent and _G.apNotifyStatus then
@@ -29,18 +30,16 @@ local function drainTheLink(eventName)
         record(eventName, "energy link missing, nothing drawn")
         return
     end
-    local ok, units = pcall(_G.apEnergyLinkRequestFuel, 5)
-    if not ok or type(units) ~= "number" or units <= 0 then
-        record(eventName, "the shared pool was empty")
+    -- The pool answers later: what arrives, or that nothing did, is told when the server replies.
+    local ok, asked = pcall(_G.apEnergyLinkRequestFuel, 5)
+    if not ok or asked ~= true then
+        record(eventName, "no request possible, the shared pool is out of reach")
         if _G.apNotifyStatus then
             _G.apNotifyStatus(apT("event.link.empty"))
         end
         return
     end
-    record(eventName, "drew " .. units .. " units from the link")
-    if _G.apNotifyStatus then
-        _G.apNotifyStatus(apT("event.link.drained", { n = units }))
-    end
+    record(eventName, "5 fuel units asked from the link")
 end
 
 local function sendTrapOutward(eventName)
@@ -82,8 +81,8 @@ end
 local function buyHint(eventName)
     if _G.apHintPurchase and _G.apHintPurchase() then
         scrapBefore["AP_EVT_SLUG_WHISPER"] = nil
-        record(eventName, "hint requested from server")
-        if _G.apNotifyStatus then
+        record(eventName, _G.apSoloEnabled and "hint given from the solo seed" or "hint requested from server")
+        if _G.apNotifyStatus and not _G.apSoloEnabled then
             _G.apNotifyStatus(apT("event.hint.asked"))
         end
         return
@@ -112,8 +111,9 @@ function routePackage(eventName, package)
         return
     end
     scrapBefore["AP_EVT_PACKAGE"] = nil
-    record(eventName, "package routed: " .. tostring(sent.item) .. " -> " .. tostring(sent.slot))
-    if _G.apNotifyStatus then
+    record(eventName, "package routed: " .. tostring(sent.item) .. " -> "
+        .. (sent.mine and "the player" or tostring(sent.slot)))
+    if _G.apNotifyStatus and not sent.mine then
         _G.apNotifyStatus(apT("event.gift.sent",
             { item = tostring(sent.item), slot = tostring(sent.slot) }))
     end
@@ -131,8 +131,12 @@ local function writePackageChoices(event)
     end
 
     local function setChoice(index, chosenPackage)
-        choices[index].text.data = apT("event.package.route",
-            { slot = tostring(chosenPackage.slot), item = tostring(chosenPackage.item) })
+        if chosenPackage.mine then
+            choices[index].text.data = apT("event.package.self", { item = tostring(chosenPackage.item) })
+        else
+            choices[index].text.data = apT("event.package.route",
+                { slot = tostring(chosenPackage.slot), item = tostring(chosenPackage.item) })
+        end
         choices[index].text.isLiteral = true
     end
 
@@ -145,7 +149,7 @@ local function writePackageChoices(event)
 end
 
 local BRANCH_EFFECTS = {
-    AP_EVT_ZOLTAN_TITHE_A = function(name) feedTheLink(name, 900) end,
+    AP_EVT_ZOLTAN_TITHE_A = function(name) feedTheLink(name, 1) end,
     AP_EVT_ZOLTAN_TITHE_B = function(name) drainTheLink(name) end,
     AP_EVT_PACKAGE_A = function(name) routePackage(name, offeredPackages.a) end,
     AP_EVT_PACKAGE_B = function(name) routePackage(name, offeredPackages.b) end,
@@ -183,6 +187,25 @@ for name in pairs(BRANCH_EFFECTS) do
 end
 for name in pairs(BRANCH_EFFECTS) do OUR_DECOR[name] = true end
 OUR_DECOR["AP_STORE_EVENT"] = true
+for _, name in ipairs({ "AP_EVT_ZOLTAN_TITHE_LINK", "AP_EVT_ZOLTAN_TOLL", "AP_EVT_ZOLTAN_TOLL_A",
+                        "AP_EVT_ZOLTAN_TOLL_B", "AP_EVT_ANOTHER_WORLD_LINK", "AP_EVT_ANOTHER_WORLD_PLAIN",
+                        "AP_EVT_ANOTHER_WORLD_PLAIN_A", "AP_EVT_ANOTHER_WORLD_VOID" }) do
+    OUR_DECOR[name] = true
+end
+
+-- The tithe and the surge only use their Archipelago version when the seed turned that link on and a
+-- server is there to carry it; otherwise the beacon loads a version that stands on its own.
+local flagTicks = 0
+script.on_internal_event(Defines.InternalEvents.ON_TICK, function()
+    flagTicks = flagTicks + 1
+    if flagTicks < 30 then return end
+    flagTicks = 0
+    pcall(function()
+        local online = _G.apNetConnected and _G.apNetConnected()
+        Hyperspace.playerVariables.ap_energylink = (online and _G.apEnergyLink and _G.apEnergyLink.enabled) and 1 or 0
+        Hyperspace.playerVariables.ap_traplink = (online and _G.apTrapLink and _G.apTrapLink.enabled) and 1 or 0
+    end)
+end)
 local SHOPS = { "AP_STORE_EVENT_3", "AP_STORE_EVENT_6", "AP_STORE_EVENT_9", "AP_STORE_EVENT_12" }
 for _, name in ipairs(SHOPS) do OUR_DECOR[name] = true end
 
@@ -195,7 +218,10 @@ local function setDecor()
     loc.space = space:SwitchBackground("AP_BACKGROUND")
     loc.spaceImage = "AP_BACKGROUND"
 
-    if tostring(loc.planetImage) ~= "AP_PLANET" then
+    -- Asking again for a planet the beacon already shows froze FTL; a reloaded save keeps the name but
+    -- comes back with a 0x0 image, drawn as FTL's missing-image sign.
+    local shown = tostring(loc.planetImage) == "AP_PLANET" and loc.planet ~= nil and (loc.planet.w or 0) > 0
+    if not shown then
         loc.planet = space:SwitchPlanet("AP_PLANET")
         loc.planetImage = "AP_PLANET"
     end
@@ -226,6 +252,22 @@ script.on_internal_event(Defines.InternalEvents.PRE_CREATE_CHOICEBOX, function(e
     if not ok then
         eventLog("decor not applied: " .. tostring(err))
     end
+end)
+
+local reloaded = false
+script.on_init(function(newGame)
+    reloaded = not newGame
+end)
+
+script.on_internal_event(Defines.InternalEvents.ON_TICK, function()
+    if not reloaded then return end
+    reloaded = false
+    pcall(function()
+        local loc = Hyperspace.App.world.starMap.currentLoc
+        if loc ~= nil and tostring(loc.planetImage) == "AP_PLANET" then
+            setDecor()
+        end
+    end)
 end)
 
 local SHOP_EVENTS = { "AP_STORE_EVENT" }

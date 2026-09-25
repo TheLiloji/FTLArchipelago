@@ -65,6 +65,12 @@
 
 
 <event name="AP_EVT_ZOLTAN_TITHE">
+    <beaconType load="AP_BEACON_SIGNAL"/>
+    <loadEventList first="true" default="AP_EVT_ZOLTAN_TOLL">
+        <event load="AP_EVT_ZOLTAN_TITHE_LINK" req="ap_energylink" lvl="1"/>
+    </loadEventList>
+</event>
+<event name="AP_EVT_ZOLTAN_TITHE_LINK">
     <text id="ap_evt_zoltan_tithe_text"/>
     <img back="AP_BACKGROUND" planet="AP_PLANET"/>
     <beaconType load="AP_BEACON_SIGNAL"/>
@@ -82,6 +88,37 @@
         <text id="ap_evt_zoltan_tithe_c2"/>
         <event name="AP_EVT_ZOLTAN_TITHE_B">
             <text id="ap_evt_zoltan_tithe_c2_text"/>
+        </event>
+    </choice>
+</event>
+<event name="AP_EVT_ZOLTAN_TOLL">
+    <text id="ap_evt_zoltan_tithe_text"/>
+    <img back="AP_BACKGROUND" planet="AP_PLANET"/>
+    <beaconType load="AP_BEACON_SIGNAL"/>
+    <choice>
+        <text id="ap_evt_zoltan_tithe_c1"/>
+        <event name="AP_EVT_ZOLTAN_TOLL_A">
+            <text id="ap_evt_zoltan_toll_c1_text"/>
+            <item_modify>
+                <item type="scrap" min="-35" max="-35"/>
+                <item type="fuel" min="3" max="3"/>
+            </item_modify>
+        </event>
+    </choice>
+    <choice>
+        <text id="ap_evt_zoltan_tithe_c2"/>
+        <event name="AP_EVT_ZOLTAN_TOLL_B">
+            <text id="ap_evt_zoltan_toll_c2_text"/>
+            <item_modify>
+                <item type="fuel" min="2" max="2"/>
+            </item_modify>
+            <damage amount="1"/>
+        </event>
+    </choice>
+    <choice>
+        <text id="ap_evt_zoltan_toll_c3"/>
+        <event name="AP_EVT_ZOLTAN_TOLL_C">
+            <text id="ap_evt_zoltan_toll_c3_text"/>
         </event>
     </choice>
 </event>
@@ -117,6 +154,12 @@
 
 
 <event name="AP_EVT_ANOTHER_WORLD">
+    <beaconType load="AP_BEACON_SIGNAL"/>
+    <loadEventList first="true" default="AP_EVT_ANOTHER_WORLD_PLAIN">
+        <event load="AP_EVT_ANOTHER_WORLD_LINK" req="ap_traplink" lvl="1"/>
+    </loadEventList>
+</event>
+<event name="AP_EVT_ANOTHER_WORLD_LINK">
     <text id="ap_evt_another_world_text"/>
     <img back="AP_BACKGROUND" planet="AP_PLANET"/>
     <beaconType load="AP_BEACON_SIGNAL"/>
@@ -137,6 +180,31 @@
             <item_modify>
                 <item type="scrap" min="40" max="40"/>
             </item_modify>
+        </event>
+    </choice>
+</event>
+<event name="AP_EVT_ANOTHER_WORLD_PLAIN">
+    <text id="ap_evt_another_world_text"/>
+    <img back="AP_BACKGROUND" planet="AP_PLANET"/>
+    <beaconType load="AP_BEACON_SIGNAL"/>
+    <choice>
+        <text id="ap_evt_another_world_c1"/>
+        <event name="AP_EVT_ANOTHER_WORLD_PLAIN_A">
+            <text id="ap_evt_another_world_c1_text"/>
+            <item_modify>
+                <item type="fuel" min="2" max="2"/>
+            </item_modify>
+            <damage amount="1"/>
+        </event>
+    </choice>
+    <choice>
+        <text id="ap_evt_another_world_void"/>
+        <event name="AP_EVT_ANOTHER_WORLD_VOID">
+            <text id="ap_evt_another_world_void_text"/>
+            <item_modify>
+                <item type="scrap" min="40" max="40"/>
+            </item_modify>
+            <damage amount="2"/>
         </event>
     </choice>
 </event>

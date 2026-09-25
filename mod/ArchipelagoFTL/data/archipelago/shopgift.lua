@@ -149,7 +149,7 @@ local function writeGift(blueprintName, gift)
 
     local who = tostring(gift.slot or "?")
     local me = _G.apOwnSlotName and _G.apOwnSlotName() or nil
-    local forMe = me ~= nil and who == tostring(me)
+    local forMe = gift.mine == true or (me ~= nil and who == tostring(me))
 
     desc.title.data = forMe and apT("shop.slot.title.self")
         or apT("shop.slot.title", { slot = who })
@@ -279,8 +279,8 @@ function apShopGiftsConfigure(gifts, source)
     if type(gifts) ~= "table" then
         return false
     end
-    if source == "demo" and _G.apNetConnected and _G.apNetConnected() then
-        giftLog("connected: the shop keeps the server's gifts, not the demo")
+    if source == "demo" and ((_G.apNetConnected and _G.apNetConnected()) or _G.apSoloEnabled) then
+        giftLog("a seed is loaded: the shop keeps its items, not the demo")
         return false
     end
     _G.apShopGifts = gifts
@@ -507,13 +507,18 @@ function apShopGiftsResetForTesting()
     giftLog("shop reset to fresh (tests)")
 end
 
+local function offerCopy(gift)
+    local me = _G.apOwnSlotName and _G.apOwnSlotName() or nil
+    return { item = gift.item, slot = gift.slot, sphere = gift.sphere, kind = gift.kind,
+             cost = gift.cost, location = gift.location, game = gift.game,
+             mine = gift.mine == true or (me ~= nil and tostring(gift.slot) == tostring(me)) }
+end
+
 function apShopGiftPeekNext()
     for _, gift in ipairs(_G.apShopGifts or {}) do
         local key = gift and (gift.location or gift.item)
         if not alreadyGone(key) then
-            return { item = gift.item, slot = gift.slot, sphere = gift.sphere,
-                     kind = gift.kind, cost = gift.cost, location = gift.location,
-                     game = gift.game }
+            return offerCopy(gift)
         end
     end
     return nil
@@ -545,9 +550,7 @@ function apShopGiftPeekMany(n)
     for _, gift in ipairs(_G.apShopGifts or {}) do
         local key = gift and (gift.location or gift.item)
         if not alreadyGone(key) then
-            found[#found + 1] = { item = gift.item, slot = gift.slot, sphere = gift.sphere,
-                                      kind = gift.kind, cost = gift.cost, location = gift.location,
-                                      game = gift.game }
+            found[#found + 1] = offerCopy(gift)
             if #found >= (n or 2) then
                 break
             end
@@ -573,9 +576,7 @@ function apShopGiftGiveAt(location)
             giftLog(string.format("gift CHOSEN by the player: %s for %s",
                 tostring(gift.item), tostring(gift.slot)))
             apApplyShopGifts()
-            return { item = gift.item, slot = gift.slot, sphere = gift.sphere,
-                     kind = gift.kind, cost = gift.cost, location = gift.location,
-                     game = gift.game }
+            return offerCopy(gift)
         end
     end
     giftLog("gift not found or already gone: " .. tostring(location))

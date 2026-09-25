@@ -85,11 +85,19 @@ def main() -> int:
         for extra in sorted(translated - english):
             failures.append(f"present in \"{code}\" and not in english: \"{extra}\"")
 
-    top_level = [
+    candidates = [
         node for node in events_tree.iter("event")
         if (node.get("name") or "").startswith("AP_EVT_")
         and node.getparent().tag != "choice"
+        and node.getparent().tag != "loadEventList"
     ]
+    # An event made of a loadEventList only picks which version the beacon loads.
+    switches = {
+        node.get("name"): {node.find("loadEventList").get("default")}
+        | {inner.get("load") for inner in node.find("loadEventList").findall("event")}
+        for node in candidates if node.find("loadEventList") is not None
+    }
+    top_level = [node for node in candidates if node.get("name") not in switches]
     if len(top_level) < 4:
         failures.append(f"{len(top_level)} custom events, at least 4 are required")
 
@@ -148,6 +156,9 @@ def main() -> int:
 
     placed = set(re.findall(r'<mod-(?:append|before):event name="(AP_EVT_[A-Z_]+)"',
                             SECTORS.read_text(encoding="utf-8")))
+    for switch, versions in switches.items():
+        if switch in placed:
+            placed |= versions
     for event in top_level:
         if event.get("name") not in placed:
             failures.append(

@@ -1,20 +1,20 @@
 
-<text name="ap_evt_package_text" language="es">Un repetidor Archipelago os llama. Dos paquetes esperan una ventana de transmisión y solo hay una. El vuestro ya está a bordo, elijáis lo que elijáis.</text>
-<text name="ap_evt_package_c1" language="es">Enviar el primer paquete. [Archipelago: envía un check, 15 de chatarra]</text>
-<text name="ap_evt_package_c1_text" language="es">El paquete sale: se envía un check de Archipelago y lo que contenía aparece en la partida de su dueño, esté donde esté. El repetidor se queda su comisión y cierra la ventana. El otro paquete esperará a otra persona.</text>
-<text name="ap_evt_package_c2" language="es">Enviar el segundo paquete. [Archipelago: envía un check, 15 de chatarra]</text>
-<text name="ap_evt_package_c2_text" language="es">El paquete sale: se envía un check de Archipelago y lo que contenía aparece en la partida de su dueño, esté donde esté. El repetidor se queda su comisión y cierra la ventana. El otro paquete esperará a otra persona.</text>
+<text name="ap_evt_package_text" language="es">Un relé Archipelago te llama. Dos paquetes esperan una ventana de emisión, y solo hay una. Por 15 de chatarra, eliges cuál sale.</text>
+<text name="ap_evt_package_c1" language="es">Enviar el primer paquete.</text>
+<text name="ap_evt_package_c1_text" language="es">El paquete sale, igual que si lo hubieras comprado en la tienda Archipelago: su objeto llega a su destinatario, tú incluido. El relé cobra su comisión y cierra la ventana.</text>
+<text name="ap_evt_package_c2" language="es">Enviar el segundo paquete.</text>
+<text name="ap_evt_package_c2_text" language="es">El paquete sale, igual que si lo hubieras comprado en la tienda Archipelago: su objeto llega a su destinatario, tú incluido. El relé cobra su comisión y cierra la ventana.</text>
 <text name="ap_evt_package_c3" language="es">Dejar pasar el repetidor.</text>
 <text name="ap_evt_package_c3_text" language="es">Os quedáis con vuestra chatarra y el repetidor se aleja. Los paquetes encontrarán otra ventana.</text>
 
 <text name="ap_evt_zoltan_tithe_text" language="es">El control es un solo crucero zoltan y muchísimo papeleo. "Toda nave que cruza el Tercer Anillo contribuye al Anillo", explica el oficial con la paciencia de quien lo ha explicado diez mil veces. "La contribución no es un peaje. El peaje se cobra. La contribución se da."</text>
-<text name="ap_evt_zoltan_tithe_c1" language="es">Pagar el diezmo. [Archipelago: añade 900 J a la reserva común (EnergyLink)]</text>
+<text name="ap_evt_zoltan_tithe_c1" language="es">Pagar el diezmo.</text>
 <text name="ap_evt_zoltan_tithe_c1_text" language="es">El oficial lo acepta sin contarlo, lo que inquieta más que si lo hubiera contado. El Anillo envía la energía hacia fuera, a la reserva común de la que bebe cada jugador de Archipelago. Vosotros también, tarde o temprano.</text>
-<text name="ap_evt_zoltan_tithe_c2" language="es">Invocar el derecho de paso. [Archipelago: toma combustible de la reserva común (EnergyLink)]</text>
+<text name="ap_evt_zoltan_tithe_c2" language="es">Invocar el derecho de paso.</text>
 <text name="ap_evt_zoltan_tithe_c2_text" language="es">Es vuestro derecho, el oficial lo dice, y os deja tomar lo que el Anillo guarda. Nadie os detiene. Los zoltan se limitan a anotarlo. En algún sitio, alguien encontrará la reserva más vacía de lo que la dejó.</text>
 
 <text name="ap_evt_slug_whisper_text" language="es">El slug ya está hablando cuando se abre el canal, y lleva rato hablando. "Lleváis cosas para gente que no veis. Yo oigo dónde están las cosas." Una pausa húmeda. "Preguntarse es gratis. Saber cuesta un poco."</text>
-<text name="ap_evt_slug_whisper_c1" language="es">Pagar. Escuchar lo que sabe. [Archipelago: pista al azar]</text>
+<text name="ap_evt_slug_whisper_c1" language="es">Pagar. Escuchar lo que sabe.</text>
 <text name="ap_evt_slug_whisper_c1_text" language="es">Os da una cosa que resulta que sabe: un objeto y quién lo espera, o un lugar donde todavía queda algo. Cuál de las dos, no lo elegís vosotros. Los slugs rara vez mienten en lo pequeño. Lo caro son las mentiras grandes.</text>
 <text name="ap_evt_slug_whisper_c2" language="es">Cortar el canal.</text>
 <text name="ap_evt_slug_whisper_c2_text" language="es">El slug se marcha ofendido y al irse roza vuestro casco con una ráfaga de despedida que sin duda llamará accidente. También suelta una carga que ya no le sirve. Salís ganando en chatarra y perdiendo en blindaje.</text>
@@ -22,7 +22,7 @@
 <text name="ap_evt_another_world_text" language="es">La descarga entra por una banda que esta galaxia no usa. Trae un nombre que no reconocéis y una marca de tiempo de un sitio que no comparte vuestro reloj. Nadie os apuntaba. Solo va de paso, y tiene que aterrizar en alguna parte.</text>
 <text name="ap_evt_another_world_c1" language="es">Aceptarla. Derivar la descarga por vuestro propio casco.</text>
 <text name="ap_evt_another_world_c1_text" language="es">Un punto de casco y un olor que no sabréis identificar hasta dos saltos después. El repetidor purga dos celdas de combustible al descargarse. Nadie más ha notado nada.</text>
-<text name="ap_evt_another_world_c2" language="es">Devolverla a la línea. [Archipelago: envía una trampa a otro jugador (TrapLink)]</text>
+<text name="ap_evt_another_world_c2" language="es">Devolverla a la línea.</text>
 <text name="ap_evt_another_world_c2_text" language="es">Desmontáis el repetidor y empujáis la descarga fuera, y se va a alguna parte. Otro jugador, en otra partida, está a punto de pasar un mal minuto. Lo va a notar. No va a saber que fuisteis vosotros. El desguace vale buena chatarra.</text>
 
 <text name="list_tutorial_2" language="es">En una partida Archipelago, las naves vienen del multimundo: alguien ahí fuera encuentra la llave de vuestra nave y os la envía. Puede llegar en la primera hora o mucho más tarde.\n\nPulsad TAB durante la partida para ver lo que ya ha llegado y lo que sigue fuera.</text>
@@ -37,3 +37,9 @@
 
 
 <text name="ap_store_text" language="es">Un mercader os llama en una frecuencia desconocida. Su manifiesto enumera nombres que no reconocéis y mercancías dirigidas a gente que no está a bordo.</text>
+<text name="ap_evt_zoltan_toll_c1_text" language="es">El oficial la acepta sin contarla, lo que resulta más incómodo que si la hubiera contado. A cambio te entrega tres células de combustible selladas en nombre del Anillo. Todo queda anotado.</text>
+<text name="ap_evt_zoltan_toll_c3" language="es">Seguir tu camino.</text>
+<text name="ap_evt_zoltan_toll_c3_text" language="es">El oficial anota tu negativa sin comentarios y te deja pasar. Los zoltan lo anotan todo.</text>
+<text name="ap_evt_another_world_void" language="es">Descargarla en el vacío.</text>
+<text name="ap_evt_another_world_void_text" language="es">Desmontas el relé y dejas que la sobretensión se pierda en el vacío. Al salir, salta en arco sobre tu casco. La recuperación vale buena chatarra.</text>
+<text name="ap_evt_zoltan_toll_c2_text" language="es">El oficial confirma que es tu derecho y te deja tomar dos células de la reserva del Anillo. La escolta te escanea al salir, demasiado de cerca: algo cede en el casco.</text>

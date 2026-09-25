@@ -250,7 +250,7 @@ local function deliverOne(descriptor)
         fillerLog("delivered: " .. key)
         if _G.apNotifyItem then
             _G.apNotifyItem(descriptor.display or apT(key, params), descriptor.sender,
-                descriptor.sender == nil)
+                descriptor.sender == nil and not _G.apSoloEnabled)
         end
         return true
     end
@@ -295,7 +295,7 @@ local function deliverOne(descriptor)
             if descriptor.kind == "start" and _G.apNotifyStatus then
                 _G.apNotifyStatus(apT("start.received", { item = tostring(name) }))
             else
-                _G.apNotifyItem(name, descriptor.sender, descriptor.sender == nil)
+                _G.apNotifyItem(name, descriptor.sender, descriptor.sender == nil and not _G.apSoloEnabled)
             end
         end
         return true

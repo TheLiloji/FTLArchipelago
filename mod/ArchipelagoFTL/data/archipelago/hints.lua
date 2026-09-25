@@ -18,6 +18,9 @@ local function forMe(hint)
 end
 
 function apHintText(hint)
+    if hint.solo then
+        return apT("hint.received.solo", { item = hint.item, location = hint.location })
+    end
     if forMe(hint) then
         return apT("hint.received.mine", { item = hint.item, finder = hint.finder,
                                            location = hint.location })
@@ -27,6 +30,9 @@ function apHintText(hint)
 end
 
 function apHintLine(hint)
+    if hint.solo then
+        return apT("hud.hint.solo", { item = hint.item, location = hint.location })
+    end
     if forMe(hint) then
         return apT("hud.hint.mine", { item = hint.item, finder = hint.finder,
                                       location = hint.location })
@@ -81,6 +87,14 @@ local function alreadyHinted(name)
 end
 
 function apHintPurchase()
+    if _G.apSoloEnabled and _G.apSoloHint then
+        local entry = _G.apSoloHint(alreadyHinted)
+        if entry == nil then
+            return false
+        end
+        requested[entry.location] = true
+        return apHintReceived({ item = entry.item, location = entry.location, solo = true })
+    end
     if not (_G.apNetConnected and _G.apNetConnected()) or _G.apNetHintLocation == nil then
         return false
     end

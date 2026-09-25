@@ -1,20 +1,20 @@
 
-<text name="ap_evt_package_text" language="fr">Un relais Archipelago vous hèle. Deux colis attendent une fenêtre d'émission, et il n'y en a qu'une. Le vôtre est déjà à bord, quel que soit celui que vous choisissez.</text>
-<text name="ap_evt_package_c1" language="fr">Router le premier colis. [Archipelago : envoie un check, 15 ferraille]</text>
-<text name="ap_evt_package_c1_text" language="fr">Le paquet part : un check Archipelago est envoyé et ce qu'il portait apparaît dans la partie de son propriétaire, où qu'elle soit. Le relais prend sa commission et referme la fenêtre. L'autre paquet attendra quelqu'un d'autre.</text>
-<text name="ap_evt_package_c2" language="fr">Router le second colis. [Archipelago : envoie un check, 15 ferraille]</text>
-<text name="ap_evt_package_c2_text" language="fr">Le paquet part : un check Archipelago est envoyé et ce qu'il portait apparaît dans la partie de son propriétaire, où qu'elle soit. Le relais prend sa commission et referme la fenêtre. L'autre paquet attendra quelqu'un d'autre.</text>
+<text name="ap_evt_package_text" language="fr">Un relais Archipelago vous hèle. Deux colis attendent une fenêtre d'émission, et il n'y en a qu'une. Pour 15 ferraille, vous choisissez lequel part.</text>
+<text name="ap_evt_package_c1" language="fr">Envoyer le premier colis.</text>
+<text name="ap_evt_package_c1_text" language="fr">Le colis part, exactement comme si vous l'aviez acheté à la boutique Archipelago : son objet arrive chez son destinataire, vous compris. Le relais prend sa commission et referme la fenêtre.</text>
+<text name="ap_evt_package_c2" language="fr">Envoyer le second colis.</text>
+<text name="ap_evt_package_c2_text" language="fr">Le colis part, exactement comme si vous l'aviez acheté à la boutique Archipelago : son objet arrive chez son destinataire, vous compris. Le relais prend sa commission et referme la fenêtre.</text>
 <text name="ap_evt_package_c3" language="fr">Laisser passer le relais.</text>
 <text name="ap_evt_package_c3_text" language="fr">Vous gardez votre ferraille et le relais s'éloigne. Les colis trouveront une autre fenêtre.</text>
 
 <text name="ap_evt_zoltan_tithe_text" language="fr">Le poste de contrôle, c'est un croiseur zoltan et beaucoup de paperasse. « Tout bâtiment traversant le Troisième Anneau contribue à l'Anneau », explique l'officier, avec la patience de quelqu'un qui l'a expliqué dix mille fois. « La contribution n'est pas un péage. Un péage se prélève. Une contribution se donne. »</text>
-<text name="ap_evt_zoltan_tithe_c1" language="fr">Verser la contribution. [Archipelago : verse 900 J dans la réserve commune (EnergyLink)]</text>
+<text name="ap_evt_zoltan_tithe_c1" language="fr">Verser la contribution.</text>
 <text name="ap_evt_zoltan_tithe_c1_text" language="fr">L'officier l'accepte sans la compter, ce qui est plus gênant que s'il l'avait comptée. L'Anneau redirige l'énergie vers l'extérieur, dans la réserve commune où puisent tous les joueurs d'Archipelago. Vous compris, un jour.</text>
-<text name="ap_evt_zoltan_tithe_c2" language="fr">Invoquer le droit de passage. [Archipelago : prend du carburant dans la réserve commune (EnergyLink)]</text>
+<text name="ap_evt_zoltan_tithe_c2" language="fr">Invoquer le droit de passage.</text>
 <text name="ap_evt_zoltan_tithe_c2_text" language="fr">C'est votre droit, l'officier le confirme, et il vous laisse prendre ce que l'Anneau détient. Personne ne vous arrête. Les Zoltan se contentent de le noter. Quelque part là-dehors, quelqu'un trouvera la réserve plus vide qu'il ne l'avait laissée.</text>
 
 <text name="ap_evt_slug_whisper_text" language="fr">Le Slug parle déjà quand le canal s'ouvre, et parle visiblement depuis un moment. « Tu transportes pour des gens que tu ne verras jamais. Moi j'entends où sont les choses. » Un silence humide. « Se demander ne coûte rien. Savoir coûte un peu. »</text>
-<text name="ap_evt_slug_whisper_c1" language="fr">Payer. Écouter ce qu'il sait. [Archipelago : hint aléatoire]</text>
+<text name="ap_evt_slug_whisper_c1" language="fr">Payer. Écouter ce qu'il sait.</text>
 <text name="ap_evt_slug_whisper_c1_text" language="fr">Il vous lâche une chose qu'il sait : un objet et qui l'attend, ou un endroit où il reste quelque chose. Laquelle, il ne vous laisse pas le choisir. Les Slug mentent rarement sur les petites choses. Ce sont les grandes qui coûtent.</text>
 <text name="ap_evt_slug_whisper_c2" language="fr">Couper le canal.</text>
 <text name="ap_evt_slug_whisper_c2_text" language="fr">Le Slug s'en va, vexé, et en partant accroche votre coque d'une rafale qu'il qualifiera certainement d'accident. Il lâche aussi une charge dont il n'a plus l'usage. Vous y gagnez en ferraille et vous y perdez en blindage.</text>
@@ -22,7 +22,7 @@
 <text name="ap_evt_another_world_text" language="fr">La surtension arrive sur une bande qu'aucun vaisseau de cette galaxie n'emploie. Elle porte un nom que vous ne reconnaissez pas et un horodatage venu d'un endroit qui ne partage pas votre horloge. Personne ne vous l'a envoyée exprès : elle passe, et il faut bien qu'elle tombe quelque part.</text>
 <text name="ap_evt_another_world_c1" language="fr">L'encaisser. La faire passer par votre propre coque.</text>
 <text name="ap_evt_another_world_c1_text" language="fr">Un point de coque, et une odeur que vous ne saurez identifier que deux sauts plus tard. Le relais lâche deux cellules de carburant en se déchargeant. Personne d'autre n'a rien senti.</text>
-<text name="ap_evt_another_world_c2" language="fr">La remettre sur le fil. [Archipelago : envoie un piège à un autre joueur (TrapLink)]</text>
+<text name="ap_evt_another_world_c2" language="fr">La remettre sur le fil.</text>
 <text name="ap_evt_another_world_c2_text" language="fr">Vous démontez le relais et repoussez la surtension dehors, et elle va quelque part. Un autre joueur, dans un autre jeu, va passer une mauvaise minute. Il va le sentir. Il ne saura pas que c'était vous. La récupération vaut de la bonne ferraille.</text>
 
 <text name="list_tutorial_2" language="fr">Dans une partie Archipelago, les vaisseaux vous arrivent du multiworld : quelqu'un, quelque part, met la main sur la clé du vôtre et vous l'envoie. Parfois dès la première heure, parfois bien plus tard.\n\nEn partie, la touche TAB montre ce qui vous est déjà arrivé et ce qui manque encore.</text>
@@ -37,3 +37,9 @@
 
 
 <text name="ap_store_text" language="fr">Un marchand vous hèle sur une fréquence inconnue. Son manifeste liste des noms que vous ne reconnaissez pas, et des marchandises adressées à des gens qui ne sont pas à bord.</text>
+<text name="ap_evt_zoltan_toll_c1_text" language="fr">L'officier l'accepte sans la compter, ce qui est plus gênant que s'il l'avait comptée. En échange, il vous remet trois cellules de carburant scellées au nom de l'Anneau. Tout est noté.</text>
+<text name="ap_evt_zoltan_toll_c3" language="fr">Passer votre chemin.</text>
+<text name="ap_evt_zoltan_toll_c3_text" language="fr">L'officier note votre refus sans commentaire et vous laisse passer. Les Zoltan notent tout.</text>
+<text name="ap_evt_another_world_void" language="fr">La décharger dans le vide.</text>
+<text name="ap_evt_another_world_void_text" language="fr">Vous démontez le relais et laissez la surtension se perdre dans le vide. En sortant, elle arque sur votre coque. La récupération vaut de la bonne ferraille.</text>
+<text name="ap_evt_zoltan_toll_c2_text" language="fr">L'officier confirme que c'est votre droit et vous laisse puiser deux cellules dans la réserve de l'Anneau. L'escorte vous scanne en repartant, d'un peu trop près : quelque chose cède dans la coque.</text>

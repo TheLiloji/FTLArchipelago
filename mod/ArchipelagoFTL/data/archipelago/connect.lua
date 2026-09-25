@@ -142,9 +142,12 @@ end
 
 local function acceptReset()
     resetAsked = true
+    local solo = _G.apSoloPending
+    _G.apSoloPending = false
     local autoBefore = autoActive()
     local done = _G.apNetRequestProfileReset and _G.apNetRequestProfileReset()
     if done and _G.apNetForgetProgress then _G.apNetForgetProgress() end
+    if done and solo and _G.apSoloForgetProgress then _G.apSoloForgetProgress(true) end
     if autoBefore and _G.apNetRemember then _G.apNetRemember(AUTO_KEY, 1) end
     if _G.apSeedChangeAcknowledged then _G.apSeedChangeAcknowledged() end
     if done then
@@ -161,7 +164,6 @@ local function acceptReset()
 end
 
 local function declineReset()
-    resetAsked = true
     if _G.apSeedChangeFingerprint and _G.apNetRememberSeed then
         local fingerprint = _G.apSeedChangeFingerprint()
         if fingerprint ~= nil then _G.apNetRememberSeed(fingerprint) end
@@ -169,6 +171,14 @@ local function declineReset()
     if _G.apSeedChangeAcknowledged then _G.apSeedChangeAcknowledged() end
     message, messageTone = apT("reset.kept"), "dim"
     connectLog("the player keeps their progress despite the seed change")
+    if _G.apSoloPending then
+        _G.apSoloPending = false
+        if _G.apSoloSaved and _G.apSoloSaved() then
+            if _G.apSoloResume then _G.apSoloResume() end
+        elseif _G.apSoloStart then
+            _G.apSoloStart()
+        end
+    end
 end
 
 local function currentQuestion()

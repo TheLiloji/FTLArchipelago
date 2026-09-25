@@ -93,6 +93,18 @@
     <event name="AP_EVT_ANOTHER_WORLD">
         <changeBackground>AP_BACKGROUND</changeBackground>
     </event>
+    <event name="AP_EVT_ZOLTAN_TITHE_LINK">
+        <changeBackground>AP_BACKGROUND</changeBackground>
+    </event>
+    <event name="AP_EVT_ZOLTAN_TOLL">
+        <changeBackground>AP_BACKGROUND</changeBackground>
+    </event>
+    <event name="AP_EVT_ANOTHER_WORLD_LINK">
+        <changeBackground>AP_BACKGROUND</changeBackground>
+    </event>
+    <event name="AP_EVT_ANOTHER_WORLD_PLAIN">
+        <changeBackground>AP_BACKGROUND</changeBackground>
+    </event>
 </events>
 
 <store>

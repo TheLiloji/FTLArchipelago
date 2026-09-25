@@ -14,11 +14,21 @@ local KEY_ACTIVE = "ap_solo_active"
 local KEY_GIVEN = "ap_solo_given"
 local KEY_SEED = "ap_solo_seed"
 local KEY_CHECK = "ap_solo_check_"
+local KEY_ITEM = "ap_solo_item_"
+
+-- The item kinds the seed treats as progression; the rest of the pool is useful, filler or trap.
+local GIFT_KIND = {
+    ship = "progression", cap = "progression", start = "progression", archive = "progression",
+    filler = "filler", trap = "trap",
+}
 
 _G.apSoloEnabled = false
 
 local state = {
     delivered = 0,
+    given = {},
+    done = false,
+    byKey = nil,
 }
 
 _G.apSoloState = state
@@ -46,32 +56,100 @@ local function remaining()
     return math.max(0, #order - state.delivered)
 end
 
+local stockShop
+
+local function checkKey(entry)
+    return _G.apCheckKeyFor and apCheckKeyFor(entry.location) or entry.location
+end
+
+local function isShop(key)
+    return tostring(key or ""):sub(1, 5) == "shop:"
+end
+
+local function indexByKey()
+    if state.byKey == nil then
+        state.byKey = {}
+        for index, entry in ipairs(_G.apSoloOrder or {}) do
+            state.byKey[checkKey(entry)] = index
+        end
+    end
+    return state.byKey
+end
+
+-- A check hands out the item placed at that location, as a server would. A check the seed has no item
+-- for takes the next one, keeping what sits in the shop for when that shop slot is bought.
+local function pick(reason)
+    local index = indexByKey()[reason]
+    if index ~= nil and not state.given[index] then
+        return index
+    end
+    local order = _G.apSoloOrder or {}
+    for pass = 1, 2 do
+        for i = 1, #order do
+            if not state.given[i] and (pass == 2 or not isShop(checkKey(order[i]))) then
+                return i
+            end
+        end
+    end
+    return nil
+end
+
+local function give(index, replay)
+    state.given[index] = true
+    state.delivered = state.delivered + 1
+    if not replay then
+        remember(KEY_ITEM .. index, 1)
+        remember(KEY_GIVEN, state.delivered)
+    end
+end
+
 local function deliverNext(reason)
     if not _G.apSoloEnabled then
         return false
     end
     local order = _G.apSoloOrder or {}
-    if state.delivered >= #order then
-        if state.delivered == #order and #order > 0 then
-            state.delivered = state.delivered + 1
-            remember(KEY_GIVEN, state.delivered)
-            soloLog("all items have been received (" .. #order .. ")")
-            notify(apT("solo.complete"))
-        end
+    local index = pick(reason)
+    if index == nil then
         return false
     end
 
-    state.delivered = state.delivered + 1
-    remember(KEY_GIVEN, state.delivered)
-    local entry = order[state.delivered]
-
+    give(index)
+    local entry = order[index]
+    if isShop(checkKey(entry)) and checkKey(entry) ~= reason then
+        stockShop()
+    end
     soloLog(string.format("check %s -> item %d/%d: %s",
         tostring(reason), state.delivered, #order, tostring(entry.item)))
 
-    if _G.apReceiveItem then
-        return _G.apReceiveItem(entry.item, nil)
+    local received = _G.apReceiveItem and _G.apReceiveItem(entry.item, nil) or false
+    if state.delivered >= #order and not state.done then
+        state.done = true
+        soloLog("all items have been received (" .. #order .. ")")
+        notify(apT("solo.complete"))
     end
-    return false
+    return received
+end
+
+local function soloGifts()
+    local gifts = {}
+    local descriptors = (_G.apContractState or {}).itemDescriptors or {}
+    for index, entry in ipairs(_G.apSoloOrder or {}) do
+        local key = checkKey(entry)
+        if isShop(key) and not state.given[index] then
+            local descriptor = descriptors[entry.item] or {}
+            gifts[#gifts + 1] = { mine = true, item = entry.item, location = key,
+                                  kind = GIFT_KIND[descriptor.k] or "useful" }
+        end
+    end
+    return gifts
+end
+
+stockShop = function()
+    local gifts = soloGifts()
+    if _G.apShopGiftsConfigure then
+        _G.apShopGiftsConfigure(gifts, "solo")
+        soloLog(#gifts .. " item(s) of the seed on sale in the Archipelago shop")
+    end
 end
 
 local function loadSeed()
@@ -88,11 +166,21 @@ local function loadSeed()
             notify(apT("solo.no_slot_data"))
             return false
         end
-        if _G.apApplySlotData(_G.apSoloSlotData) == false then
-            soloLog("the solo slot_data was rejected by the contract")
+        if _G.apApplySlotData(_G.apSoloSlotData, nil, true) == false then
+            if _G.apSeedChangeLeftovers and apSeedChangeLeftovers() then
+                _G.apSoloPending = true
+                soloLog("the profile holds ships from another seed: asking before going solo")
+            else
+                soloLog("the solo slot_data was rejected by the contract")
+            end
             return false
         end
         soloLog("solo slot_data applied")
+    end
+
+    local fingerprint = _G.apSeedFingerprint and apSeedFingerprint() or 0
+    if _G.apNetSeedTag and _G.apNetRememberSeed and apNetSeedTag() ~= fingerprint then
+        apNetRememberSeed(fingerprint)
     end
 
     if _G.apInventoryClear then
@@ -100,12 +188,7 @@ local function loadSeed()
         if _G.apApplySystemRules then pcall(_G.apApplySystemRules) end
     end
 
-    if _G.apShopGiftsConfigure and _G.apGiftsDemo and #_G.apGiftsDemo > 0
-        and #(_G.apShopGifts or {}) == 0 then
-        _G.apShopSlotCount = math.max(_G.apShopSlotCount or 0, #_G.apGiftsDemo)
-        _G.apShopGiftsConfigure(_G.apGiftsDemo, "demo")
-        soloLog(#_G.apGiftsDemo .. " gift(s) installed in the Archipelago shop")
-    end
+    state.byKey = nil
 
     if _G.apForgetChecks then apForgetChecks() end
     return true
@@ -128,8 +211,14 @@ function apSoloStart(force)
             remember(KEY_CHECK .. key, 0)
         end
     end
-    state.delivered = 0
+    for index = 1, #_G.apSoloOrder do
+        if recall(KEY_ITEM .. index) ~= 0 then
+            remember(KEY_ITEM .. index, 0)
+        end
+    end
+    state.delivered, state.given, state.done = 0, {}, false
     remember(KEY_GIVEN, 0)
+    stockShop()
     remember(KEY_SEED, _G.apSeedFingerprint and apSeedFingerprint() or 0)
     remember(KEY_ACTIVE, 1)
     _G.apSoloEnabled = true
@@ -163,19 +252,55 @@ function apSoloResume()
     if _G.apRestoreSentChecks then apRestoreSentChecks(checked) end
 
     local order = _G.apSoloOrder
-    local given = math.min(recall(KEY_GIVEN), #order)
+    local indices, listed = {}, {}
+    for index = 1, #order do
+        if recall(KEY_ITEM .. index) ~= 0 then
+            indices[#indices + 1] = index
+            listed[index] = true
+        end
+    end
+    -- Saves from before items were stored one by one only kept a count, taken from the top of the list.
+    local legacy = math.min(recall(KEY_GIVEN), #order) - #indices
+    for index = 1, #order do
+        if legacy <= 0 then break end
+        if not listed[index] then
+            indices[#indices + 1] = index
+            remember(KEY_ITEM .. index, 1)
+            legacy = legacy - 1
+        end
+    end
+
     _G.apSoloEnabled = true
-    if _G.apReceiveItem then
-        for index = 1, given do
+    state.delivered, state.given = 0, {}
+    for _, index in ipairs(indices) do
+        give(index, true)
+        if _G.apReceiveItem then
             _G.apReceiveItem(order[index].item, nil, true)
         end
     end
-    state.delivered = recall(KEY_GIVEN)
+    state.done = state.delivered >= #order
+    stockShop()
     remember(KEY_ACTIVE, 1)
 
-    soloLog(string.format("solo run resumed: %d/%d items, %d check(s)", given, #order, #checked))
-    notify(apT("solo.resumed", { done = given, total = #order }))
+    soloLog(string.format("solo run resumed: %d/%d items, %d check(s)", state.delivered, #order, #checked))
+    notify(apT("solo.resumed", { done = state.delivered, total = #order }))
     return true
+end
+
+-- A location still holding one of the player's items, for the Slug to whisper about.
+function apSoloHint(alreadyHinted)
+    local candidates = {}
+    for index, entry in ipairs(_G.apSoloOrder or {}) do
+        local key = checkKey(entry)
+        local checked = _G.apCheckAlreadySent and apCheckAlreadySent(key)
+        if not state.given[index] and not checked and not (alreadyHinted and alreadyHinted(entry.location)) then
+            candidates[#candidates + 1] = entry
+        end
+    end
+    if #candidates == 0 then
+        return nil
+    end
+    return candidates[math.random(1, #candidates)]
 end
 
 function apSoloSaved()
@@ -185,6 +310,13 @@ function apSoloSaved()
         return nil
     end
     return { done = done, total = total }
+end
+
+-- After a profile wipe the solo run starts over; with startAfter it does so on its own at the next launch.
+function apSoloForgetProgress(startAfter)
+    remember(KEY_GIVEN, 0)
+    remember(KEY_SEED, 0)
+    remember(KEY_ACTIVE, startAfter and 1 or 0)
 end
 
 function apSoloWasActive()
@@ -200,7 +332,7 @@ end
 
 function apSoloResetForTesting()
     _G.apSoloEnabled = false
-    state.delivered = 0
+    state.delivered, state.given, state.done, state.byKey = 0, {}, false, nil
 end
 
 local previousSendCheck = _G.apSendCheck
