@@ -661,7 +661,7 @@ class DeathLinkEffect(Choice):
     and never kills your last crew member.
 
     major_incident: a breach AND a fire in one of your system rooms, and that system takes
-    damage. This is the default, and it is by far the harshest of the four - it cannot destroy
+    damage. This is the default, and it is by far the harshest of them all - it cannot destroy
     your ship, but a breach and a fire in your shield room mid-fight can absolutely lose you the
     run. That is the point.
     crew_member: one random crew member dies. Never the last one.

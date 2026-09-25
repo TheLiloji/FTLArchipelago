@@ -21,7 +21,8 @@ cp -r ~/.local/share/FasterThanLight ~/.local/share/FasterThanLight.backup
 ## 2. Install Hyperspace
 
 The game files are in `~/.steam/steam/steamapps/common/FTL Faster Than Light/data`. With ftlman, install
-Hyperspace 1.23.1 there, from the window or from a terminal:
+Hyperspace 1.23.1 there, from the window or from a terminal. For the terminal, open it in the folder where you
+downloaded the files, and if `ftlman` is not in your PATH, write the full path to it instead:
 
 ```sh
 D=~/.steam/steam/steamapps/common/"FTL Faster Than Light"/data
@@ -33,8 +34,11 @@ ftlman hyperspace-install 1.23.1 -d "$D"
 Apply both mods, Hyperspace first:
 
 ```sh
-ftlman patch -d "$D" Hyperspace.ftl ArchipelagoFTL.ftl
+ftlman patch -d "$D" ./Hyperspace.ftl ./ArchipelagoFTL.ftl
 ```
+
+Keep the `./`: without it, ftlman looks for the files in its own mods folder, not in the current one. In the
+ftlman window, put both files in its mods folder instead, tick them with Hyperspace on top, and click Apply.
 
 Always give both. ftlman rebuilds the game data from scratch each time, so applying only `ArchipelagoFTL.ftl`
 would remove Hyperspace.
