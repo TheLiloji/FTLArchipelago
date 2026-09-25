@@ -1,74 +1,87 @@
 # Instalação no Windows
 
-[English](Setup-Windows.md) · [Français](Setup-Windows.fr.md) · [Deutsch](Setup-Windows.de.md) ·
-[Español](Setup-Windows.es.md) · [Italiano](Setup-Windows.it.md) · **Português**
+[English](Setup-Windows.md) · [Français](Setup-Windows.fr.md) · [Deutsch](Setup-Windows.de.md) · [Español](Setup-Windows.es.md) ·
+[Italiano](Setup-Windows.it.md) · **Português**
 
 *Esta página foi traduzida com IA e pode ter erros. Em caso de dúvida, vale a página em inglês.*
 
-Leva uns dez minutos. Você precisa do FTL da Steam (ou GOG), com o conteúdo da Advanced Edition, que vem em todas
-as cópias vendidas hoje.
+> [!WARNING]
+> **Feche o FTL antes de começar** e deixe-o fechado até o último passo. O Windows bloqueia os arquivos do
+> jogo enquanto o FTL está aberto, e a instalação falha sem avisar.
+
+> [!IMPORTANT]
+> No ftlman, escolha o **Hyperspace 1.23.1**, não uma versão mais nova. A biblioteca do Archipelago só serve
+> para a 1.23.1.
 
 ## O que baixar
 
-Coloque tudo na mesma pasta, por exemplo `Downloads`.
+1. Da [release do FTL Archipelago](https://github.com/TheLiloji/FTLArchipelago/releases/latest):
+   `ArchipelagoFTL.ftl` e `Hyperspace.dll`.
+2. [ftlman](https://github.com/afishhh/ftlman/releases/latest): o zip para Windows. Descompacte numa pasta só
+   dele, por exemplo `Documents\ftlman`.
 
-- Da [release do FTL Archipelago](https://github.com/TheLiloji/FTLArchipelago/releases/latest):
-  `ArchipelagoFTL.ftl` e `Hyperspace.dll`.
-- Da [release do ftlman](https://github.com/afishhh/ftlman/releases/latest):
-  `ftlman-x86_64-pc-windows-gnu.zip`.
-- Da [release do Hyperspace 1.23.1](https://github.com/FTL-Hyperspace/FTL-Hyperspace/releases/tag/v1.23.1):
-  `FTL.Hyperspace.1.23.1-Windows.zip`.
-
-Descompacte os dois zip. Você fica com uma pasta `ftlman`, com `ftlman.exe` e uma pasta `mods` vazia dentro, e
-com `Hyperspace.ftl`, que vem do zip do Hyperspace.
+É só isso: o ftlman baixa o Hyperspace sozinho.
 
 ## 1. Proteger seus saves
 
-- Na Steam, clique com o botão direito no FTL, **Propriedades**, **Geral**, e desative a **Steam Cloud**. Senão a
-  Steam pode colocar um save antigo de volta enquanto você joga.
-- Copie a pasta `Documents\My Games\FasterThanLight` para um lugar seguro.
+Na Steam, clique direito no FTL, **Propriedades**, **Geral**, e desative a **Steam Cloud**. Depois copie a pasta
+`Documents\My Games\FasterThanLight` para um lugar seguro. O mod usa um perfil próprio, a cópia é só por
+garantia.
 
-O mod usa um perfil próprio, então seu progresso normal no FTL não é tocado. A cópia é só por segurança.
+## 2. Conferir a pasta do FTL no ftlman
 
-## 2. Instalar o Hyperspace com o ftlman
+Abra o `ftlman.exe` e clique em **Settings**:
 
-Abra o `ftlman.exe`. Em geral ele encontra o jogo sozinho; se não, mostre a pasta do FTL (a que tem o
-`FTLGame.exe`, por exemplo `C:\Program Files (x86)\Steam\steamapps\common\FTL Faster Than Light`).
+![Settings](../images/ftlman-1-settings-button.png)
 
-Instale o **Hyperspace 1.23.1** pelo ftlman. Numa cópia da Steam, o ftlman primeiro muda o FTL para a versão
-1.6.9 e guarda o original como `FTLGame_orig.exe`. É normal: a 1.6.9 é a única versão para Windows em que o
-Hyperspace roda.
+**FTL data directory** deve apontar para a pasta do FTL, a que tem o `FTLGame.exe`. Normalmente o ftlman a
+encontra sozinho. Se estiver vazia ou errada, abra a pasta pela Steam (clique direito no FTL, **Gerenciar**,
+**Explorar arquivos locais**) e cole o caminho aqui. Feche a janela de configurações.
+
+![FTL data directory](../images/ftlman-2-ftl-folder.png)
 
 ## 3. Adicionar o mod
 
-Copie `Hyperspace.ftl` e `ArchipelagoFTL.ftl` para a pasta `mods`, a que fica dentro da pasta `ftlman`. No
-ftlman, marque os dois, com o Hyperspace **acima** do ArchipelagoFTL, e clique em **Apply**. Feche o ftlman
-quando terminar.
+Coloque o `ArchipelagoFTL.ftl` na pasta `mods` ao lado do `ftlman.exe` (crie a pasta se não existir). Clique em
+**Scan** (1): o mod aparece na lista (2).
 
-## 4. Colocar a biblioteca do Archipelago
+![Scan](../images/ftlman-3-scan.png)
 
-Na pasta do FTL agora existe um `Hyperspace.dll`. Renomeie para `Hyperspace.dll.official` (para guardá-lo) e
-depois copie no lugar dele o `Hyperspace.dll` da release do FTL Archipelago.
+## 4. Escolher o Hyperspace 1.23.1
 
-O FTL precisa estar fechado: o Windows bloqueia o arquivo enquanto o jogo está aberto.
+Abra o menu **Hyperspace** (1) e escolha **1.23.1** (2). Nem 1.23.2, nem "None".
 
-Se algum dia você clicar de novo em Apply no ftlman, copie outra vez o `Hyperspace.dll` do Archipelago depois.
+![Hyperspace 1.23.1](../images/ftlman-4-hyperspace.png)
 
-## 5. Iniciar o jogo
+## 5. Aplicar
 
-Inicie o FTL pela Steam. Você deve ver:
+Clique no mod até ele ficar azul (1), depois em **Apply** (2). Se o ftlman oferecer mudar o FTL para a versão
+1.6.9, aceite: é a única versão do Windows em que o Hyperspace roda, e o jogo original fica guardado como
+`FTLGame_orig.exe`. Espere o ftlman terminar e feche-o.
 
-![Menu principal depois da instalação](../images/connect-panel.jpg)
+![Apply](../images/ftlman-5-apply.png)
 
-- `HS-1.23.1` no canto superior direito,
-- o logo do Archipelago no canto superior esquerdo,
-- um painel **Connect to a multiworld** no canto inferior esquerdo.
+## 6. Colocar a biblioteca do Archipelago
 
-Se o painel não aparecer, ou a conexão nunca funcionar, veja o [FAQ](FAQ.md) (em inglês).
+> [!WARNING]
+> **Faça isso depois do Apply, toda vez que clicar em Apply.** O Apply devolve a `Hyperspace.dll` oficial, e com
+> ela o mod não consegue se conectar a um servidor.
 
-## Atualizar para uma versão nova
+Abra a pasta do FTL (na Steam: clique direito no FTL, **Gerenciar**, **Explorar arquivos locais**). Copie para ela
+a `Hyperspace.dll` baixada da release do FTL Archipelago e escolha **Substituir o arquivo**.
 
-Coloque o novo `ArchipelagoFTL.ftl` na pasta `mods` do ftlman, clique de novo em **Apply** e depois copie o novo
-`Hyperspace.dll` por cima do que está na pasta do FTL.
+## 7. Iniciar o jogo
 
-Próximo: [Jogar](Playing.md) (em inglês).
+Inicie o FTL pela Steam. No menu principal você deve ver o logo do Archipelago no canto superior esquerdo e um
+painel **Ligar a um multiworld** no canto inferior esquerdo:
+
+![Main menu](../images/connect-panel.jpg)
+
+Se o painel não aparecer ou a conexão nunca funcionar, veja o [FAQ](FAQ.md) (em inglês).
+
+## Atualizar para uma nova versão
+
+Feche o FTL. Coloque o novo `ArchipelagoFTL.ftl` na pasta `mods` do ftlman, clique em **Apply** e copie de novo
+a nova `Hyperspace.dll` para a pasta do FTL.
+
+Próximo: [Playing](Playing.md) (em inglês).

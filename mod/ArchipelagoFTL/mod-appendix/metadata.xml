@@ -12,13 +12,11 @@ Play FTL as a slot in an Archipelago multiworld: ships, systems and shop items
 arrive from the other players' games, and your own checks go out to them.
 Connect from the main menu. DeathLink, TrapLink and EnergyLink are supported.
 
-Linux only for now. Requires Hyperspace 1.23.1, installed first in the mod
-load order, AND the Hyperspace library built by this project with the
-Archipelago network module (Hyperspace.1.6.13.amd64.so from the project
-release), which replaces the official one. No official Hyperspace release
-contains the network module yet: with the official library the mod loads,
-shows its menu and can play offline in solo mode, but cannot connect.
-See setup_en.md in the project release for the three install steps.
+Windows and Linux. Pick Hyperspace 1.23.1 (not a newer one), then replace the
+official Hyperspace library with the one from the project release:
+Hyperspace.dll on Windows, Hyperspace.1.6.13.amd64.so on Linux. Do it again
+after every Apply. Without it the mod still loads and plays in solo mode, but
+cannot connect. Guide: github.com/TheLiloji/FTLArchipelago
 
 Item and location data adapted from the FTL Manual world by Et0san (MIT).
 Archipelago logo (c) the Archipelago contributors, MIT. See CREDITS.md.
