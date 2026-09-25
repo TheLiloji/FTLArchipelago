@@ -295,35 +295,22 @@ end
 local function drawGoalCard(x, y, w, h)
     card(x, y, w, h)
     label(x + 16, y + 10, w - 32, "dash.goal.title")
-    local seed = _G.apSeedSummary and apSeedSummary() or nil
-    local goal = seed and seed.goal or nil
-    if goal == nil or goal.kind ~= "victories" then
+    local goal = apGoalText()
+    if goal == nil then
         text(12, x + 16, y + 36, w - 32, "dim", apT("dash.goal.unknown"))
         return
     end
-    local progress = _G.apGoalProgress and apGoalProgress() or nil
-    if progress == nil then
-        text(24, x + 16, y + 30, w - 32, "title",
-            apT("hud.goal", { n = goal.layouts and #goal.layouts or goal.count }))
-        return
+    text(18, x + 16, y + 32, w - 32, goal.reached and "good" or "title", goal.headline)
+    local lineY = y + 60
+    for _, line in ipairs(goal.lines) do
+        text(9, x + 16, lineY, w - 32, line.tone, line.text)
+        lineY = lineY + 14
     end
-    local line = apT(progress.reached and "hud.goal.done" or "hud.goal.progress",
-        { done = progress.done, total = progress.total, n = progress.total })
-    text(24, x + 16, y + 30, w - 32, progress.reached and "good" or "title", line)
-    local difficulty = _G.apGoalDifficulty and apGoalDifficulty() or nil
-    local sub = difficulty and apT("hud.goal.difficulty", { difficulty = difficulty })
-        or apT("hud.goal.difficulty.any")
-    local archives = _G.apGoalArchives and apGoalArchives() or nil
-    if archives ~= nil then
-        sub = sub .. "   " .. apT("hud.goal.archives",
-            { done = _G.apReceivedArchives and apReceivedArchives() or 0, total = archives })
-    end
-    text(9, x + 16, y + 70, w - 32, "dim", sub)
     if _G.apAdvancedEditionOff and apAdvancedEditionOff() then
-        text(9, x + 16, y + 84, w - 32, "warn", apT("hud.advanced_off"))
+        text(9, x + 16, lineY, w - 32, "warn", apT("hud.advanced_off"))
     end
-    bar(x + 16, y + h - 18, w - 32, 6, progress.total > 0 and progress.done / progress.total or 0,
-        progress.reached and "good" or "border")
+    bar(x + 16, y + h - 18, w - 32, 6, goal.total > 0 and goal.done / goal.total or 0,
+        goal.reached and "good" or "border")
 end
 
 local function drawChecksCard(x, y, w, h, book)

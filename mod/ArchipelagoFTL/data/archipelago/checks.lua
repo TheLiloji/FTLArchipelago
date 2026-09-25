@@ -514,6 +514,16 @@ local function goalIsReached()
     return counted >= (goal.count or 1), counted
 end
 
+function apGoalWonWith()
+    loadVictories()
+    local won = {}
+    for layout in pairs(victories) do
+        won[#won + 1] = layout
+    end
+    table.sort(won)
+    return won
+end
+
 function apGoalProgress()
     local goal = _G.apGoal and _G.apGoal() or nil
     if type(goal) ~= "table" or goal.kind ~= "victories" then

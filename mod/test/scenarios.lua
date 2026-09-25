@@ -226,8 +226,8 @@ end)
 
 test("language: a quantity of one puts the sentence in the singular", function()
     apLangResolve("fr")
-    equals(apT("hud.goal", { n = 1 }), "Objectif : 1 victoire", "goal in the singular")
-    equals(apT("hud.goal", { n = 3 }), "Objectif : 3 victoires", "and plural beyond that")
+    equals(apT("hud.goal", { n = 1 }), "Objectif : battre le vaisseau amiral", "goal in the singular")
+    equals(apT("hud.goal", { n = 3 }), "Objectif : battre le vaisseau amiral 3 fois", "and plural beyond that")
     equals(apT("check.resent", { n = 1 }), "1 check rattrapé auprès du serveur.", "one check")
     check(apT("trap.fuel_leak", { n = 1 }):find("cellule perdue", 1, true) ~= nil,
           "one cell lost, not '1 cellules perdues'")
@@ -249,8 +249,8 @@ end)
 
 test("language: an integer arriving as a float still prints without a decimal point", function()
     apLangResolve("fr")
-    equals(apT("hud.goal", { n = 3.0 }), "Objectif : 3 victoires", "not '3.0 victoires'")
-    equals(apT("hud.goal", { n = 1.0 }), "Objectif : 1 victoire",
+    equals(apT("hud.goal", { n = 3.0 }), "Objectif : battre le vaisseau amiral 3 fois", "not '3.0 fois'")
+    equals(apT("hud.goal", { n = 1.0 }), "Objectif : battre le vaisseau amiral",
            "and the singular recognizes the float as one")
     equals(apT("trap.hull_damage", { n = 2.0 }), "Intégrité de coque : -2. Aucun impact enregistré.",
            "in an ordinary sentence too")
@@ -4653,7 +4653,7 @@ test("the panel shows WHERE the goal stands, not just what it asks for", functio
     applySeed({ goal = { kind = "victories", count = 3 } })
     apToggleHud()
     sim.renderGui()
-    check(sim.drawnText("0 of 3"), "zero victories out of three")
+    check(sim.drawnText("defeat the Flagship 3 times"), "with no victory yet, what to do")
     apToggleHud()
 
     local restore = stub("apNetSendGoal", function() return true end)
@@ -4678,7 +4678,7 @@ test("the panel says when the goal is reached", function()
     apToggleHud()
     sim.renderGui()
     check(sim.drawnText("Goal reached"), "the panel announces the goal reached")
-    check(sim.drawnText("1 of 1 victory"), "in the singular, since only one was needed")
+    check(sim.drawnText("Goal reached: Flagship defeated"), "in the singular, since only one was needed")
     apToggleHud()
 end)
 

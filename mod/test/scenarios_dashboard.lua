@@ -111,7 +111,7 @@ test("dashboard: the overview gathers the goal, the checks, the links and the la
     apSendCheck("shop:1", "test")
     apRecordReceived("Burst Laser II", "Axel")
     openDashboard("overview")
-    check(sim.drawnText("0 of 3"), "the goal and where it stands")
+    check(sim.drawnText("defeat the Flagship 3 times"), "the goal and where it stands")
     check(sim.drawnText(apT("dash.checks.count", { done = 1, total = 6 })), "the checks sent out of the seed's")
     check(sim.drawnText("DeathLink") and sim.drawnText("TrapLink"), "the active links")
     check(not sim.drawnText("EnergyLink"), "and not the inactive one")

@@ -93,30 +93,62 @@ function apSeedSummaryLine()
     return summary(true)
 end
 
-local function goalLine()
+local function shipList(layouts)
+    local names = {}
+    for _, layout in ipairs(layouts) do
+        names[#names + 1] = _G.apShipLabel and apShipLabel(layout) or layout
+    end
+    return table.concat(names, ", ")
+end
+
+-- Shared by the main menu and the dashboard: a headline, then the rules in plain words.
+function apGoalText()
     local seed = _G.apSeedSummary and _G.apSeedSummary() or nil
-    if seed == nil or seed.goal == nil or seed.goal.kind ~= "victories" then
+    local goal = seed and seed.goal or nil
+    if goal == nil or goal.kind ~= "victories" then
         return nil
     end
+    local total = goal.layouts and #goal.layouts or (goal.count or 1)
     local progress = _G.apGoalProgress and _G.apGoalProgress() or nil
-    if progress == nil then
-        return apT("hud.goal", { n = seed.goal.layouts and #seed.goal.layouts or seed.goal.count })
-    end
-    local line = apT(progress.reached and "hud.goal.done" or "hud.goal.progress",
-                      { done = progress.done, total = progress.total, n = progress.total })
-    local difficulty = _G.apGoalDifficulty and _G.apGoalDifficulty() or nil
-    local subLine
-    if difficulty ~= nil then
-        subLine = apT("hud.goal.difficulty", { difficulty = difficulty })
+    local lines = {}
+
+    local headline
+    if progress == nil or (progress.done == 0 and not progress.reached) then
+        headline = apT("hud.goal", { n = total })
+    elseif progress.reached then
+        headline = apT("hud.goal.done", { done = progress.total })
     else
-        subLine = apT("hud.goal.difficulty.any")
+        headline = apT("hud.goal.progress", { done = progress.done, total = progress.total })
     end
+
+    if goal.layouts ~= nil then
+        lines[#lines + 1] = { text = apT("hud.goal.rule.layouts", { ships = shipList(goal.layouts) }), tone = "dim" }
+    elseif total > 1 then
+        lines[#lines + 1] = { text = apT("hud.goal.rule"), tone = "dim" }
+    end
+
+    local difficulty = _G.apGoalDifficulty and _G.apGoalDifficulty() or nil
+    local rules = difficulty and apT("hud.goal.difficulty", { difficulty = difficulty })
+        or apT("hud.goal.difficulty.any")
     local archives = _G.apGoalArchives and _G.apGoalArchives() or nil
     if archives ~= nil then
-        subLine = subLine .. "   " .. apT("hud.goal.archives",
+        rules = rules .. "   " .. apT("hud.goal.archives",
             { done = _G.apReceivedArchives and _G.apReceivedArchives() or 0, total = archives })
     end
-    return line, progress.reached, subLine
+    lines[#lines + 1] = { text = rules, tone = "dim" }
+
+    local won = _G.apGoalWonWith and apGoalWonWith() or {}
+    if #won > 0 and progress ~= nil and not progress.reached then
+        lines[#lines + 1] = { text = apT("hud.goal.won", { ships = shipList(won) }), tone = "good" }
+    end
+
+    return {
+        headline = headline,
+        reached = progress ~= nil and progress.reached,
+        lines = lines,
+        done = progress and progress.done or 0,
+        total = progress and progress.total or total,
+    }
 end
 
 local TUTORIAL_W = 660
@@ -219,12 +251,9 @@ script.on_render_event(
 
             if hasSeed() then
 
-                local goal, reached, subLine = goalLine()
-                if goal ~= nil then
-                    local subLines = {}
-                    if subLine ~= nil then
-                        subLines[#subLines + 1] = { text = subLine, tone = "dim" }
-                    end
+                local goalText = apGoalText()
+                if goalText ~= nil then
+                    local goal, reached, subLines = goalText.headline, goalText.reached, goalText.lines
                     if _G.apAdvancedEditionOff and _G.apAdvancedEditionOff() then
                         subLines[#subLines + 1] = { text = apT("hud.advanced_off"), tone = "warn" }
                     end
