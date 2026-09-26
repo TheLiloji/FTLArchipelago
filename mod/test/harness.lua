@@ -426,7 +426,13 @@ local function resetWorld()
                             sim.cargo[#sim.cargo + 1] = name
                         end
                     end,
-                    GetCargoHold = function() return vector(sim.cargo) end,
+                    -- Like Hyperspace: the over capacity box's hidden pages come back with the cargo.
+                    GetCargoHold = function()
+                        local list = {}
+                        for _, name in ipairs(sim.cargo) do list[#list + 1] = name end
+                        for index = 2, #(sim.overflow or {}) do list[#list + 1] = sim.overflow[index] end
+                        return vector(list)
+                    end,
                     AddWeapon = function(_, bp, _, forceCargo)
                         if bp == nil or bp.name == "" then return end
                         if not forceCargo and #sim.equipped.weapon < sim.slots.weapon then

@@ -54,8 +54,10 @@ local function deliverEquipped(name, family)
     else
         equipment:AddDrone(blueprints:GetDroneBlueprint(name), true, false)
     end
+    -- Hyperspace counts the box's hidden pages as cargo, so only the first item into the box leaves the
+    -- count unchanged. Cargo stays full after that: everything that follows goes to the box as well.
     local after = itemsAboard(equipment)
-    if before ~= nil and after ~= nil and after <= before then
+    if overflowCount > 0 or (before ~= nil and after ~= nil and after <= before) then
         overflowCount = overflowCount + 1
     end
     return name
