@@ -213,6 +213,7 @@
     "hud.system.received.one": "{n} upgrade received",
     "hud.title": "ARCHIPELAGO",
     "item.failed": "{name} could not be delivered. See FTL_HS.log.",
+    "item.waiting_augment": "{name} is waiting for a free augment slot.",
     "item.received": "Received {item}",
     "item.received.from": "Received {item} from {sender}",
     "item.received.many": "{n} items received. TAB shows what changed.",

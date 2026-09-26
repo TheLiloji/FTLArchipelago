@@ -64,6 +64,7 @@ local function deliverAugment(name)
 end
 
 function apDeliverEquipment(descriptor)
+    local queued = descriptor
     local name = descriptor.bp
     if name == nil or name == "" then
         equipLog("descriptor without a blueprint, ignored")
@@ -82,6 +83,7 @@ function apDeliverEquipment(descriptor)
     end
     if family ~= descriptor.kind then
         equipLog(string.format("kind corrected for %s: %s -> %s", name, descriptor.kind, family))
+        queued.kind = family
         descriptor = { kind = family, bp = name, display = descriptor.display,
             sender = descriptor.sender, silent = descriptor.silent }
     end
@@ -96,7 +98,15 @@ function apDeliverEquipment(descriptor)
     end
 
     if delivered == nil then
-        equipLog("delivery deferred for " .. tostring(name) .. ": " .. tostring(err))
+        -- Retried every few seconds until it fits: say it once, not at each try.
+        if not queued.waiting then
+            queued.waiting = true
+            equipLog("delivery deferred for " .. tostring(name) .. ": " .. tostring(err))
+            if descriptor.kind == "augment" and _G.apNotifyStatus then
+                _G.apNotifyStatus(apT("item.waiting_augment",
+                    { name = descriptor.display or (_G.apHumaniseId and _G.apHumaniseId(name)) or name }))
+            end
+        end
         return false, "retry"
     end
 

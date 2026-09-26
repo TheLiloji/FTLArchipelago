@@ -182,13 +182,13 @@ function apApplyShopItem(descriptor)
     local aboard = false
     if _G.apShopConfig.deliver and not deliveredOnce[name] and not descriptor.isReplay
         and not descriptor.noDelivery and _G.apDeliverEquipment then
-        aboard = _G.apDeliverEquipment(
-            { kind = "weapon", bp = name, display = label, silent = true }) == true
+        local attempt = { kind = "weapon", bp = name, display = label, silent = true }
+        aboard = _G.apDeliverEquipment(attempt) == true
         if aboard then
             deliveredOnce[name] = true
         elseif _G.apQueueItem then
             -- Not now (a fight, full slots, the menu): the one copy waits in the queue rather than being lost.
-            _G.apQueueItem({ kind = "weapon", bp = name, display = label })
+            _G.apQueueItem({ kind = "weapon", bp = name, display = label, waiting = attempt.waiting })
             deliveredOnce[name] = true
             shopLog("immediate delivery deferred, queued: " .. name)
         end

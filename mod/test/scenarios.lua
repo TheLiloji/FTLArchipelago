@@ -1168,9 +1168,23 @@ test("an augment received with all three slots taken waits for a free slot", fun
     sim.startRun(true)
     _G.apShopConfig.deliver = true
     sim.player._augments = { "SCRAP_COLLECTOR", "SCRAP_COLLECTOR", "SCRAP_COLLECTOR" }
+    sim.clearLog()
     apApplyShopItem({ kind = "shop", bp = "ENERGY_SHIELD", display = "Shield Charge Booster" })
-    drain()
+    drain(6)
     equals(#sim.player._augments, 3, "nothing forced into a full set")
+    local waiting = apT("item.waiting_augment", { name = "Shield Charge Booster" })
+    local shown, logged = 0, 0
+    for _, line in ipairs(sim.screen) do
+        if line:find(waiting, 1, true) then shown = shown + 1 end
+    end
+    for _, line in ipairs(sim.log) do
+        if line:find("delivery deferred for ENERGY_SHIELD", 1, true)
+            or line:find("kind corrected for ENERGY_SHIELD", 1, true) then
+            logged = logged + 1
+        end
+    end
+    equals(shown, 1, "the player is told once that it waits")
+    equals(logged, 3, "and the log says it once per copy, not at every try")
     table.remove(sim.player._augments)
     sim.jumpArrive()
     drain()

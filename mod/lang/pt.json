@@ -213,6 +213,7 @@
     "hud.system.received.one": "{n} melhoria recebida",
     "hud.title": "ARCHIPELAGO",
     "item.failed": "{name} não pôde ser entregue. Vê FTL_HS.log.",
+    "item.waiting_augment": "{name} espera por um espaço de melhoria livre.",
     "item.received": "Recebido: {item}",
     "item.received.from": "Recebido: {item}, de {sender}",
     "item.received.many": "{n} objetos recebidos. TAB mostra o que mudou.",
