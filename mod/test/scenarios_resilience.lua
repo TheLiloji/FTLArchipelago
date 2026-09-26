@@ -133,7 +133,7 @@ test("filler: an item that cannot be delivered does not block the counter for th
     apQueueItem({ kind = "filler", res = "scrap", n = 5, index = 2 })
     drain()
 
-    equals(sim.durable["ap_items_done"], "3",
+    equals(sim.durable["ap_items_done_0"], "3",
         "all three are processed: otherwise scrap and fuel would come back on every launch")
     sim.durable = {}
 end)
@@ -444,6 +444,29 @@ test("network: the panel says the server refused the slot, and a new attempt cle
     apNetResetForTesting()
 end)
 
+test("network: a refused seed says why and nothing else, no unknown items, no silent server", function()
+    tryConnect()
+    sim.clearLog()
+    sim.netEvent("error", { name = "unreachable", extra = "TLS handshake failed" })
+    -- Like a seed change: the refusal cuts the link inside the same event.
+    local apply = _G.apApplySlotData
+    _G.apApplySlotData = function(...)
+        local accepted = apply(...)
+        apNetDisconnect()
+        sim.net.connected = false
+        return accepted
+    end
+    sim.net.connected = true
+    sim.netEvent("connected", { name = "Navigator", extra = slotData({ contract = 99 }) })
+    sim.netEvent("item", { name = "Kestrel Cruiser Key", sender = "Nina", index = 0 })
+    sim.tick(600)
+    _G.apApplySlotData = apply
+    check(not shownKey("item.unknown", { name = "Kestrel Cruiser Key" }), "the refused seed's items are not called unknown")
+    check(not shownKey("net.error.unreachable"), "the server answered, it is not said to be silent")
+    apNetResetForTesting()
+    apContractResetForTesting()
+end)
+
 test("notify: a burst of items gets summarized instead of overflowing the screen", function()
     apNotifyResetForTesting()
     sim.clearLog()
@@ -546,4 +569,23 @@ test("systems: building a system runs its hook without error, before maxLevel ex
     sim.constructSystem("cloaking", 0, 90)
     sim.tick(5)
     check(not sim.logged("[AP-sys] error:"), "the hook does not read fields Hyperspace has not set yet")
+end)
+
+test("network: a reconnection to a room whose seed changed does not claim nothing was lost", function()
+    apNetResetForTesting()
+    apContractResetForTesting()
+    apNetConnect("ws://localhost:38281", "Navigator", "")
+    sim.netEvent("connected", { name = "Navigator", extra = slotData({ seed_hash = "FIRST" }) })
+    sim.net.connected = true
+    sim.tick(1)
+    sim.netEvent("disconnected", {})
+    sim.net.connected = false
+    sim.tick(60 * 6)
+    local restoreRefuse = stub("apApplySlotData", function() return false end)
+    sim.clearLog()
+    sim.netEvent("connected", { name = "Navigator", extra = slotData({ seed_hash = "SECOND" }) })
+    sim.tick(1)
+    restoreRefuse()
+    check(not shownKey("net.reconnected"), "no 'signal back, nothing lost' before a refusal")
+    apNetResetForTesting()
 end)

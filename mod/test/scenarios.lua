@@ -1164,6 +1164,150 @@ test("a received item makes an unfindable object available", function()
     check(desc.rarity >= 3, "but it stays rare on the first copy (got: " .. desc.rarity .. ")")
 end)
 
+test("an augment received with all three slots taken waits for a free slot", function()
+    sim.startRun(true)
+    _G.apShopConfig.deliver = true
+    sim.player._augments = { "SCRAP_COLLECTOR", "SCRAP_COLLECTOR", "SCRAP_COLLECTOR" }
+    sim.clearLog()
+    apApplyShopItem({ kind = "shop", bp = "ENERGY_SHIELD", display = "Shield Charge Booster" })
+    drain(6)
+    equals(#sim.player._augments, 3, "nothing forced into a full set")
+    local waiting = apT("item.waiting_augment", { name = "Shield Charge Booster" })
+    local shown, logged = 0, 0
+    for _, line in ipairs(sim.screen) do
+        if line:find(waiting, 1, true) then shown = shown + 1 end
+    end
+    for _, line in ipairs(sim.log) do
+        if line:find("delivery deferred for ENERGY_SHIELD", 1, true)
+            or line:find("kind corrected for ENERGY_SHIELD", 1, true) then
+            logged = logged + 1
+        end
+    end
+    equals(shown, 1, "the player is told once that it waits")
+    equals(logged, 2, "and the log says it once, not at every try")
+    table.remove(sim.player._augments)
+    sim.jumpArrive()
+    drain()
+    check(sim.player:HasAugmentation("ENERGY_SHIELD"), "once a slot is free, the augment comes aboard")
+end)
+
+test("the goal message stays on screen through the burst of items that follows", function()
+    apNotifyResetForTesting()
+    apNotifyKept(apT("goal.reached"))
+    for index = 1, 8 do apNotifyStatus("line " .. index) end
+    local kept = false
+    for _, toast in ipairs(apToastsForTesting()) do
+        if toast.text == apT("goal.reached") then kept = true end
+    end
+    check(kept, "still shown after eight other messages")
+    equals(#apToastsForTesting(), 4, "and the screen still holds four at most")
+end)
+
+test("many augments waiting at once make one line, not a flood", function()
+    local names = { "REPAIR_ARM", "ION_ARMOR", "FIRE_EXTINGUISHERS", "O2_MASKS" }
+    for _, name in ipairs(names) do sim.augBlueprints[name] = sim.augBlueprints[name] or 3 end
+    sim.resetBlueprints()
+    _G.apRunStartCheckForTesting = false
+    sim.startRun(true)
+    _G.apShopConfig.deliver = true
+    sim.player._augments = { "SCRAP_COLLECTOR", "SCRAP_COLLECTOR", "SCRAP_COLLECTOR" }
+    sim.clearLog()
+    for _, name in ipairs(names) do
+        apApplyShopItem({ kind = "shop", bp = name, display = name })
+    end
+    drain()
+    check(sim.shown(apT("item.waiting_augment.many", { n = 4 })), "one line counts them")
+    check(not sim.shown(apT("item.waiting_augment", { name = "REPAIR_ARM" })), "instead of one line each")
+end)
+
+test("with slots and cargo full, only a few weapons per beacon go to the over capacity box, the rest wait for a jump", function()
+    sim.startRun(true)
+    sim.slots.weapon = 0
+    sim.cargoCap = 0
+    for _ = 1, 10 do
+        apQueueItem({ kind = "weapon", bp = "BEAM_2", display = "Halberd Beam" })
+    end
+    sim.tick(240)
+    equals(#sim.overflow, 4, "four in the box")
+    check(#_G.apFillerPendingForTesting() == 6, "the other six wait instead of piling up")
+    sim.overflow = {}
+    sim.jumpArrive()
+    sim.tick(240)
+    equals(#sim.overflow, 4, "after the jump empties the box, four more come")
+    check(apDeliverEquipment({ kind = "weapon", bp = "BEAM_2", display = "Halberd Beam", chosen = true }),
+        "a weapon picked in the start-of-run menu is never held back")
+end)
+
+test("with weapon slots and the cargo hold full, weapons and drones wait for room instead of the box", function()
+    sim.startRun(true)
+    sim.slots.weapon = 0
+    sim.slots.drone = 0
+    sim.cargoCap = 4
+    sim.cargo = { "BEAM_2", "BEAM_2", "BEAM_2", "BEAM_2" }
+    apQueueItem({ kind = "weapon", bp = "LASER_BURST_3", display = "Burst Laser Mark III" })
+    apQueueItem({ kind = "drone", bp = "DEFENSE_1", display = "Defense Drone Mark I" })
+    sim.tick(240)
+    equals(#sim.overflow, 0, "nothing goes to the over capacity box, which a jump would empty")
+    equals(#_G.apFillerPendingForTesting(), 2, "both wait in the queue")
+    check(shownKey("item.waiting_cargo"), "the player is told why")
+    sim.clearLog()
+    sim.tick(240)
+    check(not shownKey("item.waiting_cargo"), "once, not at every retry")
+    table.remove(sim.cargo)
+    sim.tick(240)
+    equals(#sim.cargo, 4, "a freed cargo slot takes the next one")
+    equals(#_G.apFillerPendingForTesting(), 1, "the other keeps waiting")
+    sim.cargo = {}
+    sim.tick(240)
+    equals(#_G.apFillerPendingForTesting(), 0, "and it comes when there is room")
+    sim.cargoCap = 999
+end)
+
+test("a weapon whose copy waits counts as received only once the copy is aboard", function()
+    sim.startRun(true)
+    _G.apShopConfig.deliver = true
+    local marked = {}
+    local restore = stub("apNetItemDelivered", function(index) marked[#marked + 1] = index return true end)
+    for _ = 1, 4 do apDeliverEquipment({ kind = "weapon", bp = "BEAM_2", display = "Halberd Beam" }) end
+    apQueueItem({ kind = "shop", bp = "BEAM_2", display = "Halberd Beam", index = 7 })
+    sim.tick(240)
+    equals(#marked, 0, "held back by the beacon limit: not marked yet")
+    sim.jumpArrive()
+    sim.tick(240)
+    restore()
+    equals(marked[#marked], 7, "marked once the copy lands")
+end)
+
+test("a copy still owed when the game closes comes aboard in the next run, not only in the catalogue", function()
+    sim.startRun(true)
+    apShopForgetSeed()
+    apFillerResetForTesting()
+    _G.apShopConfig.deliver = true
+    local marked = {}
+    local restore = stub("apNetItemDelivered", function(index) marked[#marked + 1] = index return true end)
+    for _ = 1, 4 do apDeliverEquipment({ kind = "weapon", bp = "BEAM_2", display = "Halberd Beam" }) end
+    apQueueItem({ kind = "shop", bp = "BEAM_2", display = "Halberd Beam", index = 7 })
+    sim.tick(240)
+    equals(#marked, 0, "held back by the beacon limit")
+
+    apFillerResetForTesting()
+    apShopForgetSeed()
+    sim.started = false
+    apQueueItem({ kind = "shop", bp = "BEAM_2", display = "Halberd Beam", index = 7 })
+    sim.tick(240)
+    equals(#marked, 0, "at the menu of the next launch, the item is not taken as done")
+    local before = sim.delivered()
+    sim.startRun(false)
+    sim.tick(240)
+    restore()
+    equals(sim.delivered(), before + 1, "the copy comes aboard once the run is back")
+    equals(marked[#marked], 7, "and only then is the item marked")
+    apShopForgetSeed()
+    apQueueItem({ kind = "shop", bp = "BEAM_2", display = "Halberd Beam", index = 7, isReplay = true })
+    sim.tick(240)
+    equals(sim.delivered(), before + 1, "a later replay does not give it a second time")
+end)
+
 test("further copies make the object more common", function()
     sim.weaponBlueprints.BEAM_2 = 4
     sim.resetBlueprints()
@@ -1171,6 +1315,18 @@ test("further copies make the object more common", function()
     apApplyShopRules()
     local desc = sim.rarityFor("BEAM_2", 4)
     equals(desc.rarity, 1, "three copies from 4 bring it to the most common")
+end)
+
+test("a new seed puts back the shop rarities the old one made more common", function()
+    sim.weaponBlueprints.BEAM_2 = 4
+    sim.resetBlueprints()
+    _G.apInventory = { ships = {}, shopAvailability = { BEAM_2 = 3 } }
+    apApplyShopRules()
+    equals(sim.rarityFor("BEAM_2", 4).rarity, 1, "the old seed made it common")
+    apShopForgetSeed()
+    _G.apInventory = { ships = {}, shopAvailability = {} }
+    apApplyShopRules()
+    equals(sim.rarityFor("BEAM_2", 4).rarity, 4, "the new seed starts from the game's own rarity")
 end)
 
 test("applying it twice doesn't drift the rarity", function()
@@ -1489,7 +1645,10 @@ end
 
 test("network: a successful connection is told to the player", function()
     sim.startRun(true)
-    connectNow()
+    apNetConnect("ws://localhost:38281", "Navigator", "")
+    sim.netEvent("connected", { name = "Navigator", extra = {
+        contract = CONTRACT, kinds = { "filler" }, kinds_required = {}, items = {}, loc = {} } })
+    sim.tick(1)
     check(_G.apNetState.connected, "the mod knows it's connected")
     check(sim.shown("Navigator"), "and the player sees under which slot")
 end)
@@ -1584,10 +1743,12 @@ test("closing FTL mid-run and coming back tomorrow doesn't double any bonus", fu
     drain()
     equals(_G.apInventory.startingUpgrades.engines, 2, "the bonus is acquired")
 
+    -- FTL closed and started again: every module starts from nothing.
     apInventoryClear()
     apForgetChecksForTesting()
     apFillerForgetSeed()
     apContractResetForTesting()
+    apNetResetForTesting()
     local reactorBeforeResume = sim.powerManager.currentPower.second
 
     sim.startRun(false)
@@ -1605,6 +1766,114 @@ test("closing FTL mid-run and coming back tomorrow doesn't double any bonus", fu
         "the inventory is rebuilt identically, not doubled")
     equals(sim.powerManager.currentPower.second, reactorBeforeResume,
         "and the current run doesn't receive its bonuses a second time")
+end)
+
+local function headStartSeed(hash)
+    return { contract = CONTRACT, kinds = { "start", "shop" }, kinds_required = {}, loc = {}, seed_hash = hash,
+             shop = { mode = "rarity_boost", deliver = false, baseline = {} },
+             items = { ["Engines Head Start"] = { k = "start", sys = "engines", n = 2 },
+                       ["Shields Head Start"] = { k = "start", sys = "shields", n = 1 },
+                       ["Halberd Beam"] = { k = "shop", bp = "BEAM_2" } } }
+end
+
+local function panelDisconnect()
+    apNetDisconnect()
+    apContractUnload()
+end
+
+local function connectAs(slot, hash, item)
+    apNetConnect("ws://localhost:38281", slot, "")
+    sim.netEvent("connected", { name = slot, extra = headStartSeed(hash) })
+    sim.netEvent("item", { name = item or "Engines Head Start", sender = "Nina", index = 0 })
+    sim.tick(1)
+    drain()
+end
+
+local function freshSession()
+    _G.apInventory = { ships = {}, systemCaps = {}, startingUpgrades = {}, shopAvailability = {} }
+    apContractResetForTesting()
+    apNetResetForTesting()
+    sim.startRun(true)
+end
+
+test("disconnecting from the panel and connecting again to the same seed doubles nothing", function()
+    freshSession()
+    connectAs("Navigator", "same-room")
+    equals(_G.apInventory.startingUpgrades.engines, 2, "the bonus is acquired")
+    panelDisconnect()
+    connectAs("Navigator", "same-room")
+    equals(_G.apInventory.startingUpgrades.engines, 2, "the server sends it again, it is not added twice")
+end)
+
+test("a weapon received stays in the stores after reconnecting", function()
+    freshSession()
+    connectAs("Navigator", "same-room", "Halberd Beam")
+    equals(_G.apInventory.shopAvailability.BEAM_2, 1, "the weapon is counted")
+    panelDisconnect()
+    connectAs("Navigator", "same-room", "Halberd Beam")
+    equals(_G.apInventory.shopAvailability.BEAM_2, 1, "still counted once after reconnecting, not lost")
+end)
+
+test("disconnecting from the panel and joining another slot starts the items over", function()
+    freshSession()
+    connectAs("Navigator", "room-a")
+    panelDisconnect()
+    connectAs("Captain", "room-a", "Shields Head Start")
+    equals(_G.apInventory.startingUpgrades.shields, 1, "the other slot's first item is not skipped")
+    equals(_G.apInventory.startingUpgrades.engines, nil, "and nothing is kept from the first slot")
+end)
+
+test("items still waiting from the server do not land in solo mode", function()
+    freshSession()
+    sim.started = false
+    apNetConnect("ws://localhost:38281", "Navigator", "")
+    sim.netEvent("connected", { name = "Navigator", extra = headStartSeed("room-a") })
+    apQueueItem({ kind = "filler", res = "fuel", n = 3 })
+    equals(#_G.apFillerPendingForTesting(), 1, "a server item waits for a run")
+    panelDisconnect()
+    check(apSoloStart(true), "solo mode starts")
+    equals(#_G.apFillerPendingForTesting(), 0, "the solo seed does not inherit it")
+    apSoloStop()
+end)
+
+test("items that came with a refused seed arrive when the seed is accepted", function()
+    freshSession()
+    local refused = headStartSeed("room-a")
+    refused.contract = 99
+    apNetConnect("ws://localhost:38281", "Navigator", "")
+    sim.netEvent("connected", { name = "Navigator", extra = refused })
+    sim.netEvent("item", { name = "Engines Head Start", sender = "Nina", index = 0 })
+    sim.tick(1)
+    drain()
+    equals(_G.apInventory.startingUpgrades.engines, nil, "nothing applied while the seed is refused")
+    connectAs("Navigator", "room-a")
+    equals(_G.apInventory.startingUpgrades.engines, 2, "the item comes back once the seed is accepted")
+end)
+
+test("going through solo mode and back to the server gets every item back", function()
+    freshSession()
+    connectAs("Navigator", "room-a")
+    panelDisconnect()
+    check(apSoloStart(true), "solo mode starts")
+    apSoloStop()
+    connectAs("Navigator", "room-a")
+    equals(_G.apInventory.startingUpgrades.engines, 2, "the server's items are applied again after solo")
+end)
+
+test("network: a check done elsewhere on the slot shows up without reconnecting", function()
+    sim.startRun(true)
+    apForgetChecksForTesting()
+    sim.net.checked = { "Archipelago Shop 1" }
+    apNetConnect("ws://localhost:38281", "Navigator", "")
+    sim.netEvent("connected", { name = "Navigator", extra = {
+        contract = CONTRACT, kinds = { "filler" }, kinds_required = {}, items = {},
+        loc = { ["shop:1"] = "Archipelago Shop 1", ["shop:2"] = "Archipelago Shop 2" },
+    } })
+    sim.tick(1)
+    equals(apCheckCount().sent, 1, "one check known at connect")
+    sim.net.checked = { "Archipelago Shop 1", "Archipelago Shop 2" }
+    sim.tick(10 * 60)
+    equals(apCheckCount().sent, 2, "the other one is picked up a few seconds later")
 end)
 
 test("network: a recovered check is not resent to the server", function()
@@ -1764,7 +2033,8 @@ test("network: the connection's return is reported, and isn't confused with a fr
     seconds(6)
     sim.clearLog()
 
-    sim.netEvent("connected", { name = "Navigator", extra = "{}" })
+    sim.netEvent("connected", { name = "Navigator", extra = {
+        contract = CONTRACT, kinds = { "filler" }, kinds_required = {}, items = {}, loc = {} } })
     sim.tick(1)
     check(_G.apNetState.connected, "we're connected again")
     check(shownKey("net.reconnected"),
@@ -1957,6 +2227,187 @@ test("network: an item replayed after reconnecting is not applied twice", functi
     equals(sim.player.currentScrap, afterFirst, "the scrap wasn't credited twice")
 end)
 
+test("scrap delivered behind a weapon that waits is not given again next session", function()
+    local seed = { contract = CONTRACT, kinds = { "filler" }, kinds_required = {}, loc = {},
+                   seed_hash = "held-back", items = { ["20 Scrap"] = { k = "filler", res = "scrap", n = 20 } } }
+    apContractResetForTesting()
+    apNetResetForTesting()
+    sim.startRun(true)
+    apNetConnect("ws://localhost:38281", "Navigator", "")
+    sim.netEvent("connected", { name = "Navigator", extra = seed })
+    sim.tick(1)
+    apNetItemDelivered(0)
+    apNetItemDelivered(2)
+    -- Item 1, a weapon, is still waiting for a free place when the player quits.
+
+    apContractResetForTesting()
+    apNetResetForTesting()
+    apFillerForgetSeed()
+    apNetConnect("ws://localhost:38281", "Navigator", "")
+    sim.netEvent("connected", { name = "Navigator", extra = seed })
+    sim.tick(1)
+    local before = sim.player.currentScrap
+    sim.netEvent("item", { name = "20 Scrap", sender = "Nina", index = 2 })
+    sim.tick(1)
+    drain()
+    equals(sim.player.currentScrap, before, "the scrap already received is not credited twice")
+end)
+
+test("after a reset, the scrap of a seed played before arrives again", function()
+    local seed = { contract = CONTRACT, kinds = { "filler" }, kinds_required = {}, loc = {},
+                   seed_hash = "reset-me", items = { ["20 Scrap"] = { k = "filler", res = "scrap", n = 20 } } }
+    apContractResetForTesting()
+    apNetResetForTesting()
+    sim.startRun(true)
+    apNetConnect("ws://localhost:38281", "Navigator", "")
+    sim.netEvent("connected", { name = "Navigator", extra = seed })
+    sim.tick(1)
+    apNetItemDelivered(0)
+    apNetItemDelivered(2)
+    apNetForgetProgress(nil)
+
+    apContractResetForTesting()
+    apNetResetForTesting()
+    apFillerForgetSeed()
+    apNetConnect("ws://localhost:38281", "Navigator", "")
+    sim.netEvent("connected", { name = "Navigator", extra = seed })
+    sim.tick(1)
+    local before = sim.player.currentScrap
+    sim.netEvent("item", { name = "20 Scrap", sender = "Nina", index = 2 })
+    sim.tick(1)
+    drain()
+    equals(sim.player.currentScrap, before + 20, "the reset forgot everything, this seed's list included")
+end)
+
+test("items delivered in order write no extra list to the disk", function()
+    local seed = { contract = CONTRACT, kinds = { "filler" }, kinds_required = {}, loc = {},
+                   seed_hash = "in-order", items = {} }
+    apContractResetForTesting()
+    apNetResetForTesting()
+    sim.startRun(true)
+    apNetConnect("ws://localhost:38281", "Navigator", "")
+    sim.netEvent("connected", { name = "Navigator", extra = seed })
+    sim.tick(1)
+    sim.net.calls = {}
+    for index = 0, 9 do apNetItemDelivered(index) end
+    local lists = 0
+    for _, call in ipairs(sim.net.calls) do
+        if call[1] == "RememberState" and tostring(call.key):find("ap_delivered_", 1, true) then lists = lists + 1 end
+    end
+    equals(lists, 0, "only the count moves when nothing is held back")
+end)
+
+for walk = 1, 40 do
+test("random weapons held back, jumps and restarts never give scrap twice or lose it (walk " .. walk .. ")", function()
+    local seed = { contract = CONTRACT, kinds = { "filler", "shop" }, kinds_required = {}, loc = {},
+                   seed_hash = "random-walk",
+                   shop = { mode = "rarity_boost", deliver = true, baseline = {} },
+                   items = { ["20 Scrap"] = { k = "filler", res = "scrap", n = 20 },
+                             ["Engines Head Start"] = { k = "start", sys = "engines", n = 1 },
+                             ["Archipelago Archive"] = { k = "archive" } } }
+    seed.kinds[#seed.kinds + 1] = "start"
+    seed.kinds[#seed.kinds + 1] = "archive"
+    -- Only a weapon's first copy goes aboard, and a release sends many at once: bursts of new weapons, so the
+    -- beacon limit keeps holding some back.
+    for number = 1, 200 do
+        sim.weaponBlueprints["TEST_WEAPON_" .. number] = 2
+        seed.items["Test Weapon " .. number] = { k = "shop", bp = "TEST_WEAPON_" .. number }
+    end
+    sim.resetBlueprints()
+    local nextWeapon = 0
+    local sent = {}
+    local function connect(restart)
+        if restart then
+            apInventoryClear()
+            apContractResetForTesting()
+            apNetResetForTesting()
+            apFillerForgetSeed()
+        else
+            apNetDisconnect()
+            apContractUnload()
+        end
+        apNetConnect("ws://localhost:38281", "Navigator", "")
+        sim.netEvent("connected", { name = "Navigator", extra = seed })
+        for index, name in ipairs(sent) do
+            sim.netEvent("item", { name = name, sender = "Nina", index = index - 1 })
+        end
+        sim.tick(1)
+    end
+    math.randomseed(walk)
+    sim.startRun(true)
+    sim.slots.weapon = 0
+    sim.cargoCap = 0
+    connect(true)
+    local scrapStart = sim.player.currentScrap
+    local scrapSent, startsSent, archivesSent = 0, 0, 0
+    for _ = 1, 150 do
+        local roll = math.random()
+        if roll < 0.45 then
+            sent[#sent + 1] = "20 Scrap"
+            scrapSent = scrapSent + 1
+            sim.netEvent("item", { name = "20 Scrap", sender = "Nina", index = #sent - 1 })
+        elseif roll < 0.8 then
+            for _ = 1, 6 do
+                nextWeapon = math.min(nextWeapon + 1, 200)
+                sent[#sent + 1] = "Test Weapon " .. nextWeapon
+                sim.netEvent("item", { name = sent[#sent], sender = "Nina", index = #sent - 1 })
+            end
+        elseif roll < 0.85 then
+            sim.overflow = {}
+            sim.jumpArrive()
+        elseif roll < 0.88 then
+            sent[#sent + 1] = "Engines Head Start"
+            startsSent = startsSent + 1
+            sim.netEvent("item", { name = "Engines Head Start", sender = "Nina", index = #sent - 1 })
+        elseif roll < 0.9 then
+            sent[#sent + 1] = "Archipelago Archive"
+            archivesSent = archivesSent + 1
+            sim.netEvent("item", { name = "Archipelago Archive", sender = "Nina", index = #sent - 1 })
+        elseif roll < 0.94 then
+            connect(false)
+        elseif roll < 0.96 then
+            apNetDisconnect()
+            apContractUnload()
+            apSoloStart(true)
+            apSoloStop()
+            connect(false)
+        elseif roll < 0.98 then
+            -- A refused slot_data comes with the items; the player keeps going and connects again.
+            apNetDisconnect()
+            local refused = {}
+            for key, value in pairs(seed) do refused[key] = value end
+            refused.contract = 99
+            apNetConnect("ws://localhost:38281", "Navigator", "")
+            sim.netEvent("connected", { name = "Navigator", extra = refused })
+            for index, name in ipairs(sent) do
+                sim.netEvent("item", { name = name, sender = "Nina", index = index - 1 })
+            end
+            sim.tick(1)
+            connect(false)
+        else
+            connect(true)
+        end
+        -- A fight now and then: nothing is delivered while an enemy is there.
+        if math.random() < 0.2 then
+            sim.enemy = sim.enemy == nil and sim.makeShip(1) or nil
+        end
+        sim.tick(130)
+    end
+    sim.enemy = nil
+    for _ = 1, 60 do
+        sim.overflow = {}
+        sim.jumpArrive()
+        sim.tick(130)
+    end
+    for number = 1, 200 do sim.weaponBlueprints["TEST_WEAPON_" .. number] = nil end
+    sim.resetBlueprints()
+    equals(sim.player.currentScrap - scrapStart, scrapSent * 20, "every scrap item counted exactly once")
+    equals(_G.apInventory.startingUpgrades.engines or 0, startsSent,
+        "and every head start once, through reconnects and restarts")
+    equals(_G.apInventory.archives or 0, archivesSent, "and every Archive once")
+end)
+end
+
 test("a lost run doesn't lose the queued items", function()
     sim.startRun(true)
     apQueueItem({ kind = "filler", res = "scrap", n = 25 })
@@ -2025,6 +2476,17 @@ test("network: the shared pool distinguishes what we get from what it holds", fu
     sim.netEvent("energy", { name = "EnergyLink1", value = 0, index = 2500000 })
     sim.tick(1)
     equals(sim.player.fuel_count, before + 2, "a withdrawal, though, gives fuel")
+end)
+
+test("network: asking an empty shared pool tells the player instead of staying silent", function()
+    _G.apEnergyLink.enabled = true
+    sim.startRun(true)
+    local before = sim.player.fuel_count
+    sim.clearLog()
+    sim.netEvent("energy", { name = "EnergyLink1", value = 0, index = 0 })
+    sim.tick(1)
+    equals(sim.player.fuel_count, before, "no fuel")
+    check(shownKey("energylink.empty"), "and the player reads that the pool is dry")
 end)
 
 test("changing seed resets the tables cleanly, without mixing two runs", function()
@@ -2258,6 +2720,35 @@ test("buying a gift sends the check and removes the object", function()
     check(sim.shown("Burst Laser Mark II") and sim.shown("Navigator"),
           "the player sees where it's going")
     restore_apSendCheck()
+end)
+
+test("buying one of your own packages says it is yours, not that it goes to someone", function()
+    sim.startRun(true)
+    apShopGiftsConfigure({ { mine = true, item = "Missile Crate", location = "shop:1", kind = "filler" } })
+    local restore = stub("apSendCheck", function() return true end)
+    sim.clearLog()
+    sim.buy("AP_GIFT_1")
+    sim.tick(60)
+    restore()
+    check(shownKey("shop.gift.sent.self", { item = "Missile Crate" }), "the player reads that it is theirs")
+    check(not sim.shown(apT("gift.someone")), "and no 'someone' appears")
+end)
+
+test("a package bought in a run that does not count is refunded and stays on sale", function()
+    applySeed({ loc = { ["shop:1"] = "Archipelago Shop 1" } })
+    sim.startRun(true)
+    apShopGiftsConfigure({ { slot = "Nina", item = "Seashell", location = "shop:1", kind = "filler", cost = 40 } })
+    local restoreSend = stub("apSendCheck", function() return false end)
+    local restoreSent = stub("apRunMatchesSeed", function() return false end)
+    sim.player.currentScrap = 0
+    sim.clearLog()
+    sim.buy("AP_GIFT_1")
+    sim.tick(60)
+    restoreSend()
+    restoreSent()
+    check(shownKey("shop.gift.not_counted", { price = "40" }), "the player reads why nothing went out")
+    check(not shownKey("shop.gift.already_sent", { price = "40" }), "not that it was already sent")
+    equals(sim.rarityFor("AP_GIFT_1", 0).shortTitle.data, "Nina", "the package is still on the shelf")
 end)
 
 test("a silent apSendCheck doesn't make the send look like a duplicate", function()
@@ -2753,6 +3244,22 @@ test("online, a deal always promises someone else will pay", function()
     _G.apNetSendTrap = previous
 end)
 
+test("without Trap Link, a deal never sends a trap to the others", function()
+    local previous = _G.apNetSendTrap
+    local sends = 0
+    for _ = 1, 20 do
+        sim.reset()
+        apShopGiftsConfigure(DEMO)
+        _G.apTrapLink.enabled = false
+        sim.startRun(true)
+        _G.apNetSendTrap = function() sends = sends + 1 return true end
+        sim.sign("AP_DEAL_2")
+        sim.tick(120)
+    end
+    equals(sends, 0, "a slot that did not join Trap Link sends nothing")
+    _G.apNetSendTrap = previous
+end)
+
 test("signing the same deal twice earns nothing more", function()
     sim.startRun(true)
     apShopGiftsConfigure(DEMO)
@@ -2794,6 +3301,7 @@ end)
 test("an item arriving before the data packet isn't lost", function()
     sim.startRun(true)
     connectNow()
+    applySeed({ items = { ["20 Scrap"] = { k = "filler", res = "scrap", n = 20 } } })
     sim.clearLog()
 
     sim.netEvent("item", { name = "Unknown", sender = "", index = 0 })
@@ -2802,7 +3310,9 @@ test("an item arriving before the data packet isn't lost", function()
 
     sim.netEvent("item", { name = "20 Scrap", sender = "Nina", index = 0 })
     sim.tick(1)
+    drain()
     check(sim.shown("20 Scrap"), "and the item comes back once the data packet is there")
+    check(not shownKey("item.unknown", { name = "20 Scrap" }), "as a real item, not as an unknown one")
 end)
 
 test("an item from the server isn't announced under the word 'Server'", function()
@@ -2944,6 +3454,21 @@ test("a shop purchase of a not-yet-unlocked system is refused and refunded", fun
     equals(#sim.player._removed, 1, "the system is removed")
     equals(sim.player.currentScrap, 90, "and the scrap refunded, for the right amount")
     check(sim.logged("90 scrap refunded"), "the log states the real amount")
+end)
+
+test("a locked system bought right after continuing a run saved at a store is refused too", function()
+    sim.startRun(true)
+    _G.apInventory.systemCaps.cloaking = nil
+    sim.startRun(false)
+    sim.setStore(true)
+    sim.tick(2)
+    sim.player.currentScrap = 0
+
+    sim.constructSystem("cloaking", 0, 90)
+    sim.tick(5)
+
+    equals(#sim.player._removed, 1, "no jump yet, and still the system is removed")
+    equals(sim.player.currentScrap, 90, "with the scrap refunded")
 end)
 
 test("a refund that didn't happen isn't announced", function()
@@ -3186,9 +3711,58 @@ test("'both' is the default and covers both kinds of death", function()
     equals(_G.apDeathLinkState.sent, before + 1, "destruction counts")
 
     apDeathLinkConfigure({ graceSeconds = 0 })
+    sim.tick(60 * 11)
     sim.player.vCrewList[0].bDead = true
     sim.tick(30)
     equals(_G.apDeathLinkState.sent, before + 2, "so does a crew member's death")
+end)
+
+test("a crew member dismissed from the crew screen sends no DeathLink, one who dies does", function()
+    apDeathLinkConfigure({ enabled = true, trigger = "both", graceSeconds = 0 })
+    local sent = 0
+    local restore = stub("apNetSendDeath", function() sent = sent + 1 return true end)
+    sim.startRun(true)
+    sim.player:AddCrewMemberFromString("Vex", "human", false, 0, false, false)
+    sim.tick(60)
+    sim.renderTab("crew")
+    local fired = sim.player.vCrewList[0]
+    fired.health.first = 0
+    fired.bDead = true
+    sim.tick(60)
+    table.remove(sim.player.vCrewList._store, 1)
+    sim.tick(60)
+    equals(sent, 0, "dismissed on the crew screen: the player's choice")
+
+    sim.tick(60 * 11)
+    local dying = sim.player.vCrewList[0]
+    dying.health.first = 0
+    sim.tick(60)
+    table.remove(sim.player.vCrewList._store, 1)
+    sim.tick(60)
+    equals(sent, 1, "a death lies at zero health for a moment first: it counts")
+
+    sim.tick(60 * 11)
+    sim.renderTab("upgrades")
+    local bitten = sim.player.vCrewList[0]
+    bitten.health.first = 0
+    bitten.bDead = true
+    sim.tick(60)
+    restore()
+    equals(sent, 2, "killed at once by an event, away from the crew screen: still a death")
+end)
+
+test("a repair or boarding drone that goes away sends no DeathLink", function()
+    apDeathLinkConfigure({ enabled = true, trigger = "both", graceSeconds = 0 })
+    local sent = 0
+    local restore = stub("apNetSendDeath", function() sent = sent + 1 return true end)
+    sim.startRun(true)
+    local drone = sim.player:AddCrewMemberFromString("Repair Drone", "repair", false, 0, false, false)
+    drone.IsDrone = function() return true end
+    sim.tick(60)
+    table.remove(sim.player.vCrewList._store)
+    sim.tick(60)
+    restore()
+    equals(sent, 0, "a drone switched off or shot down is not a crew member lost")
 end)
 
 test("the major incident breaks a system room, without touching the hull", function()
@@ -3914,7 +4488,9 @@ test("event: with no package to name, the relay still ships what it can", functi
         { location = "shop:1", slot = "Nina", item = "Progressive Shields",
           sphere = 1, kind = "progression", cost = 40 },
     })
-    sim.openChoiceBox("AP_EVT_PACKAGE")
+    local box = sim.openChoiceBox("AP_EVT_PACKAGE")
+    check(box.choices[2].text:find("Nina", 1, true) ~= nil,
+        "the second answer names the package it really ships: " .. box.choices[2].text)
     apEventsResetForTesting()
 
     local sent = {}
@@ -4140,6 +4716,28 @@ test("resources already received don't come back on the next launch", function()
         "the server replays everything, but the scrap is only given once")
 end)
 
+test("coming back to a seed played before does not hand out its resources again", function()
+    _G.apInventory = { ships = {}, shopAvailability = {} }
+    sim.startRun(true)
+    connectOnSeed("SEED-A")
+    sim.netEvent("item", { name = "20 Scrap", sender = "Nina", index = 0 })
+    sim.tick(1)
+    drain()
+
+    apNetResetForTesting()
+    connectOnSeed("SEED-B")
+    sim.tick(1)
+    drain()
+
+    apNetResetForTesting()
+    connectOnSeed("SEED-A")
+    local scrap = sim.player.currentScrap
+    sim.netEvent("item", { name = "20 Scrap", sender = "Nina", index = 0 })
+    sim.tick(1)
+    drain()
+    equals(sim.player.currentScrap, scrap, "seed A remembers its scrap was already given, even after seed B")
+end)
+
 test("a cap, though, reapplies on every launch", function()
     _G.apInventory = { ships = {}, shopAvailability = {} }
     sim.startRun(true)
@@ -4212,6 +4810,37 @@ test("answering no records the seed: the question doesn't come back", function()
     check(not apSeedChangeLeftovers(), "and no more question")
 
     sim.unlocked = {}
+    sim.durable = {}
+end)
+
+test("answering no after playing another seed in the same session asks only once", function()
+    sim.durable = {}
+    sim.unlocked = {}
+    apContractResetForTesting()
+    _G.apNetState.connected = true
+    check(apApplySlotData(slotData({ seed_hash = "OLD" })) ~= false, "a first seed is played")
+    apNetRememberSeed(apSeedFingerprint())
+    _G.apInventory = { ships = { "PLAYER_SHIP_MANTIS" }, shopAvailability = {} }
+    sim.unlocked = { PLAYER_SHIP_MANTIS = true }
+
+    _G.apNetState.connected = true
+    equals(apApplySlotData(slotData({ seed_hash = "NEW" })), false, "the new seed is refused once")
+    apNetRememberSeed(apSeedChangeFingerprint())
+    apSeedChangeAcknowledged()
+
+    _G.apNetState.connected = true
+    check(apApplySlotData(slotData({ seed_hash = "NEW" })) ~= false, "after 'no', the new seed goes through")
+    check(not apSeedChangeLeftovers(), "and the question does not come straight back")
+    sim.unlocked = {}
+    sim.durable = {}
+end)
+
+test("a new seed chosen with 'no' starts its consumed items from zero", function()
+    sim.durable = { ap_seed_tag = "111", ap_items_done = "206" }
+    apNetResetForTesting()
+    apNetRememberSeed(222)
+    equals(_G.apNetState.consumedUntil, -1, "nothing of the new seed counts as consumed")
+    equals(sim.durable["ap_items_done_111"], "206", "the old seed keeps its own count")
     sim.durable = {}
 end)
 
@@ -4573,6 +5202,49 @@ test("cap: a cap never drops below the level already reached", function()
 
     apApplySystemRules()
     check(shields.maxLevel >= 4, "the cap stays at the level reached (" .. shields.maxLevel .. ")")
+end)
+
+test("cap: saving and continuing does not raise a system's cap", function()
+    _G.apInventory.systemCaps.shields = 2
+    _G.apInventory.startingUpgrades = {}
+    sim.startRun(true)
+    local shields
+    for i = 0, sim.player.vSystemList:size() - 1 do
+        if sim.player.vSystemList[i].name == "shields" then shields = sim.player.vSystemList[i] end
+    end
+    apApplySystemRules()
+    local cap = shields.maxLevel
+    check(cap < 8, "the cap is below the game's maximum, or the test proves nothing (" .. cap .. ")")
+    shields.powerState.second = cap
+    for _ = 1, 3 do
+        sim.startRun(false)
+        sim.tick(60)
+        equals(shields.maxLevel, cap, "the cap has not moved after a reload")
+        shields.powerState.second = shields.maxLevel
+    end
+end)
+
+test("the overview tiles show their whole number, even a long one", function()
+    local ships = {}
+    for _, ship in ipairs(apGameData.ships) do
+        ships[#ships + 1] = ship.name
+    end
+    _G.apInventory = { ships = ships, systemCaps = {}, startingUpgrades = {}, shopAvailability = {} }
+    sim.startRun(true)
+    sim.keyDown(Defines.SDL.KEY_TAB)
+    apDashboardPage("overview")
+    -- Closer to FTL's big digits than the harness default.
+    local measure = Graphics.freetype.easy_measureWidth
+    Graphics.freetype.easy_measureWidth = function(size, text) return #tostring(text) * size * 0.8 end
+    sim.renderGui()
+    Graphics.freetype.easy_measureWidth = measure
+    local fraction = apT("dash.fraction", { done = #ships, total = 28 })
+    local whole = false
+    for _, line in ipairs(sim.drawn) do
+        if line == fraction then whole = true end
+    end
+    check(whole, "the layouts tile reads " .. fraction .. " in full, not cut with an ellipsis")
+    sim.keyDown(Defines.SDL.KEY_TAB)
 end)
 
 test("the panel shows what the player has earned", function()
@@ -5396,6 +6068,77 @@ test("home screen: typing fills the focused field", function()
     equals(apConnectState().uri, "archipelago.gg", "and the default address hasn't moved")
 end)
 
+test("home screen: a slot name with a space can be typed", function()
+    onTheHomeScreen()
+    sim.type("Player 1 ")
+    equals(apConnectState().slot, "Player 1 ", "the space goes in like any character")
+    local sentSlot
+    local restore = stub("apNetConnect", function(_, slot) sentSlot = slot return true end)
+    apConnectNow()
+    restore()
+    equals(sentSlot, "Player 1", "and a stray space at the end is not sent to the server")
+end)
+
+local function typeKeys(keys)
+    for _, key in ipairs(keys) do
+        if type(key) == "table" then
+            sim.keyDown(Defines.SDL.KEY_LSHIFT)
+            sim.keyDown(key[1])
+            sim.keyUp(Defines.SDL.KEY_LSHIFT)
+        else
+            sim.keyDown(key)
+        end
+    end
+end
+
+local function onTheAddressField()
+    onTheHomeScreen()
+    sim.keyDown(Defines.SDL.KEY_UP)
+    sim.keyDown(Defines.SDL.KEY_UP)
+    for _ = 1, 20 do sim.keyDown(Defines.SDL.KEY_BACKSPACE) end
+end
+
+test("home screen: an address can be typed on a French keyboard", function()
+    onTheAddressField()
+    -- "a.b" then ":1" the French way: Shift + the ";" key for the dot, the ":" key of its own.
+    typeKeys({ Defines.SDL.KEY_a, { Defines.SDL.KEY_SEMICOLON }, Defines.SDL.KEY_b,
+               Defines.SDL.KEY_COLON, Defines.SDL.KEY_1 })
+    equals(apConnectState().uri, "a.b:1", "the dot and the colon come out right")
+end)
+
+test("home screen: the numeric keypad types digits and dots", function()
+    onTheAddressField()
+    typeKeys({ Defines.SDL.KEY_KP0 + 1, Defines.SDL.KEY_KP9, Defines.SDL.KEY_KP_PERIOD, Defines.SDL.KEY_KP0 + 2 })
+    equals(apConnectState().uri, "19.2", "an IP address can be typed on the keypad")
+end)
+
+test("home screen: an address typed with its port keeps that port", function()
+    onTheAddressField()
+    typeKeys({ Defines.SDL.KEY_h, Defines.SDL.KEY_o, Defines.SDL.KEY_s, Defines.SDL.KEY_t,
+               Defines.SDL.KEY_COLON, Defines.SDL.KEY_5, Defines.SDL.KEY_4 })
+    sim.keyDown(Defines.SDL.KEY_TAB)
+    sim.keyDown(Defines.SDL.KEY_TAB)
+    sim.type("Navigator")
+    local sentAddress
+    local restore = stub("apNetConnect", function(address) sentAddress = address return true end)
+    apConnectNow()
+    restore()
+    equals(sentAddress, "host:54", "its port is used, not the default one glued after it")
+end)
+
+test("an address typed with a slash at the end still connects on the right port", function()
+    onTheHomeScreen()
+    local sentAddress
+    local restore = stub("apNetConnect", function(address) sentAddress = address return true end)
+    sim.type("Navigator")
+    sim.keyDown(Defines.SDL.KEY_UP)
+    sim.keyDown(Defines.SDL.KEY_UP)
+    sim.type("/")
+    apConnectNow()
+    restore()
+    equals(sentAddress, "archipelago.gg:38281", "the slash is dropped before the port is added")
+end)
+
 test("home screen: no default slot name, ever", function()
     onTheHomeScreen()
     local state = apConnectState()
@@ -6054,4 +6797,50 @@ test("home screen: typing doesn't hijack the keyboard during a run", function()
     sim.startRun(true)
     sim.type("abc")
     equals(apConnectState().slot, "", "nothing is typed outside the home screen")
+end)
+
+test("shop: after solo mode, a real game shows who each package is for", function()
+    apNetResetForTesting()
+    if not apSoloStart() then return end
+    apSoloStop()
+    connectWithShop(2)
+    sim.netEvent("scout", { name = "Archipelago Shop 1", sender = "Berserker",
+        extra = "Seashell", value = 1 })
+    sim.netEvent("scout", { name = "Archipelago Shop 2", sender = "Axel",
+        extra = "Roll Fragment", value = 2 })
+    sim.tick(1)
+    equals(sim.rarityFor("AP_GIFT_1", 0).shortTitle.data, "Berserker", "not FOR YOU left over from solo")
+    equals(sim.rarityFor("AP_GIFT_2", 0).shortTitle.data, "Axel", "for every package")
+    apNetResetForTesting()
+end)
+
+test("shop: joining a real game while solo mode is still on leaves solo behind", function()
+    apNetResetForTesting()
+    if not apSoloStart() then return end
+    connectWithShop(2)
+    sim.netEvent("scout", { name = "Archipelago Shop 1", sender = "Berserker",
+        extra = "Seashell", value = 1 })
+    sim.netEvent("scout", { name = "Archipelago Shop 2", sender = "Axel",
+        extra = "Roll Fragment", value = 2 })
+    sim.tick(1)
+    check(not _G.apSoloEnabled, "solo mode is off once a real seed is loaded")
+    apSendCheck("shop:2", "Archipelago Shop 2")
+    equals(sim.rarityFor("AP_GIFT_1", 0).shortTitle.data, "Berserker",
+        "a check does not restock the shop with solo packages marked FOR YOU")
+    apNetResetForTesting()
+end)
+
+test("solo: starting it cancels a reconnection still pending from a lost server", function()
+    apNetResetForTesting()
+    connectWithShop(1)
+    sim.netEvent("disconnected", {})
+    sim.net.connected = false
+    sim.tick(1)
+    local before = sim.netCalls("Connect")
+    if not apSoloStart() then return end
+    sim.tick(60 * 70)
+    equals(sim.netCalls("Connect"), before, "no reconnection comes to load the old seed over solo")
+    check(_G.apSoloEnabled, "solo stays on")
+    apSoloStop()
+    apNetResetForTesting()
 end)

@@ -107,10 +107,10 @@ class TestDefaultOptions(FTLTestBase):
                 "match the items that actually raise the cap",
             )
 
-    def test_archives_are_absent_when_the_option_is_zero(self) -> None:
+    def test_the_default_goal_asks_for_ten_of_twelve_archives(self) -> None:
         names = [item.name for item in self.multiworld.itempool]
-        self.assertNotIn(data.ARCHIVE_ITEM_NAME, names)
-        self.assertEqual(self.world.fill_slot_data()["goal"]["archives"], 0)
+        self.assertEqual(names.count(data.ARCHIVE_ITEM_NAME), 12)
+        self.assertEqual(self.world.fill_slot_data()["goal"]["archives"], 10)
 
     def test_slot_data_is_serialisable(self) -> None:
         json.dumps(self.world.fill_slot_data())
@@ -147,3 +147,12 @@ class TestDefaultOptions(FTLTestBase):
         self.assertGreaterEqual(slot_data["seed_hash"], 0)
         self.assertLess(slot_data["seed_hash"], 2 ** 31)
         self.assertEqual(slot_data["contract"], data.CONTRACT_VERSION)
+
+
+class TestNoArchives(FTLTestBase):
+    options = {"archives": 0, "archives_required": 0}
+
+    def test_archives_are_absent_when_the_option_is_zero(self) -> None:
+        names = [item.name for item in self.multiworld.itempool]
+        self.assertNotIn(data.ARCHIVE_ITEM_NAME, names)
+        self.assertEqual(self.world.fill_slot_data()["goal"]["archives"], 0)

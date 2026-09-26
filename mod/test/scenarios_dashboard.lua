@@ -204,3 +204,15 @@ test("dashboard: a delivered item goes into the journal, a replayed one does not
     equals(#_G.apReceivedHistory, 1, "only the new item is recorded")
     equals(_G.apReceivedHistory[1].sender, "Axel", "with its sender")
 end)
+
+test("dashboard: a system already on the ship is not shown as simply locked", function()
+    applySeed({})
+    _G.apInventory = { ships = {}, systemCaps = {}, startingUpgrades = {}, shopAvailability = {} }
+    sim.startRun(true)
+    apToggleHud()
+    apDashboardPage(3)
+    sim.renderGui()
+    apToggleHud()
+    check(sim.drawnText(apT("dash.system.aboard")), "shields on the ship read as aboard, upgrades locked")
+    check(sim.drawnText(apT("dash.system.locked")), "and a system the ship lacks still reads as locked")
+end)

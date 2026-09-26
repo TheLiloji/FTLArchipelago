@@ -251,7 +251,9 @@ script.on_render_event(
             pcall(drawTitle)
             if _G.apNotifyPlaceMenu then _G.apNotifyPlaceMenu() end
 
-            if hasSeed() then
+            _G.apGoalBoxBottom = nil
+            local questionOpen = _G.apConnectQuestionOpen and apConnectQuestionOpen()
+            if hasSeed() and not questionOpen then
 
                 local goalText = apGoalText()
                 if goalText ~= nil then
@@ -259,7 +261,9 @@ script.on_render_event(
                     if _G.apAdvancedEditionOff and _G.apAdvancedEditionOff() then
                         subLines[#subLines + 1] = { text = apT("hud.advanced_off"), tone = "warn" }
                     end
-                    local width = Graphics.freetype.easy_measureWidth(GOAL_FONT, goal)
+                    local goalFont = apUi.fittingFont({ GOAL_FONT, 18, 12 },
+                        GOAL_MAX_RIGHT - GOAL_X - GOAL_PADDING * 2, goal)
+                    local width = Graphics.freetype.easy_measureWidth(goalFont, goal)
                     for _, item in ipairs(subLines) do
                         width = math.max(width,
                             Graphics.freetype.easy_measureWidth(GOAL_SUB_FONT, item.text))
@@ -268,13 +272,14 @@ script.on_render_event(
                     local left = GOAL_X
                     local center = left + frame / 2
                     local height = GOAL_H + #subLines * GOAL_SUB_H
+                    _G.apGoalBoxBottom = GOAL_Y + height
                     Graphics.CSurface.GL_DrawRect(left, GOAL_Y, frame, height, color("panel"))
                     Graphics.CSurface.GL_DrawRect(left, GOAL_Y, frame, 2, color("border"))
                     Graphics.CSurface.GL_DrawRect(left, GOAL_Y + height - 2, frame, 2,
                         color("border"))
                     Graphics.CSurface.GL_SetColor(color(reached and "good" or "title"))
-                    Graphics.freetype.easy_printCenter(GOAL_FONT, center,
-                        GOAL_Y + GOAL_BASELINE, goal)
+                    Graphics.freetype.easy_printCenter(goalFont, center,
+                        GOAL_Y + GOAL_BASELINE + (GOAL_FONT - goalFont) // 2, goal)
                     for index, item in ipairs(subLines) do
                         Graphics.CSurface.GL_SetColor(color(item.tone))
                         Graphics.freetype.easy_printCenter(GOAL_SUB_FONT, center,

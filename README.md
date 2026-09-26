@@ -9,8 +9,8 @@ Your ships, systems and weapons are scattered across your friends' games. Theirs
 
 <p align="center">
 <a href="https://github.com/TheLiloji/FTLArchipelago/releases">Download</a> ·
-<a href="docs/wiki/Installing-on-Windows.md">Install on Windows</a> ·
-<a href="docs/wiki/Installing-on-Linux.md">Install on Linux</a> ·
+<a href="docs/wiki/Setup-Windows.md">Setup on Windows</a> ·
+<a href="docs/wiki/Setup-Linux.md">Setup on Linux</a> ·
 <a href="docs/wiki/Home.md">Wiki</a>
 </p>
 
@@ -61,8 +61,8 @@ games.
 
 ## How you win
 
-Beat the Flagship with several **different** ships: five by default, the seed decides. A seed can also ask for
-**Archives**, pieces scattered in the other players' worlds: then you need both the wins and enough Archives.
+Beat the Flagship with several **different** ships, on Normal or Hard: five by default, the seed decides. You
+also need **Archives**, pieces scattered in the other players' worlds: 10 of the 12 by default.
 The main menu always shows where you stand.
 
 ## Checks
@@ -100,9 +100,11 @@ Your YAML decides which of these are in the seed. A short seed has around 130 ch
 ## Getting started
 
 1. Download `ArchipelagoFTL.ftl` and the Hyperspace library for your system from the
-   [release](https://github.com/TheLiloji/FTLArchipelago/releases), then follow the install page for
-   [Windows](docs/wiki/Installing-on-Windows.md) or [Linux](docs/wiki/Installing-on-Linux.md).
-2. Make your YAML from a [preset](docs/wiki/Options.md). Whoever generates the seed needs `ftl.apworld`.
+   [release](https://github.com/TheLiloji/FTLArchipelago/releases), then follow the setup page for
+   [Windows](docs/wiki/Setup-Windows.md) or [Linux](docs/wiki/Setup-Linux.md). Both pages exist in English,
+   French, German, Spanish, Italian and Portuguese: pick your language at the top.
+2. Make your YAML: the default options are the recommended ones, or pick a [preset](docs/wiki/Options.md) for a
+   shorter or longer game. Whoever generates the seed needs `ftl.apworld`.
 3. Start FTL, type the server, the port and your slot name in the panel at the bottom left, and connect.
 
 ![Connection panel](docs/images/connect-panel.jpg)

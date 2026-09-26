@@ -186,6 +186,8 @@ local function loadSeed()
         _G.apInventoryClear()
         if _G.apApplySystemRules then pcall(_G.apApplySystemRules) end
     end
+    -- Items still waiting from the server belong to its seed: it sends them again when the player is back.
+    if _G.apFillerForgetSeed then apFillerForgetSeed() end
 
     state.byKey = nil
 
@@ -222,6 +224,8 @@ function apSoloStart(force)
     remember(KEY_SEED, _G.apSeedFingerprint and apSeedFingerprint() or 0)
     remember(KEY_ACTIVE, 1)
     _G.apSoloEnabled = true
+    -- A reconnection still pending from an earlier server would load that seed over this one.
+    if _G.apNetDisconnect then pcall(_G.apNetDisconnect) end
 
     local order = _G.apSoloOrder
     soloLog("solo mode active: " .. #order .. " items to receive, one per check")
@@ -271,6 +275,7 @@ function apSoloResume()
     end
 
     _G.apSoloEnabled = true
+    if _G.apNetDisconnect then pcall(_G.apNetDisconnect) end
     state.delivered, state.given = 0, {}
     for _, index in ipairs(indices) do
         give(index, true)
@@ -330,6 +335,16 @@ function apSoloStop()
     remember(KEY_ACTIVE, 0)
     soloLog("solo mode stopped, progress kept")
     if _G.apContractUnload then apContractUnload() end
+end
+
+-- A real seed takes over: solo steps aside without unloading the seed that just arrived.
+function apSoloLeave()
+    if not _G.apSoloEnabled then
+        return
+    end
+    _G.apSoloEnabled = false
+    remember(KEY_ACTIVE, 0)
+    soloLog("a server seed is loaded: solo mode stopped, progress kept")
 end
 
 function apSoloResetForTesting()

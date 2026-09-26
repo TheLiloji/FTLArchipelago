@@ -24,6 +24,8 @@ def _a_ship_that_is_not_given_for_free(world) -> data.Ship:
 class TestMinimalSeed(FTLTestBase):
 
     options = {
+        "archives": 0,
+        "archives_required": 0,
         "minimum_filler": 0,
         "shop_weapons": 0,
         "shop_drones": 0,
@@ -545,6 +547,8 @@ class TestSectorCeilingDefaultChangesNothing(FTLTestBase):
 class TestStructurallyBlockedSeed(FTLTestBase):
 
     options = {
+        "archives": 0,
+        "archives_required": 0,
         "minimum_filler": 0,
         "shop_weapons": 0,
         "shop_drones": 0,

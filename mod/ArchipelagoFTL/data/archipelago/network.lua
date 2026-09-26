@@ -50,6 +50,8 @@ local function client()
     return nil
 end
 
+local adoptServerChecks
+
 local function whenConnected(action)
     local ap = client()
     if ap == nil or not state.connected then
@@ -68,8 +70,14 @@ function apNetConnect(uri, slot, password)
     state.refusal = nil
     state.unreachableShown = false
     state.unreachableSince = nil
+    -- After a refused seed, take every item again, from an empty inventory so nothing is counted twice.
+    if state.seedRefused then
+        if _G.apInventoryClear then pcall(_G.apInventoryClear) end
+        state.lastItemIndex = -1
+    end
     state.seedRefused = false
-    state.lastItemIndex = -1
+    -- lastItemIndex is kept: the server sends every item again on connect, and those already applied must
+    -- not be applied twice. It starts over only with another seed or slot (apNetForgetItems).
     state.lastConnection = { uri = uri, slot = slot, password = password or "" }
     state.retries = 0
     state.retryAt = nil
@@ -299,33 +307,99 @@ function apNetRecallText(key)
     return ok and value ~= nil and tostring(value) or ""
 end
 
-function apNetRememberSeed(fingerprint)
-    writeMeta(SEED_KEY, fingerprint or 0)
+-- Each seed keeps its own count of consumed items, so coming back to a seed played before does not hand out
+-- its scrap and traps a second time.
+local function consumedKey(fingerprint)
+    return CONSUMED_KEY .. "_" .. tostring(fingerprint or 0)
+end
+
+-- Older versions kept one count for whichever seed was current: it moves to that seed's own count.
+local function migrateOldCount()
+    local old = meta(CONSUMED_KEY)
+    if old <= 0 then
+        return
+    end
+    local tag = meta(SEED_KEY)
+    if meta(consumedKey(tag)) == 0 then
+        writeMeta(consumedKey(tag), old)
+    end
     writeMeta(CONSUMED_KEY, 0)
-    state.consumedUntil = -1
-    state.delivered = {}
+end
+
+local function consumedFor(fingerprint)
+    migrateOldCount()
+    return meta(consumedKey(fingerprint))
+end
+
+-- Items delivered past the first one still waiting (a weapon held back for a few jumps) are kept too, or
+-- the next session would hand out their scrap and traps again.
+local function deliveredKey(fingerprint)
+    return "ap_delivered_" .. tostring(fingerprint or 0)
+end
+
+local function saveDelivered(fingerprint)
+    local list = {}
+    for index in pairs(state.delivered) do
+        list[#list + 1] = tostring(index)
+    end
+    -- Nothing held back is the usual case: write only when there is something, or when it just emptied.
+    if #list == 0 and not state.deliveredSaved then
+        return
+    end
+    table.sort(list)
+    apNetRememberText(deliveredKey(fingerprint), table.concat(list, ","))
+    state.deliveredSaved = #list > 0
+end
+
+local function loadDelivered(fingerprint)
+    local delivered = {}
+    for index in tostring(apNetRecallText(deliveredKey(fingerprint))):gmatch("%d+") do
+        delivered[tonumber(index)] = true
+    end
+    state.deliveredSaved = next(delivered) ~= nil
+    return delivered
+end
+
+function apNetRememberSeed(fingerprint)
+    state.consumedUntil = consumedFor(fingerprint) - 1
+    writeMeta(SEED_KEY, fingerprint or 0)
+    state.delivered = loadDelivered(fingerprint)
     netLog("seed fingerprint recorded: " .. tostring(fingerprint))
 end
 
-function apNetForgetProgress()
+function apNetForgetItems()
+    state.lastItemIndex = -1
+end
+
+function apNetForgetProgress(incoming)
+    local current = meta(SEED_KEY)
+    writeMeta(consumedKey(current), 0)
+    apNetRememberText(deliveredKey(current), "")
+    if _G.apShopForgetOwed then apShopForgetOwed(current) end
+    if incoming ~= nil then
+        writeMeta(consumedKey(incoming), 0)
+        apNetRememberText(deliveredKey(incoming), "")
+        if _G.apShopForgetOwed then apShopForgetOwed(incoming) end
+    end
     writeMeta(SEED_KEY, 0)
     writeMeta(CONSUMED_KEY, 0)
     state.consumedUntil = -1
     state.delivered = {}
+    state.deliveredSaved = false
     netLog("Archipelago progress forgotten: the next seed starts from zero")
 end
 
 local function reloadConsumed()
     local fingerprint = _G.apSeedFingerprint and _G.apSeedFingerprint() or 0
+    state.consumedUntil = consumedFor(fingerprint) - 1
+    state.delivered = loadDelivered(fingerprint)
     if meta(SEED_KEY) ~= fingerprint then
         writeMeta(SEED_KEY, fingerprint)
-        writeMeta(CONSUMED_KEY, 0)
-        state.consumedUntil = -1
-        netLog("new seed: resources already received start over from zero")
-        return
+        if state.consumedUntil < 0 then
+            netLog("new seed: resources already received start over from zero")
+            return
+        end
     end
-    state.consumedUntil = meta(CONSUMED_KEY) - 1
-    state.delivered = {}
     if state.consumedUntil >= 0 then
         netLog(string.format("%d resource(s) already consumed in previous sessions",
             state.consumedUntil + 1))
@@ -338,11 +412,9 @@ local function onConnected(event)
     state.connecting = false
     state.retries = 0
     state.retryAt = nil
+    state.unreachableSince = nil
     netLog("connected as \"" .. tostring(event.name) .. "\"")
-    if _G.apNotifyStatus then
-        _G.apNotifyStatus(apT(wasRetrying and "net.reconnected" or "net.connected",
-                              { slot = tostring(event.name) }))
-    end
+    state.seedRefused = false
 
     local slotData = event.extra
     if type(slotData) == "string" and _G.apJsonDecode then
@@ -370,6 +442,12 @@ local function onConnected(event)
         end
     end
 
+    -- Said after the seed check: "nothing was lost" followed by a refusal would contradict itself.
+    if _G.apNotifyStatus and not state.seedRefused then
+        _G.apNotifyStatus(apT(wasRetrying and "net.reconnected" or "net.connected",
+                              { slot = tostring(event.name) }))
+    end
+
     if _G.apOnSlotData then
         pcall(_G.apOnSlotData, event.extra)
     end
@@ -382,24 +460,7 @@ local function onConnected(event)
         apNetAnnounceTags()
     end
 
-    if _G.apAdoptCheckedLocations then
-        local ap = client()
-        if ap ~= nil and ap.CheckedLocations ~= nil then
-            local ok, names = pcall(function() return ap:CheckedLocations() end)
-            if ok and names ~= nil then
-                local list = {}
-                for i = 0, names:size() - 1 do
-                    local name = tostring(names[i])
-                    if name ~= UNKNOWN then
-                        list[#list + 1] = name
-                    end
-                end
-                pcall(_G.apAdoptCheckedLocations, list)
-            else
-                netLog("CheckedLocations unavailable: the check counter starts over from zero")
-            end
-        end
-    end
+    adoptServerChecks(true)
 
     if _G.apResendPendingChecks then
         pcall(_G.apResendPendingChecks)
@@ -455,6 +516,33 @@ local function onScout(event)
     }
 end
 
+-- Checks done elsewhere on this slot (another client, an admin) reach the client's list as the server
+-- tells it: read it again now and then, not only when connecting.
+adoptServerChecks = function(verbose)
+    if not _G.apAdoptCheckedLocations then
+        return
+    end
+    local ap = client()
+    if ap == nil or ap.CheckedLocations == nil then
+        return
+    end
+    local ok, names = pcall(function() return ap:CheckedLocations() end)
+    if ok and names ~= nil then
+        local list = {}
+        for i = 0, names:size() - 1 do
+            local name = tostring(names[i])
+            if name ~= UNKNOWN then
+                list[#list + 1] = name
+            end
+        end
+        pcall(_G.apAdoptCheckedLocations, list)
+    elseif verbose then
+        netLog("CheckedLocations unavailable: the check counter starts over from zero")
+    end
+end
+
+local CHECKED_POLL_TICKS = 10 * 60
+
 local function onItem(event)
     if event.index >= 0 and event.index <= state.lastItemIndex then
         return
@@ -467,7 +555,7 @@ local function onItem(event)
         state.lastItemIndex = event.index
     end
 
-    local isReplay = event.index >= 0 and event.index <= state.consumedUntil
+    local isReplay = event.index >= 0 and (event.index <= state.consumedUntil or state.delivered[event.index] == true)
 
     if _G.apReceiveItem then
         local sender = tostring(event.sender)
@@ -490,9 +578,11 @@ function apNetItemDelivered(index)
         state.delivered[state.consumedUntil] = nil
         advanced = true
     end
+    local fingerprint = _G.apSeedFingerprint and _G.apSeedFingerprint() or 0
     if advanced then
-        writeMeta(CONSUMED_KEY, state.consumedUntil + 1)
+        writeMeta(consumedKey(fingerprint), state.consumedUntil + 1)
     end
+    saveDelivered(fingerprint)
     return advanced
 end
 
@@ -583,8 +673,9 @@ local HANDLERS = {
         end
     end,
 
+    -- A reply to our own request carries what was taken (0 when the pool was empty); updates from others carry -1.
     energy = function(event)
-        if event.index and event.index > 0 and _G.apEnergyLinkGranted then
+        if event.index and event.index >= 0 and _G.apEnergyLinkGranted then
             _G.apEnergyLinkGranted(event.index)
         elseif _G.apEnergyLinkSync then
             _G.apEnergyLinkSync(event.value)
@@ -647,6 +738,9 @@ script.on_internal_event(Defines.InternalEvents.ON_TICK, function()
     drain()
     retryIfDue()
     announceIfStillUnreachable()
+    if state.connected and not state.seedRefused and state.ticks % CHECKED_POLL_TICKS == 0 then
+        adoptServerChecks(false)
+    end
 end)
 
 function apNetConnected()

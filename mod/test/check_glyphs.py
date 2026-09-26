@@ -36,7 +36,7 @@ def baseline_from_the_game() -> tuple[dict, str] | tuple[None, str]:
     with tempfile.TemporaryDirectory() as tmp:
         out = Path(tmp) / "dat"
         result = subprocess.run(
-            ["ftlman", "extract", str(out), str(source)],
+            [os.environ.get("FTLMAN", "ftlman"), "extract", str(out), str(source)],
             capture_output=True, text=True,
         )
         if result.returncode != 0:

@@ -50,3 +50,6 @@ accessibility: full
   energy_link: true
   trap_link: true
   mod_language: game
+  victory_difficulty: any
+  archives: 0
+  archives_required: 0

@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 import re
 import subprocess
 import sys
@@ -22,7 +23,7 @@ def play(offset: int) -> tuple[int, set[str]]:
     file_path.write_text(built, encoding="utf-8")
     try:
         output = subprocess.run(
-            ["ftlman", "lua-run", str(file_path)], capture_output=True, text=True,
+            [os.environ.get("FTLMAN", "ftlman"), "lua-run", str(file_path)], capture_output=True, text=True,
         ).stdout
     finally:
         file_path.unlink(missing_ok=True)

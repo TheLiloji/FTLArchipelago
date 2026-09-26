@@ -67,6 +67,15 @@ local runSeed = nil
 local runFromSave = false
 local seedlessWarned = false
 
+local function seedLoaded()
+    local contract = _G.apContractState
+    return contract ~= nil and contract.connected == true
+end
+
+local function currentSeed()
+    return seedLoaded() and (_G.apSeedFingerprint and apSeedFingerprint() or 0) or nil
+end
+
 local function savedRunSeed()
     local ok, value = pcall(function() return Hyperspace.playerVariables.ap_run_seed end)
     if ok and type(value) == "number" and value ~= 0 then
@@ -79,22 +88,17 @@ local function saveRunSeed(seed)
     pcall(function() Hyperspace.playerVariables.ap_run_seed = seed or 0 end)
 end
 
-local function seedLoaded()
-    local contract = _G.apContractState
-    return contract ~= nil and contract.connected == true
-end
-
-local function currentSeed()
-    return seedLoaded() and (_G.apSeedFingerprint and apSeedFingerprint() or 0) or nil
-end
-
-function apRunCounts()
+function apRunMatchesSeed()
     if runFromSave then
         runSeed = savedRunSeed()
     end
     local seed = currentSeed()
     local started = runSeed == seed or (_G.apRunStartCheckForTesting == false and seed ~= nil)
-    if seed ~= nil and started then
+    return seed ~= nil and started
+end
+
+function apRunCounts()
+    if apRunMatchesSeed() then
         return true
     end
     if not seedlessWarned then
@@ -646,8 +650,9 @@ function apDeclareGoal()
     else
         checkLog("goal NOT declared: no connection, will retry on reconnect")
     end
-    if _G.apNotifyStatus then
-        _G.apNotifyStatus(apT(goalSent and "goal.reached" or "goal.not_sent"))
+    local notify = _G.apNotifyKept or _G.apNotifyStatus
+    if notify then
+        notify(apT(goalSent and "goal.reached" or "goal.not_sent"))
     end
     return goalSent
 end

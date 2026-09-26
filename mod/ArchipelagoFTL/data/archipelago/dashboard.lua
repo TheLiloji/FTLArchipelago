@@ -154,7 +154,19 @@ local function shipRows()
     return rows, open, total
 end
 
+local function systemsAboard()
+    local aboard = {}
+    pcall(function()
+        local list = Hyperspace.ships.player.vSystemList
+        for i = 0, list:size() - 1 do
+            aboard[Hyperspace.ShipSystem.SystemIdToName(list[i].iSystemType)] = true
+        end
+    end)
+    return aboard
+end
+
 local function systemRows()
+    local aboard = systemsAboard()
     local inventory = _G.apInventory or {}
     local caps = inventory.systemCaps or {}
     local starts = inventory.startingUpgrades or {}
@@ -165,6 +177,7 @@ local function systemRows()
         rows[#rows + 1] = {
             name = _G.apSystemLabel and apSystemLabel(system.id) or system.id,
             locked = cap <= 0,
+            aboard = aboard[system.id] == true,
             received = math.max(0, cap - 1),
             total = total,
             start = starts[system.id] or 0,
@@ -300,7 +313,8 @@ local function drawGoalCard(x, y, w, h)
         text(12, x + 16, y + 36, w - 32, "dim", apT("dash.goal.unknown"))
         return
     end
-    text(18, x + 16, y + 32, w - 32, goal.reached and "good" or "title", goal.headline)
+    local font = ui.fittingFont({ 18, 12 }, w - 32, goal.headline)
+    text(font, x + 16, y + (font == 18 and 32 or 36), w - 32, goal.reached and "good" or "title", goal.headline)
     local lineY = y + 60
     for _, line in ipairs(goal.lines) do
         text(9, x + 16, lineY, w - 32, line.tone, line.text)
@@ -339,7 +353,8 @@ end
 local function drawTile(x, y, w, h, key, value, sub, tone)
     card(x, y, w, h)
     label(x + 12, y + 10, w - 24, key)
-    text(24, x + 12, y + 30, w - 24, tone or "text", value)
+    local font = ui.fittingFont({ 24, 18, 13 }, w - 24, value)
+    text(font, x + 12, y + 30 + math.floor((24 - font) / 2), w - 24, tone or "text", value)
     if sub then
         text(9, x + 12, y + h - 22, w - 24, "dim", sub)
     end
@@ -536,7 +551,9 @@ local function drawSystems(x, y, w, h)
         rect(cx, cy, 3, cardH, row.locked and "faint" or (full and "good" or "border"))
         text(10, cx + 14, cy + 10, cardW - 26, row.locked and "dim" or "text", row.name)
         local status
-        if row.locked then
+        if row.locked and row.aboard then
+            status = apT("dash.system.aboard")
+        elseif row.locked then
             status = apT("dash.system.locked")
         elseif full then
             status = apT("hud.system.max")
@@ -636,9 +653,10 @@ local function drawJournal(x, y, w, h)
         Graphics.CSurface.GL_SetColor(color("dim"))
         Graphics.freetype.easy_printAutoNewlines(10, hx + 16, y + 44, colW - 32, apT("dash.hints.none"))
     else
-        scrollList("journal:hints", { x = hx + 16, y = y + 44, w = colW - 32, h = h - 56 }, hints, 20,
+        -- Location and item names are long: each hint gets two lines rather than an ellipsis.
+        scrollList("journal:hints", { x = hx + 16, y = y + 44, w = colW - 32, h = h - 56 }, hints, 34,
             function(hint, rx, ry, rw)
-                text(10, rx, ry, rw, "text", apHintLine(hint))
+                ui.wrapped(10, rx, ry, rw, "text", apHintLine(hint))
             end)
     end
 end

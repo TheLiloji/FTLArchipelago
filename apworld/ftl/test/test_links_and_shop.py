@@ -201,7 +201,7 @@ class TestShopChecks(FTLTestBase):
 
 
 class TestShopChecksOff(FTLTestBase):
-    options = {"shop_checks": 0}
+    options = {"shop_checks": 0, "archives": 0, "archives_required": 0}
 
     def test_no_shop_location_exists(self) -> None:
         shop = [

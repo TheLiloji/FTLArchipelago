@@ -267,6 +267,18 @@ local function resetWorld()
     sim.cargo = {}
     sim.equipped = { weapon = {}, drone = {} }
     sim.slots = { weapon = 4, drone = 2 }
+    sim.cargoCap = 999
+    sim.overflow = {}
+    sim.player.weaponSystem = setmetatable({}, {
+        __index = function(_, key)
+            if key == "weapons" then return vector(sim.equipped.weapon) end
+            if key == "slot_count" then return sim.slots.weapon end
+        end })
+    sim.player.droneSystem = setmetatable({}, {
+        __index = function(_, key)
+            if key == "drones" then return vector(sim.equipped.drone) end
+            if key == "slot_count" then return sim.slots.drone end
+        end })
     sim.pursuit = 0
     sim.unlocked = {}
     sim.rarities = {}
@@ -420,21 +432,31 @@ local function resetWorld()
                             sim.cargo[#sim.cargo + 1] = name
                         end
                     end,
-                    GetCargoHold = function() return vector(sim.cargo) end,
+                    -- Like Hyperspace: the over capacity box's hidden pages come back with the cargo.
+                    GetCargoHold = function()
+                        local list = {}
+                        for _, name in ipairs(sim.cargo) do list[#list + 1] = name end
+                        for index = 2, #(sim.overflow or {}) do list[#list + 1] = sim.overflow[index] end
+                        return vector(list)
+                    end,
                     AddWeapon = function(_, bp, _, forceCargo)
                         if bp == nil or bp.name == "" then return end
                         if not forceCargo and #sim.equipped.weapon < sim.slots.weapon then
                             sim.equipped.weapon[#sim.equipped.weapon + 1] = bp.name
-                        else
+                        elseif #sim.cargo < sim.cargoCap then
                             sim.cargo[#sim.cargo + 1] = bp.name
+                        else
+                            sim.overflow[#sim.overflow + 1] = bp.name
                         end
                     end,
                     AddDrone = function(_, bp, _, forceCargo)
                         if bp == nil or bp.name == "" then return end
                         if not forceCargo and #sim.equipped.drone < sim.slots.drone then
                             sim.equipped.drone[#sim.equipped.drone + 1] = bp.name
-                        else
+                        elseif #sim.cargo < sim.cargoCap then
                             sim.cargo[#sim.cargo + 1] = bp.name
+                        else
+                            sim.overflow[#sim.overflow + 1] = bp.name
                         end
                     end,
                 },
@@ -661,11 +683,12 @@ _G.Defines = {
         ON_MOUSE_L_BUTTON_DOWN = "ON_MOUSE_L_BUTTON_DOWN",
         ON_MOUSE_SCROLL = "ON_MOUSE_SCROLL",
     },
-    RenderEvents = { MAIN_MENU = "MAIN_MENU", GUI_CONTAINER = "GUI_CONTAINER" },
+    RenderEvents = { MAIN_MENU = "MAIN_MENU", GUI_CONTAINER = "GUI_CONTAINER", TABBED_WINDOW = "TABBED_WINDOW" },
     Chain = { CONTINUE = 0, PREEMPT = 1, HALT = 2 },
     SDL = setmetatable({
         KEY_BACKSPACE = 8, KEY_TAB = 9, KEY_RETURN = 13, KEY_ESCAPE = 27, KEY_SPACE = 32,
-        KEY_MINUS = 45, KEY_PERIOD = 46, KEY_SLASH = 47, KEY_SEMICOLON = 59,
+        KEY_MINUS = 45, KEY_PERIOD = 46, KEY_SLASH = 47, KEY_COLON = 58, KEY_SEMICOLON = 59,
+        KEY_KP0 = 256, KEY_KP9 = 265, KEY_KP_PERIOD = 266, KEY_KP_MINUS = 269,
         KEY_KP_ENTER = 271, KEY_UP = 273, KEY_DOWN = 274, KEY_RIGHT = 275, KEY_LEFT = 276,
         KEY_RSHIFT = 303, KEY_LSHIFT = 304,
     }, {
@@ -765,6 +788,15 @@ end
 
 function sim.renderMenu()
     replayRender("MAIN_MENU")
+end
+
+-- The ship screens window (upgrades, crew, equipment), drawn with the name of its current tab.
+function sim.renderTab(name)
+    for _, handlers in ipairs(sim.renderHandlers.TABBED_WINDOW or {}) do
+        if handlers.after then
+            pcall(handlers.after, name)
+        end
+    end
 end
 
 _G.script = {

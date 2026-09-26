@@ -197,6 +197,14 @@ function apQueueItem(descriptor)
             .. tostring(descriptor.res or descriptor.eff or descriptor.kind))
         return false
     end
+    -- The server sends everything again after a reconnect: an item still waiting here is not queued twice.
+    if descriptor.index ~= nil then
+        for _, waiting in ipairs(pending) do
+            if waiting.index == descriptor.index then
+                return false
+            end
+        end
+    end
     pending[#pending + 1] = descriptor
     fillerLog(string.format("queued: %s (%d in queue)",
         descriptor.res or descriptor.eff or descriptor.kind, #pending))
@@ -408,16 +416,26 @@ local function deliverOne(descriptor)
     return false
 end
 
+-- A run started without this seed does not count: what it would use up waits for a run that does.
+local function runCounts()
+    local contract = _G.apContractState
+    if _G.apRunMatchesSeed == nil or noRunStarted() or contract == nil or contract.connected ~= true then
+        return true
+    end
+    return apRunMatchesSeed()
+end
+
 function apDeliverPending()
     if #pending == 0 then
         return
     end
-    local inRun = safeToDeliver()
+    local counts = runCounts()
+    local inRun = safeToDeliver() and counts
     local deliverable = function(descriptor)
         if inRun or SHIPLESS_KINDS[descriptor.kind] == true then
             return true
         end
-        if CATALOG_KINDS[descriptor.kind] and noRunStarted() then
+        if CATALOG_KINDS[descriptor.kind] and (noRunStarted() or not counts) then
             descriptor.noDelivery = true
             return true
         end
@@ -470,7 +488,7 @@ function apDeliverPending()
                 end
             end
         end
-        inRun = safeToDeliver()
+        inRun = safeToDeliver() and counts
     end
     for _, descriptor in ipairs(deferred) do
         pending[#pending + 1] = descriptor

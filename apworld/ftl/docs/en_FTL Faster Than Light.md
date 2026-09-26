@@ -94,9 +94,9 @@ arrives during a run you are about to lose is not wasted, because it makes the n
 
 ## Archives
 
-A second currency, off by default. Turn **Archives** up and that many Archipelago Archives are
-scattered through the other players' worlds. **Archives Required** says how many of them the
-Flagship waits for: set 50 and 40, and ten of them are slack you never have to chase. Beating the
+A second currency: by default 12 Archipelago Archives are scattered through the other players' worlds, and
+10 of them are needed (**Archives** and **Archives Required**, 0 turns them off). The two spare ones are slack you
+never have to chase. Beating the
 boss five times is no longer enough on its own - you also have to wait for, and trade for, the
 pieces other people are sitting on.
 
@@ -117,6 +117,9 @@ All three are off by default.
 any single crew member, or **both**, which is the default. Know what "both" means in practice: you lose crew
 members far more often than you lose runs, so most of what you send will come from that half. If your
 multiworld finds it too noisy, `ship_destroyed` is the quiet setting.
+
+Deaths that come in a burst count once: when your last crew member dies and the run ends with them, the
+others receive one death, not two. The same goes for several crew members lost within ten seconds.
 
 Deaths you *receive* can never destroy your ship. Losing a run in FTL costs an hour, so a death link that
 outright killed you would turn the multiworld into a punishment. Your hull is never taken below 1 and your
@@ -156,8 +159,8 @@ Destroy the Flagship with several **different layouts**. Two ways to say which:
 - `victory_count`, the default: any number of layouts you like, five by default.
 - `victory_selection`: a list of layouts you name yourself, and only those.
 
-**Victory Difficulty** can ask for those wins on Normal or Hard: an easier win still sends its victory check, it
-just does not count towards the goal. **Archives** can add a second condition (see above).
+**Victory Difficulty** asks for those wins on Normal or Hard by default (Normal): an easier win still sends its
+victory check, it just does not count towards the goal. **Archives** can add a second condition (see above).
 
 A layout that your Ship Layouts option left out of the seed cannot count towards either.
 

@@ -22,10 +22,43 @@ function apBlueprintFamily(name)
     return nil
 end
 
-local function deliverEquipped(name, family)
+-- With weapon slots and cargo full, FTL puts an item in the "over capacity" box, and Hyperspace keeps a list
+-- of them. Going back to the main menu with a dozen there crashes the game. The box can't be read from Lua
+-- (Hyperspace counts it as cargo), so at most a few weapons and drones arrive per beacon; the box empties at
+-- each jump and the rest follow then.
+local PER_BEACON = 4
+local deliveredHere = 0
+
+-- The box also empties at each jump, and what is in it is lost: with the slots and the cargo hold full, an
+-- item waits for room instead.
+local CARGO_SLOTS = 4
+local CARGO_FULL = "weapon slots and cargo full"
+
+local function hasRoom(family)
+    local ok, room = pcall(function()
+        local player = Hyperspace.ships.player
+        local system = family == "weapon" and player.weaponSystem or player.droneSystem
+        if system ~= nil then
+            local held = family == "weapon" and system.weapons or system.drones
+            if held:size() < system.slot_count then
+                return true
+            end
+        end
+        return Hyperspace.App.gui.equipScreen:GetCargoHold():size() < CARGO_SLOTS
+    end)
+    return not ok or room
+end
+
+local function deliverEquipped(name, family, chosen)
     local equipment = Hyperspace.App.gui.equipScreen
     if equipment == nil then
         return nil, "equipment screen unavailable"
+    end
+    if deliveredHere >= PER_BEACON and not chosen then
+        return nil, "enough equipment for this beacon"
+    end
+    if not hasRoom(family) then
+        return nil, CARGO_FULL
     end
     local blueprints = Hyperspace.Blueprints
     if family == "weapon" then
@@ -33,7 +66,33 @@ local function deliverEquipped(name, family)
     else
         equipment:AddDrone(blueprints:GetDroneBlueprint(name), true, false)
     end
+    deliveredHere = deliveredHere + 1
     return name
+end
+
+script.on_internal_event(Defines.InternalEvents.JUMP_ARRIVE, function(shipManager)
+    if shipManager ~= nil and shipManager.iShipId == 0 then
+        deliveredHere = 0
+    end
+end)
+
+script.on_init(function()
+    deliveredHere = 0
+end)
+
+local AUGMENT_SLOTS = 3
+
+-- FTL holds three augments: with all three taken, the new one waits for a free slot instead of vanishing.
+local function augmentsAboard(player)
+    local ok, count = pcall(function()
+        local list = player:GetAugmentationList()
+        local n = 0
+        for i = 0, list:size() - 1 do
+            if tostring(list[i]):sub(1, 3) ~= "AP_" then n = n + 1 end
+        end
+        return n
+    end)
+    return ok and count or 0
 end
 
 local function deliverAugment(name)
@@ -41,11 +100,15 @@ local function deliverAugment(name)
     if player == nil then
         return nil, "no ship"
     end
+    if augmentsAboard(player) >= AUGMENT_SLOTS then
+        return nil, "no free augment slot"
+    end
     player:AddAugmentation(name)
     return name
 end
 
 function apDeliverEquipment(descriptor)
+    local queued = descriptor
     local name = descriptor.bp
     if name == nil or name == "" then
         equipLog("descriptor without a blueprint, ignored")
@@ -64,13 +127,14 @@ function apDeliverEquipment(descriptor)
     end
     if family ~= descriptor.kind then
         equipLog(string.format("kind corrected for %s: %s -> %s", name, descriptor.kind, family))
+        queued.kind = family
         descriptor = { kind = family, bp = name, display = descriptor.display,
             sender = descriptor.sender, silent = descriptor.silent }
     end
 
     local delivered, err
     if descriptor.kind == "weapon" or descriptor.kind == "drone" then
-        delivered, err = deliverEquipped(name, descriptor.kind)
+        delivered, err = deliverEquipped(name, descriptor.kind, descriptor.chosen)
     elseif descriptor.kind == "augment" then
         delivered, err = deliverAugment(name)
     else
@@ -78,12 +142,25 @@ function apDeliverEquipment(descriptor)
     end
 
     if delivered == nil then
-        equipLog("delivery deferred for " .. tostring(name) .. ": " .. tostring(err))
+        -- Retried every few seconds until it fits: say it once, not at each try.
+        if not queued.waiting then
+            queued.waiting = true
+            equipLog("delivery deferred for " .. tostring(name) .. ": " .. tostring(err))
+            local label = descriptor.display or (_G.apHumaniseId and _G.apHumaniseId(name)) or name
+            if descriptor.kind == "augment" and _G.apNotifyWaiting then
+                _G.apNotifyWaiting(label)
+            elseif err == CARGO_FULL and _G.apNotifyWaiting then
+                _G.apNotifyWaiting(label, "cargo")
+            end
+        end
         return false, "retry"
     end
 
     local label = descriptor.display or (_G.apHumaniseId and _G.apHumaniseId(name)) or tostring(name)
     equipLog("delivered: " .. name .. " (" .. descriptor.kind .. ")")
+    if not descriptor.chosen and _G.apShopCopyAboard then
+        apShopCopyAboard(name)
+    end
     if _G.apNotifyItem and not descriptor.silent then
         _G.apNotifyItem(label, descriptor.sender)
     end

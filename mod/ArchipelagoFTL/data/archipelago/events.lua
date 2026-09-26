@@ -145,6 +145,9 @@ local function writePackageChoices(event)
     if packages[2] ~= nil then
         offeredPackages.b = packages[2]
         setChoice(1, packages[2])
+    else
+        -- Only one package waiting: the second answer ships it too, so it says so instead of "the second one".
+        setChoice(1, packages[1])
     end
 end
 

@@ -330,9 +330,17 @@ test("a continued run keeps the seed it started with, not the one loaded now", f
     sim.startRun(false)
     equals(apSendCheck("shop:2", "shop"), false, "a run saved under another seed does not count")
 
+    apContractResetForTesting()
+    sim.startRun(true)
+    apApplySlotData({ contract = 2, kinds = { "filler" }, kinds_required = {}, items = {},
+                      loc = { ["shop:2"] = "Archipelago Shop 2" }, seed_hash = "second-seed" })
+    sim.startRun(false)
+    equals(apSendCheck("shop:2", "shop"), false, "nor does a run started with no seed at all")
+
+    apForgetChecksForTesting()
     sim.runVariables = {}
     sim.startRun(false)
-    equals(apSendCheck("shop:2", "shop"), false, "nor does a run saved with no seed at all")
+    equals(apSendCheck("shop:2", "shop"), false, "nor does a save with nothing written in it")
 end)
 
 test("a wrong slot name is reported as such, not later as a silent server", function()
@@ -345,4 +353,190 @@ test("a wrong slot name is reported as such, not later as a silent server", func
     check(shownKey("net.refused.slot"), "the slot is named as the problem")
     check(not shownKey("net.error.unreachable"), "and no 'server not answering' comes after it")
     apNetResetForTesting()
+end)
+
+test("a run that does not count keeps what it would use up for the next one", function()
+    _G.apRunStartCheckForTesting = nil
+    apContractResetForTesting()
+    apFillerResetForTesting()
+    apApplySlotData({ contract = 2, kinds = { "filler" }, kinds_required = {}, items = {}, loc = {},
+                      seed_hash = "old-run-seed" })
+    sim.startRun(true)
+    apContractResetForTesting()
+    apApplySlotData({ contract = 2, kinds = { "filler" }, kinds_required = {}, items = {}, loc = {},
+                      seed_hash = "new-seed" })
+    sim.startRun(false)
+    local scrapBefore = sim.player.currentScrap
+    apQueueItem({ kind = "filler", res = "scrap", n = 20, display = "20 Scrap" })
+    apDeliverPending()
+    equals(#apFillerPendingForTesting(), 1, "the scrap waits")
+    equals(sim.player.currentScrap, scrapBefore, "and is not spent on a run that counts for nothing")
+
+    sim.startRun(true)
+    apDeliverPending()
+    equals(#apFillerPendingForTesting(), 0, "a new run with the seed gets it")
+    apFillerResetForTesting()
+end)
+
+test("browsing ships in the hangar mid-game sends no DeathLink", function()
+    apDeathLinkConfigure({ enabled = true, trigger = "both", effect = "fire" })
+    local sent = 0
+    local restore = stub("apNetSendDeath", function() sent = sent + 1 return true end)
+    sim.startRun(true)
+    sim.tick(120)
+    sim.hangarOpen = true
+    for i = 0, sim.player.vCrewList:size() - 1 do
+        sim.player.vCrewList[i]._name = "Preview" .. i
+    end
+    sim.tick(120)
+    sim.hangarOpen = false
+    sim.startRun(true)
+    sim.tick(120)
+    restore()
+    equals(sent, 0, "the crew of another ship in the list is not a crew that died")
+
+    sent = 0
+    restore = stub("apNetSendDeath", function() sent = sent + 1 return true end)
+    sim.tick(120)
+    sim.player.vCrewList[0].bDead = true
+    sim.tick(120)
+    restore()
+    equals(sent, 1, "a real death during the run still goes out")
+    apDeathLinkConfigure({ enabled = false })
+end)
+
+test("the last crew member dying and the run ending send one DeathLink, not two", function()
+    apDeathLinkConfigure({ enabled = true, trigger = "both", effect = "fire" })
+    local sent = 0
+    local restore = stub("apNetSendDeath", function() sent = sent + 1 return true end)
+    sim.startRun(true)
+    sim.tick(700)
+    apDeathLinkCrewDied("Ruwen", "human")
+    apDeathLinkOnRunEnd("crew", "no living crew left")
+    equals(sent, 1, "one death for one event")
+    sim.tick(60 * 11)
+    apDeathLinkCrewDied("Grokk", "rock")
+    equals(sent, 2, "a later death goes out again")
+    restore()
+    apDeathLinkConfigure({ enabled = false })
+end)
+
+test("clearing the inventory really empties it", function()
+    _G.apInventory.ships = { "PLAYER_SHIP_ROCK", "PLAYER_SHIP_MANTIS" }
+    _G.apInventory.systemCaps = { shields = 4 }
+    apInventoryClear()
+    equals(#_G.apInventory.ships, 0, "no ship from the previous seed is left")
+    equals(_G.apInventory.systemCaps.shields, nil, "nor any system level")
+    _G.apInventory.ships[1] = "PLAYER_SHIP_ROCK"
+    apInventoryClear()
+    equals(#_G.apInventory.ships, 0, "and a second clear works as well as the first")
+end)
+
+test("a refusal the player answered is taken back once the seed goes through", function()
+    apContractResetForTesting()
+    apNotifyResetForTesting()
+    apApplySlotData({ contract = 99, kinds = {}, kinds_required = {}, items = {}, loc = {}, seed_hash = "too-new" })
+    local refused = false
+    for _, toast in ipairs(apToastsForTesting()) do
+        if toast.text:find(apT("contract.refused", { reason = "" }):sub(1, 12), 1, true) then refused = true end
+    end
+    check(refused, "the refusal is shown")
+    apApplySlotData({ contract = 2, kinds = { "filler" }, kinds_required = {}, items = {}, loc = {}, seed_hash = "fine" })
+    for _, toast in ipairs(apToastsForTesting()) do
+        check(not toast.text:find(apT("contract.refused", { reason = "" }):sub(1, 12), 1, true),
+              "and gone once a seed is accepted")
+    end
+end)
+
+test("the connection panel does not keep saying 'connected' after a later refusal", function()
+    apContractResetForTesting()
+    apConnectResetForTesting()
+    apNetResetForTesting()
+    sim.renderMenu()
+    sim.type("Tester")
+    apConnectNow()
+    sim.netEvent("connected", { name = "Tester", extra = {
+        contract = 2, kinds = { "filler" }, kinds_required = {}, items = {}, loc = {} } })
+    sim.net.connected = true
+    sim.tick(2)
+    sim.renderMenu()
+    equals(apConnectState().message, apT("net.connected", { slot = "Tester" }), "first the panel says connected")
+
+    sim.netEvent("connected", { name = "Tester", extra = {
+        contract = 99, kinds = { "filler" }, kinds_required = {}, items = {}, loc = {} } })
+    sim.tick(2)
+    sim.renderMenu()
+    check(apConnectState().message ~= apT("net.connected", { slot = "Tester" }),
+          "after the room's seed is refused, it no longer says connected")
+    apNetResetForTesting()
+    apContractResetForTesting()
+end)
+
+test("the answer to the seed question stays on the panel instead of the refusal", function()
+    apContractResetForTesting()
+    apConnectResetForTesting()
+    apNetResetForTesting()
+    sim.renderMenu()
+    apApplySlotData({ contract = 99, kinds = {}, kinds_required = {}, items = {}, loc = {}, seed_hash = "too-new" })
+    sim.renderMenu()
+    check(apConnectState().message ~= nil, "the refusal is shown once")
+    sim.type("")
+    apConnectNow()
+    sim.renderMenu()
+    sim.renderMenu()
+    equals(apConnectState().message, apT("connect.need_slot"),
+        "a later message (here: no slot name) is not written over by the old refusal")
+    apContractResetForTesting()
+end)
+
+test("switching to another slot of the same room still asks before keeping the ships", function()
+    apContractResetForTesting()
+    _G.apNetState.connected = true
+    local function room() return { contract = 2, kinds = { "filler" }, kinds_required = {}, items = {}, loc = {},
+                                   seed_hash = "ROOM" } end
+    check(apApplySlotData(room(), "First") ~= false, "first slot plays")
+    _G.apInventory = { ships = { "PLAYER_SHIP_MANTIS" }, shopAvailability = {} }
+    _G.apNetState.connected = true
+    apApplySlotData(room(), "Second")
+    check(apSeedChangeLeftovers(), "the second slot of the same room gets the question")
+    apSeedChangeAcknowledged()
+    _G.apNetState.connected = false
+end)
+
+test("links are off in solo, and a seed that does not mention them turns them off", function()
+    apContractResetForTesting()
+    apApplySlotData({ contract = 2, kinds = { "filler" }, kinds_required = {}, items = {}, loc = {},
+                      seed_hash = "linked", links = { death = { enabled = true }, energy = { enabled = true },
+                                                     trap = { enabled = true } } })
+    check(_G.apDeathLink.enabled and _G.apEnergyLink.enabled and _G.apTrapLink.enabled, "a linked seed turns them on")
+
+    apContractResetForTesting()
+    apApplySlotData({ contract = 2, kinds = { "filler" }, kinds_required = {}, items = {}, loc = {},
+                      seed_hash = "quiet" })
+    check(not _G.apDeathLink.enabled and not _G.apEnergyLink.enabled and not _G.apTrapLink.enabled,
+          "a seed without links does not inherit the previous one's")
+
+    apContractResetForTesting()
+    apApplySlotData({ contract = 2, kinds = { "filler" }, kinds_required = {}, items = {}, loc = {},
+                      seed_hash = "solo", links = { death = { enabled = true }, trap = { enabled = true } } },
+                    nil, true)
+    check(not _G.apDeathLink.enabled and not _G.apTrapLink.enabled, "solo keeps them off: there is no one to reach")
+end)
+
+test("the whole crew boarding the enemy is not a lost run", function()
+    local ended = nil
+    local restore = stub("apOnRunEnd", function(cause) ended = cause end)
+    sim.startRun(true)
+    sim.tick(30)
+    sim.enemy = sim.makeShip(1)
+    local away = {}
+    for i = 0, sim.player.vCrewList:size() - 1 do
+        away[#away + 1] = sim.player.vCrewList[i]
+    end
+    sim.player.vCrewList = sim.vector({})
+    sim.enemy.vCrewList = sim.vector(away)
+    sim.tick(120)
+    restore()
+    sim.enemy = nil
+    equals(ended, nil, "the run goes on while the crew is aboard the enemy")
 end)

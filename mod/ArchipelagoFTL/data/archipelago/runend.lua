@@ -22,13 +22,18 @@ local function declareEnd(cause, detail)
     apOnRunEnd(cause, detail)
 end
 
+-- Our crew away on the enemy ship sits in the enemy's list: the whole crew boarding is not the whole crew dying.
 local function countRealCrew(shipManager)
     local alive = 0
-    local crewList = shipManager.vCrewList
-    for i = 0, crewList:size() - 1 do
-        local crew = crewList[i]
-        if crew ~= nil and crew:CountForVictory() and crew.iShipId == 0 then
-            alive = alive + 1
+    for _, ship in ipairs({ shipManager, Hyperspace.ships.enemy }) do
+        local crewList = ship and ship.vCrewList
+        if crewList ~= nil then
+            for i = 0, crewList:size() - 1 do
+                local crew = crewList[i]
+                if crew ~= nil and crew:CountForVictory() and crew.iShipId == 0 then
+                    alive = alive + 1
+                end
+            end
         end
     end
     return alive

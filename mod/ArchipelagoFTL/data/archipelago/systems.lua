@@ -44,6 +44,21 @@ _G.apSystemCap = allowedCap
 local capWarned = {}
 
 local startingPower = {}
+local fromSave = false
+
+-- The level a system had when the run began is kept in the run's save: after Continue, the current level
+-- already includes what was bought, and counting it as the start would raise the cap at every reload.
+local function recordedStart(name)
+    local ok, value = pcall(function() return Hyperspace.playerVariables["ap_start_" .. name] end)
+    if ok and type(value) == "number" and value > 0 then
+        return value
+    end
+    return nil
+end
+
+local function recordStart(name, level)
+    pcall(function() Hyperspace.playerVariables["ap_start_" .. name] = level end)
+end
 
 local function applyCap(system)
     local name = systemName(system)
@@ -67,7 +82,12 @@ local function applyCap(system)
     end
 
     if startingPower[name] == nil then
-        startingPower[name] = current
+        if fromSave then
+            startingPower[name] = recordedStart(name) or 1
+        else
+            startingPower[name] = current
+            recordStart(name, current)
+        end
     end
     local base = startingPower[name] or 1
 
@@ -357,8 +377,10 @@ script.on_init(function(newGame)
     startingPower = {}
     startingSystems = {}
     purchaseGuardArmed = false
-    apApplySystemRules()
-    if newGame then
+    -- A continued run's variables are loaded after on_init: its caps wait for the next tick.
+    fromSave = newGame == false
+    if not fromSave then
+        apApplySystemRules()
         applyStartingUpgrades()
         apApplySystemRules()
     end
@@ -368,6 +390,14 @@ local capDivider = 0
 script.on_internal_event(Defines.InternalEvents.ON_TICK, function()
     processRefusals()
     recordScrap()
+
+    -- A continued run may reload at a store: its systems are all built by now, so the guard goes on at once
+    -- instead of waiting for a jump that would let a purchase through.
+    if fromSave and not purchaseGuardArmed and inRun() then
+        purchaseGuardArmed = true
+        sysLog("anti-purchase guard armed (continued run)")
+        apApplySystemRules()
+    end
 
     capDivider = (capDivider + 1) % 60
     if capDivider == 0 then

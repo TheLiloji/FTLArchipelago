@@ -22,8 +22,59 @@ end)
 
 test("start-of-run menu: not when resuming a saved game", function()
     catalog({ LASER_BURST_3 = 2 })
+    sim.runVariables = {}
     sim.startRun(false)
     check(not menuShown(), "a resumed game keeps what it had already taken")
+end)
+
+test("start-of-run menu: back after quitting to the main menu before choosing", function()
+    catalog({ LASER_BURST_3 = 2, BEAM_2 = 2 }, { { race = "energy" } })
+    sim.startRun(true)
+    menuShown()
+    local before = sim.delivered()
+    sim.click(apLoadoutPoint("row", "weapon", 1))
+    sim.startRun(false)
+    check(menuShown(), "the menu comes back on Continue")
+    sim.click(apLoadoutPoint("row", "weapon", 2))
+    equals(sim.delivered(), before + 1, "the weapon already taken still counts")
+    local crew = sim.player.vCrewList:size()
+    sim.click(apLoadoutPoint("row", "crew", 1))
+    equals(sim.player.vCrewList:size(), crew + 1, "the crew member can still be taken")
+end)
+
+test("start-of-run menu: back even if the game was quit before it could show", function()
+    catalog({ LASER_BURST_3 = 2 })
+    sim.pauseOpen = true
+    sim.startRun(true)
+    check(not menuShown(), "hidden while the game is paused")
+    sim.pauseOpen = false
+    sim.startRun(false)
+    check(menuShown(), "the menu shows on Continue")
+end)
+
+test("start-of-run menu: not reopened on a run from another seed", function()
+    _G.apRunStartCheckForTesting = nil
+    apContractResetForTesting()
+    apApplySlotData({ contract = 2, kinds = { "filler" }, kinds_required = {}, items = {}, loc = {},
+                      seed_hash = "loadout-first" })
+    sim.startRun(true)
+    apContractResetForTesting()
+    apApplySlotData({ contract = 2, kinds = { "filler" }, kinds_required = {}, items = {}, loc = {},
+                      seed_hash = "loadout-second" })
+    catalog({ LASER_BURST_3 = 2 })
+    sim.startRun(false)
+    check(not menuShown(), "the run belongs to the first seed: no menu from the second")
+    _G.apRunStartCheckForTesting = false
+    check(menuShown(), "it is only waiting for a run that counts")
+end)
+
+test("start-of-run menu: closed for good once the run has jumped", function()
+    catalog({ LASER_BURST_3 = 2 })
+    sim.startRun(true)
+    menuShown()
+    sim.jumpArrive()
+    sim.startRun(false)
+    check(not menuShown(), "no menu after Continue")
 end)
 
 test("start-of-run menu: nothing to offer, nothing on screen", function()
@@ -171,4 +222,39 @@ test("progressive crew member: tier 2 in the menu, tier 3 the expert replaces th
     local recruit = sim.player.vCrewList[sim.player.vCrewList:size() - 1]
     equals(sim.player.vCrewList:size(), before + 1, "the click brings them aboard")
     equals(recruit.maitrises[1], 2, "with shields mastered")
+end)
+
+test("menu: the goal box steps aside while a question is open", function()
+    applySeed({ goal = { kind = "victories", count = 3 } })
+    local restore = stub("apConnectQuestionOpen", function() return true end)
+    sim.renderMenu()
+    restore()
+    check(not sim.drawnText(apT("hud.goal", { n = 3 })), "no goal drawn over the question")
+    sim.renderMenu()
+    check(sim.drawnText(apT("hud.goal", { n = 3 })), "and it is back once the question is answered")
+end)
+
+test("start-of-run menu: behind the pause menu it does not catch clicks", function()
+    catalog({ LASER_BURST_3 = 2, BEAM_2 = 2 })
+    sim.startRun(true)
+    menuShown()
+    local before = sim.delivered()
+    sim.pauseOpen = true
+    sim.click(apLoadoutPoint("row", "weapon", 1))
+    sim.pauseOpen = false
+    equals(sim.delivered(), before, "a click meant for the pause menu gives nothing")
+    sim.click(apLoadoutPoint("row", "weapon", 1))
+    equals(sim.delivered(), before + 1, "once the pause menu is closed, the click works again")
+end)
+
+test("start-of-run menu: works in solo mode too", function()
+    _G.apRunStartCheckForTesting = nil
+    check(apSoloStart(true), "solo mode starts")
+    catalog({ LASER_BURST_3 = 2 })
+    sim.startRun(true)
+    check(menuShown(), "a new run in solo gets the menu")
+    sim.startRun(false)
+    check(menuShown(), "and keeps it on Continue")
+    apSoloStop()
+    _G.apRunStartCheckForTesting = false
 end)

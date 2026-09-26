@@ -127,7 +127,9 @@ local function acceptReset()
     _G.apSoloPending = false
     local autoBefore = autoActive()
     local done = _G.apNetRequestProfileReset and _G.apNetRequestProfileReset()
-    if done and _G.apNetForgetProgress then _G.apNetForgetProgress() end
+    if done and _G.apNetForgetProgress then
+        _G.apNetForgetProgress(_G.apSeedChangeFingerprint and apSeedChangeFingerprint() or nil)
+    end
     if done and solo and _G.apSoloForgetProgress then _G.apSoloForgetProgress(true) end
     if autoBefore and _G.apNetRemember then _G.apNetRemember(AUTO_KEY, 1) end
     if _G.apSeedChangeAcknowledged then _G.apSeedChangeAcknowledged() end
@@ -329,16 +331,31 @@ local function resumeLast()
     end
 end
 
+local connectedMessage = nil
+local shownRefusal = nil
+
 local function followAttempt()
+    local contract = _G.apContractState
+    -- A reconnection happens without a click: its outcome must replace a "connected" left from before.
     if attempt == nil then
+        local refusal = contract ~= nil and contract.refusal or nil
+        -- Shown once when it appears, so the answers to the question that follows are not written over.
+        if refusal ~= nil and refusal ~= shownRefusal then
+            message, messageTone = apT("contract.refused", { reason = refusal }), "warn"
+        elseif connectedMessage ~= nil and message == connectedMessage
+            and not (_G.apNetConnected and _G.apNetConnected()) then
+            message, messageTone, connectedMessage = nil, "dim", nil
+        end
+        shownRefusal = refusal
         return
     end
-    local contract = _G.apContractState
     if contract ~= nil and contract.refusal ~= nil then
         message, messageTone = apT("contract.refused", { reason = contract.refusal }), "warn"
+        shownRefusal = contract.refusal
         attempt = nil
     elseif _G.apNetConnected and _G.apNetConnected() and contract ~= nil and contract.connected then
         message, messageTone = apT("net.connected", { slot = attempt.slot }), "good"
+        connectedMessage = message
         attempt = nil
     elseif _G.apNetState ~= nil and _G.apNetState.refusal ~= nil then
         message, messageTone = _G.apNetState.refusal, "warn"
@@ -352,14 +369,18 @@ end
 function apConnectNow()
     local values = {}
     for _, field in ipairs(FIELDS) do values[field.key] = field.value end
+    -- Slot names can hold spaces, but not at either end: a stray one would only make the server refuse.
+    values.uri = values.uri:match("^%s*(.-)%s*$"):gsub("/+$", "")
+    values.slot = values.slot:match("^%s*(.-)%s*$")
 
     if values.slot == "" then
         message, messageTone = apT("connect.need_slot"), "warn"
         return false
     end
 
+    -- The room page shows "archipelago.gg:54321": pasted whole into the address, its port wins over the field.
     local address = values.uri
-    if values.port ~= "" then
+    if values.port ~= "" and not address:match(":%d+$") then
         address = address .. ":" .. values.port
     end
 
@@ -404,12 +425,17 @@ function apConnectState()
 end
 
 local WITH_SHIFT = {
+    [Defines.SDL.KEY_SPACE] = " ",
     [Defines.SDL.KEY_SEMICOLON] = ":",
     [Defines.SDL.KEY_MINUS] = "_",
     [Defines.SDL.KEY_SLASH] = "?",
     [Defines.SDL.KEY_PERIOD] = ">",
 }
 local WITHOUT_SHIFT = {
+    [Defines.SDL.KEY_SPACE] = " ",
+    [Defines.SDL.KEY_COLON] = ":",
+    [Defines.SDL.KEY_KP_PERIOD] = ".",
+    [Defines.SDL.KEY_KP_MINUS] = "-",
     [Defines.SDL.KEY_PERIOD] = ".",
     [Defines.SDL.KEY_MINUS] = "-",
     [Defines.SDL.KEY_SLASH] = "/",
@@ -423,6 +449,9 @@ local function character(key)
     end
     if key >= Defines.SDL.KEY_0 and key <= Defines.SDL.KEY_9 then
         return string.char(key)
+    end
+    if key >= Defines.SDL.KEY_KP0 and key <= Defines.SDL.KEY_KP9 then
+        return tostring(key - Defines.SDL.KEY_KP0)
     end
     local keyMap = shiftHeld and WITH_SHIFT or WITHOUT_SHIFT
     return keyMap[key]
@@ -465,6 +494,11 @@ script.on_internal_event(Defines.InternalEvents.ON_KEY_DOWN, function(key)
     local c = character(key)
     if c ~= nil then
         local field = FIELDS[focus]
+        -- On a French keyboard the dot is Shift and the ";" key, which reads as ":" here. An address has no
+        -- use for a colon (the port has its own field), so there it is a dot.
+        if field.key == "uri" and c == ":" and key == Defines.SDL.KEY_SEMICOLON then
+            c = "."
+        end
         if field.digitsOnly and not c:match("%d") then
             return Defines.Chain.PREEMPT
         end

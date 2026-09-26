@@ -34,8 +34,9 @@ local function refuse(reason)
     state.refusal = reason
     state.connected = false
     contractLog("SEED REFUSED: " .. reason)
+    state.refusalToast = apT("contract.refused", { reason = reason })
     if _G.apNotifyStatus then
-        _G.apNotifyStatus(apT("contract.refused", { reason = reason }))
+        _G.apNotifyStatus(state.refusalToast)
     end
     return false
 end
@@ -86,12 +87,20 @@ function apApplySlotData(slotData, slotName, solo)
         end
     end
 
-    if seedsDifferent(state.identity, identity) then
+    -- After a disconnect the seed is unloaded, but its items are still in memory: compare with it too.
+    local before = state.identity or state.lastIdentity
+    if seedsDifferent(before, identity) then
         contractLog(string.format("seed change: %s/%s -> %s/%s",
-            tostring(state.identity.hash), tostring(state.identity.slot),
+            tostring(before.hash), tostring(before.slot),
             tostring(identity.hash), tostring(identity.slot)))
-        state.seedChangedWithUnlocks = #((_G.apInventory or {}).ships or {}) > 0
-            or (_G.apCheckCount and (_G.apCheckCount().sent or 0) > 0) or false
+        -- On a server or in solo the fingerprint check above already asked the player; asking again after
+        -- they answered would put the same question back up.
+        local slotChanged = before.slot ~= nil and identity.slot ~= nil
+            and before.slot ~= identity.slot
+        if not (onServer or solo) or slotChanged then
+            state.seedChangedWithUnlocks = #((_G.apInventory or {}).ships or {}) > 0
+                or (_G.apCheckCount and (_G.apCheckCount().sent or 0) > 0) or false
+        end
 
         if _G.apChecksForgetSeed then pcall(_G.apChecksForgetSeed) end
         if _G.apInventoryClear then pcall(_G.apInventoryClear) end
@@ -106,7 +115,9 @@ function apApplySlotData(slotData, slotName, solo)
         slot = identity.slot or (state.identity and state.identity.slot) or nil,
     }
 
+    local earlierRefusal = state.refusalToast
     state.refusal = nil
+    state.refusalToast = nil
     state.unknownItems = 0
     state.unknownKinds = {}
 
@@ -164,9 +175,6 @@ function apApplySlotData(slotData, slotName, solo)
         state.locKeys[name] = key
     end
 
-    if _G.apInventory then
-        _G.apInventory.shopAvailability = {}
-    end
 
     local failed = {}
     local function configure(name, fn, arg)
@@ -184,17 +192,17 @@ function apApplySlotData(slotData, slotName, solo)
             _G.apShopSlotCount = math.floor(slotData.shop.slots)
         end
     end
-    local links = slotData.links or {}
-    if links.death and _G.apDeathLinkConfigure then
-        configure("DeathLink", _G.apDeathLinkConfigure, links.death)
+    -- Solo has no one to share with, and a link the seed does not mention must not stay on from the last seed.
+    local links = solo and {} or (slotData.links or {})
+    local off = { enabled = false }
+    if _G.apDeathLinkConfigure then
+        configure("DeathLink", _G.apDeathLinkConfigure, links.death or off)
     end
-    if links.energy and _G.apEnergyLinkConfigure then
-        configure("EnergyLink", _G.apEnergyLinkConfigure, links.energy)
+    if _G.apEnergyLinkConfigure then
+        configure("EnergyLink", _G.apEnergyLinkConfigure, links.energy or off)
     end
-    if links.trap then
-        _G.apTrapLink = _G.apTrapLink or {}
-        _G.apTrapLink.enabled = links.trap.enabled == true
-    end
+    _G.apTrapLink = _G.apTrapLink or {}
+    _G.apTrapLink.enabled = links.trap ~= nil and links.trap.enabled == true
 
     local descriptorCount = 0
     for _ in pairs(state.itemDescriptors) do
@@ -204,6 +212,13 @@ function apApplySlotData(slotData, slotName, solo)
     state.connected = true
     contractLog(string.format("seed accepted: contract %d, %d item descriptor(s)",
         contract, descriptorCount))
+    if earlierRefusal ~= nil and _G.apNotifyWithdraw then
+        _G.apNotifyWithdraw(earlierRefusal)
+    end
+    state.refusal = nil
+    if not solo and _G.apSoloLeave then
+        _G.apSoloLeave()
+    end
 
     if #failed > 0 then
         if _G.apNotifyStatus then
@@ -220,6 +235,11 @@ local function announceLostItem(itemName)
 end
 
 function apReceiveItem(itemName, sender, isReplay, index)
+    -- A refused seed still sends its items; they come again once it is accepted.
+    if state.refusal ~= nil then
+        contractLog("item ignored, the seed is refused: " .. tostring(itemName))
+        return false
+    end
     local descriptor = state.itemDescriptors[itemName]
     if descriptor == nil then
         state.unknownItems = state.unknownItems + 1
@@ -387,12 +407,15 @@ function apContractResetForTesting()
     state.seedName = nil
     state.options = {}
     state.identity = nil
+    state.lastIdentity = nil
     state.systemCapsActive = true
     state.blueprintsActive = true
 end
 
 function apContractUnload()
+    local identity = state.identity or state.lastIdentity
     apContractResetForTesting()
+    state.lastIdentity = identity
     contractLog("seed unloaded")
 end
 

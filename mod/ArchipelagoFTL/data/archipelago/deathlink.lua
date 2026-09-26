@@ -27,6 +27,7 @@ local state = {
     received = 0,
     ignored = 0,
     knownCrew = nil,
+    dying = {},
     applying = false,
 }
 
@@ -65,6 +66,8 @@ local function inGracePeriod()
     return (state.ticks - state.lastReceivedAt) < grace
 end
 
+local SEND_COOLDOWN_SECONDS = 10
+
 function apDeathLinkSend(cause)
     local config = _G.apDeathLink
     if not config.enabled then
@@ -78,6 +81,12 @@ function apDeathLinkSend(cause)
     if inGracePeriod() then
         state.ignored = state.ignored + 1
         deathLog("death not sent: grace period active")
+        return false
+    end
+    -- The last crew member dying also ends the run: one event, so the others die once.
+    if state.lastSentAt ~= nil and state.ticks - state.lastSentAt < SEND_COOLDOWN_SECONDS * TICKS_PER_SECOND then
+        state.ignored = state.ignored + 1
+        deathLog("death not sent: one already went out a moment ago (" .. tostring(cause) .. ")")
         return false
     end
 
@@ -290,26 +299,51 @@ function apDeathLinkReceive(source, cause)
     return true
 end
 
-local function livingCrewNames()
-    local names = {}
+-- Repair and boarding drones walk the ship like crew: switched off or shot down, they are not a death.
+local function isDrone(member)
+    local ok, drone = pcall(function() return member:IsDrone() end)
+    return ok and drone == true
+end
+
+-- Our crew on both ships: the living by name, and those already marked dead.
+local function livingCrew()
+    local living, dead = {}, {}
     for _, ship in ipairs({ Hyperspace.ships.player, Hyperspace.ships.enemy }) do
         if ship ~= nil then
             local crew = ship.vCrewList
             for i = 0, crew:size() - 1 do
                 local member = crew[i]
-                if member ~= nil and member.iShipId == 0 and not member.bDead then
-                    local name = member.GetName and member:GetName() or ("crew" .. i)
-                    names[tostring(name)] = member.species or "crew"
+                if member ~= nil and member.iShipId == 0 and not isDrone(member) then
+                    local name = tostring(member.GetName and member:GetName() or ("crew" .. i))
+                    local health = member.health and tonumber(member.health.first) or 1
+                    if member.bDead then
+                        dead[name] = health
+                    else
+                        living[name] = { species = member.species or "crew", health = health }
+                    end
                 end
             end
         end
     end
-    return names
+    return living, dead
 end
 
+local CREW_SCREEN_SECONDS = 2
+
+-- A crew member who dies lies a few seconds at zero health before FTL marks them dead. One dismissed from
+-- the crew screen is marked dead at once, without that moment: the player's choice, not a death. An event
+-- can also kill at once, so it only counts as dismissed with the crew screen just shown.
+local function dismissed(name, dead)
+    local crewScreenRecent = state.crewScreenAt ~= nil
+        and state.ticks - state.crewScreenAt <= CREW_SCREEN_SECONDS * TICKS_PER_SECOND
+    return crewScreenRecent and dead[name] ~= nil and dead[name] <= 0 and not state.dying[name]
+end
+
+-- The hangar keeps bStartedGame on while you browse ships, and each ship shown comes with its own crew.
 local function runInProgress()
     local ok, started = pcall(function()
-        return Hyperspace.App.world.bStartedGame
+        local app = Hyperspace.App
+        return app.world.bStartedGame == true and app.menu.shipBuilder.bOpen ~= true
     end)
     return ok and started == true
 end
@@ -325,17 +359,25 @@ local function sampleCrew()
         return
     end
 
-    local ok, current = pcall(livingCrewNames)
+    local ok, current, dead = pcall(livingCrew)
     if not ok then
         return
     end
 
     if state.knownCrew ~= nil then
-        for name, species in pairs(state.knownCrew) do
+        for name, last in pairs(state.knownCrew) do
             if current[name] == nil then
-                apDeathLinkCrewDied(name, species)
+                if dismissed(name, dead) then
+                    deathLog(tostring(name) .. " was dismissed: no DeathLink")
+                else
+                    apDeathLinkCrewDied(name, last.species)
+                end
+                state.dying[name] = nil
             end
         end
+    end
+    for name, member in pairs(current) do
+        state.dying[name] = member.health <= 0 or nil
     end
     state.knownCrew = current
 end
@@ -358,8 +400,19 @@ script.on_internal_event(Defines.InternalEvents.ON_TICK, function()
     end
 end)
 
+if Defines.RenderEvents.TABBED_WINDOW ~= nil then
+    script.on_render_event(Defines.RenderEvents.TABBED_WINDOW, function() end, function(tab)
+        if tab == "crew" then
+            state.crewScreenAt = state.ticks
+        end
+    end)
+end
+
 script.on_init(function()
     state.knownCrew = nil
+    state.dying = {}
+    state.crewScreenAt = nil
+    state.lastSentAt = nil
     state.lastReceivedAt = nil
 end)
 

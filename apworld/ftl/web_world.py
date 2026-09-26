@@ -4,6 +4,7 @@ from BaseClasses import Tutorial
 from worlds.AutoWorld import WebWorld
 
 from .options import ftl_option_groups
+from .presets import OPTIONS_PRESETS
 
 
 class FTLWeb(WebWorld):
@@ -12,6 +13,8 @@ class FTLWeb(WebWorld):
     rich_text_options_doc = True
 
     option_groups = ftl_option_groups
+
+    options_presets = OPTIONS_PRESETS
 
     setup_en = Tutorial(
         "Multiworld Setup Guide",

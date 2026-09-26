@@ -27,11 +27,11 @@ def vanilla_data() -> tuple[Path | None, str]:
     cache = root / f"{stat.st_size}-{int(stat.st_mtime)}"
     if (cache / "data").is_dir():
         return cache / "data", ""
-    if shutil.which("ftlman") is None:
+    if shutil.which(os.environ.get("FTLMAN", "ftlman")) is None:
         return None, "ftlman not found"
     root.mkdir(parents=True, exist_ok=True)
     work = Path(tempfile.mkdtemp(dir=root, prefix="partial-"))
-    result = subprocess.run(["ftlman", "extract", str(work), str(source)],
+    result = subprocess.run([os.environ.get("FTLMAN", "ftlman"), "extract", str(work), str(source)],
                             capture_output=True, text=True)
     if result.returncode != 0 or not (work / "data").is_dir():
         shutil.rmtree(work, ignore_errors=True)

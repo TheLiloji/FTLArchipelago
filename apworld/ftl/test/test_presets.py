@@ -224,3 +224,23 @@ class TestPresetsDoNotPromiseWhatTheyCannotDeliver(TestCase):
                     if options.get(cursor) == "required"
                 ]
                 self.assertTrue(locked, f"{name} locks no system")
+
+
+class TestOptionsPagePresets(TestCase):
+    def test_the_options_page_offers_the_same_presets_as_the_files(self) -> None:
+        from ..presets import OPTIONS_PRESETS, PRESET_FILES
+
+        self.assertEqual(sorted(PRESET_FILES.values()), sorted(p.name for p in PRESETS.glob("*.yaml")))
+        for label, name in PRESET_FILES.items():
+            with self.subTest(preset=name):
+                self.assertEqual(OPTIONS_PRESETS[label], load(name))
+
+    def test_every_preset_value_is_a_valid_option(self) -> None:
+        from ..presets import OPTIONS_PRESETS
+
+        options = FTLWorld.options_dataclass.type_hints
+        for label, values in OPTIONS_PRESETS.items():
+            for key, value in values.items():
+                with self.subTest(preset=label, option=key):
+                    self.assertIn(key, options)
+                    options[key].from_any(value)

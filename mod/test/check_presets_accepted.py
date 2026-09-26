@@ -132,7 +132,7 @@ def main() -> int:
         script = handle.name
 
     result = subprocess.run(
-        ["ftlman", "lua-run", script], capture_output=True, text=True,
+        [os.environ.get("FTLMAN", "ftlman"), "lua-run", script], capture_output=True, text=True,
     )
     output = "\n".join(
         line for line in result.stdout.splitlines() + result.stderr.splitlines()
