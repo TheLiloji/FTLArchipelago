@@ -94,9 +94,9 @@ arrives during a run you are about to lose is not wasted, because it makes the n
 
 ## Archives
 
-A second currency, off by default. Turn **Archives** up and that many Archipelago Archives are
-scattered through the other players' worlds. **Archives Required** says how many of them the
-Flagship waits for: set 50 and 40, and ten of them are slack you never have to chase. Beating the
+A second currency: by default 12 Archipelago Archives are scattered through the other players' worlds, and
+10 of them are needed (**Archives** and **Archives Required**, 0 turns them off). The two spare ones are slack you
+never have to chase. Beating the
 boss five times is no longer enough on its own - you also have to wait for, and trade for, the
 pieces other people are sitting on.
 
@@ -159,8 +159,8 @@ Destroy the Flagship with several **different layouts**. Two ways to say which:
 - `victory_count`, the default: any number of layouts you like, five by default.
 - `victory_selection`: a list of layouts you name yourself, and only those.
 
-**Victory Difficulty** can ask for those wins on Normal or Hard: an easier win still sends its victory check, it
-just does not count towards the goal. **Archives** can add a second condition (see above).
+**Victory Difficulty** asks for those wins on Normal or Hard by default (Normal): an easier win still sends its
+victory check, it just does not count towards the goal. **Archives** can add a second condition (see above).
 
 A layout that your Ship Layouts option left out of the seed cannot count towards either.
 

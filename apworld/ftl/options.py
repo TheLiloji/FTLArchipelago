@@ -15,9 +15,14 @@ from Options import (
     Range,
     StartInventoryPool,
     Toggle,
+    Visibility,
 )
 
 from . import data
+
+
+# Kept out of the Options Creator and the simple options page: still in the YAML and the advanced page.
+EXPERT = Visibility.template | Visibility.complex_ui | Visibility.spoiler
 
 
 def _option_key(display: str) -> str:
@@ -27,12 +32,12 @@ def _option_key(display: str) -> str:
 class Goal(Choice):
     """What finishes your game.
 
-    victory_count: destroy the Flagship with any Victories Required different ship layouts.
-    victory_selection: destroy the Flagship with each of the layouts you listed in Victory
-    Layouts, and only those.
+    victory_count: beat the Flagship with Victories Required different ships.
+    victory_selection: beat the Flagship with each ship listed in Victory Layouts.
     """
 
     display_name = "Goal"
+    visibility = EXPERT
     option_victory_count = 0
     option_victory_selection = 1
     alias_ship_win_count = option_victory_count
@@ -41,11 +46,9 @@ class Goal(Choice):
 
 
 class VictoriesRequired(Range):
-    """How many different ship layouts you must defeat the Flagship with.
+    """How many times you must beat the Flagship to finish, each time with a different ship.
 
-    Only used when Goal is victory_count. Layouts that your Ship Layouts option leaves out of
-    the seed cannot be used for this, so generation fails if you ask for more victories than
-    there are layouts in the multiworld.
+    5 is a good length when you play with friends.
     """
 
     display_name = "Victories Required"
@@ -61,52 +64,45 @@ _LAYOUT_SHORT_NAMES: dict[str, data.Layout] = {
 
 
 class VictoryDifficulty(Choice):
-    """The difficulty a victory must be played on to count towards the goal.
+    """The lowest difficulty a victory must be played on to count for your goal.
 
-    any: every victory counts, whatever difficulty you flew on.
-    normal: easy runs still send their check, but only Normal and Hard count for the goal.
-    hard: only Hard counts.
+    any: every victory counts, even on Easy.
+    normal: Normal or Hard. Recommended.
+    hard: only Hard.
 
-    The mod enforces this when you beat the Flagship: it reads the difficulty of the run. The
-    victory check is always sent - it is a location like any other - but a run below the bar does
-    not bring you closer to the goal.
+    An easier victory still sends its check, it just does not count for the goal.
     """
 
     display_name = "Victory Difficulty"
     option_any = 0
     option_normal = 1
     option_hard = 2
-    default = option_any
+    default = option_normal
 
 
 class Archives(Range):
-    """How many Archipelago Archives exist in the multiworld.
+    """How many Archives are hidden in the other players' worlds.
 
-    Archives are a second currency, in the spirit of Tunic's golden trophies: they are items like
-    any other, scattered through the other players' worlds, and the Flagship is not enough on its
-    own. Set 0 to play without them - victories alone finish the seed.
-
-    You do not need all of them: "Archives Required" says how many finish the seed. The extras are
-    slack, so a single unlucky placement cannot strand the goal.
+    Archives are items you need on top of your victories to finish. They make the game depend a bit
+    more on the others. 0 plays without them.
     """
 
     display_name = "Archives"
     range_start = 0
     range_end = data.MAX_ARCHIVES
-    default = 0
+    default = 12
 
 
 class ArchivesRequired(Range):
-    """How many Archives your goal asks for.
+    """How many Archives you need to finish.
 
-    Higher than the number that exist is lowered to it. Equal to it means every single Archive is
-    required, which is the harshest setting: one Archive behind a long chain gates the whole seed.
+    Keep it a little lower than Archives, so one Archive in a bad place cannot block you.
     """
 
     display_name = "Archives Required"
     range_start = 0
     range_end = data.MAX_ARCHIVES
-    default = 0
+    default = 10
 
 
 class VictoryLayouts(OptionSet):
@@ -128,6 +124,7 @@ class VictoryLayouts(OptionSet):
     )
 
     display_name = "Victory Layouts"
+    visibility = EXPERT
     valid_keys = sorted({*_LAYOUT_BY_DISPLAY, *_LAYOUT_SHORT_NAMES})
     default = frozenset()
 
@@ -143,14 +140,8 @@ StartShip = type(
         "__module__": __name__,
         "__qualname__": "StartShip",
         "__doc__": (
-            "Which ship you begin the multiworld with. Its key is handed to you for free.\n\n"
-            "    The Kestrel Cruiser is always unlocked on top of your choice: FTL grants it to "
-            "every profile and no mod can take it away.\n\n"
-            "    Only the Type A layout comes with the key; Type B and Type C follow your "
-            "Layout Unlocks option like any other ship's.\n\n"
-            "    If a blueprint logic option would lock a ship you are given for free, you "
-            "start with that blueprint too, whatever you set the option to. Otherwise there "
-            "would be nothing left to fly."
+            "The ship you start with. The Kestrel Cruiser is always unlocked too.\n\n"
+            "    You get the Type A layout; Type B and C are found like the other ships'."
         ),
         "display_name": "Starting Ship",
         "default": _START_SHIP_DEFAULT.slot,
@@ -161,11 +152,11 @@ StartShip = type(
 
 
 class ShipLayouts(Choice):
-    """Which ship layouts take part in the multiworld.
+    """Every ship has up to three layouts (Type A, B and C). Which ones are in the game.
 
-    type_a_only: only the Type A layout of every ship. The smallest, fastest seed.
-    up_to_type_b: Type A and Type B layouts.
-    all_layouts: every playable layout, Type C included.
+    type_a_only: only Type A. A smaller game.
+    up_to_type_b: Type A and B.
+    all_layouts: all of them. The biggest game.
     """
 
     display_name = "Ship Layouts"
@@ -190,14 +181,11 @@ class LayoutUnlocks(Choice):
 
 
 class Sectorsanity(Choice):
-    """Whether reaching a sector with a given layout is a check.
+    """Reaching a sector with a ship sends a check. Most checks come from here.
 
-    disabled: no sector checks at all. Expect a small seed.
-    milestones: only the two sectors FTL itself celebrates, sector 5 and sector 8.
-    full: every sector from 1 to 8, for every layout in the seed. This is where most of the
-    checks live.
-
-    Use Sectorsanity First Sector to drop the shallow sectors without losing the deep ones.
+    disabled: never.
+    milestones: only sectors 5 and 8.
+    full: every sector. First and Last Sector, in the advanced options, set the range.
     """
 
     display_name = "Sectorsanity"
@@ -245,11 +233,8 @@ class SectorsanityLastSector(Range):
 
 
 class CrewChecks(DefaultOnToggle):
-    """One check the first time each race joins your crew during a run: Human, Engi, Zoltan, Mantis,
-    Rock, Slug and Lanius.
-
-    The crew you start a run with does not count: the check fires when someone new comes aboard, from
-    an event, a store or a rescue. Crystal crew are left out, they only come from a rare secret quest.
+    """The first crew member of each race to join you sends a check: Human, Engi, Zoltan,
+    Mantis, Rock, Slug and Lanius. 7 checks.
     """
 
     display_name = "Crew Checks"
@@ -269,14 +254,11 @@ class CrewMembers(DefaultOnToggle):
 
 
 class Systemsanity(Choice):
-    """Whether installing and upgrading a system is a check.
+    """Installing a system sends a check.
 
-    "First install" gives one check per system, sixteen in all: the run where you finally buy
-    Cloaking pays for itself. "Every level" adds one check per level of every system, sixty-eight
-    in all - a much longer seed, and one where every upgrade you buy sends something out.
-
-    Logic follows the game: a system you do not start with needs its blueprint first, and a level
-    needs enough Progressive upgrades for that system to allow it.
+    disabled: never.
+    first_install: once per system, 16 checks.
+    every_level: every upgrade level too, 68 checks. A much longer game.
     """
 
     display_name = "Systemsanity"
@@ -290,25 +272,19 @@ class Systemsanity(Choice):
 
 
 class ShipAchievementChecks(DefaultOnToggle):
-    """Whether each ship's three achievements are checks.
-
-    FTL grants a ship achievement to the ship, not to the layout: earning it with Type A, B or C
-    sends the same check.
+    """Each ship's three achievements send a check, 30 in all.
     """
 
     display_name = "Ship Achievement Checks"
 
 
 class GeneralAchievementChecks(Choice):
-    """Which of the twenty-one general achievements are checks.
+    """Which of the 21 general achievements send a check.
 
-    disabled: none of them.
-    basic: only the straightforward ones (reach sector 5, reach sector 8, win the game...).
-    most: the above plus the "going the distance" run-long challenges.
-    all: every general achievement, including the hardest one-off feats.
-
-    This is the Manual FTL world's three rows of achievements, folded into one option: "most" is
-    its going_the_distance, "all" adds its ship_and_equipment_feats.
+    disabled: none.
+    basic: the easy ones, like reaching sector 8.
+    most: also the harder ones earned over a run.
+    all: every one, the very hard ones too.
     """
 
     display_name = "General Achievement Checks"
@@ -354,20 +330,18 @@ class ProgressiveSystems(DefaultOnToggle):
 
 
 class HeadStarts(DefaultOnToggle):
-    """Whether head start items are in the pool.
-
-    A head start gives one free level of a system - or one bar of reactor power - at the
-    beginning of every future run. This is what keeps an item useful in a roguelike: without it,
-    anything you receive during a run you are about to lose is wasted.
+    """Head Start items give a free system level, or a reactor bar, at the start of every
+    future run. They make each new run a little stronger.
     """
 
     display_name = "Head Starts"
 
 
 class TrapChance(Range):
-    """Percentage of the filler items that are replaced by traps.
+    """Percentage of filler items that become traps: fire, hull breach, boarding party and
+    more. 0 means no traps.
 
-    Traps are applied at the next safe beacon, never in the middle of a fight.
+    Traps wait for a quiet beacon and never destroy your ship on their own.
     """
 
     display_name = "Trap Chance"
@@ -403,6 +377,7 @@ class _GatingBlueprintLogic(Choice):
     dataclass, and each of them brings its own.
     """
 
+    visibility = EXPERT
     option_required = 0
     option_upgrade_only = 1
     option_start_with = 2
@@ -412,6 +387,7 @@ class _GatingBlueprintLogic(Choice):
 class _PlacementBlueprintLogic(Choice):
     """Base class for the "this blueprint does not gate anything, it is placed early or not" cursors."""
 
+    visibility = EXPERT
     option_anywhere = 0
     option_early = 1
     option_start_with = 2
@@ -569,15 +545,10 @@ class ShopItemDelivery(DefaultOnToggle):
 
 
 class ShopChecks(Range):
-    """The minimum number of Archipelago shop slots in your seed.
+    """The smallest number of packages in the Archipelago shop, a special shop at one beacon
+    per sector. Buying a package sends it to the player it belongs to.
 
-    A shop that sells items *for other players* appears at one beacon in every sector, marked
-    ARCHIPELAGO on the map. Buying one of its goods costs you scrap and sends that item to
-    whoever it belongs to - that is the check.
-
-    The seed balances itself: when your options create more items than checks, shop slots are added
-    until every item has a place, so nothing is ever left out. This number is the floor. The bigger the
-    shop, the more packages each ARCHIPELAGO beacon offers (3, 6, 9 or 12).
+    More packages are added by themselves if the game needs room for its items.
     """
 
     display_name = "Archipelago Shop Checks (minimum)"
@@ -594,53 +565,34 @@ class MinimumFiller(Range):
     """
 
     display_name = "Minimum Filler"
+    visibility = EXPERT
     range_start = 0
     range_end = 100
     default = 20
 
 
 class EnergyLink(Toggle):
-    """Whether to share a fuel reserve with the other players in the multiworld.
-
-    Fuel is the one FTL resource whose absence does not kill you outright - it strands you, and
-    being stranded is one of the game's most frustrating deaths. A shared reserve is exactly the
-    thing that fixes it.
-
-    Your surplus fuel is deposited automatically at safe beacons, minus a 25% handling loss so
-    the reserve cannot be used as a personal vault. When you drop below three fuel, your ship
-    asks the reserve for more - once per beacon, so one desperate player cannot drain it.
-
-    Energy is shared with every EnergyLink player in the multiworld, whatever game they play.
+    """Share a fuel reserve with the other Energy Link players. Your extra fuel goes in, and
+    you get some back when you are almost out.
     """
 
     display_name = "Energy Link"
 
 
 class TrapLink(Toggle):
-    """Whether traps are shared with the other players who enabled Trap Link.
-
-    When you receive a trap, everyone else with Trap Link receives one too, and theirs reach
-    you - even if your own seed contains no traps at all.
-
-    Off by default, deliberately: a player discovering this world should not be hit by the traps
-    of someone they have never met.
+    """Traps are shared with the other Trap Link players: when one of you gets a trap, the
+    others get one too, even if your own game has no traps.
     """
 
     display_name = "Trap Link"
 
 
 class DeathLinkTrigger(Choice):
-    """What counts as your death, for the purposes of Death Link.
+    """With Death Link on: what sends your death to the other players.
 
-    FTL has more than one kind of death, so this is a choice rather than a fixed rule.
-
-    ship_destroyed: your run ends - the hull is gone, or your whole crew is.
-    crew_death: any single crew member dies, even if the run goes on.
-    both: either of those. This is the default.
-
-    Be aware of what "both" means in practice: you lose crew members far more often than you
-    lose runs, so most of the deaths you send will come from that half. If your multiworld finds
-    that too noisy, ship_destroyed is the quiet setting.
+    ship_destroyed: only losing the run.
+    crew_death: losing any crew member.
+    both: either one. Recommended, but crew members die often.
     """
 
     display_name = "Death Link Trigger"
@@ -654,26 +606,15 @@ class DeathLinkTrigger(Choice):
 
 
 class DeathLinkEffect(Choice):
-    """What a death link received from another world does to your ship.
+    """With Death Link on: what a death from another player does to you. None of them can
+    destroy your ship or kill your last crew member.
 
-    None of these can kill you. Losing a run in FTL costs an hour, so a death link that destroys
-    your ship would turn the multiworld into a punishment; the mod never takes your hull below 1
-    and never kills your last crew member.
-
-    major_incident: a breach AND a fire in one of your system rooms, and that system takes
-    damage. This is the default, and it is by far the harshest of them all - it cannot destroy
-    your ship, but a breach and a fire in your shield room mid-fight can absolutely lose you the
-    run. That is the point.
-    crew_member: one random crew member dies. Never the last one.
+    major_incident: a breach and a fire in a system room. The hardest one.
+    crew_member: one crew member dies.
     hull_damage: your hull takes damage.
-    fire: a fire starts in a random room.
-    boarding: a single hostile Mantis appears aboard. It never spawns if you are down to one
-    crew member, because that duel is a coin flip and losing it ends the run.
-    varied: one of the four milder effects, drawn afresh at every death. Never the major
-    incident - whoever wants that one asks for it by name.
-
-    If the chosen effect cannot apply - a lone survivor, a hull already at 1 - the mod falls back
-    to a *milder* one rather than letting the death pass unnoticed. A fallback never escalates.
+    fire: a fire starts somewhere.
+    boarding: one enemy Mantis comes aboard.
+    varied: one of the four milder ones, at random each time.
     """
 
     display_name = "Death Link Effect"
@@ -687,19 +628,12 @@ class DeathLinkEffect(Choice):
 
 
 class ModLanguage(Choice):
-    """The language the in-game mod speaks: messages, dashboard, Archipelago shop.
+    """Language of the mod's messages, menus and shop.
 
-    game: follow whatever language FTL itself is set to. This is the default, and it is right
-    for almost everyone.
-    Anything else forces that language, whatever FTL is set to. Useful if you play FTL in
-    English out of habit but would rather read the Archipelago parts in your own language.
+    game: the same as FTL, chosen by itself. Recommended.
+    The others force a language, for example to play FTL in English but read the mod in French.
 
-    This setting never touches item or location NAMES. Those are global identifiers shared with
-    the server, with the other players' clients and with every tracker; translating them would
-    break hints between worlds. Only the sentences around them change language.
-
-    A language the mod does not carry yet falls back to English, one string at a time, so a
-    partial translation is always better than none.
+    Item and location names always stay in English, because every player and tracker shares them.
     """
 
     display_name = "Mod Language"
@@ -776,35 +710,28 @@ class FTLOptions(PerGameCommonOptions):
 
 
 ftl_option_groups = [
-    OptionGroup("Goal", [Goal, VictoriesRequired, VictoryDifficulty, Archives, ArchivesRequired,
-                         VictoryLayouts]),
-    OptionGroup("Presentation", [ModLanguage]),
-    OptionGroup("Ships", [StartShip, ShipLayouts, LayoutUnlocks]),
+    OptionGroup("Goal", [VictoriesRequired, VictoryDifficulty, Archives, ArchivesRequired]),
     OptionGroup(
-        "Checks",
-        [
-            Sectorsanity,
-            SectorsanityFirstSector,
-            SectorsanityLastSector,
-            ShipAchievementChecks,
-            GeneralAchievementChecks,
-            CrossRunAchievementChecks,
-        ],
+        "Game Size",
+        [ShipLayouts, Sectorsanity, Systemsanity, ShipAchievementChecks, GeneralAchievementChecks,
+         CrewChecks, ShopChecks],
     ),
     OptionGroup(
-        "Item Pool",
-        [SystemBlueprints, ProgressiveSystems, HeadStarts, TrapChance],
+        "Playing with Others",
+        [DeathLink, DeathLinkTrigger, DeathLinkEffect, EnergyLink, TrapLink, TrapChance],
     ),
     OptionGroup(
-        "Shop Items",
-        [ShopWeapons, ShopDrones, ShopAugments, ShopUnlockMode, ShopItemDelivery,
-         ShopChecks],
+        "Advanced",
+        [StartShip, HeadStarts, ModLanguage, SectorsanityFirstSector, SectorsanityLastSector, LayoutUnlocks, CrossRunAchievementChecks,
+         SystemBlueprints, ProgressiveSystems, CrewMembers, ShopWeapons, ShopDrones, ShopAugments,
+         ShopUnlockMode, ShopItemDelivery, SectorLogic],
+        start_collapsed=True,
     ),
     OptionGroup(
-        "Links",
-        [DeathLinkTrigger, DeathLinkEffect, EnergyLink, TrapLink],
+        "Expert (YAML only)",
+        [Goal, VictoryLayouts, MinimumFiller, *BLUEPRINT_LOGIC_OPTIONS],
+        start_collapsed=True,
     ),
-    OptionGroup("Logic", [SectorLogic, *BLUEPRINT_LOGIC_OPTIONS]),
 ]
 
 

@@ -1,60 +1,55 @@
 # Options
 
-Your YAML file decides how big the seed is and how hard it gets. The easy way is to start from a preset and
-change the `name:` line. Every option is also explained on the player options page of the Archipelago website
-that hosts the world, and in `apworld/ftl/docs/en_FTL Faster Than Light.md`.
+**English** · [Français](Options.fr.md) · [Deutsch](Options.de.md) · [Español](Options.es.md) ·
+[Italiano](Options.it.md) · [Português](Options.pt.md)
+
+## The easy way: keep the defaults
+
+The default options are the recommended ones. You only need to change your name:
+
+1. Open **ArchipelagoOptionsCreator** (in the Archipelago folder), or the options page of the website that
+   hosts the room.
+2. Pick **FTL: Faster Than Light**, type your name, and export the YAML.
+
+With the defaults, you win by beating the Flagship **5 times with 5 different ships, on Normal or Hard**, and
+by collecting **10 of the 12 Archives** hidden in the other players' worlds. It is a game of several evenings,
+around 10 hours to the goal.
+
+If your group plays with **Death Link**, turn it on. By default the loss of a crew member counts as a death,
+not only a lost run.
 
 ## Presets
 
-They are in the `presets` folder of the repo, and in `presets.zip` in the release.
+Want something shorter or longer? Pick a preset by answering two questions: how much time do you have, and do
+you know FTL well?
 
-| Preset | For |
-|---|---|
-| `A1_multi_game_beginner` | FTL is one game among several, you are new to FTL |
-| `A2_multi_game_veteran` | same, you know FTL well (traps and Death Link on) |
-| `B1_solo_beginner` | FTL alone, a long seed with every ship layout |
-| `B2_solo_veteran` | same, with chosen victories, strict logic and traps |
-| `C1_two_evenings_beginner` | FTL alone in a multiworld, about two evenings |
-| `C2_two_evenings_veteran` | same, harder |
+| | New to FTL | You know FTL well |
+|---|---|---|
+| **FTL among other games**, short sessions | `A1_multi_game_beginner` | `A2_multi_game_veteran` |
+| **Two evenings** | `C1_two_evenings_beginner` | `C2_two_evenings_veteran` |
+| **FTL on its own**, a long game | `B1_solo_beginner` | `B2_solo_veteran` |
 
-The comment at the top of each file gives its size and a rough play time.
+They are in `presets.zip` on the [release page](https://github.com/TheLiloji/FTLArchipelago/releases/latest),
+and in the **Preset** menu of the website's options page. The top of each file says how many checks it has
+and roughly how long it takes. Change the `name:` line and you are done.
 
-## The ones that matter most
+## What the options do
 
-**Size of the seed**
+The Options Creator shows them in groups:
 
-- `sectorsanity`, `sectorsanity_first_sector`, `sectorsanity_last_sector`: reaching a sector with a given ship
-  is a check. Most checks come from here. Starting at sector 2 or 3 removes the easy early ones.
-- `ship_layouts`: only Type A ships, or B and C too. More layouts means more checks and more ships to find.
-- `systemsanity`: installing a system is a check (`first_install`), or every level too (`every_level`).
-- `shop_checks`: how many packages the Archipelago shop holds at least.
+- **Goal**: how many victories, on which difficulty, and how many Archives.
+- **Game Size**: which ship layouts are in the game, and what sends checks (sectors, systems, achievements,
+  crew, the Archipelago shop). Fewer checks means a shorter game.
+- **Playing with Others**: Death Link, Energy Link (a shared fuel reserve), Trap Link, and how many traps.
+- **Advanced** (closed at first): your first ship, the Head Start items, the language of the mod (it follows FTL
+  by itself), the range of sectors that count, how Type B and C unlock, what is locked in stores, and how hard
+  the logic is. You do not need to touch these.
 
-**The goal**
+Every option has a short description: hover over it in the Options Creator.
 
-- `goal`: `victory_count` (any N different ships) or `victory_selection` (the ships you list in
-  `victory_layouts`).
-- `victories_required`: how many different ships must beat the Flagship.
-- `victory_difficulty`: `any`, or ask for Normal or Hard wins.
-- `archives` and `archives_required`: add Archives, spread in the other worlds. Leave a few more than required,
-  for example 12 and 8.
+## Expert options
 
-**How much is locked**
-
-- `system_blueprints`: systems need a blueprint before stores sell them.
-- `progressive_systems`: upgrade levels are items too.
-- `shop_unlock_mode`: `rarity_boost` (received weapons become more common, nothing is removed) or `locked`
-  (a weapon is missing from stores until you receive it). `locked` is harsher.
-- `shop_item_delivery`: put one copy of a received weapon or drone on your ship right away.
-
-**How hard the logic is**
-
-- `sector_logic`: `relaxed` sends you deep early, `strict` expects a real ship first.
-- The five `*_blueprint_logic` options decide whether a ship that starts with shields, sensors, a medbay,
-  engines or weapons needs that blueprint before logic sends it far.
-
-**Links with other players**
-
-- `death_link`: your deaths reach the others and theirs reach you. `death_link_trigger` picks which deaths count
-  (losing the run, losing a crew member, or both) and `death_link_effect` what a received death does.
-- `energy_link`: a fuel reserve shared with every Energy Link player.
-- `trap_link`: traps are shared with the other Trap Link players.
+A few options only exist in the YAML file, because almost nobody needs them: choosing exactly which ships must
+win (`goal: victory_selection` with `victory_layouts`), the minimum amount of filler, and the five
+`*_blueprint_logic` options that fine-tune the logic for shields, sensors, medbay, engines and weapons. The full
+list, with every detail, is in the game page: `apworld/ftl/docs/en_FTL Faster Than Light.md`.
