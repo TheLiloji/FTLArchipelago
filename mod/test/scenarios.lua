@@ -2246,8 +2246,15 @@ test("random weapons held back, jumps and restarts never give scrap twice or los
     local seed = { contract = CONTRACT, kinds = { "filler", "shop" }, kinds_required = {}, loc = {},
                    seed_hash = "random-walk",
                    shop = { mode = "rarity_boost", deliver = true, baseline = {} },
-                   items = { ["20 Scrap"] = { k = "filler", res = "scrap", n = 20 },
-                             ["Halberd Beam"] = { k = "shop", bp = "BEAM_2" } } }
+                   items = { ["20 Scrap"] = { k = "filler", res = "scrap", n = 20 } } }
+    -- Only a weapon's first copy goes aboard, and a release sends many at once: bursts of new weapons, so the
+    -- beacon limit keeps holding some back.
+    for number = 1, 200 do
+        sim.weaponBlueprints["TEST_WEAPON_" .. number] = 2
+        seed.items["Test Weapon " .. number] = { k = "shop", bp = "TEST_WEAPON_" .. number }
+    end
+    sim.resetBlueprints()
+    local nextWeapon = 0
     local sent = {}
     local function connect()
         apContractResetForTesting()
@@ -2274,8 +2281,11 @@ test("random weapons held back, jumps and restarts never give scrap twice or los
             scrapSent = scrapSent + 1
             sim.netEvent("item", { name = "20 Scrap", sender = "Nina", index = #sent - 1 })
         elseif roll < 0.8 then
-            sent[#sent + 1] = "Halberd Beam"
-            sim.netEvent("item", { name = "Halberd Beam", sender = "Nina", index = #sent - 1 })
+            for _ = 1, 6 do
+                nextWeapon = math.min(nextWeapon + 1, 200)
+                sent[#sent + 1] = "Test Weapon " .. nextWeapon
+                sim.netEvent("item", { name = sent[#sent], sender = "Nina", index = #sent - 1 })
+            end
         elseif roll < 0.9 then
             sim.overflow = {}
             sim.jumpArrive()
@@ -2289,6 +2299,8 @@ test("random weapons held back, jumps and restarts never give scrap twice or los
         sim.jumpArrive()
         sim.tick(130)
     end
+    for number = 1, 200 do sim.weaponBlueprints["TEST_WEAPON_" .. number] = nil end
+    sim.resetBlueprints()
     equals(sim.player.currentScrap - scrapStart, scrapSent * 20, "every scrap item counted exactly once")
 end)
 
