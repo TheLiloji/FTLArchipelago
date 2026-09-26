@@ -235,6 +235,11 @@ local function announceLostItem(itemName)
 end
 
 function apReceiveItem(itemName, sender, isReplay, index)
+    -- A refused seed still sends its items; they come again once it is accepted.
+    if state.refusal ~= nil then
+        contractLog("item ignored, the seed is refused: " .. tostring(itemName))
+        return false
+    end
     local descriptor = state.itemDescriptors[itemName]
     if descriptor == nil then
         state.unknownItems = state.unknownItems + 1

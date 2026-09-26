@@ -412,6 +412,7 @@ local function onConnected(event)
     state.connecting = false
     state.retries = 0
     state.retryAt = nil
+    state.unreachableSince = nil
     netLog("connected as \"" .. tostring(event.name) .. "\"")
     state.seedRefused = false
 

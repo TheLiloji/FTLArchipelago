@@ -3301,6 +3301,7 @@ end)
 test("an item arriving before the data packet isn't lost", function()
     sim.startRun(true)
     connectNow()
+    applySeed({ items = { ["20 Scrap"] = { k = "filler", res = "scrap", n = 20 } } })
     sim.clearLog()
 
     sim.netEvent("item", { name = "Unknown", sender = "", index = 0 })
@@ -3309,7 +3310,9 @@ test("an item arriving before the data packet isn't lost", function()
 
     sim.netEvent("item", { name = "20 Scrap", sender = "Nina", index = 0 })
     sim.tick(1)
+    drain()
     check(sim.shown("20 Scrap"), "and the item comes back once the data packet is there")
+    check(not shownKey("item.unknown", { name = "20 Scrap" }), "as a real item, not as an unknown one")
 end)
 
 test("an item from the server isn't announced under the word 'Server'", function()

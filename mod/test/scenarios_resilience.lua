@@ -444,6 +444,29 @@ test("network: the panel says the server refused the slot, and a new attempt cle
     apNetResetForTesting()
 end)
 
+test("network: a refused seed says why and nothing else, no unknown items, no silent server", function()
+    tryConnect()
+    sim.clearLog()
+    sim.netEvent("error", { name = "unreachable", extra = "TLS handshake failed" })
+    -- Like a seed change: the refusal cuts the link inside the same event.
+    local apply = _G.apApplySlotData
+    _G.apApplySlotData = function(...)
+        local accepted = apply(...)
+        apNetDisconnect()
+        sim.net.connected = false
+        return accepted
+    end
+    sim.net.connected = true
+    sim.netEvent("connected", { name = "Navigator", extra = slotData({ contract = 99 }) })
+    sim.netEvent("item", { name = "Kestrel Cruiser Key", sender = "Nina", index = 0 })
+    sim.tick(600)
+    _G.apApplySlotData = apply
+    check(not shownKey("item.unknown", { name = "Kestrel Cruiser Key" }), "the refused seed's items are not called unknown")
+    check(not shownKey("net.error.unreachable"), "the server answered, it is not said to be silent")
+    apNetResetForTesting()
+    apContractResetForTesting()
+end)
+
 test("notify: a burst of items gets summarized instead of overflowing the screen", function()
     apNotifyResetForTesting()
     sim.clearLog()
