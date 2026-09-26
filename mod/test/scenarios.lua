@@ -2242,6 +2242,56 @@ test("items delivered in order write no extra list to the disk", function()
     equals(lists, 0, "only the count moves when nothing is held back")
 end)
 
+test("random weapons held back, jumps and restarts never give scrap twice or lose it", function()
+    local seed = { contract = CONTRACT, kinds = { "filler", "shop" }, kinds_required = {}, loc = {},
+                   seed_hash = "random-walk",
+                   shop = { mode = "rarity_boost", deliver = true, baseline = {} },
+                   items = { ["20 Scrap"] = { k = "filler", res = "scrap", n = 20 },
+                             ["Halberd Beam"] = { k = "shop", bp = "BEAM_2" } } }
+    local sent = {}
+    local function connect()
+        apContractResetForTesting()
+        apNetResetForTesting()
+        apFillerForgetSeed()
+        apNetConnect("ws://localhost:38281", "Navigator", "")
+        sim.netEvent("connected", { name = "Navigator", extra = seed })
+        for index, name in ipairs(sent) do
+            sim.netEvent("item", { name = name, sender = "Nina", index = index - 1 })
+        end
+        sim.tick(1)
+    end
+    math.randomseed(7)
+    sim.startRun(true)
+    sim.slots.weapon = 0
+    sim.cargoCap = 0
+    connect()
+    local scrapStart = sim.player.currentScrap
+    local scrapSent = 0
+    for _ = 1, 150 do
+        local roll = math.random()
+        if roll < 0.45 then
+            sent[#sent + 1] = "20 Scrap"
+            scrapSent = scrapSent + 1
+            sim.netEvent("item", { name = "20 Scrap", sender = "Nina", index = #sent - 1 })
+        elseif roll < 0.8 then
+            sent[#sent + 1] = "Halberd Beam"
+            sim.netEvent("item", { name = "Halberd Beam", sender = "Nina", index = #sent - 1 })
+        elseif roll < 0.9 then
+            sim.overflow = {}
+            sim.jumpArrive()
+        else
+            connect()
+        end
+        sim.tick(130)
+    end
+    for _ = 1, 60 do
+        sim.overflow = {}
+        sim.jumpArrive()
+        sim.tick(130)
+    end
+    equals(sim.player.currentScrap - scrapStart, scrapSent * 20, "every scrap item counted exactly once")
+end)
+
 test("a lost run doesn't lose the queued items", function()
     sim.startRun(true)
     apQueueItem({ kind = "filler", res = "scrap", n = 25 })
