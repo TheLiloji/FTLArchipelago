@@ -2242,7 +2242,8 @@ test("items delivered in order write no extra list to the disk", function()
     equals(lists, 0, "only the count moves when nothing is held back")
 end)
 
-test("random weapons held back, jumps and restarts never give scrap twice or lose it", function()
+for _, walk in ipairs({ 7, 11, 23, 42 }) do
+test("random weapons held back, jumps and restarts never give scrap twice or lose it (walk " .. walk .. ")", function()
     local seed = { contract = CONTRACT, kinds = { "filler", "shop" }, kinds_required = {}, loc = {},
                    seed_hash = "random-walk",
                    shop = { mode = "rarity_boost", deliver = true, baseline = {} },
@@ -2267,7 +2268,7 @@ test("random weapons held back, jumps and restarts never give scrap twice or los
         end
         sim.tick(1)
     end
-    math.randomseed(7)
+    math.randomseed(walk)
     sim.startRun(true)
     sim.slots.weapon = 0
     sim.cargoCap = 0
@@ -2303,6 +2304,7 @@ test("random weapons held back, jumps and restarts never give scrap twice or los
     sim.resetBlueprints()
     equals(sim.player.currentScrap - scrapStart, scrapSent * 20, "every scrap item counted exactly once")
 end)
+end
 
 test("a lost run doesn't lose the queued items", function()
     sim.startRun(true)
