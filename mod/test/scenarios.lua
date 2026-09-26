@@ -2780,6 +2780,22 @@ test("online, a deal always promises someone else will pay", function()
     _G.apNetSendTrap = previous
 end)
 
+test("without Trap Link, a deal never sends a trap to the others", function()
+    local previous = _G.apNetSendTrap
+    local sends = 0
+    for _ = 1, 20 do
+        sim.reset()
+        apShopGiftsConfigure(DEMO)
+        _G.apTrapLink.enabled = false
+        sim.startRun(true)
+        _G.apNetSendTrap = function() sends = sends + 1 return true end
+        sim.sign("AP_DEAL_2")
+        sim.tick(120)
+    end
+    equals(sends, 0, "a slot that did not join Trap Link sends nothing")
+    _G.apNetSendTrap = previous
+end)
+
 test("signing the same deal twice earns nothing more", function()
     sim.startRun(true)
     apShopGiftsConfigure(DEMO)
