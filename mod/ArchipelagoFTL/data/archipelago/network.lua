@@ -371,14 +371,18 @@ function apNetForgetItems()
 end
 
 function apNetForgetProgress(incoming)
-    writeMeta(consumedKey(meta(SEED_KEY)), 0)
-    if incoming ~= nil then writeMeta(consumedKey(incoming), 0) end
+    local current = meta(SEED_KEY)
+    writeMeta(consumedKey(current), 0)
+    apNetRememberText(deliveredKey(current), "")
+    if incoming ~= nil then
+        writeMeta(consumedKey(incoming), 0)
+        apNetRememberText(deliveredKey(incoming), "")
+    end
     writeMeta(SEED_KEY, 0)
     writeMeta(CONSUMED_KEY, 0)
-    apNetRememberText(deliveredKey(meta(SEED_KEY)), "")
-    if incoming ~= nil then apNetRememberText(deliveredKey(incoming), "") end
     state.consumedUntil = -1
     state.delivered = {}
+    state.deliveredSaved = false
     netLog("Archipelago progress forgotten: the next seed starts from zero")
 end
 

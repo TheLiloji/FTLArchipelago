@@ -2183,6 +2183,32 @@ test("scrap delivered behind a weapon that waits is not given again next session
     equals(sim.player.currentScrap, before, "the scrap already received is not credited twice")
 end)
 
+test("after a reset, the scrap of a seed played before arrives again", function()
+    local seed = { contract = CONTRACT, kinds = { "filler" }, kinds_required = {}, loc = {},
+                   seed_hash = "reset-me", items = { ["20 Scrap"] = { k = "filler", res = "scrap", n = 20 } } }
+    apContractResetForTesting()
+    apNetResetForTesting()
+    sim.startRun(true)
+    apNetConnect("ws://localhost:38281", "Navigator", "")
+    sim.netEvent("connected", { name = "Navigator", extra = seed })
+    sim.tick(1)
+    apNetItemDelivered(0)
+    apNetItemDelivered(2)
+    apNetForgetProgress(nil)
+
+    apContractResetForTesting()
+    apNetResetForTesting()
+    apFillerForgetSeed()
+    apNetConnect("ws://localhost:38281", "Navigator", "")
+    sim.netEvent("connected", { name = "Navigator", extra = seed })
+    sim.tick(1)
+    local before = sim.player.currentScrap
+    sim.netEvent("item", { name = "20 Scrap", sender = "Nina", index = 2 })
+    sim.tick(1)
+    drain()
+    equals(sim.player.currentScrap, before + 20, "the reset forgot everything, this seed's list included")
+end)
+
 test("items delivered in order write no extra list to the disk", function()
     local seed = { contract = CONTRACT, kinds = { "filler" }, kinds_required = {}, loc = {},
                    seed_hash = "in-order", items = {} }
