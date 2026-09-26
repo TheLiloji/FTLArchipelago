@@ -246,3 +246,15 @@ test("start-of-run menu: behind the pause menu it does not catch clicks", functi
     sim.click(apLoadoutPoint("row", "weapon", 1))
     equals(sim.delivered(), before + 1, "once the pause menu is closed, the click works again")
 end)
+
+test("start-of-run menu: works in solo mode too", function()
+    _G.apRunStartCheckForTesting = nil
+    check(apSoloStart(true), "solo mode starts")
+    catalog({ LASER_BURST_3 = 2 })
+    sim.startRun(true)
+    check(menuShown(), "a new run in solo gets the menu")
+    sim.startRun(false)
+    check(menuShown(), "and keeps it on Continue")
+    apSoloStop()
+    _G.apRunStartCheckForTesting = false
+end)
