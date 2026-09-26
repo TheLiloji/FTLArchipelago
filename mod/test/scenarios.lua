@@ -2308,7 +2308,13 @@ test("random weapons held back, jumps and restarts never give scrap twice or los
             sent[#sent + 1] = "Archipelago Archive"
             archivesSent = archivesSent + 1
             sim.netEvent("item", { name = "Archipelago Archive", sender = "Nina", index = #sent - 1 })
-        elseif roll < 0.95 then
+        elseif roll < 0.94 then
+            connect(false)
+        elseif roll < 0.97 then
+            apNetDisconnect()
+            apContractUnload()
+            apSoloStart(true)
+            apSoloStop()
             connect(false)
         else
             connect(true)
