@@ -3340,6 +3340,20 @@ test("a crew member dismissed from the crew screen sends no DeathLink, one who d
     equals(sent, 2, "killed at once by an event, away from the crew screen: still a death")
 end)
 
+test("a repair or boarding drone that goes away sends no DeathLink", function()
+    apDeathLinkConfigure({ enabled = true, trigger = "both", graceSeconds = 0 })
+    local sent = 0
+    local restore = stub("apNetSendDeath", function() sent = sent + 1 return true end)
+    sim.startRun(true)
+    local drone = sim.player:AddCrewMemberFromString("Repair Drone", "repair", false, 0, false, false)
+    drone.IsDrone = function() return true end
+    sim.tick(60)
+    table.remove(sim.player.vCrewList._store)
+    sim.tick(60)
+    restore()
+    equals(sent, 0, "a drone switched off or shot down is not a crew member lost")
+end)
+
 test("the major incident breaks a system room, without touching the hull", function()
     apDeathLinkConfigure({ enabled = true, effect = "major_incident" })
     sim.startRun(true)

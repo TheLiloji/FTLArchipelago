@@ -299,6 +299,12 @@ function apDeathLinkReceive(source, cause)
     return true
 end
 
+-- Repair and boarding drones walk the ship like crew: switched off or shot down, they are not a death.
+local function isDrone(member)
+    local ok, drone = pcall(function() return member:IsDrone() end)
+    return ok and drone == true
+end
+
 -- Our crew on both ships: the living by name, and those already marked dead.
 local function livingCrew()
     local living, dead = {}, {}
@@ -307,12 +313,14 @@ local function livingCrew()
             local crew = ship.vCrewList
             for i = 0, crew:size() - 1 do
                 local member = crew[i]
-                local name = member ~= nil and tostring(member.GetName and member:GetName() or ("crew" .. i))
-                local health = member ~= nil and member.health and tonumber(member.health.first) or 1
-                if member ~= nil and member.iShipId == 0 and member.bDead then
-                    dead[name] = health
-                elseif member ~= nil and member.iShipId == 0 then
-                    living[name] = { species = member.species or "crew", health = health }
+                if member ~= nil and member.iShipId == 0 and not isDrone(member) then
+                    local name = tostring(member.GetName and member:GetName() or ("crew" .. i))
+                    local health = member.health and tonumber(member.health.first) or 1
+                    if member.bDead then
+                        dead[name] = health
+                    else
+                        living[name] = { species = member.species or "crew", health = health }
+                    end
                 end
             end
         end
