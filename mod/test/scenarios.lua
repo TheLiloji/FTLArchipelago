@@ -2973,6 +2973,21 @@ test("a shop purchase of a not-yet-unlocked system is refused and refunded", fun
     check(sim.logged("90 scrap refunded"), "the log states the real amount")
 end)
 
+test("a locked system bought right after continuing a run saved at a store is refused too", function()
+    sim.startRun(true)
+    _G.apInventory.systemCaps.cloaking = nil
+    sim.startRun(false)
+    sim.setStore(true)
+    sim.tick(2)
+    sim.player.currentScrap = 0
+
+    sim.constructSystem("cloaking", 0, 90)
+    sim.tick(5)
+
+    equals(#sim.player._removed, 1, "no jump yet, and still the system is removed")
+    equals(sim.player.currentScrap, 90, "with the scrap refunded")
+end)
+
 test("a refund that didn't happen isn't announced", function()
     sim.startRun(true)
     _G.apInventory.systemCaps.cloaking = nil
@@ -4654,6 +4669,26 @@ test("cap: a cap never drops below the level already reached", function()
 
     apApplySystemRules()
     check(shields.maxLevel >= 4, "the cap stays at the level reached (" .. shields.maxLevel .. ")")
+end)
+
+test("cap: saving and continuing does not raise a system's cap", function()
+    _G.apInventory.systemCaps.shields = 2
+    _G.apInventory.startingUpgrades = {}
+    sim.startRun(true)
+    local shields
+    for i = 0, sim.player.vSystemList:size() - 1 do
+        if sim.player.vSystemList[i].name == "shields" then shields = sim.player.vSystemList[i] end
+    end
+    apApplySystemRules()
+    local cap = shields.maxLevel
+    check(cap < 8, "the cap is below the game's maximum, or the test proves nothing (" .. cap .. ")")
+    shields.powerState.second = cap
+    for _ = 1, 3 do
+        sim.startRun(false)
+        sim.tick(60)
+        equals(shields.maxLevel, cap, "the cap has not moved after a reload")
+        shields.powerState.second = shields.maxLevel
+    end
 end)
 
 test("the panel shows what the player has earned", function()
