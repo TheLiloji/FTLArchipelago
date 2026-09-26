@@ -3311,29 +3311,33 @@ test("a crew member dismissed from the crew screen sends no DeathLink, one who d
     local sent = 0
     local restore = stub("apNetSendDeath", function() sent = sent + 1 return true end)
     sim.startRun(true)
+    sim.player:AddCrewMemberFromString("Vex", "human", false, 0, false, false)
     sim.tick(60)
+    sim.renderTab("crew")
     local fired = sim.player.vCrewList[0]
     fired.health.first = 0
     fired.bDead = true
     sim.tick(60)
     table.remove(sim.player.vCrewList._store, 1)
     sim.tick(60)
-    equals(sent, 0, "dismissed: marked dead at once, the player's choice")
+    equals(sent, 0, "dismissed on the crew screen: the player's choice")
 
     sim.tick(60 * 11)
     local dying = sim.player.vCrewList[0]
     dying.health.first = 0
     sim.tick(60)
-    dying.bDead = true
+    table.remove(sim.player.vCrewList._store, 1)
     sim.tick(60)
     equals(sent, 1, "a death lies at zero health for a moment first: it counts")
 
-    table.remove(sim.player.vCrewList._store, 1)
     sim.tick(60 * 11)
-    table.remove(sim.player.vCrewList._store, 1)
+    sim.renderTab("upgrades")
+    local bitten = sim.player.vCrewList[0]
+    bitten.health.first = 0
+    bitten.bDead = true
     sim.tick(60)
     restore()
-    equals(sent, 2, "a crew member taken away by an event is still a loss")
+    equals(sent, 2, "killed at once by an event, away from the crew screen: still a death")
 end)
 
 test("the major incident breaks a system room, without touching the hull", function()

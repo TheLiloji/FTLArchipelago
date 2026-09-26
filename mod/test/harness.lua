@@ -661,7 +661,7 @@ _G.Defines = {
         ON_MOUSE_L_BUTTON_DOWN = "ON_MOUSE_L_BUTTON_DOWN",
         ON_MOUSE_SCROLL = "ON_MOUSE_SCROLL",
     },
-    RenderEvents = { MAIN_MENU = "MAIN_MENU", GUI_CONTAINER = "GUI_CONTAINER" },
+    RenderEvents = { MAIN_MENU = "MAIN_MENU", GUI_CONTAINER = "GUI_CONTAINER", TABBED_WINDOW = "TABBED_WINDOW" },
     Chain = { CONTINUE = 0, PREEMPT = 1, HALT = 2 },
     SDL = setmetatable({
         KEY_BACKSPACE = 8, KEY_TAB = 9, KEY_RETURN = 13, KEY_ESCAPE = 27, KEY_SPACE = 32,
@@ -765,6 +765,15 @@ end
 
 function sim.renderMenu()
     replayRender("MAIN_MENU")
+end
+
+-- The ship screens window (upgrades, crew, equipment), drawn with the name of its current tab.
+function sim.renderTab(name)
+    for _, handlers in ipairs(sim.renderHandlers.TABBED_WINDOW or {}) do
+        if handlers.after then
+            pcall(handlers.after, name)
+        end
+    end
 end
 
 _G.script = {

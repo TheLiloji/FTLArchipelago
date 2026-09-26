@@ -320,10 +320,15 @@ local function livingCrew()
     return living, dead
 end
 
+local CREW_SCREEN_SECONDS = 2
+
 -- A crew member who dies lies a few seconds at zero health before FTL marks them dead. One dismissed from
--- the crew screen is marked dead at once, without that moment: the player's choice, not a death.
+-- the crew screen is marked dead at once, without that moment: the player's choice, not a death. An event
+-- can also kill at once, so it only counts as dismissed with the crew screen just shown.
 local function dismissed(name, dead)
-    return dead[name] ~= nil and dead[name] <= 0 and not state.dying[name]
+    local crewScreenRecent = state.crewScreenAt ~= nil
+        and state.ticks - state.crewScreenAt <= CREW_SCREEN_SECONDS * TICKS_PER_SECOND
+    return crewScreenRecent and dead[name] ~= nil and dead[name] <= 0 and not state.dying[name]
 end
 
 -- The hangar keeps bStartedGame on while you browse ships, and each ship shown comes with its own crew.
@@ -387,9 +392,18 @@ script.on_internal_event(Defines.InternalEvents.ON_TICK, function()
     end
 end)
 
+if Defines.RenderEvents.TABBED_WINDOW ~= nil then
+    script.on_render_event(Defines.RenderEvents.TABBED_WINDOW, function() end, function(tab)
+        if tab == "crew" then
+            state.crewScreenAt = state.ticks
+        end
+    end)
+end
+
 script.on_init(function()
     state.knownCrew = nil
     state.dying = {}
+    state.crewScreenAt = nil
     state.lastSentAt = nil
     state.lastReceivedAt = nil
 end)
