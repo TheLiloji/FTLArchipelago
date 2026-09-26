@@ -2242,7 +2242,7 @@ test("items delivered in order write no extra list to the disk", function()
     equals(lists, 0, "only the count moves when nothing is held back")
 end)
 
-for _, walk in ipairs({ 7, 11, 23, 42 }) do
+for _, walk in ipairs({ 7, 11, 23, 42, 3, 5, 13, 17, 19, 29, 31, 37 }) do
 test("random weapons held back, jumps and restarts never give scrap twice or lose it (walk " .. walk .. ")", function()
     local seed = { contract = CONTRACT, kinds = { "filler", "shop" }, kinds_required = {}, loc = {},
                    seed_hash = "random-walk",
