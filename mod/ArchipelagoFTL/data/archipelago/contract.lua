@@ -87,21 +87,22 @@ function apApplySlotData(slotData, slotName, solo)
         end
     end
 
-    if seedsDifferent(state.identity, identity) then
+    -- After a disconnect the seed is unloaded, but its items are still in memory: compare with it too.
+    local before = state.identity or state.lastIdentity
+    if seedsDifferent(before, identity) then
         contractLog(string.format("seed change: %s/%s -> %s/%s",
-            tostring(state.identity.hash), tostring(state.identity.slot),
+            tostring(before.hash), tostring(before.slot),
             tostring(identity.hash), tostring(identity.slot)))
         -- On a server or in solo the fingerprint check above already asked the player; asking again after
         -- they answered would put the same question back up.
-        local slotChanged = state.identity.slot ~= nil and identity.slot ~= nil
-            and state.identity.slot ~= identity.slot
+        local slotChanged = before.slot ~= nil and identity.slot ~= nil
+            and before.slot ~= identity.slot
         if not (onServer or solo) or slotChanged then
             state.seedChangedWithUnlocks = #((_G.apInventory or {}).ships or {}) > 0
                 or (_G.apCheckCount and (_G.apCheckCount().sent or 0) > 0) or false
         end
 
         if _G.apChecksForgetSeed then pcall(_G.apChecksForgetSeed) end
-        if _G.apNetForgetItems then pcall(_G.apNetForgetItems) end
         if _G.apInventoryClear then pcall(_G.apInventoryClear) end
         if _G.apFillerForgetSeed then pcall(_G.apFillerForgetSeed) end
         if _G.apShopGiftsForgetSeed then pcall(_G.apShopGiftsForgetSeed) end
@@ -404,12 +405,15 @@ function apContractResetForTesting()
     state.seedName = nil
     state.options = {}
     state.identity = nil
+    state.lastIdentity = nil
     state.systemCapsActive = true
     state.blueprintsActive = true
 end
 
 function apContractUnload()
+    local identity = state.identity or state.lastIdentity
     apContractResetForTesting()
+    state.lastIdentity = identity
     contractLog("seed unloaded")
 end
 

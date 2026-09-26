@@ -107,6 +107,8 @@ _G.apInventory = deepCopy(PROFILES[AP_PROFILE] or PROFILES.mid)
 local pristine = deepCopy(_G.apInventory)
 
 function apInventoryClear()
+    -- An empty inventory must get every item again: the server's next replay is not skipped.
+    if _G.apNetForgetItems then pcall(_G.apNetForgetItems) end
     local reset = EMPTY
     for key in pairs(_G.apInventory) do
         _G.apInventory[key] = nil

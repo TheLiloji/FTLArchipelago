@@ -1653,48 +1653,56 @@ end)
 
 local function headStartSeed(hash)
     return { contract = CONTRACT, kinds = { "start" }, kinds_required = {}, loc = {}, seed_hash = hash,
-             items = { ["Engines Head Start"] = { k = "start", sys = "engines", n = 2 } } }
+             items = { ["Engines Head Start"] = { k = "start", sys = "engines", n = 2 },
+                       ["Shields Head Start"] = { k = "start", sys = "shields", n = 1 } } }
+end
+
+local function panelDisconnect()
+    apNetDisconnect()
+    apContractUnload()
+end
+
+local function connectAs(slot, hash, item)
+    apNetConnect("ws://localhost:38281", slot, "")
+    sim.netEvent("connected", { name = slot, extra = headStartSeed(hash) })
+    sim.netEvent("item", { name = item or "Engines Head Start", sender = "Nina", index = 0 })
+    sim.tick(1)
+    drain()
+end
+
+local function freshSession()
+    _G.apInventory = { ships = {}, systemCaps = {}, startingUpgrades = {}, shopAvailability = {} }
+    apContractResetForTesting()
+    apNetResetForTesting()
+    sim.startRun(true)
 end
 
 test("disconnecting from the panel and connecting again to the same seed doubles nothing", function()
-    _G.apInventory = { ships = {}, systemCaps = {}, startingUpgrades = {}, shopAvailability = {} }
-    apContractResetForTesting()
-    apNetResetForTesting()
-    sim.startRun(true)
-    apNetConnect("ws://localhost:38281", "Navigator", "")
-    sim.netEvent("connected", { name = "Navigator", extra = headStartSeed("same-room") })
-    sim.netEvent("item", { name = "Engines Head Start", sender = "Nina", index = 0 })
-    sim.tick(1)
-    drain()
+    freshSession()
+    connectAs("Navigator", "same-room")
     equals(_G.apInventory.startingUpgrades.engines, 2, "the bonus is acquired")
-
-    apNetDisconnect()
-    apNetConnect("ws://127.0.0.1:38281", "Navigator", "")
-    sim.netEvent("connected", { name = "Navigator", extra = headStartSeed("same-room") })
-    sim.netEvent("item", { name = "Engines Head Start", sender = "Nina", index = 0 })
-    sim.tick(1)
-    drain()
+    panelDisconnect()
+    connectAs("Navigator", "same-room")
     equals(_G.apInventory.startingUpgrades.engines, 2, "the server sends it again, it is not added twice")
 end)
 
-test("connecting to another slot starts the items over", function()
-    _G.apInventory = { ships = {}, systemCaps = {}, startingUpgrades = {}, shopAvailability = {} }
-    apContractResetForTesting()
-    apNetResetForTesting()
-    sim.startRun(true)
-    apNetConnect("ws://localhost:38281", "Navigator", "")
-    sim.netEvent("connected", { name = "Navigator", extra = headStartSeed("room-a") })
-    sim.netEvent("item", { name = "Engines Head Start", sender = "Nina", index = 0 })
-    sim.tick(1)
-    drain()
+test("disconnecting from the panel and joining another slot starts the items over", function()
+    freshSession()
+    connectAs("Navigator", "room-a")
+    panelDisconnect()
+    connectAs("Captain", "room-a", "Shields Head Start")
+    equals(_G.apInventory.startingUpgrades.shields, 1, "the other slot's first item is not skipped")
+    equals(_G.apInventory.startingUpgrades.engines, nil, "and nothing is kept from the first slot")
+end)
 
-    apNetDisconnect()
-    apNetConnect("ws://localhost:38281", "Captain", "")
-    sim.netEvent("connected", { name = "Captain", extra = headStartSeed("room-a") })
-    sim.netEvent("item", { name = "Engines Head Start", sender = "Nina", index = 0 })
-    sim.tick(1)
-    drain()
-    equals(_G.apInventory.startingUpgrades.engines, 2, "the new slot gets its own first item")
+test("going through solo mode and back to the server gets every item back", function()
+    freshSession()
+    connectAs("Navigator", "room-a")
+    panelDisconnect()
+    check(apSoloStart(true), "solo mode starts")
+    apSoloStop()
+    connectAs("Navigator", "room-a")
+    equals(_G.apInventory.startingUpgrades.engines, 2, "the server's items are applied again after solo")
 end)
 
 test("network: a recovered check is not resent to the server", function()
