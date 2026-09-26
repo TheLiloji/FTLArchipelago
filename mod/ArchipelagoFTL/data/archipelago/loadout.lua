@@ -290,7 +290,8 @@ script.on_internal_event(Defines.InternalEvents.JUMP_ARRIVE, function(shipManage
 end)
 
 script.on_internal_event(Defines.InternalEvents.ON_MOUSE_L_BUTTON_DOWN, function(x, y)
-    if not open then
+    -- Hidden behind the pause menu or an event, the menu must not catch their clicks.
+    if not open or not uiFree() then
         return Defines.Chain.CONTINUE
     end
     local ok, consumed = pcall(handleClick, apMousePosition(x, y))

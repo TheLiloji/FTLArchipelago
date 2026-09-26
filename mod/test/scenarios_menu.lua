@@ -182,3 +182,16 @@ test("menu: the goal box steps aside while a question is open", function()
     sim.renderMenu()
     check(sim.drawnText(apT("hud.goal", { n = 3 })), "and it is back once the question is answered")
 end)
+
+test("start-of-run menu: behind the pause menu it does not catch clicks", function()
+    catalog({ LASER_BURST_3 = 2, BEAM_2 = 2 })
+    sim.startRun(true)
+    menuShown()
+    local before = sim.delivered()
+    sim.pauseOpen = true
+    sim.click(apLoadoutPoint("row", "weapon", 1))
+    sim.pauseOpen = false
+    equals(sim.delivered(), before, "a click meant for the pause menu gives nothing")
+    sim.click(apLoadoutPoint("row", "weapon", 1))
+    equals(sim.delivered(), before + 1, "once the pause menu is closed, the click works again")
+end)
