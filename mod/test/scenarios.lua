@@ -1220,7 +1220,7 @@ test("many augments waiting at once make one line, not a flood", function()
     check(not sim.shown(apT("item.waiting_augment", { name = "REPAIR_ARM" })), "instead of one line each")
 end)
 
-test("with slots and cargo full, only a few weapons go to the over capacity box, the rest wait for a jump", function()
+test("with slots and cargo full, only a few weapons per beacon go to the over capacity box, the rest wait for a jump", function()
     sim.startRun(true)
     sim.slots.weapon = 0
     sim.cargoCap = 0
@@ -1228,12 +1228,14 @@ test("with slots and cargo full, only a few weapons go to the over capacity box,
         apQueueItem({ kind = "weapon", bp = "BEAM_2", display = "Halberd Beam" })
     end
     sim.tick(240)
-    equals(#sim.overflow, 3, "three in the box, as FTL allows")
-    check(#_G.apFillerPendingForTesting() == 7, "the other seven wait instead of piling up")
+    equals(#sim.overflow, 4, "four in the box")
+    check(#_G.apFillerPendingForTesting() == 6, "the other six wait instead of piling up")
     sim.overflow = {}
     sim.jumpArrive()
     sim.tick(240)
-    equals(#sim.overflow, 3, "after the jump empties the box, three more come")
+    equals(#sim.overflow, 4, "after the jump empties the box, four more come")
+    check(apDeliverEquipment({ kind = "weapon", bp = "BEAM_2", display = "Halberd Beam", chosen = true }),
+        "a weapon picked in the start-of-run menu is never held back")
 end)
 
 test("further copies make the object more common", function()

@@ -181,7 +181,7 @@ local function take(category, entry)
         succeeded, reason = _G.apRecruitCrew and _G.apRecruitCrew(entry.race, entry.skill)
     else
         succeeded = _G.apDeliverEquipment and _G.apDeliverEquipment(
-            { kind = category, bp = entry.bp, display = entry.label, silent = true }) == true
+            { kind = category, bp = entry.bp, display = entry.label, silent = true, chosen = true }) == true
     end
     if not succeeded then
         menuLog("cannot take " .. entry.label .. ": " .. tostring(reason))

@@ -23,54 +23,38 @@ function apBlueprintFamily(name)
 end
 
 -- With weapon slots and cargo full, FTL puts an item in the "over capacity" box, and Hyperspace keeps a list
--- of them. Going back to the main menu with a dozen there crashes the game: past a few, the next ones wait
--- for the jump that empties the box.
-local OVERFLOW_LIMIT = 3
-local overflowCount = 0
+-- of them. Going back to the main menu with a dozen there crashes the game. The box can't be read from Lua
+-- (Hyperspace counts it as cargo), so at most a few weapons and drones arrive per beacon; the box empties at
+-- each jump and the rest follow then.
+local PER_BEACON = 4
+local deliveredHere = 0
 
-local function itemsAboard(equipment)
-    local ok, count = pcall(function()
-        local player = Hyperspace.ships.player
-        local total = equipment:GetCargoHold():size()
-        if player.weaponSystem ~= nil then total = total + player.weaponSystem.weapons:size() end
-        if player.droneSystem ~= nil then total = total + player.droneSystem.drones:size() end
-        return total
-    end)
-    return ok and count or nil
-end
-
-local function deliverEquipped(name, family)
+local function deliverEquipped(name, family, chosen)
     local equipment = Hyperspace.App.gui.equipScreen
     if equipment == nil then
         return nil, "equipment screen unavailable"
     end
-    if overflowCount >= OVERFLOW_LIMIT then
-        return nil, "over capacity box full"
+    if deliveredHere >= PER_BEACON and not chosen then
+        return nil, "enough equipment for this beacon"
     end
-    local before = itemsAboard(equipment)
     local blueprints = Hyperspace.Blueprints
     if family == "weapon" then
         equipment:AddWeapon(blueprints:GetWeaponBlueprint(name), true, false)
     else
         equipment:AddDrone(blueprints:GetDroneBlueprint(name), true, false)
     end
-    -- Hyperspace counts the box's hidden pages as cargo, so only the first item into the box leaves the
-    -- count unchanged. Cargo stays full after that: everything that follows goes to the box as well.
-    local after = itemsAboard(equipment)
-    if overflowCount > 0 or (before ~= nil and after ~= nil and after <= before) then
-        overflowCount = overflowCount + 1
-    end
+    deliveredHere = deliveredHere + 1
     return name
 end
 
 script.on_internal_event(Defines.InternalEvents.JUMP_ARRIVE, function(shipManager)
     if shipManager ~= nil and shipManager.iShipId == 0 then
-        overflowCount = 0
+        deliveredHere = 0
     end
 end)
 
 script.on_init(function()
-    overflowCount = 0
+    deliveredHere = 0
 end)
 
 local AUGMENT_SLOTS = 3
@@ -127,7 +111,7 @@ function apDeliverEquipment(descriptor)
 
     local delivered, err
     if descriptor.kind == "weapon" or descriptor.kind == "drone" then
-        delivered, err = deliverEquipped(name, descriptor.kind)
+        delivered, err = deliverEquipped(name, descriptor.kind, descriptor.chosen)
     elseif descriptor.kind == "augment" then
         delivered, err = deliverAugment(name)
     else
