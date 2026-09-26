@@ -22,19 +22,54 @@ function apBlueprintFamily(name)
     return nil
 end
 
+-- With weapon slots and cargo full, FTL puts an item in the "over capacity" box, and Hyperspace keeps a list
+-- of them. Going back to the main menu with a dozen there crashes the game: past a few, the next ones wait
+-- for the jump that empties the box.
+local OVERFLOW_LIMIT = 3
+local overflowCount = 0
+
+local function itemsAboard(equipment)
+    local ok, count = pcall(function()
+        local player = Hyperspace.ships.player
+        local total = equipment:GetCargoHold():size()
+        if player.weaponSystem ~= nil then total = total + player.weaponSystem.weapons:size() end
+        if player.droneSystem ~= nil then total = total + player.droneSystem.drones:size() end
+        return total
+    end)
+    return ok and count or nil
+end
+
 local function deliverEquipped(name, family)
     local equipment = Hyperspace.App.gui.equipScreen
     if equipment == nil then
         return nil, "equipment screen unavailable"
     end
+    if overflowCount >= OVERFLOW_LIMIT then
+        return nil, "over capacity box full"
+    end
+    local before = itemsAboard(equipment)
     local blueprints = Hyperspace.Blueprints
     if family == "weapon" then
         equipment:AddWeapon(blueprints:GetWeaponBlueprint(name), true, false)
     else
         equipment:AddDrone(blueprints:GetDroneBlueprint(name), true, false)
     end
+    local after = itemsAboard(equipment)
+    if before ~= nil and after ~= nil and after <= before then
+        overflowCount = overflowCount + 1
+    end
     return name
 end
+
+script.on_internal_event(Defines.InternalEvents.JUMP_ARRIVE, function(shipManager)
+    if shipManager ~= nil and shipManager.iShipId == 0 then
+        overflowCount = 0
+    end
+end)
+
+script.on_init(function()
+    overflowCount = 0
+end)
 
 local AUGMENT_SLOTS = 3
 

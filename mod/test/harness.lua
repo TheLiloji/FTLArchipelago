@@ -267,6 +267,12 @@ local function resetWorld()
     sim.cargo = {}
     sim.equipped = { weapon = {}, drone = {} }
     sim.slots = { weapon = 4, drone = 2 }
+    sim.cargoCap = 999
+    sim.overflow = {}
+    sim.player.weaponSystem = setmetatable({}, {
+        __index = function(_, key) if key == "weapons" then return vector(sim.equipped.weapon) end end })
+    sim.player.droneSystem = setmetatable({}, {
+        __index = function(_, key) if key == "drones" then return vector(sim.equipped.drone) end end })
     sim.pursuit = 0
     sim.unlocked = {}
     sim.rarities = {}
@@ -425,8 +431,10 @@ local function resetWorld()
                         if bp == nil or bp.name == "" then return end
                         if not forceCargo and #sim.equipped.weapon < sim.slots.weapon then
                             sim.equipped.weapon[#sim.equipped.weapon + 1] = bp.name
-                        else
+                        elseif #sim.cargo < sim.cargoCap then
                             sim.cargo[#sim.cargo + 1] = bp.name
+                        else
+                            sim.overflow[#sim.overflow + 1] = bp.name
                         end
                     end,
                     AddDrone = function(_, bp, _, forceCargo)
