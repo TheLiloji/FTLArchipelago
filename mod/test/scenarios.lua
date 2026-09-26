@@ -2031,6 +2031,17 @@ test("network: the shared pool distinguishes what we get from what it holds", fu
     equals(sim.player.fuel_count, before + 2, "a withdrawal, though, gives fuel")
 end)
 
+test("network: asking an empty shared pool tells the player instead of staying silent", function()
+    _G.apEnergyLink.enabled = true
+    sim.startRun(true)
+    local before = sim.player.fuel_count
+    sim.clearLog()
+    sim.netEvent("energy", { name = "EnergyLink1", value = 0, index = 0 })
+    sim.tick(1)
+    equals(sim.player.fuel_count, before, "no fuel")
+    check(shownKey("energylink.empty"), "and the player reads that the pool is dry")
+end)
+
 test("changing seed resets the tables cleanly, without mixing two runs", function()
     sim.startRun(true)
     applySeed({ loc = { ["old:1"] = "Old location" },

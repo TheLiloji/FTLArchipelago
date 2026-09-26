@@ -612,8 +612,9 @@ local HANDLERS = {
         end
     end,
 
+    -- A reply to our own request carries what was taken (0 when the pool was empty); updates from others carry -1.
     energy = function(event)
-        if event.index and event.index > 0 and _G.apEnergyLinkGranted then
+        if event.index and event.index >= 0 and _G.apEnergyLinkGranted then
             _G.apEnergyLinkGranted(event.index)
         elseif _G.apEnergyLinkSync then
             _G.apEnergyLinkSync(event.value)
