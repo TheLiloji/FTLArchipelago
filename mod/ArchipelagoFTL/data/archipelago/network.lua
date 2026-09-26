@@ -330,10 +330,33 @@ local function consumedFor(fingerprint)
     return meta(consumedKey(fingerprint))
 end
 
+-- Items delivered past the first one still waiting (a weapon held back for a few jumps) are kept too, or
+-- the next session would hand out their scrap and traps again.
+local function deliveredKey(fingerprint)
+    return "ap_delivered_" .. tostring(fingerprint or 0)
+end
+
+local function saveDelivered(fingerprint)
+    local list = {}
+    for index in pairs(state.delivered) do
+        list[#list + 1] = tostring(index)
+    end
+    table.sort(list)
+    apNetRememberText(deliveredKey(fingerprint), table.concat(list, ","))
+end
+
+local function loadDelivered(fingerprint)
+    local delivered = {}
+    for index in tostring(apNetRecallText(deliveredKey(fingerprint))):gmatch("%d+") do
+        delivered[tonumber(index)] = true
+    end
+    return delivered
+end
+
 function apNetRememberSeed(fingerprint)
     state.consumedUntil = consumedFor(fingerprint) - 1
     writeMeta(SEED_KEY, fingerprint or 0)
-    state.delivered = {}
+    state.delivered = loadDelivered(fingerprint)
     netLog("seed fingerprint recorded: " .. tostring(fingerprint))
 end
 
@@ -346,6 +369,8 @@ function apNetForgetProgress(incoming)
     if incoming ~= nil then writeMeta(consumedKey(incoming), 0) end
     writeMeta(SEED_KEY, 0)
     writeMeta(CONSUMED_KEY, 0)
+    apNetRememberText(deliveredKey(meta(SEED_KEY)), "")
+    if incoming ~= nil then apNetRememberText(deliveredKey(incoming), "") end
     state.consumedUntil = -1
     state.delivered = {}
     netLog("Archipelago progress forgotten: the next seed starts from zero")
@@ -354,7 +379,7 @@ end
 local function reloadConsumed()
     local fingerprint = _G.apSeedFingerprint and _G.apSeedFingerprint() or 0
     state.consumedUntil = consumedFor(fingerprint) - 1
-    state.delivered = {}
+    state.delivered = loadDelivered(fingerprint)
     if meta(SEED_KEY) ~= fingerprint then
         writeMeta(SEED_KEY, fingerprint)
         if state.consumedUntil < 0 then
@@ -516,7 +541,7 @@ local function onItem(event)
         state.lastItemIndex = event.index
     end
 
-    local isReplay = event.index >= 0 and event.index <= state.consumedUntil
+    local isReplay = event.index >= 0 and (event.index <= state.consumedUntil or state.delivered[event.index] == true)
 
     if _G.apReceiveItem then
         local sender = tostring(event.sender)
@@ -539,10 +564,11 @@ function apNetItemDelivered(index)
         state.delivered[state.consumedUntil] = nil
         advanced = true
     end
+    local fingerprint = _G.apSeedFingerprint and _G.apSeedFingerprint() or 0
     if advanced then
-        local fingerprint = _G.apSeedFingerprint and _G.apSeedFingerprint() or 0
         writeMeta(consumedKey(fingerprint), state.consumedUntil + 1)
     end
+    saveDelivered(fingerprint)
     return advanced
 end
 

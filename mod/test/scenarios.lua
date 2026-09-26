@@ -2157,6 +2157,32 @@ test("network: an item replayed after reconnecting is not applied twice", functi
     equals(sim.player.currentScrap, afterFirst, "the scrap wasn't credited twice")
 end)
 
+test("scrap delivered behind a weapon that waits is not given again next session", function()
+    local seed = { contract = CONTRACT, kinds = { "filler" }, kinds_required = {}, loc = {},
+                   seed_hash = "held-back", items = { ["20 Scrap"] = { k = "filler", res = "scrap", n = 20 } } }
+    apContractResetForTesting()
+    apNetResetForTesting()
+    sim.startRun(true)
+    apNetConnect("ws://localhost:38281", "Navigator", "")
+    sim.netEvent("connected", { name = "Navigator", extra = seed })
+    sim.tick(1)
+    apNetItemDelivered(0)
+    apNetItemDelivered(2)
+    -- Item 1, a weapon, is still waiting for a free place when the player quits.
+
+    apContractResetForTesting()
+    apNetResetForTesting()
+    apFillerForgetSeed()
+    apNetConnect("ws://localhost:38281", "Navigator", "")
+    sim.netEvent("connected", { name = "Navigator", extra = seed })
+    sim.tick(1)
+    local before = sim.player.currentScrap
+    sim.netEvent("item", { name = "20 Scrap", sender = "Nina", index = 2 })
+    sim.tick(1)
+    drain()
+    equals(sim.player.currentScrap, before, "the scrap already received is not credited twice")
+end)
+
 test("a lost run doesn't lose the queued items", function()
     sim.startRun(true)
     apQueueItem({ kind = "filler", res = "scrap", n = 25 })
