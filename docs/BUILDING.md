@@ -39,6 +39,12 @@ out. `apworld/ftl/docs/setup_en.md` has the exact commands and more troubleshoot
 
 A check that cannot run prints `SKIPPED` with the reason and is never counted as passed.
 
+On Windows, clone Archipelago 0.6.7 somewhere, link `apworld/ftl` into its `worlds` folder (a junction:
+`New-Item -ItemType Junction`), install the packages the tests import in a virtual environment (`PyYAML`,
+`jellyfish`, `schema`, `platformdirs`, `orjson`, `websockets==13.1`, `jinja2`, `colorama`, `lxml`, `pillow`),
+then run `apworld/tools/run_tests.py` and `mod/test/run.sh` with `AP_SOURCE` pointing to the clone and the
+environment first in `PATH`.
+
 ## Conventions
 
 Code, logs and comments are in English. Text shown to the player lives in `mod/lang/*.json`: edit it with
