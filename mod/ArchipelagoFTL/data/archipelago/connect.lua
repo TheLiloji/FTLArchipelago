@@ -378,8 +378,9 @@ function apConnectNow()
         return false
     end
 
+    -- The room page shows "archipelago.gg:54321": pasted whole into the address, its port wins over the field.
     local address = values.uri
-    if values.port ~= "" then
+    if values.port ~= "" and not address:match(":%d+$") then
         address = address .. ":" .. values.port
     end
 
@@ -432,6 +433,9 @@ local WITH_SHIFT = {
 }
 local WITHOUT_SHIFT = {
     [Defines.SDL.KEY_SPACE] = " ",
+    [Defines.SDL.KEY_COLON] = ":",
+    [Defines.SDL.KEY_KP_PERIOD] = ".",
+    [Defines.SDL.KEY_KP_MINUS] = "-",
     [Defines.SDL.KEY_PERIOD] = ".",
     [Defines.SDL.KEY_MINUS] = "-",
     [Defines.SDL.KEY_SLASH] = "/",
@@ -445,6 +449,9 @@ local function character(key)
     end
     if key >= Defines.SDL.KEY_0 and key <= Defines.SDL.KEY_9 then
         return string.char(key)
+    end
+    if key >= Defines.SDL.KEY_KP0 and key <= Defines.SDL.KEY_KP9 then
+        return tostring(key - Defines.SDL.KEY_KP0)
     end
     local keyMap = shiftHeld and WITH_SHIFT or WITHOUT_SHIFT
     return keyMap[key]
@@ -487,6 +494,11 @@ script.on_internal_event(Defines.InternalEvents.ON_KEY_DOWN, function(key)
     local c = character(key)
     if c ~= nil then
         local field = FIELDS[focus]
+        -- On a French keyboard the dot is Shift and the ";" key, which reads as ":" here. An address has no
+        -- use for a colon (the port has its own field), so there it is a dot.
+        if field.key == "uri" and c == ":" and key == Defines.SDL.KEY_SEMICOLON then
+            c = "."
+        end
         if field.digitsOnly and not c:match("%d") then
             return Defines.Chain.PREEMPT
         end

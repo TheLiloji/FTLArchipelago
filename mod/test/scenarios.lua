@@ -5668,6 +5668,53 @@ test("home screen: a slot name with a space can be typed", function()
     equals(sentSlot, "Player 1", "and a stray space at the end is not sent to the server")
 end)
 
+local function typeKeys(keys)
+    for _, key in ipairs(keys) do
+        if type(key) == "table" then
+            sim.keyDown(Defines.SDL.KEY_LSHIFT)
+            sim.keyDown(key[1])
+            sim.keyUp(Defines.SDL.KEY_LSHIFT)
+        else
+            sim.keyDown(key)
+        end
+    end
+end
+
+local function onTheAddressField()
+    onTheHomeScreen()
+    sim.keyDown(Defines.SDL.KEY_UP)
+    sim.keyDown(Defines.SDL.KEY_UP)
+    for _ = 1, 20 do sim.keyDown(Defines.SDL.KEY_BACKSPACE) end
+end
+
+test("home screen: an address can be typed on a French keyboard", function()
+    onTheAddressField()
+    -- "a.b" then ":1" the French way: Shift + the ";" key for the dot, the ":" key of its own.
+    typeKeys({ Defines.SDL.KEY_a, { Defines.SDL.KEY_SEMICOLON }, Defines.SDL.KEY_b,
+               Defines.SDL.KEY_COLON, Defines.SDL.KEY_1 })
+    equals(apConnectState().uri, "a.b:1", "the dot and the colon come out right")
+end)
+
+test("home screen: the numeric keypad types digits and dots", function()
+    onTheAddressField()
+    typeKeys({ Defines.SDL.KEY_KP0 + 1, Defines.SDL.KEY_KP9, Defines.SDL.KEY_KP_PERIOD, Defines.SDL.KEY_KP0 + 2 })
+    equals(apConnectState().uri, "19.2", "an IP address can be typed on the keypad")
+end)
+
+test("home screen: an address typed with its port keeps that port", function()
+    onTheAddressField()
+    typeKeys({ Defines.SDL.KEY_h, Defines.SDL.KEY_o, Defines.SDL.KEY_s, Defines.SDL.KEY_t,
+               Defines.SDL.KEY_COLON, Defines.SDL.KEY_5, Defines.SDL.KEY_4 })
+    sim.keyDown(Defines.SDL.KEY_TAB)
+    sim.keyDown(Defines.SDL.KEY_TAB)
+    sim.type("Navigator")
+    local sentAddress
+    local restore = stub("apNetConnect", function(address) sentAddress = address return true end)
+    apConnectNow()
+    restore()
+    equals(sentAddress, "host:54", "its port is used, not the default one glued after it")
+end)
+
 test("home screen: no default slot name, ever", function()
     onTheHomeScreen()
     local state = apConnectState()
