@@ -370,7 +370,7 @@ function apConnectNow()
     local values = {}
     for _, field in ipairs(FIELDS) do values[field.key] = field.value end
     -- Slot names can hold spaces, but not at either end: a stray one would only make the server refuse.
-    values.uri = values.uri:match("^%s*(.-)%s*$")
+    values.uri = values.uri:match("^%s*(.-)%s*$"):gsub("/+$", "")
     values.slot = values.slot:match("^%s*(.-)%s*$")
 
     if values.slot == "" then

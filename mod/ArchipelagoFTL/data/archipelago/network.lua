@@ -68,6 +68,10 @@ function apNetConnect(uri, slot, password)
     state.refusal = nil
     state.unreachableShown = false
     state.unreachableSince = nil
+    -- After a refused seed, the items that came with it applied nothing: take them all again.
+    if state.seedRefused then
+        state.lastItemIndex = -1
+    end
     state.seedRefused = false
     -- lastItemIndex is kept: the server sends every item again on connect, and those already applied must
     -- not be applied twice. It starts over only with another seed or slot (apNetForgetItems).
