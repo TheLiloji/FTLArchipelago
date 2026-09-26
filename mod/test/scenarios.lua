@@ -3306,32 +3306,34 @@ test("'both' is the default and covers both kinds of death", function()
     equals(_G.apDeathLinkState.sent, before + 2, "so does a crew member's death")
 end)
 
-test("a crew member who leaves without dying sends no DeathLink, one who dies does", function()
+test("a crew member dismissed from the crew screen sends no DeathLink, one who dies does", function()
     apDeathLinkConfigure({ enabled = true, trigger = "both", graceSeconds = 0 })
     local sent = 0
     local restore = stub("apNetSendDeath", function() sent = sent + 1 return true end)
     sim.startRun(true)
     sim.tick(60)
-    table.remove(sim.player.vCrewList._store, 1)
-    sim.tick(60)
-    equals(sent, 0, "taken by slavers or dismissed, in full health: nobody else should die for it")
-
-    sim.tick(60 * 11)
-    sim.player.vCrewList[0].health.first = 0
+    local fired = sim.player.vCrewList[0]
+    fired.health.first = 0
+    fired.bDead = true
     sim.tick(60)
     table.remove(sim.player.vCrewList._store, 1)
     sim.tick(60)
-    equals(sent, 1, "the body at zero health that goes away is a death")
+    equals(sent, 0, "dismissed: marked dead at once, the player's choice")
 
     sim.tick(60 * 11)
-    sim.enemy = sim.makeShip(1)
-    local boarder = table.remove(sim.player.vCrewList._store, 1)
-    sim.enemy.vCrewList._store[#sim.enemy.vCrewList._store + 1] = boarder
+    local dying = sim.player.vCrewList[0]
+    dying.health.first = 0
     sim.tick(60)
-    sim.enemy = nil
+    dying.bDead = true
+    sim.tick(60)
+    equals(sent, 1, "a death lies at zero health for a moment first: it counts")
+
+    table.remove(sim.player.vCrewList._store, 1)
+    sim.tick(60 * 11)
+    table.remove(sim.player.vCrewList._store, 1)
     sim.tick(60)
     restore()
-    equals(sent, 2, "a crew member left aboard the enemy ship is lost with it")
+    equals(sent, 2, "a crew member taken away by an event is still a loss")
 end)
 
 test("the major incident breaks a system room, without touching the hull", function()

@@ -27,6 +27,7 @@ local state = {
     received = 0,
     ignored = 0,
     knownCrew = nil,
+    dying = {},
     applying = false,
 }
 
@@ -298,22 +299,20 @@ function apDeathLinkReceive(source, cause)
     return true
 end
 
--- Our crew on both ships, with what is needed to tell a death from a crew member who just left.
+-- Our crew on both ships: the living by name, and those already marked dead.
 local function livingCrew()
     local living, dead = {}, {}
-    local ships = { Hyperspace.ships.player, Hyperspace.ships.enemy }
-    for index = 1, 2 do
-        local ship = ships[index]
+    for _, ship in ipairs({ Hyperspace.ships.player, Hyperspace.ships.enemy }) do
         if ship ~= nil then
             local crew = ship.vCrewList
             for i = 0, crew:size() - 1 do
                 local member = crew[i]
                 local name = member ~= nil and tostring(member.GetName and member:GetName() or ("crew" .. i))
+                local health = member ~= nil and member.health and tonumber(member.health.first) or 1
                 if member ~= nil and member.iShipId == 0 and member.bDead then
-                    dead[name] = true
+                    dead[name] = health
                 elseif member ~= nil and member.iShipId == 0 then
-                    local health = member.health and tonumber(member.health.first) or 1
-                    living[name] = { species = member.species or "crew", health = health, aboardEnemy = index == 2 }
+                    living[name] = { species = member.species or "crew", health = health }
                 end
             end
         end
@@ -321,11 +320,10 @@ local function livingCrew()
     return living, dead
 end
 
--- A body stays on board for a few seconds at zero health, so a death is seen before the name goes away.
--- Someone taken by slavers, dismissed or leaving in an event goes away in full health: not a death.
--- Crew left on the enemy ship are lost with it.
-local function diedRatherThanLeft(last)
-    return last.health <= 0 or last.aboardEnemy
+-- A crew member who dies lies a few seconds at zero health before FTL marks them dead. One dismissed from
+-- the crew screen is marked dead at once, without that moment: the player's choice, not a death.
+local function dismissed(name, dead)
+    return dead[name] ~= nil and dead[name] <= 0 and not state.dying[name]
 end
 
 -- The hangar keeps bStartedGame on while you browse ships, and each ship shown comes with its own crew.
@@ -356,13 +354,17 @@ local function sampleCrew()
     if state.knownCrew ~= nil then
         for name, last in pairs(state.knownCrew) do
             if current[name] == nil then
-                if dead[name] or diedRatherThanLeft(last) then
-                    apDeathLinkCrewDied(name, last.species)
+                if dismissed(name, dead) then
+                    deathLog(tostring(name) .. " was dismissed: no DeathLink")
                 else
-                    deathLog(tostring(name) .. " left the crew without dying: no DeathLink")
+                    apDeathLinkCrewDied(name, last.species)
                 end
+                state.dying[name] = nil
             end
         end
+    end
+    for name, member in pairs(current) do
+        state.dying[name] = member.health <= 0 or nil
     end
     state.knownCrew = current
 end
@@ -387,6 +389,7 @@ end)
 
 script.on_init(function()
     state.knownCrew = nil
+    state.dying = {}
     state.lastSentAt = nil
     state.lastReceivedAt = nil
 end)
