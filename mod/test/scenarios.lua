@@ -1238,6 +1238,21 @@ test("with slots and cargo full, only a few weapons per beacon go to the over ca
         "a weapon picked in the start-of-run menu is never held back")
 end)
 
+test("a weapon whose copy waits counts as received only once the copy is aboard", function()
+    sim.startRun(true)
+    _G.apShopConfig.deliver = true
+    local marked = {}
+    local restore = stub("apNetItemDelivered", function(index) marked[#marked + 1] = index return true end)
+    for _ = 1, 4 do apDeliverEquipment({ kind = "weapon", bp = "BEAM_2", display = "Halberd Beam" }) end
+    apQueueItem({ kind = "shop", bp = "BEAM_2", display = "Halberd Beam", index = 7 })
+    sim.tick(240)
+    equals(#marked, 0, "held back by the beacon limit: not marked yet")
+    sim.jumpArrive()
+    sim.tick(240)
+    restore()
+    equals(marked[#marked], 7, "marked once the copy lands")
+end)
+
 test("further copies make the object more common", function()
     sim.weaponBlueprints.BEAM_2 = 4
     sim.resetBlueprints()
