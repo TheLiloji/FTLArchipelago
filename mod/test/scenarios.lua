@@ -5657,6 +5657,17 @@ test("home screen: typing fills the focused field", function()
     equals(apConnectState().uri, "archipelago.gg", "and the default address hasn't moved")
 end)
 
+test("home screen: a slot name with a space can be typed", function()
+    onTheHomeScreen()
+    sim.type("Player 1 ")
+    equals(apConnectState().slot, "Player 1 ", "the space goes in like any character")
+    local sentSlot
+    local restore = stub("apNetConnect", function(_, slot) sentSlot = slot return true end)
+    apConnectNow()
+    restore()
+    equals(sentSlot, "Player 1", "and a stray space at the end is not sent to the server")
+end)
+
 test("home screen: no default slot name, ever", function()
     onTheHomeScreen()
     local state = apConnectState()

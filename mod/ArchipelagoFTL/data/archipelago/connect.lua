@@ -369,6 +369,9 @@ end
 function apConnectNow()
     local values = {}
     for _, field in ipairs(FIELDS) do values[field.key] = field.value end
+    -- Slot names can hold spaces, but not at either end: a stray one would only make the server refuse.
+    values.uri = values.uri:match("^%s*(.-)%s*$")
+    values.slot = values.slot:match("^%s*(.-)%s*$")
 
     if values.slot == "" then
         message, messageTone = apT("connect.need_slot"), "warn"
@@ -421,12 +424,14 @@ function apConnectState()
 end
 
 local WITH_SHIFT = {
+    [Defines.SDL.KEY_SPACE] = " ",
     [Defines.SDL.KEY_SEMICOLON] = ":",
     [Defines.SDL.KEY_MINUS] = "_",
     [Defines.SDL.KEY_SLASH] = "?",
     [Defines.SDL.KEY_PERIOD] = ">",
 }
 local WITHOUT_SHIFT = {
+    [Defines.SDL.KEY_SPACE] = " ",
     [Defines.SDL.KEY_PERIOD] = ".",
     [Defines.SDL.KEY_MINUS] = "-",
     [Defines.SDL.KEY_SLASH] = "/",
