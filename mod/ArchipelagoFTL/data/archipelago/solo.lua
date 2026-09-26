@@ -186,6 +186,8 @@ local function loadSeed()
         _G.apInventoryClear()
         if _G.apApplySystemRules then pcall(_G.apApplySystemRules) end
     end
+    -- Items still waiting from the server belong to its seed: it sends them again when the player is back.
+    if _G.apFillerForgetSeed then apFillerForgetSeed() end
 
     state.byKey = nil
 

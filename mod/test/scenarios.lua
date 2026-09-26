@@ -1706,6 +1706,19 @@ test("disconnecting from the panel and joining another slot starts the items ove
     equals(_G.apInventory.startingUpgrades.engines, nil, "and nothing is kept from the first slot")
 end)
 
+test("items still waiting from the server do not land in solo mode", function()
+    freshSession()
+    sim.started = false
+    apNetConnect("ws://localhost:38281", "Navigator", "")
+    sim.netEvent("connected", { name = "Navigator", extra = headStartSeed("room-a") })
+    apQueueItem({ kind = "filler", res = "fuel", n = 3 })
+    equals(#_G.apFillerPendingForTesting(), 1, "a server item waits for a run")
+    panelDisconnect()
+    check(apSoloStart(true), "solo mode starts")
+    equals(#_G.apFillerPendingForTesting(), 0, "the solo seed does not inherit it")
+    apSoloStop()
+end)
+
 test("going through solo mode and back to the server gets every item back", function()
     freshSession()
     connectAs("Navigator", "room-a")
