@@ -330,8 +330,9 @@ function apNetRememberSeed(fingerprint)
     netLog("seed fingerprint recorded: " .. tostring(fingerprint))
 end
 
-function apNetForgetProgress()
+function apNetForgetProgress(incoming)
     writeMeta(consumedKey(meta(SEED_KEY)), 0)
+    if incoming ~= nil then writeMeta(consumedKey(incoming), 0) end
     writeMeta(SEED_KEY, 0)
     writeMeta(CONSUMED_KEY, 0)
     state.consumedUntil = -1

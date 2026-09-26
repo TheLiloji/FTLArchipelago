@@ -340,8 +340,7 @@ test("a continued run keeps the seed it started with, not the one loaded now", f
     apForgetChecksForTesting()
     sim.runVariables = {}
     sim.startRun(false)
-    equals(apSendCheck("shop:2", "shop"), true,
-        "a save from 0.3.0, which recorded nothing, is trusted with the seed loaded now")
+    equals(apSendCheck("shop:2", "shop"), false, "nor does a save with nothing written in it")
 end)
 
 test("a wrong slot name is reported as such, not later as a silent server", function()
@@ -471,4 +470,35 @@ test("the connection panel does not keep saying 'connected' after a later refusa
           "after the room's seed is refused, it no longer says connected")
     apNetResetForTesting()
     apContractResetForTesting()
+end)
+
+test("the answer to the seed question stays on the panel instead of the refusal", function()
+    apContractResetForTesting()
+    apConnectResetForTesting()
+    apNetResetForTesting()
+    sim.renderMenu()
+    apApplySlotData({ contract = 99, kinds = {}, kinds_required = {}, items = {}, loc = {}, seed_hash = "too-new" })
+    sim.renderMenu()
+    check(apConnectState().message ~= nil, "the refusal is shown once")
+    sim.type("")
+    apConnectNow()
+    sim.renderMenu()
+    sim.renderMenu()
+    equals(apConnectState().message, apT("connect.need_slot"),
+        "a later message (here: no slot name) is not written over by the old refusal")
+    apContractResetForTesting()
+end)
+
+test("switching to another slot of the same room still asks before keeping the ships", function()
+    apContractResetForTesting()
+    _G.apNetState.connected = true
+    local function room() return { contract = 2, kinds = { "filler" }, kinds_required = {}, items = {}, loc = {},
+                                   seed_hash = "ROOM" } end
+    check(apApplySlotData(room(), "First") ~= false, "first slot plays")
+    _G.apInventory = { ships = { "PLAYER_SHIP_MANTIS" }, shopAvailability = {} }
+    _G.apNetState.connected = true
+    apApplySlotData(room(), "Second")
+    check(apSeedChangeLeftovers(), "the second slot of the same room gets the question")
+    apSeedChangeAcknowledged()
+    _G.apNetState.connected = false
 end)

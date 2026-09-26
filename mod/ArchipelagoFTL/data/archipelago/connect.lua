@@ -127,7 +127,9 @@ local function acceptReset()
     _G.apSoloPending = false
     local autoBefore = autoActive()
     local done = _G.apNetRequestProfileReset and _G.apNetRequestProfileReset()
-    if done and _G.apNetForgetProgress then _G.apNetForgetProgress() end
+    if done and _G.apNetForgetProgress then
+        _G.apNetForgetProgress(_G.apSeedChangeFingerprint and apSeedChangeFingerprint() or nil)
+    end
     if done and solo and _G.apSoloForgetProgress then _G.apSoloForgetProgress(true) end
     if autoBefore and _G.apNetRemember then _G.apNetRemember(AUTO_KEY, 1) end
     if _G.apSeedChangeAcknowledged then _G.apSeedChangeAcknowledged() end
@@ -330,21 +332,26 @@ local function resumeLast()
 end
 
 local connectedMessage = nil
+local shownRefusal = nil
 
 local function followAttempt()
     local contract = _G.apContractState
     -- A reconnection happens without a click: its outcome must replace a "connected" left from before.
     if attempt == nil then
-        if contract ~= nil and contract.refusal ~= nil then
-            message, messageTone = apT("contract.refused", { reason = contract.refusal }), "warn"
+        local refusal = contract ~= nil and contract.refusal or nil
+        -- Shown once when it appears, so the answers to the question that follows are not written over.
+        if refusal ~= nil and refusal ~= shownRefusal then
+            message, messageTone = apT("contract.refused", { reason = refusal }), "warn"
         elseif connectedMessage ~= nil and message == connectedMessage
             and not (_G.apNetConnected and _G.apNetConnected()) then
             message, messageTone, connectedMessage = nil, "dim", nil
         end
+        shownRefusal = refusal
         return
     end
     if contract ~= nil and contract.refusal ~= nil then
         message, messageTone = apT("contract.refused", { reason = contract.refusal }), "warn"
+        shownRefusal = contract.refusal
         attempt = nil
     elseif _G.apNetConnected and _G.apNetConnected() and contract ~= nil and contract.connected then
         message, messageTone = apT("net.connected", { slot = attempt.slot }), "good"

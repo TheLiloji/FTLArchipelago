@@ -34,8 +34,9 @@ local function refuse(reason)
     state.refusal = reason
     state.connected = false
     contractLog("SEED REFUSED: " .. reason)
+    state.refusalToast = apT("contract.refused", { reason = reason })
     if _G.apNotifyStatus then
-        _G.apNotifyStatus(apT("contract.refused", { reason = reason }))
+        _G.apNotifyStatus(state.refusalToast)
     end
     return false
 end
@@ -92,7 +93,9 @@ function apApplySlotData(slotData, slotName, solo)
             tostring(identity.hash), tostring(identity.slot)))
         -- On a server or in solo the fingerprint check above already asked the player; asking again after
         -- they answered would put the same question back up.
-        if not (onServer or solo) then
+        local slotChanged = state.identity.slot ~= nil and identity.slot ~= nil
+            and state.identity.slot ~= identity.slot
+        if not (onServer or solo) or slotChanged then
             state.seedChangedWithUnlocks = #((_G.apInventory or {}).ships or {}) > 0
                 or (_G.apCheckCount and (_G.apCheckCount().sent or 0) > 0) or false
         end
@@ -110,8 +113,9 @@ function apApplySlotData(slotData, slotName, solo)
         slot = identity.slot or (state.identity and state.identity.slot) or nil,
     }
 
-    local earlierRefusal = state.refusal
+    local earlierRefusal = state.refusalToast
     state.refusal = nil
+    state.refusalToast = nil
     state.unknownItems = 0
     state.unknownKinds = {}
 
@@ -210,7 +214,7 @@ function apApplySlotData(slotData, slotName, solo)
     contractLog(string.format("seed accepted: contract %d, %d item descriptor(s)",
         contract, descriptorCount))
     if earlierRefusal ~= nil and _G.apNotifyWithdraw then
-        _G.apNotifyWithdraw(apT("contract.refused", { reason = earlierRefusal }))
+        _G.apNotifyWithdraw(earlierRefusal)
     end
     state.refusal = nil
     if not solo and _G.apSoloLeave then

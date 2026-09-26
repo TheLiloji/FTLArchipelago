@@ -76,23 +76,16 @@ local function currentSeed()
     return seedLoaded() and (_G.apSeedFingerprint and apSeedFingerprint() or 0) or nil
 end
 
--- A run with no seed at its start is written as -1. Nothing written at all means a save from before this was
--- recorded (0.3.0): such a run is trusted with the seed loaded now, as it was then.
-local NO_SEED = -1
-
 local function savedRunSeed()
     local ok, value = pcall(function() return Hyperspace.playerVariables.ap_run_seed end)
-    if not ok or type(value) ~= "number" or value == 0 then
-        return currentSeed()
+    if ok and type(value) == "number" and value ~= 0 then
+        return value
     end
-    if value == NO_SEED then
-        return nil
-    end
-    return value
+    return nil
 end
 
 local function saveRunSeed(seed)
-    pcall(function() Hyperspace.playerVariables.ap_run_seed = seed or NO_SEED end)
+    pcall(function() Hyperspace.playerVariables.ap_run_seed = seed or 0 end)
 end
 
 function apRunMatchesSeed()
