@@ -4765,6 +4765,29 @@ test("cap: saving and continuing does not raise a system's cap", function()
     end
 end)
 
+test("the overview tiles show their whole number, even a long one", function()
+    local ships = {}
+    for _, ship in ipairs(apGameData.ships) do
+        ships[#ships + 1] = ship.name
+    end
+    _G.apInventory = { ships = ships, systemCaps = {}, startingUpgrades = {}, shopAvailability = {} }
+    sim.startRun(true)
+    sim.keyDown(Defines.SDL.KEY_TAB)
+    apDashboardPage("overview")
+    -- Closer to FTL's big digits than the harness default.
+    local measure = Graphics.freetype.easy_measureWidth
+    Graphics.freetype.easy_measureWidth = function(size, text) return #tostring(text) * size * 0.8 end
+    sim.renderGui()
+    Graphics.freetype.easy_measureWidth = measure
+    local fraction = apT("dash.fraction", { done = #ships, total = 28 })
+    local whole = false
+    for _, line in ipairs(sim.drawn) do
+        if line == fraction then whole = true end
+    end
+    check(whole, "the layouts tile reads " .. fraction .. " in full, not cut with an ellipsis")
+    sim.keyDown(Defines.SDL.KEY_TAB)
+end)
+
 test("the panel shows what the player has earned", function()
     _G.apInventory = {
         ships = { "PLAYER_SHIP_ROCK", "PLAYER_SHIP_MANTIS" },

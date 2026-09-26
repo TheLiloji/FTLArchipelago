@@ -353,7 +353,8 @@ end
 local function drawTile(x, y, w, h, key, value, sub, tone)
     card(x, y, w, h)
     label(x + 12, y + 10, w - 24, key)
-    text(24, x + 12, y + 30, w - 24, tone or "text", value)
+    local font = ui.fittingFont({ 24, 18, 14 }, w - 24, value)
+    text(font, x + 12, y + 30 + math.floor((24 - font) / 2), w - 24, tone or "text", value)
     if sub then
         text(9, x + 12, y + h - 22, w - 24, "dim", sub)
     end
