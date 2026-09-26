@@ -42,6 +42,32 @@ test("start-of-run menu: back after quitting to the main menu before choosing", 
     equals(sim.player.vCrewList:size(), crew + 1, "the crew member can still be taken")
 end)
 
+test("start-of-run menu: back even if the game was quit before it could show", function()
+    catalog({ LASER_BURST_3 = 2 })
+    sim.pauseOpen = true
+    sim.startRun(true)
+    check(not menuShown(), "hidden while the game is paused")
+    sim.pauseOpen = false
+    sim.startRun(false)
+    check(menuShown(), "the menu shows on Continue")
+end)
+
+test("start-of-run menu: not reopened on a run from another seed", function()
+    _G.apRunStartCheckForTesting = nil
+    apContractResetForTesting()
+    apApplySlotData({ contract = 2, kinds = { "filler" }, kinds_required = {}, items = {}, loc = {},
+                      seed_hash = "loadout-first" })
+    sim.startRun(true)
+    apContractResetForTesting()
+    apApplySlotData({ contract = 2, kinds = { "filler" }, kinds_required = {}, items = {}, loc = {},
+                      seed_hash = "loadout-second" })
+    catalog({ LASER_BURST_3 = 2 })
+    sim.startRun(false)
+    check(not menuShown(), "the run belongs to the first seed: no menu from the second")
+    _G.apRunStartCheckForTesting = false
+    check(menuShown(), "it is only waiting for a run that counts")
+end)
+
 test("start-of-run menu: closed for good once the run has jumped", function()
     catalog({ LASER_BURST_3 = 2 })
     sim.startRun(true)

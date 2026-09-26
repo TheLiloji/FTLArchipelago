@@ -47,6 +47,15 @@ local function recalled(key)
     return ok and value == 1
 end
 
+-- A run started under another seed gets nothing from this one.
+local function runCounts()
+    local contract = _G.apContractState
+    if _G.apRunMatchesSeed == nil or contract == nil or contract.connected ~= true then
+        return true
+    end
+    return apRunMatchesSeed()
+end
+
 local function blueprintTitle(name, family)
     local ok, text = pcall(function()
         local blueprints = Hyperspace.Blueprints
@@ -293,6 +302,12 @@ script.on_init(function(newGame)
     open = false
     pending = newGame == true
     resumed = newGame == false
+    if newGame then
+        remember("open", 1)
+        for _, category in ipairs(CATEGORIES) do
+            remember(category, 0)
+        end
+    end
 end)
 
 script.on_internal_event(Defines.InternalEvents.JUMP_ARRIVE, function(shipManager)
@@ -326,12 +341,11 @@ script.on_render_event(
                 taken[category] = recalled(category) or nil
             end
         end
-        if pending and not open and uiFree() then
+        if pending and not open and uiFree() and runCounts() then
             if catalogEmpty(receivedCatalog()) then
                 pending = false
             else
                 open = true
-                remember("open", 1)
                 menuLog("start-of-run menu opened")
             end
         end
