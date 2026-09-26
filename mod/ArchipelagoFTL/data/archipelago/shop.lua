@@ -188,7 +188,7 @@ function apApplyShopItem(descriptor)
             deliveredOnce[name] = true
         elseif _G.apQueueItem then
             -- Not now (a fight, full slots, the menu): the one copy waits in the queue rather than being lost.
-            _G.apQueueItem({ kind = "weapon", bp = name, display = label, waiting = attempt.waiting })
+            _G.apQueueItem({ kind = attempt.kind, bp = name, display = label, waiting = attempt.waiting })
             deliveredOnce[name] = true
             shopLog("immediate delivery deferred, queued: " .. name)
         end

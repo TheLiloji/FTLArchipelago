@@ -1184,7 +1184,7 @@ test("an augment received with all three slots taken waits for a free slot", fun
         end
     end
     equals(shown, 1, "the player is told once that it waits")
-    equals(logged, 3, "and the log says it once per copy, not at every try")
+    equals(logged, 2, "and the log says it once, not at every try")
     table.remove(sim.player._augments)
     sim.jumpArrive()
     drain()
