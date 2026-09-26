@@ -2248,8 +2248,10 @@ test("random weapons held back, jumps and restarts never give scrap twice or los
                    seed_hash = "random-walk",
                    shop = { mode = "rarity_boost", deliver = true, baseline = {} },
                    items = { ["20 Scrap"] = { k = "filler", res = "scrap", n = 20 },
-                             ["Engines Head Start"] = { k = "start", sys = "engines", n = 1 } } }
+                             ["Engines Head Start"] = { k = "start", sys = "engines", n = 1 },
+                             ["Archipelago Archive"] = { k = "archive" } } }
     seed.kinds[#seed.kinds + 1] = "start"
+    seed.kinds[#seed.kinds + 1] = "archive"
     -- Only a weapon's first copy goes aboard, and a release sends many at once: bursts of new weapons, so the
     -- beacon limit keeps holding some back.
     for number = 1, 200 do
@@ -2282,7 +2284,7 @@ test("random weapons held back, jumps and restarts never give scrap twice or los
     sim.cargoCap = 0
     connect(true)
     local scrapStart = sim.player.currentScrap
-    local scrapSent, startsSent = 0, 0
+    local scrapSent, startsSent, archivesSent = 0, 0, 0
     for _ = 1, 150 do
         local roll = math.random()
         if roll < 0.45 then
@@ -2298,10 +2300,14 @@ test("random weapons held back, jumps and restarts never give scrap twice or los
         elseif roll < 0.85 then
             sim.overflow = {}
             sim.jumpArrive()
-        elseif roll < 0.9 then
+        elseif roll < 0.88 then
             sent[#sent + 1] = "Engines Head Start"
             startsSent = startsSent + 1
             sim.netEvent("item", { name = "Engines Head Start", sender = "Nina", index = #sent - 1 })
+        elseif roll < 0.9 then
+            sent[#sent + 1] = "Archipelago Archive"
+            archivesSent = archivesSent + 1
+            sim.netEvent("item", { name = "Archipelago Archive", sender = "Nina", index = #sent - 1 })
         elseif roll < 0.95 then
             connect(false)
         else
@@ -2319,6 +2325,7 @@ test("random weapons held back, jumps and restarts never give scrap twice or los
     equals(sim.player.currentScrap - scrapStart, scrapSent * 20, "every scrap item counted exactly once")
     equals(_G.apInventory.startingUpgrades.engines or 0, startsSent,
         "and every head start once, through reconnects and restarts")
+    equals(_G.apInventory.archives or 0, archivesSent, "and every Archive once")
 end)
 end
 
