@@ -139,4 +139,4 @@ it aside, and clicking **Solo mode** again asks whether to continue or start ove
 - **Received traps never destroy your ship.** They leave at least 3 hull and 2 fuel, and wait for a quiet beacon.
 - **Received deaths** (Death Link) never take your last hull point or your last crew member.
 - **You send a death** (Death Link) when you lose the run or a crew member, depending on the seed's options.
-  Dismissing a crew member from the crew screen does not count.
+  Dismissing a crew member from the crew screen, or losing a drone, does not count.
