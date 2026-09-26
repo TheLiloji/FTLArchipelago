@@ -298,21 +298,34 @@ function apDeathLinkReceive(source, cause)
     return true
 end
 
-local function livingCrewNames()
-    local names = {}
-    for _, ship in ipairs({ Hyperspace.ships.player, Hyperspace.ships.enemy }) do
+-- Our crew on both ships, with what is needed to tell a death from a crew member who just left.
+local function livingCrew()
+    local living, dead = {}, {}
+    local ships = { Hyperspace.ships.player, Hyperspace.ships.enemy }
+    for index = 1, 2 do
+        local ship = ships[index]
         if ship ~= nil then
             local crew = ship.vCrewList
             for i = 0, crew:size() - 1 do
                 local member = crew[i]
-                if member ~= nil and member.iShipId == 0 and not member.bDead then
-                    local name = member.GetName and member:GetName() or ("crew" .. i)
-                    names[tostring(name)] = member.species or "crew"
+                local name = member ~= nil and tostring(member.GetName and member:GetName() or ("crew" .. i))
+                if member ~= nil and member.iShipId == 0 and member.bDead then
+                    dead[name] = true
+                elseif member ~= nil and member.iShipId == 0 then
+                    local health = member.health and tonumber(member.health.first) or 1
+                    living[name] = { species = member.species or "crew", health = health, aboardEnemy = index == 2 }
                 end
             end
         end
     end
-    return names
+    return living, dead
+end
+
+-- A body stays on board for a few seconds at zero health, so a death is seen before the name goes away.
+-- Someone taken by slavers, dismissed or leaving in an event goes away in full health: not a death.
+-- Crew left on the enemy ship are lost with it.
+local function diedRatherThanLeft(last)
+    return last.health <= 0 or last.aboardEnemy
 end
 
 -- The hangar keeps bStartedGame on while you browse ships, and each ship shown comes with its own crew.
@@ -335,15 +348,19 @@ local function sampleCrew()
         return
     end
 
-    local ok, current = pcall(livingCrewNames)
+    local ok, current, dead = pcall(livingCrew)
     if not ok then
         return
     end
 
     if state.knownCrew ~= nil then
-        for name, species in pairs(state.knownCrew) do
+        for name, last in pairs(state.knownCrew) do
             if current[name] == nil then
-                apDeathLinkCrewDied(name, species)
+                if dead[name] or diedRatherThanLeft(last) then
+                    apDeathLinkCrewDied(name, last.species)
+                else
+                    deathLog(tostring(name) .. " left the crew without dying: no DeathLink")
+                end
             end
         end
     end
