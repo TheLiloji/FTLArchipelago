@@ -1760,6 +1760,22 @@ test("going through solo mode and back to the server gets every item back", func
     equals(_G.apInventory.startingUpgrades.engines, 2, "the server's items are applied again after solo")
 end)
 
+test("network: a check done elsewhere on the slot shows up without reconnecting", function()
+    sim.startRun(true)
+    apForgetChecksForTesting()
+    sim.net.checked = { "Archipelago Shop 1" }
+    apNetConnect("ws://localhost:38281", "Navigator", "")
+    sim.netEvent("connected", { name = "Navigator", extra = {
+        contract = CONTRACT, kinds = { "filler" }, kinds_required = {}, items = {},
+        loc = { ["shop:1"] = "Archipelago Shop 1", ["shop:2"] = "Archipelago Shop 2" },
+    } })
+    sim.tick(1)
+    equals(apCheckCount().sent, 1, "one check known at connect")
+    sim.net.checked = { "Archipelago Shop 1", "Archipelago Shop 2" }
+    sim.tick(10 * 60)
+    equals(apCheckCount().sent, 2, "the other one is picked up a few seconds later")
+end)
+
 test("network: a recovered check is not resent to the server", function()
     sim.startRun(true)
     apForgetChecksForTesting()

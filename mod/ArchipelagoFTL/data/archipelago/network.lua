@@ -50,6 +50,8 @@ local function client()
     return nil
 end
 
+local adoptServerChecks
+
 local function whenConnected(action)
     local ap = client()
     if ap == nil or not state.connected then
@@ -419,24 +421,7 @@ local function onConnected(event)
         apNetAnnounceTags()
     end
 
-    if _G.apAdoptCheckedLocations then
-        local ap = client()
-        if ap ~= nil and ap.CheckedLocations ~= nil then
-            local ok, names = pcall(function() return ap:CheckedLocations() end)
-            if ok and names ~= nil then
-                local list = {}
-                for i = 0, names:size() - 1 do
-                    local name = tostring(names[i])
-                    if name ~= UNKNOWN then
-                        list[#list + 1] = name
-                    end
-                end
-                pcall(_G.apAdoptCheckedLocations, list)
-            else
-                netLog("CheckedLocations unavailable: the check counter starts over from zero")
-            end
-        end
-    end
+    adoptServerChecks(true)
 
     if _G.apResendPendingChecks then
         pcall(_G.apResendPendingChecks)
@@ -491,6 +476,33 @@ local function onScout(event)
         sphere = nil,
     }
 end
+
+-- Checks done elsewhere on this slot (another client, an admin) reach the client's list as the server
+-- tells it: read it again now and then, not only when connecting.
+adoptServerChecks = function(verbose)
+    if not _G.apAdoptCheckedLocations then
+        return
+    end
+    local ap = client()
+    if ap == nil or ap.CheckedLocations == nil then
+        return
+    end
+    local ok, names = pcall(function() return ap:CheckedLocations() end)
+    if ok and names ~= nil then
+        local list = {}
+        for i = 0, names:size() - 1 do
+            local name = tostring(names[i])
+            if name ~= UNKNOWN then
+                list[#list + 1] = name
+            end
+        end
+        pcall(_G.apAdoptCheckedLocations, list)
+    elseif verbose then
+        netLog("CheckedLocations unavailable: the check counter starts over from zero")
+    end
+end
+
+local CHECKED_POLL_TICKS = 10 * 60
 
 local function onItem(event)
     if event.index >= 0 and event.index <= state.lastItemIndex then
@@ -686,6 +698,9 @@ script.on_internal_event(Defines.InternalEvents.ON_TICK, function()
     drain()
     retryIfDue()
     announceIfStillUnreachable()
+    if state.connected and not state.seedRefused and state.ticks % CHECKED_POLL_TICKS == 0 then
+        adoptServerChecks(false)
+    end
 end)
 
 function apNetConnected()
