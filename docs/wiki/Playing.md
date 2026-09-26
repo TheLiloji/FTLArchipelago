@@ -130,7 +130,10 @@ it aside, and clicking **Solo mode** again asks whether to continue or start ove
 
 - **Losing a run costs only the run.** Items stay, and Head Starts make the next run stronger.
 - **A run started before you connected does not count.** Connect first, then start a new game. The same goes for
-  a run saved under another seed: "Continue" brings it back, but it counts for nothing.
+  a run saved under another seed: "Continue" brings it back, but it counts for nothing, and the scrap, fuel
+  and traps you receive meanwhile wait for your next real run.
+- **Coming back to a seed you played before** does not hand out its scrap, fuel and traps a second time. Ships,
+  blueprints and upgrade levels come back as they were.
 - **Achievement checks are sent at the next jump** after you earn them.
 - **Received traps never destroy your ship.** They leave at least 3 hull and 2 fuel, and wait for a quiet beacon.
 - **Received deaths** (Death Link) never take your last hull point or your last crew member.
