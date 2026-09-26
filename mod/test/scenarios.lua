@@ -2247,7 +2247,9 @@ test("random weapons held back, jumps and restarts never give scrap twice or los
     local seed = { contract = CONTRACT, kinds = { "filler", "shop" }, kinds_required = {}, loc = {},
                    seed_hash = "random-walk",
                    shop = { mode = "rarity_boost", deliver = true, baseline = {} },
-                   items = { ["20 Scrap"] = { k = "filler", res = "scrap", n = 20 } } }
+                   items = { ["20 Scrap"] = { k = "filler", res = "scrap", n = 20 },
+                             ["Engines Head Start"] = { k = "start", sys = "engines", n = 1 } } }
+    seed.kinds[#seed.kinds + 1] = "start"
     -- Only a weapon's first copy goes aboard, and a release sends many at once: bursts of new weapons, so the
     -- beacon limit keeps holding some back.
     for number = 1, 200 do
@@ -2257,10 +2259,16 @@ test("random weapons held back, jumps and restarts never give scrap twice or los
     sim.resetBlueprints()
     local nextWeapon = 0
     local sent = {}
-    local function connect()
-        apContractResetForTesting()
-        apNetResetForTesting()
-        apFillerForgetSeed()
+    local function connect(restart)
+        if restart then
+            apInventoryClear()
+            apContractResetForTesting()
+            apNetResetForTesting()
+            apFillerForgetSeed()
+        else
+            apNetDisconnect()
+            apContractUnload()
+        end
         apNetConnect("ws://localhost:38281", "Navigator", "")
         sim.netEvent("connected", { name = "Navigator", extra = seed })
         for index, name in ipairs(sent) do
@@ -2272,9 +2280,9 @@ test("random weapons held back, jumps and restarts never give scrap twice or los
     sim.startRun(true)
     sim.slots.weapon = 0
     sim.cargoCap = 0
-    connect()
+    connect(true)
     local scrapStart = sim.player.currentScrap
-    local scrapSent = 0
+    local scrapSent, startsSent = 0, 0
     for _ = 1, 150 do
         local roll = math.random()
         if roll < 0.45 then
@@ -2287,11 +2295,17 @@ test("random weapons held back, jumps and restarts never give scrap twice or los
                 sent[#sent + 1] = "Test Weapon " .. nextWeapon
                 sim.netEvent("item", { name = sent[#sent], sender = "Nina", index = #sent - 1 })
             end
-        elseif roll < 0.9 then
+        elseif roll < 0.85 then
             sim.overflow = {}
             sim.jumpArrive()
+        elseif roll < 0.9 then
+            sent[#sent + 1] = "Engines Head Start"
+            startsSent = startsSent + 1
+            sim.netEvent("item", { name = "Engines Head Start", sender = "Nina", index = #sent - 1 })
+        elseif roll < 0.95 then
+            connect(false)
         else
-            connect()
+            connect(true)
         end
         sim.tick(130)
     end
@@ -2303,6 +2317,8 @@ test("random weapons held back, jumps and restarts never give scrap twice or los
     for number = 1, 200 do sim.weaponBlueprints["TEST_WEAPON_" .. number] = nil end
     sim.resetBlueprints()
     equals(sim.player.currentScrap - scrapStart, scrapSent * 20, "every scrap item counted exactly once")
+    equals(_G.apInventory.startingUpgrades.engines or 0, startsSent,
+        "and every head start once, through reconnects and restarts")
 end)
 end
 
