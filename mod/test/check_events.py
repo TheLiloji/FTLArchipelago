@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 import re
 import subprocess
 import sys
@@ -197,7 +198,7 @@ def main() -> int:
             failures.append("sector_data.xml missing from the ftl.dat extraction")
         else:
             result = subprocess.run(
-                ["ftlman", "append", str(extracted), str(SECTORS)],
+                [os.environ.get("FTLMAN", "ftlman"), "append", str(extracted), str(SECTORS)],
                 capture_output=True, text=True,
             )
             if result.returncode != 0:
@@ -229,7 +230,7 @@ def main() -> int:
                 failures.append(f"{target} is not in ftl.dat: ftlman would ignore {patch.name}")
                 continue
             result = subprocess.run(
-                ["ftlman", "append", str(original), str(patch)],
+                [os.environ.get("FTLMAN", "ftlman"), "append", str(original), str(patch)],
                 capture_output=True, text=True,
             )
             if result.returncode != 0:

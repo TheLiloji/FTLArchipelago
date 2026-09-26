@@ -9,14 +9,15 @@ OUT="$(mktemp -d)"
 trap 'rm -rf "$OUT"' EXIT
 
 [ -f "$DAT" ] || { echo "SKIPPED: no ftl.dat at $DAT"; exit 0; }
-command -v ftlman >/dev/null || { echo "SKIPPED: ftlman not found"; exit 0; }
+FTLMAN="${FTLMAN:-ftlman}"
+command -v "$FTLMAN" >/dev/null || { echo "SKIPPED: ftlman not found"; exit 0; }
 
 CAP=()
 if command -v systemd-run >/dev/null 2>&1; then
     CAP=(systemd-run --user --scope --quiet -p MemoryMax=6G -p MemorySwapMax=0)
 fi
 
-"${CAP[@]}" ftlman extract "$OUT" "$DAT" 2>&1 \
+"${CAP[@]}" "$FTLMAN" extract "$OUT" "$DAT" 2>&1 \
     | grep -vE "Failed to get locale|^\[INFO\]" || true
 D="$OUT/data"
 failures=0
