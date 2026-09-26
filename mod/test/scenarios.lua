@@ -3985,7 +3985,9 @@ test("event: with no package to name, the relay still ships what it can", functi
         { location = "shop:1", slot = "Nina", item = "Progressive Shields",
           sphere = 1, kind = "progression", cost = 40 },
     })
-    sim.openChoiceBox("AP_EVT_PACKAGE")
+    local box = sim.openChoiceBox("AP_EVT_PACKAGE")
+    check(box.choices[2].text:find("Nina", 1, true) ~= nil,
+        "the second answer names the package it really ships: " .. box.choices[2].text)
     apEventsResetForTesting()
 
     local sent = {}
