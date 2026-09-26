@@ -102,9 +102,8 @@ function apDeliverEquipment(descriptor)
         if not queued.waiting then
             queued.waiting = true
             equipLog("delivery deferred for " .. tostring(name) .. ": " .. tostring(err))
-            if descriptor.kind == "augment" and _G.apNotifyStatus then
-                _G.apNotifyStatus(apT("item.waiting_augment",
-                    { name = descriptor.display or (_G.apHumaniseId and _G.apHumaniseId(name)) or name }))
+            if descriptor.kind == "augment" and _G.apNotifyWaiting then
+                _G.apNotifyWaiting(descriptor.display or (_G.apHumaniseId and _G.apHumaniseId(name)) or name)
             end
         end
         return false, "retry"

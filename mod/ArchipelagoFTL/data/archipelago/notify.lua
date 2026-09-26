@@ -133,6 +133,12 @@ function apNotifyCheck(locationName)
     pendingChecks[#pendingChecks + 1] = tostring(locationName)
 end
 
+local pendingWaiting = {}
+
+function apNotifyWaiting(itemName)
+    pendingWaiting[#pendingWaiting + 1] = tostring(itemName)
+end
+
 -- A quiet tick shows one line per entry; a burst (several checks/items landing at once,
 -- e.g. after reconnecting) collapses to a single "N received" line instead of flooding it.
 local function flushQueue(queue, lineFor, manyKey, tone)
@@ -158,6 +164,8 @@ local function flushAll()
     pendingItems = flushQueue(pendingItems, itemLine, "item.received.many", "good")
     pendingChecks = flushQueue(pendingChecks,
         function(name) return apT("check.sent", { location = name }) end, "check.sent.many", "border")
+    pendingWaiting = flushQueue(pendingWaiting,
+        function(name) return apT("item.waiting_augment", { name = name }) end, "item.waiting_augment.many", "title")
 end
 
 script.on_internal_event(Defines.InternalEvents.ON_TICK, flushAll)
@@ -169,6 +177,7 @@ end
 function apNotifyResetForTesting()
     pendingChecks = {}
     pendingItems = {}
+    pendingWaiting = {}
     toasts = {}
 end
 

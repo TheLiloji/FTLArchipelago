@@ -214,6 +214,7 @@
     "hud.title": "ARCHIPELAGO",
     "item.failed": "{name} konnte nicht geliefert werden. Siehe FTL_HS.log.",
     "item.waiting_augment": "{name} wartet auf einen freien Erweiterungsplatz.",
+    "item.waiting_augment.many": "{n} Erweiterungen warten auf einen freien Platz.",
     "item.received": "Erhalten: {item}",
     "item.received.from": "Erhalten: {item}, von {sender}",
     "item.received.many": "{n} Gegenstände erhalten. TAB zeigt, was sich geändert hat.",

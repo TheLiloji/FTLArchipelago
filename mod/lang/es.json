@@ -214,6 +214,7 @@
     "hud.title": "ARCHIPELAGO",
     "item.failed": "{name} no se ha podido entregar. Mira FTL_HS.log.",
     "item.waiting_augment": "{name} espera un hueco de mejora libre.",
+    "item.waiting_augment.many": "{n} mejoras esperan un hueco libre.",
     "item.received": "Recibido: {item}",
     "item.received.from": "Recibido: {item}, de {sender}",
     "item.received.many": "{n} objetos recibidos. TAB muestra lo que ha cambiado.",

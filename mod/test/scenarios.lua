@@ -1191,6 +1191,23 @@ test("an augment received with all three slots taken waits for a free slot", fun
     check(sim.player:HasAugmentation("ENERGY_SHIELD"), "once a slot is free, the augment comes aboard")
 end)
 
+test("many augments waiting at once make one line, not a flood", function()
+    local names = { "REPAIR_ARM", "ION_ARMOR", "FIRE_EXTINGUISHERS", "O2_MASKS" }
+    for _, name in ipairs(names) do sim.augBlueprints[name] = sim.augBlueprints[name] or 3 end
+    sim.resetBlueprints()
+    _G.apRunStartCheckForTesting = false
+    sim.startRun(true)
+    _G.apShopConfig.deliver = true
+    sim.player._augments = { "SCRAP_COLLECTOR", "SCRAP_COLLECTOR", "SCRAP_COLLECTOR" }
+    sim.clearLog()
+    for _, name in ipairs(names) do
+        apApplyShopItem({ kind = "shop", bp = name, display = name })
+    end
+    drain()
+    check(sim.shown(apT("item.waiting_augment.many", { n = 4 })), "one line counts them")
+    check(not sim.shown(apT("item.waiting_augment", { name = "REPAIR_ARM" })), "instead of one line each")
+end)
+
 test("further copies make the object more common", function()
     sim.weaponBlueprints.BEAM_2 = 4
     sim.resetBlueprints()

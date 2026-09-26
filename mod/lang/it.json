@@ -214,6 +214,7 @@
     "hud.title": "ARCHIPELAGO",
     "item.failed": "{name} non è stato consegnato. Vedi FTL_HS.log.",
     "item.waiting_augment": "{name} aspetta uno slot di potenziamento libero.",
+    "item.waiting_augment.many": "{n} potenziamenti aspettano uno slot libero.",
     "item.received": "Ricevuto: {item}",
     "item.received.from": "Ricevuto: {item}, da {sender}",
     "item.received.many": "{n} oggetti ricevuti. TAB mostra cosa è cambiato.",
