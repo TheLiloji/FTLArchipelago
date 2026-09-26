@@ -382,8 +382,11 @@ local function collect(index, blueprintName)
     end
 
     giftLog(string.format("gift bought: %s for %s (%s)", what, who, blueprintName))
+    local me = _G.apOwnSlotName and _G.apOwnSlotName() or nil
+    local forMe = gift.mine == true or (me ~= nil and tostring(gift.slot) == tostring(me))
     if _G.apNotifyStatus then
-        _G.apNotifyStatus(apT("shop.gift.sent", { item = what, slot = who }))
+        _G.apNotifyStatus(forMe and apT("shop.gift.sent.self", { item = what })
+            or apT("shop.gift.sent", { item = what, slot = who }))
     end
 
     apApplyShopGifts()

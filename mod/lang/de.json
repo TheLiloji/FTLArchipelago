@@ -265,6 +265,7 @@
     "reset.yes": "Ja, alles löschen",
     "shop.gift.already_sent": "Bereits verschickt. {price} Schrott zurück.",
     "shop.gift.sent": "{item} ist unterwegs zu {slot}.",
+    "shop.gift.sent.self": "{item} ist für dich: es kommt an Bord.",
     "shop.item.unknown": "{name}: Gegenstand den Läden unbekannt.",
     "shop.kind.filler": "Füllmaterial",
     "shop.kind.progression": "Fortschritt",

@@ -265,6 +265,7 @@
     "reset.yes": "Yes, wipe it",
     "shop.gift.already_sent": "Already sent. {price} scrap back.",
     "shop.gift.sent": "{item} is on its way to {slot}.",
+    "shop.gift.sent.self": "{item} is yours: it comes aboard.",
     "shop.item.unknown": "{name}: item unknown to the shops.",
     "shop.kind.filler": "filler",
     "shop.kind.progression": "progression",

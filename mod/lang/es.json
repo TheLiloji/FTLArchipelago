@@ -265,6 +265,7 @@
     "reset.yes": "Sí, borrar todo",
     "shop.gift.already_sent": "Ya enviado. {price} de chatarra de vuelta.",
     "shop.gift.sent": "{item} va de camino a {slot}.",
+    "shop.gift.sent.self": "{item} es para ti: llega a bordo.",
     "shop.item.unknown": "{name}: objeto desconocido para las tiendas.",
     "shop.kind.filler": "Relleno",
     "shop.kind.progression": "Progresión",

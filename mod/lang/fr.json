@@ -264,6 +264,7 @@
     "reset.yes": "Oui, tout effacer",
     "shop.gift.already_sent": "Déjà expédié. {price} de ferraille rendus.",
     "shop.gift.sent": "{item} part pour {slot}.",
+    "shop.gift.sent.self": "{item} est pour vous : il arrive à bord.",
     "shop.item.unknown": "{name} : objet inconnu des boutiques.",
     "shop.kind.filler": "remplissage",
     "shop.kind.progression": "progression",
