@@ -186,8 +186,11 @@ function apApplyShopItem(descriptor)
             { kind = "weapon", bp = name, display = label, silent = true }) == true
         if aboard then
             deliveredOnce[name] = true
-        else
-            shopLog("immediate delivery deferred: " .. name)
+        elseif _G.apQueueItem then
+            -- Not now (a fight, full slots, the menu): the one copy waits in the queue rather than being lost.
+            _G.apQueueItem({ kind = "weapon", bp = name, display = label })
+            deliveredOnce[name] = true
+            shopLog("immediate delivery deferred, queued: " .. name)
         end
     end
 

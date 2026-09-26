@@ -1164,6 +1164,19 @@ test("a received item makes an unfindable object available", function()
     check(desc.rarity >= 3, "but it stays rare on the first copy (got: " .. desc.rarity .. ")")
 end)
 
+test("an augment received with all three slots taken waits for a free slot", function()
+    sim.startRun(true)
+    _G.apShopConfig.deliver = true
+    sim.player._augments = { "SCRAP_COLLECTOR", "SCRAP_COLLECTOR", "SCRAP_COLLECTOR" }
+    apApplyShopItem({ kind = "shop", bp = "ENERGY_SHIELD", display = "Shield Charge Booster" })
+    drain()
+    equals(#sim.player._augments, 3, "nothing forced into a full set")
+    table.remove(sim.player._augments)
+    sim.jumpArrive()
+    drain()
+    check(sim.player:HasAugmentation("ENERGY_SHIELD"), "once a slot is free, the augment comes aboard")
+end)
+
 test("further copies make the object more common", function()
     sim.weaponBlueprints.BEAM_2 = 4
     sim.resetBlueprints()

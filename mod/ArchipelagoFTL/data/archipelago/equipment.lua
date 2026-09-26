@@ -36,10 +36,28 @@ local function deliverEquipped(name, family)
     return name
 end
 
+local AUGMENT_SLOTS = 3
+
+-- FTL holds three augments: with all three taken, the new one waits for a free slot instead of vanishing.
+local function augmentsAboard(player)
+    local ok, count = pcall(function()
+        local list = player:GetAugmentationList()
+        local n = 0
+        for i = 0, list:size() - 1 do
+            if tostring(list[i]):sub(1, 3) ~= "AP_" then n = n + 1 end
+        end
+        return n
+    end)
+    return ok and count or 0
+end
+
 local function deliverAugment(name)
     local player = Hyperspace.ships.player
     if player == nil then
         return nil, "no ship"
+    end
+    if augmentsAboard(player) >= AUGMENT_SLOTS then
+        return nil, "no free augment slot"
     end
     player:AddAugmentation(name)
     return name
