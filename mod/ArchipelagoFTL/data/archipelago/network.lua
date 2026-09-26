@@ -375,9 +375,11 @@ function apNetForgetProgress(incoming)
     local current = meta(SEED_KEY)
     writeMeta(consumedKey(current), 0)
     apNetRememberText(deliveredKey(current), "")
+    if _G.apShopForgetOwed then apShopForgetOwed(current) end
     if incoming ~= nil then
         writeMeta(consumedKey(incoming), 0)
         apNetRememberText(deliveredKey(incoming), "")
+        if _G.apShopForgetOwed then apShopForgetOwed(incoming) end
     end
     writeMeta(SEED_KEY, 0)
     writeMeta(CONSUMED_KEY, 0)

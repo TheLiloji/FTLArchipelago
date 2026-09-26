@@ -1278,6 +1278,36 @@ test("a weapon whose copy waits counts as received only once the copy is aboard"
     equals(marked[#marked], 7, "marked once the copy lands")
 end)
 
+test("a copy still owed when the game closes comes aboard in the next run, not only in the catalogue", function()
+    sim.startRun(true)
+    apShopForgetSeed()
+    apFillerResetForTesting()
+    _G.apShopConfig.deliver = true
+    local marked = {}
+    local restore = stub("apNetItemDelivered", function(index) marked[#marked + 1] = index return true end)
+    for _ = 1, 4 do apDeliverEquipment({ kind = "weapon", bp = "BEAM_2", display = "Halberd Beam" }) end
+    apQueueItem({ kind = "shop", bp = "BEAM_2", display = "Halberd Beam", index = 7 })
+    sim.tick(240)
+    equals(#marked, 0, "held back by the beacon limit")
+
+    apFillerResetForTesting()
+    apShopForgetSeed()
+    sim.started = false
+    apQueueItem({ kind = "shop", bp = "BEAM_2", display = "Halberd Beam", index = 7 })
+    sim.tick(240)
+    equals(#marked, 0, "at the menu of the next launch, the item is not taken as done")
+    local before = sim.delivered()
+    sim.startRun(false)
+    sim.tick(240)
+    restore()
+    equals(sim.delivered(), before + 1, "the copy comes aboard once the run is back")
+    equals(marked[#marked], 7, "and only then is the item marked")
+    apShopForgetSeed()
+    apQueueItem({ kind = "shop", bp = "BEAM_2", display = "Halberd Beam", index = 7, isReplay = true })
+    sim.tick(240)
+    equals(sim.delivered(), before + 1, "a later replay does not give it a second time")
+end)
+
 test("further copies make the object more common", function()
     sim.weaponBlueprints.BEAM_2 = 4
     sim.resetBlueprints()

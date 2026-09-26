@@ -158,6 +158,9 @@ function apDeliverEquipment(descriptor)
 
     local label = descriptor.display or (_G.apHumaniseId and _G.apHumaniseId(name)) or tostring(name)
     equipLog("delivered: " .. name .. " (" .. descriptor.kind .. ")")
+    if not descriptor.chosen and _G.apShopCopyAboard then
+        apShopCopyAboard(name)
+    end
     if _G.apNotifyItem and not descriptor.silent then
         _G.apNotifyItem(label, descriptor.sender)
     end

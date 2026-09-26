@@ -88,6 +88,52 @@ _G.apShopConfig = {
 
 local deliveredOnce = {}
 
+-- A first copy that could not come aboard yet is owed. The list is kept in the profile: a game closed in
+-- between replays the item at the menu, where it would only fill the catalogue, and the copy would be lost.
+local function owedKey(fingerprint)
+    return "ap_owed_" .. tostring(fingerprint or 0)
+end
+
+local function seedFingerprint()
+    return _G.apSeedFingerprint and apSeedFingerprint() or 0
+end
+
+local function readOwed()
+    local owed = {}
+    if _G.apNetRecallText then
+        for name in tostring(apNetRecallText(owedKey(seedFingerprint()))):gmatch("[^,]+") do
+            owed[name] = true
+        end
+    end
+    return owed
+end
+
+local function writeOwed(owed)
+    if not _G.apNetRememberText then
+        return
+    end
+    local list = {}
+    for name in pairs(owed) do
+        list[#list + 1] = name
+    end
+    table.sort(list)
+    apNetRememberText(owedKey(seedFingerprint()), table.concat(list, ","))
+end
+
+function apShopCopyAboard(name)
+    local owed = readOwed()
+    if owed[name] then
+        owed[name] = nil
+        writeOwed(owed)
+    end
+end
+
+function apShopForgetOwed(fingerprint)
+    if _G.apNetRememberText then
+        apNetRememberText(owedKey(fingerprint), "")
+    end
+end
+
 function apShopForgetSeed()
     -- Every rarity the old seed touched goes back, the ones it made more common as well as the ones it locked.
     local restored = 0
@@ -194,8 +240,17 @@ function apApplyShopItem(descriptor)
                              index = descriptor.index })
             descriptor.index = nil
             deliveredOnce[name] = true
+            local owed = readOwed()
+            owed[name] = true
+            writeOwed(owed)
             shopLog("immediate delivery deferred, queued: " .. name)
         end
+    elseif _G.apShopConfig.deliver and not deliveredOnce[name] and _G.apQueueItem and readOwed()[name] then
+        _G.apQueueItem({ kind = "weapon", bp = name, display = label,
+                         index = not descriptor.isReplay and descriptor.index or nil })
+        descriptor.index = nil
+        deliveredOnce[name] = true
+        shopLog("copy owed from an earlier session, queued: " .. name)
     end
 
     if _G.apNotifyStatus and not descriptor.isReplay then
