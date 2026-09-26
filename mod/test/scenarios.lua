@@ -1173,6 +1173,18 @@ test("further copies make the object more common", function()
     equals(desc.rarity, 1, "three copies from 4 bring it to the most common")
 end)
 
+test("a new seed puts back the shop rarities the old one made more common", function()
+    sim.weaponBlueprints.BEAM_2 = 4
+    sim.resetBlueprints()
+    _G.apInventory = { ships = {}, shopAvailability = { BEAM_2 = 3 } }
+    apApplyShopRules()
+    equals(sim.rarityFor("BEAM_2", 4).rarity, 1, "the old seed made it common")
+    apShopForgetSeed()
+    _G.apInventory = { ships = {}, shopAvailability = {} }
+    apApplyShopRules()
+    equals(sim.rarityFor("BEAM_2", 4).rarity, 4, "the new seed starts from the game's own rarity")
+end)
+
 test("applying it twice doesn't drift the rarity", function()
     sim.weaponBlueprints.LASER_BURST_3 = 5
     sim.resetBlueprints()

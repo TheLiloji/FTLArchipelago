@@ -89,11 +89,12 @@ _G.apShopConfig = {
 local deliveredOnce = {}
 
 function apShopForgetSeed()
+    -- Every rarity the old seed touched goes back, the ones it made more common as well as the ones it locked.
     local restored = 0
-    for name in pairs(lockedBySeed) do
+    for name, rarity in pairs(originalRarity) do
         local desc = describe(name)
-        if desc ~= nil and originalRarity[name] ~= nil then
-            desc.rarity = originalRarity[name]
+        if desc ~= nil and desc.rarity ~= rarity then
+            desc.rarity = rarity
             restored = restored + 1
         end
     end
