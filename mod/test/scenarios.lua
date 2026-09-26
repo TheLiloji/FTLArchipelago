@@ -2183,6 +2183,24 @@ test("scrap delivered behind a weapon that waits is not given again next session
     equals(sim.player.currentScrap, before, "the scrap already received is not credited twice")
 end)
 
+test("items delivered in order write no extra list to the disk", function()
+    local seed = { contract = CONTRACT, kinds = { "filler" }, kinds_required = {}, loc = {},
+                   seed_hash = "in-order", items = {} }
+    apContractResetForTesting()
+    apNetResetForTesting()
+    sim.startRun(true)
+    apNetConnect("ws://localhost:38281", "Navigator", "")
+    sim.netEvent("connected", { name = "Navigator", extra = seed })
+    sim.tick(1)
+    sim.net.calls = {}
+    for index = 0, 9 do apNetItemDelivered(index) end
+    local lists = 0
+    for _, call in ipairs(sim.net.calls) do
+        if call[1] == "RememberState" and tostring(call.key):find("ap_delivered_", 1, true) then lists = lists + 1 end
+    end
+    equals(lists, 0, "only the count moves when nothing is held back")
+end)
+
 test("a lost run doesn't lose the queued items", function()
     sim.startRun(true)
     apQueueItem({ kind = "filler", res = "scrap", n = 25 })

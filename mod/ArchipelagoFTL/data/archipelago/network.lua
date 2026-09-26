@@ -341,8 +341,13 @@ local function saveDelivered(fingerprint)
     for index in pairs(state.delivered) do
         list[#list + 1] = tostring(index)
     end
+    -- Nothing held back is the usual case: write only when there is something, or when it just emptied.
+    if #list == 0 and not state.deliveredSaved then
+        return
+    end
     table.sort(list)
     apNetRememberText(deliveredKey(fingerprint), table.concat(list, ","))
+    state.deliveredSaved = #list > 0
 end
 
 local function loadDelivered(fingerprint)
@@ -350,6 +355,7 @@ local function loadDelivered(fingerprint)
     for index in tostring(apNetRecallText(deliveredKey(fingerprint))):gmatch("%d+") do
         delivered[tonumber(index)] = true
     end
+    state.deliveredSaved = next(delivered) ~= nil
     return delivered
 end
 
