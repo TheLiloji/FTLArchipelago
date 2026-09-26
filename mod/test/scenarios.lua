@@ -1652,9 +1652,11 @@ test("closing FTL mid-run and coming back tomorrow doesn't double any bonus", fu
 end)
 
 local function headStartSeed(hash)
-    return { contract = CONTRACT, kinds = { "start" }, kinds_required = {}, loc = {}, seed_hash = hash,
+    return { contract = CONTRACT, kinds = { "start", "shop" }, kinds_required = {}, loc = {}, seed_hash = hash,
+             shop = { mode = "rarity_boost", deliver = false, baseline = {} },
              items = { ["Engines Head Start"] = { k = "start", sys = "engines", n = 2 },
-                       ["Shields Head Start"] = { k = "start", sys = "shields", n = 1 } } }
+                       ["Shields Head Start"] = { k = "start", sys = "shields", n = 1 },
+                       ["Halberd Beam"] = { k = "shop", bp = "BEAM_2" } } }
 end
 
 local function panelDisconnect()
@@ -1684,6 +1686,15 @@ test("disconnecting from the panel and connecting again to the same seed doubles
     panelDisconnect()
     connectAs("Navigator", "same-room")
     equals(_G.apInventory.startingUpgrades.engines, 2, "the server sends it again, it is not added twice")
+end)
+
+test("a weapon received stays in the stores after reconnecting", function()
+    freshSession()
+    connectAs("Navigator", "same-room", "Halberd Beam")
+    equals(_G.apInventory.shopAvailability.BEAM_2, 1, "the weapon is counted")
+    panelDisconnect()
+    connectAs("Navigator", "same-room", "Halberd Beam")
+    equals(_G.apInventory.shopAvailability.BEAM_2, 1, "still counted once after reconnecting, not lost")
 end)
 
 test("disconnecting from the panel and joining another slot starts the items over", function()

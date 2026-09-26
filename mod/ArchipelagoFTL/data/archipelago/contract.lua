@@ -175,9 +175,6 @@ function apApplySlotData(slotData, slotName, solo)
         state.locKeys[name] = key
     end
 
-    if _G.apInventory then
-        _G.apInventory.shopAvailability = {}
-    end
 
     local failed = {}
     local function configure(name, fn, arg)
