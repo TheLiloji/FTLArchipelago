@@ -1626,10 +1626,12 @@ test("closing FTL mid-run and coming back tomorrow doesn't double any bonus", fu
     drain()
     equals(_G.apInventory.startingUpgrades.engines, 2, "the bonus is acquired")
 
+    -- FTL closed and started again: every module starts from nothing.
     apInventoryClear()
     apForgetChecksForTesting()
     apFillerForgetSeed()
     apContractResetForTesting()
+    apNetResetForTesting()
     local reactorBeforeResume = sim.powerManager.currentPower.second
 
     sim.startRun(false)
@@ -1647,6 +1649,52 @@ test("closing FTL mid-run and coming back tomorrow doesn't double any bonus", fu
         "the inventory is rebuilt identically, not doubled")
     equals(sim.powerManager.currentPower.second, reactorBeforeResume,
         "and the current run doesn't receive its bonuses a second time")
+end)
+
+local function headStartSeed(hash)
+    return { contract = CONTRACT, kinds = { "start" }, kinds_required = {}, loc = {}, seed_hash = hash,
+             items = { ["Engines Head Start"] = { k = "start", sys = "engines", n = 2 } } }
+end
+
+test("disconnecting from the panel and connecting again to the same seed doubles nothing", function()
+    _G.apInventory = { ships = {}, systemCaps = {}, startingUpgrades = {}, shopAvailability = {} }
+    apContractResetForTesting()
+    apNetResetForTesting()
+    sim.startRun(true)
+    apNetConnect("ws://localhost:38281", "Navigator", "")
+    sim.netEvent("connected", { name = "Navigator", extra = headStartSeed("same-room") })
+    sim.netEvent("item", { name = "Engines Head Start", sender = "Nina", index = 0 })
+    sim.tick(1)
+    drain()
+    equals(_G.apInventory.startingUpgrades.engines, 2, "the bonus is acquired")
+
+    apNetDisconnect()
+    apNetConnect("ws://127.0.0.1:38281", "Navigator", "")
+    sim.netEvent("connected", { name = "Navigator", extra = headStartSeed("same-room") })
+    sim.netEvent("item", { name = "Engines Head Start", sender = "Nina", index = 0 })
+    sim.tick(1)
+    drain()
+    equals(_G.apInventory.startingUpgrades.engines, 2, "the server sends it again, it is not added twice")
+end)
+
+test("connecting to another slot starts the items over", function()
+    _G.apInventory = { ships = {}, systemCaps = {}, startingUpgrades = {}, shopAvailability = {} }
+    apContractResetForTesting()
+    apNetResetForTesting()
+    sim.startRun(true)
+    apNetConnect("ws://localhost:38281", "Navigator", "")
+    sim.netEvent("connected", { name = "Navigator", extra = headStartSeed("room-a") })
+    sim.netEvent("item", { name = "Engines Head Start", sender = "Nina", index = 0 })
+    sim.tick(1)
+    drain()
+
+    apNetDisconnect()
+    apNetConnect("ws://localhost:38281", "Captain", "")
+    sim.netEvent("connected", { name = "Captain", extra = headStartSeed("room-a") })
+    sim.netEvent("item", { name = "Engines Head Start", sender = "Nina", index = 0 })
+    sim.tick(1)
+    drain()
+    equals(_G.apInventory.startingUpgrades.engines, 2, "the new slot gets its own first item")
 end)
 
 test("network: a recovered check is not resent to the server", function()

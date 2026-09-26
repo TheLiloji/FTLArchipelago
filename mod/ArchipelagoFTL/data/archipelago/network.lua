@@ -69,7 +69,8 @@ function apNetConnect(uri, slot, password)
     state.unreachableShown = false
     state.unreachableSince = nil
     state.seedRefused = false
-    state.lastItemIndex = -1
+    -- lastItemIndex is kept: the server sends every item again on connect, and those already applied must
+    -- not be applied twice. It starts over only with another seed or slot (apNetForgetItems).
     state.lastConnection = { uri = uri, slot = slot, password = password or "" }
     state.retries = 0
     state.retryAt = nil
@@ -328,6 +329,10 @@ function apNetRememberSeed(fingerprint)
     writeMeta(SEED_KEY, fingerprint or 0)
     state.delivered = {}
     netLog("seed fingerprint recorded: " .. tostring(fingerprint))
+end
+
+function apNetForgetItems()
+    state.lastItemIndex = -1
 end
 
 function apNetForgetProgress(incoming)

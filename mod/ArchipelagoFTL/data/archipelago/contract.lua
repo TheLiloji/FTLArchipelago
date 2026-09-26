@@ -101,6 +101,7 @@ function apApplySlotData(slotData, slotName, solo)
         end
 
         if _G.apChecksForgetSeed then pcall(_G.apChecksForgetSeed) end
+        if _G.apNetForgetItems then pcall(_G.apNetForgetItems) end
         if _G.apInventoryClear then pcall(_G.apInventoryClear) end
         if _G.apFillerForgetSeed then pcall(_G.apFillerForgetSeed) end
         if _G.apShopGiftsForgetSeed then pcall(_G.apShopGiftsForgetSeed) end
