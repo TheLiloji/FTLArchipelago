@@ -522,3 +522,21 @@ test("links are off in solo, and a seed that does not mention them turns them of
                     nil, true)
     check(not _G.apDeathLink.enabled and not _G.apTrapLink.enabled, "solo keeps them off: there is no one to reach")
 end)
+
+test("the whole crew boarding the enemy is not a lost run", function()
+    local ended = nil
+    local restore = stub("apOnRunEnd", function(cause) ended = cause end)
+    sim.startRun(true)
+    sim.tick(30)
+    sim.enemy = sim.makeShip(1)
+    local away = {}
+    for i = 0, sim.player.vCrewList:size() - 1 do
+        away[#away + 1] = sim.player.vCrewList[i]
+    end
+    sim.player.vCrewList = sim.vector({})
+    sim.enemy.vCrewList = sim.vector(away)
+    sim.tick(120)
+    restore()
+    sim.enemy = nil
+    equals(ended, nil, "the run goes on while the crew is aboard the enemy")
+end)
