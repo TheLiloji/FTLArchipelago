@@ -26,6 +26,8 @@ The slot name must match the YAML exactly, capital letters included.
 The panel cannot type accents or symbols like `!` or `@`. Keep the slot name and the room password to letters,
 digits and spaces.
 
+Type the port in the Port field, not after the address: `archipelago.gg` and `38281`, not `archipelago.gg:38281`.
+
 ## "The server is not answering"
 
 Check the address and the port. For a room on archipelago.gg the port changes when the room goes to sleep and
