@@ -193,17 +193,17 @@ function apApplySlotData(slotData, slotName, solo)
             _G.apShopSlotCount = math.floor(slotData.shop.slots)
         end
     end
-    local links = slotData.links or {}
-    if links.death and _G.apDeathLinkConfigure then
-        configure("DeathLink", _G.apDeathLinkConfigure, links.death)
+    -- Solo has no one to share with, and a link the seed does not mention must not stay on from the last seed.
+    local links = solo and {} or (slotData.links or {})
+    local off = { enabled = false }
+    if _G.apDeathLinkConfigure then
+        configure("DeathLink", _G.apDeathLinkConfigure, links.death or off)
     end
-    if links.energy and _G.apEnergyLinkConfigure then
-        configure("EnergyLink", _G.apEnergyLinkConfigure, links.energy)
+    if _G.apEnergyLinkConfigure then
+        configure("EnergyLink", _G.apEnergyLinkConfigure, links.energy or off)
     end
-    if links.trap then
-        _G.apTrapLink = _G.apTrapLink or {}
-        _G.apTrapLink.enabled = links.trap.enabled == true
-    end
+    _G.apTrapLink = _G.apTrapLink or {}
+    _G.apTrapLink.enabled = links.trap ~= nil and links.trap.enabled == true
 
     local descriptorCount = 0
     for _ in pairs(state.itemDescriptors) do

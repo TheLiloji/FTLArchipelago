@@ -502,3 +502,23 @@ test("switching to another slot of the same room still asks before keeping the s
     apSeedChangeAcknowledged()
     _G.apNetState.connected = false
 end)
+
+test("links are off in solo, and a seed that does not mention them turns them off", function()
+    apContractResetForTesting()
+    apApplySlotData({ contract = 2, kinds = { "filler" }, kinds_required = {}, items = {}, loc = {},
+                      seed_hash = "linked", links = { death = { enabled = true }, energy = { enabled = true },
+                                                     trap = { enabled = true } } })
+    check(_G.apDeathLink.enabled and _G.apEnergyLink.enabled and _G.apTrapLink.enabled, "a linked seed turns them on")
+
+    apContractResetForTesting()
+    apApplySlotData({ contract = 2, kinds = { "filler" }, kinds_required = {}, items = {}, loc = {},
+                      seed_hash = "quiet" })
+    check(not _G.apDeathLink.enabled and not _G.apEnergyLink.enabled and not _G.apTrapLink.enabled,
+          "a seed without links does not inherit the previous one's")
+
+    apContractResetForTesting()
+    apApplySlotData({ contract = 2, kinds = { "filler" }, kinds_required = {}, items = {}, loc = {},
+                      seed_hash = "solo", links = { death = { enabled = true }, trap = { enabled = true } } },
+                    nil, true)
+    check(not _G.apDeathLink.enabled and not _G.apTrapLink.enabled, "solo keeps them off: there is no one to reach")
+end)
