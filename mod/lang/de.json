@@ -220,6 +220,8 @@
     "item.received.many": "{n} Gegenstände erhalten. TAB zeigt, was sich geändert hat.",
     "item.received.server": "Erhalten: {item}, vom Server",
     "item.unknown": "{name}: Gegenstand dem Mod unbekannt.",
+    "item.waiting_cargo": "{name} wartet auf Platz: eure Waffenplätze und euer Frachtraum sind voll.",
+    "item.waiting_cargo.many": "{n} Gegenstände warten auf Platz in eurem Frachtraum.",
     "loadout.chosen": "Gewählt",
     "loadout.column.crew": "Besatzungsmitglied",
     "loadout.column.drone": "Drohne",

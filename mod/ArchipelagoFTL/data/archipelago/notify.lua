@@ -141,9 +141,14 @@ function apNotifyCheck(locationName)
 end
 
 local pendingWaiting = {}
+local pendingCargo = {}
 
-function apNotifyWaiting(itemName)
-    pendingWaiting[#pendingWaiting + 1] = tostring(itemName)
+function apNotifyWaiting(itemName, reason)
+    if reason == "cargo" then
+        pendingCargo[#pendingCargo + 1] = tostring(itemName)
+    else
+        pendingWaiting[#pendingWaiting + 1] = tostring(itemName)
+    end
 end
 
 -- A quiet tick shows one line per entry; a burst (several checks/items landing at once,
@@ -173,6 +178,8 @@ local function flushAll()
         function(name) return apT("check.sent", { location = name }) end, "check.sent.many", "border")
     pendingWaiting = flushQueue(pendingWaiting,
         function(name) return apT("item.waiting_augment", { name = name }) end, "item.waiting_augment.many", "title")
+    pendingCargo = flushQueue(pendingCargo,
+        function(name) return apT("item.waiting_cargo", { name = name }) end, "item.waiting_cargo.many", "title")
 end
 
 script.on_internal_event(Defines.InternalEvents.ON_TICK, flushAll)
@@ -185,6 +192,7 @@ function apNotifyResetForTesting()
     pendingChecks = {}
     pendingItems = {}
     pendingWaiting = {}
+    pendingCargo = {}
     toasts = {}
 end
 

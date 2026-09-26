@@ -219,6 +219,8 @@
     "item.received.many": "{n} objets reçus. TAB montre ce qui a changé.",
     "item.received.server": "Reçu : {item}, du serveur",
     "item.unknown": "{name} : item inconnu du mod.",
+    "item.waiting_cargo": "{name} attend une place : vos emplacements et votre soute sont pleins.",
+    "item.waiting_cargo.many": "{n} objets attendent une place dans votre soute.",
     "loadout.chosen": "Choisi",
     "loadout.column.crew": "Équipier",
     "loadout.column.drone": "Drone",

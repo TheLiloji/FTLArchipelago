@@ -53,8 +53,9 @@ What you receive arrives by itself, at the next quiet beacon if you are in a fig
 - a **ship key** or **layout**: in the hangar next time;
 - a **system blueprint**: stores can now sell that system;
 - a **Progressive** system item: one more upgrade level allowed;
-- a **weapon or drone**, first copy: one is put on board (in the cargo hold if your slots are full) and it
-  shows up more often in stores. Second copy: it joins the start-of-run menu;
+- a **weapon or drone**, first copy: one is put on board (in the cargo hold if your slots are full; if the cargo
+  hold is full too, it waits until you make room) and it shows up more often in stores. Second copy: it joins the
+  start-of-run menu;
 - an **augment**: one is put on board and it shows up more often in stores (if your three slots are full, it
   waits until one is free);
 - a **crew member**: the first joins your run, the second goes into the start-of-run menu, the third makes that

@@ -220,6 +220,8 @@
     "item.received.many": "{n} items received. TAB shows what changed.",
     "item.received.server": "Received: {item}, from the server",
     "item.unknown": "{name}: item unknown to the mod.",
+    "item.waiting_cargo": "{name} is waiting for room: your weapon slots and cargo hold are full.",
+    "item.waiting_cargo.many": "{n} items are waiting for room in your cargo hold.",
     "loadout.chosen": "Chosen",
     "loadout.column.crew": "Crew member",
     "loadout.column.drone": "Drone",

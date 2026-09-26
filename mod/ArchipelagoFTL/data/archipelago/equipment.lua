@@ -29,6 +29,26 @@ end
 local PER_BEACON = 4
 local deliveredHere = 0
 
+-- The box also empties at each jump, and what is in it is lost: with the slots and the cargo hold full, an
+-- item waits for room instead.
+local CARGO_SLOTS = 4
+local CARGO_FULL = "weapon slots and cargo full"
+
+local function hasRoom(family)
+    local ok, room = pcall(function()
+        local player = Hyperspace.ships.player
+        local system = family == "weapon" and player.weaponSystem or player.droneSystem
+        if system ~= nil then
+            local held = family == "weapon" and system.weapons or system.drones
+            if held:size() < system.slot_count then
+                return true
+            end
+        end
+        return Hyperspace.App.gui.equipScreen:GetCargoHold():size() < CARGO_SLOTS
+    end)
+    return not ok or room
+end
+
 local function deliverEquipped(name, family, chosen)
     local equipment = Hyperspace.App.gui.equipScreen
     if equipment == nil then
@@ -36,6 +56,9 @@ local function deliverEquipped(name, family, chosen)
     end
     if deliveredHere >= PER_BEACON and not chosen then
         return nil, "enough equipment for this beacon"
+    end
+    if not hasRoom(family) then
+        return nil, CARGO_FULL
     end
     local blueprints = Hyperspace.Blueprints
     if family == "weapon" then
@@ -123,8 +146,11 @@ function apDeliverEquipment(descriptor)
         if not queued.waiting then
             queued.waiting = true
             equipLog("delivery deferred for " .. tostring(name) .. ": " .. tostring(err))
+            local label = descriptor.display or (_G.apHumaniseId and _G.apHumaniseId(name)) or name
             if descriptor.kind == "augment" and _G.apNotifyWaiting then
-                _G.apNotifyWaiting(descriptor.display or (_G.apHumaniseId and _G.apHumaniseId(name)) or name)
+                _G.apNotifyWaiting(label)
+            elseif err == CARGO_FULL and _G.apNotifyWaiting then
+                _G.apNotifyWaiting(label, "cargo")
             end
         end
         return false, "retry"

@@ -1238,6 +1238,31 @@ test("with slots and cargo full, only a few weapons per beacon go to the over ca
         "a weapon picked in the start-of-run menu is never held back")
 end)
 
+test("with weapon slots and the cargo hold full, weapons and drones wait for room instead of the box", function()
+    sim.startRun(true)
+    sim.slots.weapon = 0
+    sim.slots.drone = 0
+    sim.cargoCap = 4
+    sim.cargo = { "BEAM_2", "BEAM_2", "BEAM_2", "BEAM_2" }
+    apQueueItem({ kind = "weapon", bp = "LASER_BURST_3", display = "Burst Laser Mark III" })
+    apQueueItem({ kind = "drone", bp = "DEFENSE_1", display = "Defense Drone Mark I" })
+    sim.tick(240)
+    equals(#sim.overflow, 0, "nothing goes to the over capacity box, which a jump would empty")
+    equals(#_G.apFillerPendingForTesting(), 2, "both wait in the queue")
+    check(shownKey("item.waiting_cargo"), "the player is told why")
+    sim.clearLog()
+    sim.tick(240)
+    check(not shownKey("item.waiting_cargo"), "once, not at every retry")
+    table.remove(sim.cargo)
+    sim.tick(240)
+    equals(#sim.cargo, 4, "a freed cargo slot takes the next one")
+    equals(#_G.apFillerPendingForTesting(), 1, "the other keeps waiting")
+    sim.cargo = {}
+    sim.tick(240)
+    equals(#_G.apFillerPendingForTesting(), 0, "and it comes when there is room")
+    sim.cargoCap = 999
+end)
+
 test("a weapon whose copy waits counts as received only once the copy is aboard", function()
     sim.startRun(true)
     _G.apShopConfig.deliver = true
