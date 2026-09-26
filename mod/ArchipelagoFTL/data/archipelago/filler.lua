@@ -197,6 +197,14 @@ function apQueueItem(descriptor)
             .. tostring(descriptor.res or descriptor.eff or descriptor.kind))
         return false
     end
+    -- The server sends everything again after a reconnect: an item still waiting here is not queued twice.
+    if descriptor.index ~= nil then
+        for _, waiting in ipairs(pending) do
+            if waiting.index == descriptor.index then
+                return false
+            end
+        end
+    end
     pending[#pending + 1] = descriptor
     fillerLog(string.format("queued: %s (%d in queue)",
         descriptor.res or descriptor.eff or descriptor.kind, #pending))

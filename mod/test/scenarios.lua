@@ -2332,8 +2332,13 @@ test("random weapons held back, jumps and restarts never give scrap twice or los
         else
             connect(true)
         end
+        -- A fight now and then: nothing is delivered while an enemy is there.
+        if math.random() < 0.2 then
+            sim.enemy = sim.enemy == nil and sim.makeShip(1) or nil
+        end
         sim.tick(130)
     end
+    sim.enemy = nil
     for _ = 1, 60 do
         sim.overflow = {}
         sim.jumpArrive()
