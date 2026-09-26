@@ -23,6 +23,9 @@ Clicking Apply in ftlman can put the official one back.
 
 The slot name must match the YAML exactly, capital letters included.
 
+The panel only takes letters without accents, digits, spaces and `. - / ; : _ ? >`. Pick a slot name and a
+room password made of those.
+
 ## "The server is not answering"
 
 Check the address and the port. For a room on archipelago.gg the port changes when the room goes to sleep and
