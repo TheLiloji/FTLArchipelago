@@ -172,3 +172,13 @@ test("progressive crew member: tier 2 in the menu, tier 3 the expert replaces th
     equals(sim.player.vCrewList:size(), before + 1, "the click brings them aboard")
     equals(recruit.maitrises[1], 2, "with shields mastered")
 end)
+
+test("menu: the goal box steps aside while a question is open", function()
+    applySeed({ goal = { kind = "victories", count = 3 } })
+    local restore = stub("apConnectQuestionOpen", function() return true end)
+    sim.renderMenu()
+    restore()
+    check(not sim.drawnText(apT("hud.goal", { n = 3 })), "no goal drawn over the question")
+    sim.renderMenu()
+    check(sim.drawnText(apT("hud.goal", { n = 3 })), "and it is back once the question is answered")
+end)

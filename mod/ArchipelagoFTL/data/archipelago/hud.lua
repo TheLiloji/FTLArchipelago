@@ -252,7 +252,8 @@ script.on_render_event(
             if _G.apNotifyPlaceMenu then _G.apNotifyPlaceMenu() end
 
             _G.apGoalBoxBottom = nil
-            if hasSeed() then
+            local questionOpen = _G.apConnectQuestionOpen and apConnectQuestionOpen()
+            if hasSeed() and not questionOpen then
 
                 local goalText = apGoalText()
                 if goalText ~= nil then
