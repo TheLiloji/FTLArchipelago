@@ -264,6 +264,7 @@
     "reset.relaunch": "Fortschritt gelöscht, eine datierte Sicherung eures Profils bleibt erhalten. FTL startet von selbst neu.",
     "reset.yes": "Ja, alles löschen",
     "shop.gift.already_sent": "Bereits verschickt. {price} Schrott zurück.",
+    "shop.gift.not_counted": "Dieser Lauf zählt nicht: nichts wurde verschickt. {price} Schrott erstattet.",
     "shop.gift.sent": "{item} ist unterwegs zu {slot}.",
     "shop.gift.sent.self": "{item} ist für dich.",
     "shop.item.unknown": "{name}: Gegenstand den Läden unbekannt.",

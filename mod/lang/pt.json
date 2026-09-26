@@ -264,6 +264,7 @@
     "reset.relaunch": "Progresso apagado, fica guardada uma cópia datada do vosso perfil. O FTL reinicia sozinho.",
     "reset.yes": "Sim, apagar tudo",
     "shop.gift.already_sent": "Já enviado. {price} de sucata de volta.",
+    "shop.gift.not_counted": "Esta run não conta: nada foi enviado. {price} de sucata devolvida.",
     "shop.gift.sent": "{item} está a caminho de {slot}.",
     "shop.gift.sent.self": "{item} é para ti.",
     "shop.item.unknown": "{name}: objeto desconhecido das lojas.",

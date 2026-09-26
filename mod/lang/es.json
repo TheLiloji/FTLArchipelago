@@ -264,6 +264,7 @@
     "reset.relaunch": "Progreso borrado, se guarda una copia fechada de vuestro perfil. FTL se reinicia solo.",
     "reset.yes": "Sí, borrar todo",
     "shop.gift.already_sent": "Ya enviado. {price} de chatarra de vuelta.",
+    "shop.gift.not_counted": "Esta partida no cuenta: no se envió nada. {price} de chatarra devuelta.",
     "shop.gift.sent": "{item} va de camino a {slot}.",
     "shop.gift.sent.self": "{item} es para ti.",
     "shop.item.unknown": "{name}: objeto desconocido para las tiendas.",

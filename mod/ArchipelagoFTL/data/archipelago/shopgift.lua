@@ -367,17 +367,30 @@ local function collect(index, blueprintName)
     end
 
     if not reallySent then
-        giftLog("gift already sent before (" .. blueprintName .. "): refunded")
         local price = paid
         if price > 0 then
             pcall(function()
                 Hyperspace.ships.player:ModifyScrapCount(math.floor(price), false)
             end)
         end
-        if _G.apNotifyStatus then
-            _G.apNotifyStatus(apT("shop.gift.already_sent", { price = tostring(price) }))
+        -- Refused because this run does not count, not because it went out before: the package stays for later.
+        local seedLoaded = _G.apContractState ~= nil and _G.apContractState.connected == true
+        local notCounted = seedLoaded and ((_G.apRunMatchesSeed ~= nil and not apRunMatchesSeed())
+            or (_G.apTutorialRunning ~= nil and apTutorialRunning()))
+        if not notCounted or gift == nil or gift.location == nil then
+            giftLog("gift already sent before (" .. blueprintName .. "): refunded")
+            if _G.apNotifyStatus then
+                _G.apNotifyStatus(apT("shop.gift.already_sent", { price = tostring(price) }))
+            end
+            writeGift(blueprintName, nil)
+        else
+            sold[gift.location] = nil
+            giftLog("gift not sent, this run does not count (" .. blueprintName .. "): refunded, kept on sale")
+            if _G.apNotifyStatus then
+                _G.apNotifyStatus(apT("shop.gift.not_counted", { price = tostring(price) }))
+            end
+            apApplyShopGifts()
         end
-        writeGift(blueprintName, nil)
         return
     end
 

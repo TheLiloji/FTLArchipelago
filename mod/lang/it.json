@@ -264,6 +264,7 @@
     "reset.relaunch": "Progressi cancellati, una copia datata del vostro profilo è conservata. FTL si riavvia da solo.",
     "reset.yes": "Sì, cancella tutto",
     "shop.gift.already_sent": "Già spedito. {price} rottami restituiti.",
+    "shop.gift.not_counted": "Questa run non conta: non è partito nulla. {price} rottami restituiti.",
     "shop.gift.sent": "{item} è in viaggio verso {slot}.",
     "shop.gift.sent.self": "{item} è per te.",
     "shop.item.unknown": "{name}: oggetto sconosciuto ai negozi.",

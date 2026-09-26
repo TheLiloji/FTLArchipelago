@@ -264,6 +264,7 @@
     "reset.relaunch": "Progress erased; a dated backup of your profile was kept. FTL is restarting on its own.",
     "reset.yes": "Yes, wipe it",
     "shop.gift.already_sent": "Already sent. {price} scrap back.",
+    "shop.gift.not_counted": "This run does not count: nothing went out. {price} scrap refunded.",
     "shop.gift.sent": "{item} is on its way to {slot}.",
     "shop.gift.sent.self": "{item} is yours.",
     "shop.item.unknown": "{name}: item unknown to the shops.",

@@ -2299,6 +2299,23 @@ test("buying one of your own packages says it is yours, not that it goes to some
     check(not sim.shown(apT("gift.someone")), "and no 'someone' appears")
 end)
 
+test("a package bought in a run that does not count is refunded and stays on sale", function()
+    applySeed({ loc = { ["shop:1"] = "Archipelago Shop 1" } })
+    sim.startRun(true)
+    apShopGiftsConfigure({ { slot = "Nina", item = "Seashell", location = "shop:1", kind = "filler", cost = 40 } })
+    local restoreSend = stub("apSendCheck", function() return false end)
+    local restoreSent = stub("apRunMatchesSeed", function() return false end)
+    sim.player.currentScrap = 0
+    sim.clearLog()
+    sim.buy("AP_GIFT_1")
+    sim.tick(60)
+    restoreSend()
+    restoreSent()
+    check(shownKey("shop.gift.not_counted", { price = "40" }), "the player reads why nothing went out")
+    check(not shownKey("shop.gift.already_sent", { price = "40" }), "not that it was already sent")
+    equals(sim.rarityFor("AP_GIFT_1", 0).shortTitle.data, "Nina", "the package is still on the shelf")
+end)
+
 test("a silent apSendCheck doesn't make the send look like a duplicate", function()
     sim.startRun(true)
     apShopGiftsConfigure(DEMO)

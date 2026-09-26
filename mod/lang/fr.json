@@ -263,6 +263,7 @@
     "reset.relaunch": "Progression effacée, une copie datée de votre profil est gardée. FTL redémarre tout seul.",
     "reset.yes": "Oui, tout effacer",
     "shop.gift.already_sent": "Déjà expédié. {price} de ferraille rendus.",
+    "shop.gift.not_counted": "Cette run ne compte pas : rien n'est parti. {price} de ferraille rendus.",
     "shop.gift.sent": "{item} part pour {slot}.",
     "shop.gift.sent.self": "{item} est pour vous.",
     "shop.item.unknown": "{name} : objet inconnu des boutiques.",
