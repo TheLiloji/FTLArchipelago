@@ -4242,6 +4242,37 @@ test("answering no records the seed: the question doesn't come back", function()
     sim.durable = {}
 end)
 
+test("answering no after playing another seed in the same session asks only once", function()
+    sim.durable = {}
+    sim.unlocked = {}
+    apContractResetForTesting()
+    _G.apNetState.connected = true
+    check(apApplySlotData(slotData({ seed_hash = "OLD" })) ~= false, "a first seed is played")
+    apNetRememberSeed(apSeedFingerprint())
+    _G.apInventory = { ships = { "PLAYER_SHIP_MANTIS" }, shopAvailability = {} }
+    sim.unlocked = { PLAYER_SHIP_MANTIS = true }
+
+    _G.apNetState.connected = true
+    equals(apApplySlotData(slotData({ seed_hash = "NEW" })), false, "the new seed is refused once")
+    apNetRememberSeed(apSeedChangeFingerprint())
+    apSeedChangeAcknowledged()
+
+    _G.apNetState.connected = true
+    check(apApplySlotData(slotData({ seed_hash = "NEW" })) ~= false, "after 'no', the new seed goes through")
+    check(not apSeedChangeLeftovers(), "and the question does not come straight back")
+    sim.unlocked = {}
+    sim.durable = {}
+end)
+
+test("a new seed chosen with 'no' starts its consumed items from zero", function()
+    sim.durable = { ap_seed_tag = "111", ap_items_done = "206" }
+    apNetResetForTesting()
+    apNetRememberSeed(222)
+    equals(_G.apNetState.consumedUntil, -1, "nothing of the new seed counts as consumed")
+    equals(sim.durable["ap_items_done_111"], "206", "the old seed keeps its own count")
+    sim.durable = {}
+end)
+
 test("a refused seed doesn't record its fingerprint", function()
     apNetResetForTesting()
     _G.apInventory = { ships = {}, shopAvailability = {} }

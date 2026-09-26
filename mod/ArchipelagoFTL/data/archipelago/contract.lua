@@ -90,8 +90,12 @@ function apApplySlotData(slotData, slotName, solo)
         contractLog(string.format("seed change: %s/%s -> %s/%s",
             tostring(state.identity.hash), tostring(state.identity.slot),
             tostring(identity.hash), tostring(identity.slot)))
-        state.seedChangedWithUnlocks = #((_G.apInventory or {}).ships or {}) > 0
-            or (_G.apCheckCount and (_G.apCheckCount().sent or 0) > 0) or false
+        -- On a server or in solo the fingerprint check above already asked the player; asking again after
+        -- they answered would put the same question back up.
+        if not (onServer or solo) then
+            state.seedChangedWithUnlocks = #((_G.apInventory or {}).ships or {}) > 0
+                or (_G.apCheckCount and (_G.apCheckCount().sent or 0) > 0) or false
+        end
 
         if _G.apChecksForgetSeed then pcall(_G.apChecksForgetSeed) end
         if _G.apInventoryClear then pcall(_G.apInventoryClear) end

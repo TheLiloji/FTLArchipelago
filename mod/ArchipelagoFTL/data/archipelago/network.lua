@@ -305,22 +305,33 @@ local function consumedKey(fingerprint)
     return CONSUMED_KEY .. "_" .. tostring(fingerprint or 0)
 end
 
-local function consumedFor(fingerprint)
-    local count = meta(consumedKey(fingerprint))
-    if count == 0 and meta(SEED_KEY) == fingerprint then
-        count = meta(CONSUMED_KEY)
+-- Older versions kept one count for whichever seed was current: it moves to that seed's own count.
+local function migrateOldCount()
+    local old = meta(CONSUMED_KEY)
+    if old <= 0 then
+        return
     end
-    return count
+    local tag = meta(SEED_KEY)
+    if meta(consumedKey(tag)) == 0 then
+        writeMeta(consumedKey(tag), old)
+    end
+    writeMeta(CONSUMED_KEY, 0)
+end
+
+local function consumedFor(fingerprint)
+    migrateOldCount()
+    return meta(consumedKey(fingerprint))
 end
 
 function apNetRememberSeed(fingerprint)
-    writeMeta(SEED_KEY, fingerprint or 0)
     state.consumedUntil = consumedFor(fingerprint) - 1
+    writeMeta(SEED_KEY, fingerprint or 0)
     state.delivered = {}
     netLog("seed fingerprint recorded: " .. tostring(fingerprint))
 end
 
 function apNetForgetProgress()
+    writeMeta(consumedKey(meta(SEED_KEY)), 0)
     writeMeta(SEED_KEY, 0)
     writeMeta(CONSUMED_KEY, 0)
     state.consumedUntil = -1
