@@ -23,8 +23,8 @@ Clicking Apply in ftlman can put the official one back.
 
 The slot name must match the YAML exactly, capital letters included.
 
-The panel only takes letters without accents, digits, spaces and `. - / ; : _ ? >`. Pick a slot name and a
-room password made of those.
+The panel cannot type accents or symbols like `!` or `@`. Keep the slot name and the room password to letters,
+digits and spaces.
 
 ## "The server is not answering"
 
