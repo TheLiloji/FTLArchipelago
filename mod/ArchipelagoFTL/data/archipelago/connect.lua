@@ -329,16 +329,26 @@ local function resumeLast()
     end
 end
 
+local connectedMessage = nil
+
 local function followAttempt()
+    local contract = _G.apContractState
+    -- A reconnection happens without a click: its outcome must replace a "connected" left from before.
     if attempt == nil then
+        if contract ~= nil and contract.refusal ~= nil then
+            message, messageTone = apT("contract.refused", { reason = contract.refusal }), "warn"
+        elseif connectedMessage ~= nil and message == connectedMessage
+            and not (_G.apNetConnected and _G.apNetConnected()) then
+            message, messageTone, connectedMessage = nil, "dim", nil
+        end
         return
     end
-    local contract = _G.apContractState
     if contract ~= nil and contract.refusal ~= nil then
         message, messageTone = apT("contract.refused", { reason = contract.refusal }), "warn"
         attempt = nil
     elseif _G.apNetConnected and _G.apNetConnected() and contract ~= nil and contract.connected then
         message, messageTone = apT("net.connected", { slot = attempt.slot }), "good"
+        connectedMessage = message
         attempt = nil
     elseif _G.apNetState ~= nil and _G.apNetState.refusal ~= nil then
         message, messageTone = _G.apNetState.refusal, "warn"

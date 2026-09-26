@@ -439,3 +439,27 @@ test("a refusal the player answered is taken back once the seed goes through", f
               "and gone once a seed is accepted")
     end
 end)
+
+test("the connection panel does not keep saying 'connected' after a later refusal", function()
+    apContractResetForTesting()
+    apConnectResetForTesting()
+    apNetResetForTesting()
+    sim.renderMenu()
+    sim.type("Tester")
+    apConnectNow()
+    sim.netEvent("connected", { name = "Tester", extra = {
+        contract = 2, kinds = { "filler" }, kinds_required = {}, items = {}, loc = {} } })
+    sim.net.connected = true
+    sim.tick(2)
+    sim.renderMenu()
+    equals(apConnectState().message, apT("net.connected", { slot = "Tester" }), "first the panel says connected")
+
+    sim.netEvent("connected", { name = "Tester", extra = {
+        contract = 99, kinds = { "filler" }, kinds_required = {}, items = {}, loc = {} } })
+    sim.tick(2)
+    sim.renderMenu()
+    check(apConnectState().message ~= apT("net.connected", { slot = "Tester" }),
+          "after the room's seed is refused, it no longer says connected")
+    apNetResetForTesting()
+    apContractResetForTesting()
+end)
