@@ -330,9 +330,18 @@ test("a continued run keeps the seed it started with, not the one loaded now", f
     sim.startRun(false)
     equals(apSendCheck("shop:2", "shop"), false, "a run saved under another seed does not count")
 
+    apContractResetForTesting()
+    sim.startRun(true)
+    apApplySlotData({ contract = 2, kinds = { "filler" }, kinds_required = {}, items = {},
+                      loc = { ["shop:2"] = "Archipelago Shop 2" }, seed_hash = "second-seed" })
+    sim.startRun(false)
+    equals(apSendCheck("shop:2", "shop"), false, "nor does a run started with no seed at all")
+
+    apForgetChecksForTesting()
     sim.runVariables = {}
     sim.startRun(false)
-    equals(apSendCheck("shop:2", "shop"), false, "nor does a run saved with no seed at all")
+    equals(apSendCheck("shop:2", "shop"), true,
+        "a save from 0.3.0, which recorded nothing, is trusted with the seed loaded now")
 end)
 
 test("a wrong slot name is reported as such, not later as a silent server", function()
