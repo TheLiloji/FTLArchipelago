@@ -7,6 +7,7 @@ local TOAST = {
     life = 6 * 60,
     fade = 45,
     max = 4,
+    keptLife = 15 * 60,
     width = { run = 300, menu = 460 },
     gap = 6,
 }
@@ -32,10 +33,16 @@ local function configureDisplay()
     end
 end
 
-local function push(text, tone)
-    toasts[#toasts + 1] = { text = tostring(text), tone = tone or "text", age = 0 }
+-- A kept message (the goal) is not pushed out by the burst of items that often follows it.
+local function push(text, tone, kept)
+    toasts[#toasts + 1] = { text = tostring(text), tone = tone or "text", age = 0,
+                            life = kept and TOAST.keptLife or TOAST.life, kept = kept }
     while #toasts > TOAST.max do
-        table.remove(toasts, 1)
+        local oldest = 1
+        for index, toast in ipairs(toasts) do
+            if not toast.kept then oldest = index break end
+        end
+        table.remove(toasts, oldest)
     end
 end
 
@@ -86,7 +93,7 @@ function apDrawToasts()
     for index = #toasts, 1, -1 do
         local toast = toasts[index]
         local h = toastHeight(toast.text, w - 24)
-        local left = TOAST.life - toast.age
+        local left = toast.life - toast.age
         local alpha = left < TOAST.fade and math.max(0, left / TOAST.fade) or 1
         local top = area == "menu" and y or (y - h)
         local x = AREA[area].x
@@ -101,7 +108,7 @@ function apDrawToasts()
     end
     for index = #toasts, 1, -1 do
         toasts[index].age = toasts[index].age + 1
-        if toasts[index].age >= TOAST.life then
+        if toasts[index].age >= toasts[index].life then
             table.remove(toasts, index)
         end
     end
@@ -190,6 +197,11 @@ end
 function apNotifyStatus(message)
     print(apT("status.prefix", { message = message }))
     push(message, "title")
+end
+
+function apNotifyKept(message)
+    print(apT("status.prefix", { message = message }))
+    push(message, "good", true)
 end
 
 script.on_render_event(Defines.RenderEvents.GUI_CONTAINER, function() end, function()

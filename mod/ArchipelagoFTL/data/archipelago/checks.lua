@@ -650,8 +650,9 @@ function apDeclareGoal()
     else
         checkLog("goal NOT declared: no connection, will retry on reconnect")
     end
-    if _G.apNotifyStatus then
-        _G.apNotifyStatus(apT(goalSent and "goal.reached" or "goal.not_sent"))
+    local notify = _G.apNotifyKept or _G.apNotifyStatus
+    if notify then
+        notify(apT(goalSent and "goal.reached" or "goal.not_sent"))
     end
     return goalSent
 end

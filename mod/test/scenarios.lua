@@ -1191,6 +1191,18 @@ test("an augment received with all three slots taken waits for a free slot", fun
     check(sim.player:HasAugmentation("ENERGY_SHIELD"), "once a slot is free, the augment comes aboard")
 end)
 
+test("the goal message stays on screen through the burst of items that follows", function()
+    apNotifyResetForTesting()
+    apNotifyKept(apT("goal.reached"))
+    for index = 1, 8 do apNotifyStatus("line " .. index) end
+    local kept = false
+    for _, toast in ipairs(apToastsForTesting()) do
+        if toast.text == apT("goal.reached") then kept = true end
+    end
+    check(kept, "still shown after eight other messages")
+    equals(#apToastsForTesting(), 4, "and the screen still holds four at most")
+end)
+
 test("many augments waiting at once make one line, not a flood", function()
     local names = { "REPAIR_ARM", "ION_ARMOR", "FIRE_EXTINGUISHERS", "O2_MASKS" }
     for _, name in ipairs(names) do sim.augBlueprints[name] = sim.augBlueprints[name] or 3 end
