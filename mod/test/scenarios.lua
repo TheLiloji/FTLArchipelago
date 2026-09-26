@@ -2310,11 +2310,24 @@ test("random weapons held back, jumps and restarts never give scrap twice or los
             sim.netEvent("item", { name = "Archipelago Archive", sender = "Nina", index = #sent - 1 })
         elseif roll < 0.94 then
             connect(false)
-        elseif roll < 0.97 then
+        elseif roll < 0.96 then
             apNetDisconnect()
             apContractUnload()
             apSoloStart(true)
             apSoloStop()
+            connect(false)
+        elseif roll < 0.98 then
+            -- A refused slot_data comes with the items; the player keeps going and connects again.
+            apNetDisconnect()
+            local refused = {}
+            for key, value in pairs(seed) do refused[key] = value end
+            refused.contract = 99
+            apNetConnect("ws://localhost:38281", "Navigator", "")
+            sim.netEvent("connected", { name = "Navigator", extra = refused })
+            for index, name in ipairs(sent) do
+                sim.netEvent("item", { name = name, sender = "Nina", index = index - 1 })
+            end
+            sim.tick(1)
             connect(false)
         else
             connect(true)

@@ -70,8 +70,9 @@ function apNetConnect(uri, slot, password)
     state.refusal = nil
     state.unreachableShown = false
     state.unreachableSince = nil
-    -- After a refused seed, the items that came with it applied nothing: take them all again.
+    -- After a refused seed, take every item again, from an empty inventory so nothing is counted twice.
     if state.seedRefused then
+        if _G.apInventoryClear then pcall(_G.apInventoryClear) end
         state.lastItemIndex = -1
     end
     state.seedRefused = false
