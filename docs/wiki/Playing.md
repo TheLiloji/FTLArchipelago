@@ -55,11 +55,15 @@ What you receive arrives by itself, at the next quiet beacon if you are in a fig
 - a **Progressive** system item: one more upgrade level allowed;
 - a **weapon or drone**, first copy: one is put on board (in the cargo hold if your slots are full) and it
   shows up more often in stores. Second copy: it joins the start-of-run menu;
-- an **augment**: one is put on board and it shows up more often in stores;
+- an **augment**: one is put on board and it shows up more often in stores (if your three slots are full, it
+  waits until one is free);
 - a **crew member**: the first joins your run, the second goes into the start-of-run menu, the third makes that
   menu entry an expert with one skill mastered;
 - a **Head Start**: a free system level or reactor bar at the start of every future run;
 - **filler** (scrap, fuel, missiles, drone parts) and, if the seed has them, **traps**.
+
+When a lot arrives at once (another player's release, the end of the game), weapons and drones come four
+per beacon; the rest follow at the next jumps.
 
 Notes at the bottom left tell you what arrived and what was sent. They fade after a few seconds, and everything
 is kept in the dashboard.
