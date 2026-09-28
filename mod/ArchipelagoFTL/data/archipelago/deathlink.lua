@@ -305,7 +305,16 @@ local function isDrone(member)
     return ok and drone == true
 end
 
--- Our crew on both ships: the living by name, and those already marked dead.
+-- Hyperspace gives each crew member an id that stays when the player renames them; the name is the fallback.
+local function crewKey(member, name)
+    local ok, id = pcall(function() return member.extend.selfId end)
+    if ok and id ~= nil and id >= 0 then
+        return "id" .. tostring(id)
+    end
+    return "name:" .. name
+end
+
+-- Our crew on both ships: the living, and those already marked dead.
 local function livingCrew()
     local living, dead = {}, {}
     for _, ship in ipairs({ Hyperspace.ships.player, Hyperspace.ships.enemy }) do
@@ -315,11 +324,12 @@ local function livingCrew()
                 local member = crew[i]
                 if member ~= nil and member.iShipId == 0 and not isDrone(member) then
                     local name = tostring(member.GetName and member:GetName() or ("crew" .. i))
+                    local key = crewKey(member, name)
                     local health = member.health and tonumber(member.health.first) or 1
                     if member.bDead then
-                        dead[name] = health
+                        dead[key] = health
                     else
-                        living[name] = { species = member.species or "crew", health = health }
+                        living[key] = { name = name, species = member.species or "crew", health = health }
                     end
                 end
             end
@@ -333,10 +343,10 @@ local CREW_SCREEN_SECONDS = 2
 -- A crew member who dies lies a few seconds at zero health before FTL marks them dead. One dismissed from
 -- the crew screen is marked dead at once, without that moment: the player's choice, not a death. An event
 -- can also kill at once, so it only counts as dismissed with the crew screen just shown.
-local function dismissed(name, dead)
+local function dismissed(key, dead)
     local crewScreenRecent = state.crewScreenAt ~= nil
         and state.ticks - state.crewScreenAt <= CREW_SCREEN_SECONDS * TICKS_PER_SECOND
-    return crewScreenRecent and dead[name] ~= nil and dead[name] <= 0 and not state.dying[name]
+    return crewScreenRecent and dead[key] ~= nil and dead[key] <= 0 and not state.dying[key]
 end
 
 -- The hangar keeps bStartedGame on while you browse ships, and each ship shown comes with its own crew.
@@ -365,19 +375,19 @@ local function sampleCrew()
     end
 
     if state.knownCrew ~= nil then
-        for name, last in pairs(state.knownCrew) do
-            if current[name] == nil then
-                if dismissed(name, dead) then
-                    deathLog(tostring(name) .. " was dismissed: no DeathLink")
+        for key, last in pairs(state.knownCrew) do
+            if current[key] == nil then
+                if dismissed(key, dead) then
+                    deathLog(tostring(last.name) .. " was dismissed: no DeathLink")
                 else
-                    apDeathLinkCrewDied(name, last.species)
+                    apDeathLinkCrewDied(last.name, last.species)
                 end
-                state.dying[name] = nil
+                state.dying[key] = nil
             end
         end
     end
-    for name, member in pairs(current) do
-        state.dying[name] = member.health <= 0 or nil
+    for key, member in pairs(current) do
+        state.dying[key] = member.health <= 0 or nil
     end
     state.knownCrew = current
 end

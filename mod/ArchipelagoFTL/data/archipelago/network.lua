@@ -35,6 +35,8 @@ function apNetResetForTesting()
     state.delivered = {}
     state.scoutsPending = false
     state.scouted = {}
+    state.scoutRetries = 0
+    state.scoutRetryAt = nil
     state.seedRefused = false
     state.refusal = nil
     if _G.apNetForgetDurableStore then _G.apNetForgetDurableStore() end
@@ -406,6 +408,34 @@ local function reloadConsumed()
     end
 end
 
+local SCOUT_RETRY_TICKS = 3 * 60
+local SCOUT_RETRIES = 20
+
+local function requestShopScouts()
+    if not (_G.apShopSlotKeys and _G.apLocationNameFor) then
+        return
+    end
+    local names = {}
+    for _, key in ipairs(_G.apShopSlotKeys()) do
+        local name = _G.apLocationNameFor(key)
+        if name then
+            names[#names + 1] = name
+        end
+    end
+    local ap = client()
+    if #names == 0 or ap == nil then
+        return
+    end
+    state.scoutsPending = true
+    state.scouted = {}
+    local vector = Hyperspace.vector_string()
+    for _, name in ipairs(names) do
+        vector:push_back(name)
+    end
+    ap:ScoutLocations(vector)
+    netLog(#names .. " shop slot(s) to scout")
+end
+
 local function onConnected(event)
     local wasRetrying = state.retries > 0
     state.connected = true
@@ -470,28 +500,9 @@ local function onConnected(event)
         pcall(_G.apDeclareGoal)
     end
 
-    if _G.apShopSlotKeys and _G.apLocationNameFor then
-        local names = {}
-        for _, key in ipairs(_G.apShopSlotKeys()) do
-            local name = _G.apLocationNameFor(key)
-            if name then
-                names[#names + 1] = name
-            end
-        end
-        if #names > 0 then
-            local ap = client()
-            if ap ~= nil then
-                state.scoutsPending = true
-                state.scouted = {}
-                local vector = Hyperspace.vector_string()
-                for _, name in ipairs(names) do
-                    vector:push_back(name)
-                end
-                ap:ScoutLocations(vector)
-                netLog(#names .. " shop slot(s) to scout")
-            end
-        end
-    end
+    state.scoutRetries = 0
+    state.scoutRetryAt = nil
+    requestShopScouts()
 end
 
 local function classify(flags)
@@ -503,6 +514,15 @@ local function classify(flags)
 end
 
 local function onScout(event)
+    -- Before the data package, names come as "Unknown" and the reply cannot be read: ask again a bit later.
+    if tostring(event.name) == UNKNOWN or tostring(event.extra) == UNKNOWN then
+        if state.scoutRetryAt == nil and (state.scoutRetries or 0) < SCOUT_RETRIES then
+            state.scoutRetries = (state.scoutRetries or 0) + 1
+            state.scoutRetryAt = state.ticks + SCOUT_RETRY_TICKS
+            netLog("shop scouted before the data packet, asked again in a few seconds")
+        end
+        return
+    end
     local key = _G.apCheckKeyFor and _G.apCheckKeyFor(event.name) or event.name
     if tostring(key):sub(1, 5) ~= "shop:" then
         return
@@ -733,9 +753,19 @@ local function drain()
     end
 end
 
+local function rescoutIfDue()
+    if state.scoutRetryAt ~= nil and state.ticks >= state.scoutRetryAt then
+        state.scoutRetryAt = nil
+        if state.connected then
+            requestShopScouts()
+        end
+    end
+end
+
 script.on_internal_event(Defines.InternalEvents.ON_TICK, function()
     state.ticks = state.ticks + 1
     drain()
+    rescoutIfDue()
     retryIfDue()
     announceIfStillUnreachable()
     if state.connected and not state.seedRefused and state.ticks % CHECKED_POLL_TICKS == 0 then

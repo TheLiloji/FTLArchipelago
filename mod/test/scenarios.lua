@@ -2958,6 +2958,20 @@ test("network: a received scout fills the shop slot", function()
         "the Archipelago name is translated back into a check key, otherwise buying would send nothing")
 end)
 
+test("network: a shop scouted before the data packet is asked again, not left empty", function()
+    connectWithShop(1)
+    sim.netEvent("scout", { name = "Unknown", sender = "Berserker", extra = "Unknown", value = 1 })
+    sim.tick(1)
+    equals(sim.netCalls("ScoutLocations"), 1, "the first reply cannot be read")
+    sim.tick(200)
+    equals(sim.netCalls("ScoutLocations"), 2, "so the shop is scouted again a few seconds later")
+    sim.netEvent("scout", { name = "Archipelago Shop 1", sender = "Berserker", extra = "Seashell", value = 1 })
+    sim.tick(1)
+    equals(_G.apShopGifts[1] and _G.apShopGifts[1].location, "shop:1", "and the second reply fills it")
+    sim.tick(400)
+    equals(sim.netCalls("ScoutLocations"), 2, "nothing more is asked once it worked")
+end)
+
 test("network: a shop that fails to configure doesn't cut the tick", function()
     connectWithShop(1)
     _G.apShopGiftsScouted = function() error("shop broken") end
@@ -3749,6 +3763,18 @@ test("a crew member dismissed from the crew screen sends no DeathLink, one who d
     sim.tick(60)
     restore()
     equals(sent, 2, "killed at once by an event, away from the crew screen: still a death")
+end)
+
+test("renaming a crew member sends no DeathLink", function()
+    apDeathLinkConfigure({ enabled = true, trigger = "both", graceSeconds = 0 })
+    local sent = 0
+    local restore = stub("apNetSendDeath", function() sent = sent + 1 return true end)
+    sim.startRun(true)
+    sim.tick(60)
+    sim.player.vCrewList[0]._name = "Captain Kat"
+    sim.tick(60)
+    restore()
+    equals(sent, 0, "the same crew member under a new name is not a death")
 end)
 
 test("a repair or boarding drone that goes away sends no DeathLink", function()

@@ -58,9 +58,13 @@ local function makeSystem(name, level, maxLevel, roomId, shipId)
     }
 end
 
+local nextCrewId = 0
+
 local function makeCrew(name, species, shipId)
+    nextCrewId = nextCrewId + 1
     return {
         _name = name,
+        extend = { selfId = nextCrewId },
         species = species or "human",
         iShipId = shipId or 0,
         currentShipId = shipId or 0,
