@@ -88,7 +88,7 @@ local function saveRunSeed(seed)
     pcall(function() Hyperspace.playerVariables.ap_run_seed = seed or 0 end)
 end
 
-function apRunMatchesSeed()
+local function seedMatches()
     if runFromSave then
         runSeed = savedRunSeed()
     end
@@ -97,18 +97,158 @@ function apRunMatchesSeed()
     return seed ~= nil and started
 end
 
+local function currentLayout()
+    local ok, name = pcall(function()
+        return Hyperspace.ships.player.myBlueprint.blueprintName
+    end)
+    if ok and name and name ~= "" then
+        return name
+    end
+    return nil
+end
+
+-- The run's ship must have come from Archipelago too: FTL unlocks ships by itself and cannot lock them
+-- again. A refusal is written in the run's save, so it holds after a restart or once the key comes in.
+-- Until the inventory is complete nothing is decided, and checks made meanwhile are held, not lost.
+local SHIP_REFUSALS = { [1] = "not_received", [2] = "not_in_seed" }
+local SHIP_CODES = { not_received = 1, not_in_seed = 2 }
+local SHIP_MESSAGES = { not_received = "check.run_ship_not_received", not_in_seed = "check.run_ship_not_in_seed" }
+local shipRefusal = nil
+local shipWarned = false
+local held, heldIds, heldVictory = {}, {}, nil
+
+local function savedShipRefusal()
+    local ok, value = pcall(function() return Hyperspace.playerVariables.ap_run_ship_refused end)
+    return ok and SHIP_REFUSALS[value] or nil
+end
+
+local function saveShipRefusal(code)
+    pcall(function() Hyperspace.playerVariables.ap_run_ship_refused = code end)
+end
+
+-- The hangar keeps bStartedGame on and shows each ship browsed as the player's: only a run is judged.
+local function inRun()
+    local ok, running = pcall(function()
+        local app = Hyperspace.App
+        return app.world.bStartedGame == true and app.menu.bOpen ~= true and app.menu.shipBuilder.bOpen ~= true
+    end)
+    return ok and running == true
+end
+
+local function shipStatus()
+    if _G.apShipCheckForTesting == false then
+        return "ok"
+    end
+    if not inRun() then
+        return "unknown"
+    end
+    shipRefusal = shipRefusal or savedShipRefusal()
+    if shipRefusal ~= nil then
+        return shipRefusal
+    end
+    if not (_G.apInventorySynced and apInventorySynced()) then
+        return "unknown"
+    end
+    local layout = currentLayout()
+    if layout == nil then
+        return "unknown"
+    end
+    local status = _G.apShipReceived and apShipReceived(layout) or "ok"
+    if SHIP_CODES[status] then
+        shipRefusal = status
+        saveShipRefusal(SHIP_CODES[status])
+        checkLog("this run's ship (" .. layout .. ") is " .. status .. ": nothing it does counts")
+    end
+    return status
+end
+
+-- nil when the run counts, else "seed", "unknown" (not decided yet), "not_received" or "not_in_seed".
+local function runRefusal()
+    if not seedMatches() then
+        return "seed"
+    end
+    local status = shipStatus()
+    if status == "ok" then
+        return nil
+    end
+    return status
+end
+
+function apRunRefusal()
+    return runRefusal()
+end
+
+-- For items: a run not decided yet keeps them as before, it is only refused once its ship is known.
+function apRunMatchesSeed()
+    local refusal = runRefusal()
+    return refusal == nil or refusal == "unknown"
+end
+
+local function warnShip(refusal)
+    if shipWarned then
+        return
+    end
+    shipWarned = true
+    local layout = currentLayout()
+    local ship = layout and ((_G.apShipLabel and _G.apShipLabel(layout)) or layout) or "?"
+    if _G.apNotifyStatus then
+        _G.apNotifyStatus(apT(SHIP_MESSAGES[refusal], { ship = ship }))
+    end
+end
+
 function apRunCounts()
-    if apRunMatchesSeed() then
+    local refusal = runRefusal()
+    if refusal == nil then
         return true
     end
-    if not seedlessWarned then
-        seedlessWarned = true
-        checkLog("this run was not started with the current seed loaded: nothing it does counts")
-        if _G.apNotifyStatus then
-            _G.apNotifyStatus(apT("check.run_without_seed"))
+    if refusal == "seed" then
+        if not seedlessWarned then
+            seedlessWarned = true
+            checkLog("this run was not started with the current seed loaded: nothing it does counts")
+            if _G.apNotifyStatus then
+                _G.apNotifyStatus(apT("check.run_without_seed"))
+            end
         end
+    elseif refusal ~= "unknown" then
+        warnShip(refusal)
     end
-    return false
+    return false, refusal
+end
+
+-- A shop package stays on sale instead: holding it would sell it twice.
+local function hold(id, label)
+    if heldIds[id] or tostring(id):sub(1, 5) == "shop:" then
+        return
+    end
+    if _G.apLocationNameFor and apLocationNameFor(id) == nil
+        and _G.apSeedKnowsLocations and apSeedKnowsLocations() then
+        return
+    end
+    heldIds[id] = true
+    held[#held + 1] = { id = id, label = label }
+    checkLog("held until the inventory is complete: " .. tostring(id))
+end
+
+local function releaseHeld()
+    if #held == 0 and heldVictory == nil then
+        return
+    end
+    if runRefusal() == "unknown" then
+        return
+    end
+    local waiting, victory = held, heldVictory
+    held, heldIds, heldVictory = {}, {}, nil
+    checkLog(#waiting .. " held check(s) decided now that the inventory is complete")
+    for _, entry in ipairs(waiting) do
+        apSendCheck(entry.id, entry.label)
+    end
+    if victory then
+        apVictoryWith(victory)
+    end
+end
+
+function apHeldCheckCount()
+    return #held + (heldVictory and 1 or 0)
 end
 
 function apSendCheck(id, label)
@@ -116,7 +256,11 @@ function apSendCheck(id, label)
         return false
     end
 
-    if not apRunCounts() then
+    local counts, refusal = apRunCounts()
+    if not counts then
+        if refusal == "unknown" then
+            hold(id, label)
+        end
         return false
     end
 
@@ -146,7 +290,9 @@ function apSendCheck(id, label)
     end
 
     if _G.apNotifyCheck then
-        _G.apNotifyCheck(name or label or id)
+        -- A shop package already says where it goes.
+        local found = tostring(id):sub(1, 5) ~= "shop:" and _G.apNetScoutedItem and apNetScoutedItem(id) or nil
+        _G.apNotifyCheck(name or label or id, found)
     end
     return true
 end
@@ -231,16 +377,6 @@ function apForgetChecksForTesting()
     checkLog("checks forgotten (tests)")
 end
 
-local function currentLayout()
-    local ok, name = pcall(function()
-        return Hyperspace.ships.player.myBlueprint.blueprintName
-    end)
-    if ok and name and name ~= "" then
-        return name
-    end
-    return nil
-end
-
 local function watchedAchievements(layout)
     local data = _G.apGameData
     if data == nil then
@@ -273,13 +409,31 @@ local function watchedAchievements(layout)
     return watched
 end
 
+-- FTL keeps its own achievements apart: Hyperspace's tracker only holds the ones mods add (Multiverse's).
+-- Both are read; an older module that cannot read FTL's leaves only the second, and says so once.
+local achievementModuleWarned = false
+
+local function achievementStatus(tracker, ach)
+    local status = -1
+    local vanilla = _G.apNetAchievementStatus and apNetAchievementStatus(ach) or nil
+    if vanilla ~= nil then
+        status = vanilla
+    elseif not achievementModuleWarned then
+        achievementModuleWarned = true
+        checkLog("this Hyperspace build cannot read FTL's achievements: only custom ones are seen")
+    end
+    local ok, custom = pcall(function() return tracker:GetAchievementStatus(ach) end)
+    if ok and type(custom) == "number" and custom > status then
+        status = custom
+    end
+    return status
+end
+
 local function pollAchievements(layout)
     local tracker = Hyperspace.CustomAchievementTracker.instance
     for _, ach in ipairs(watchedAchievements(layout)) do
-        local ok, status = pcall(function()
-            return tracker:GetAchievementStatus(ach)
-        end)
-        if ok and status ~= nil and status >= 0 then
+        local status = achievementStatus(tracker, ach)
+        if status >= 0 then
             apSendCheck("ach:" .. ach,
                 apT("check.label.achievement", { name = apAchievementLabel(ach) }))
         end
@@ -361,6 +515,16 @@ script.on_internal_event(Defines.InternalEvents.ON_TICK, function()
             startingRaces = racesAboard()
         end)
     end
+    apTry(TAG, function()
+        releaseHeld()
+        -- Said as the run starts, not at its first check: the player can still go back to the hangar.
+        if not shipWarned and seedMatches() then
+            local status = shipStatus()
+            if SHIP_CODES[status] then
+                warnShip(status)
+            end
+        end
+    end)
 end)
 
 script.on_internal_event(Defines.InternalEvents.JUMP_ARRIVE, function(shipManager)
@@ -425,12 +589,16 @@ script.on_init(function(newGame)
     lastSector = nil
     startingRaces = nil
     seedlessWarned = false
+    shipRefusal = nil
+    shipWarned = false
+    held, heldIds, heldVictory = {}, {}, nil
     runFromSave = newGame == false
     if runFromSave then
         runSeed = nil
     else
         runSeed = currentSeed()
         saveRunSeed(runSeed)
+        saveShipRefusal(0)
     end
 end)
 
@@ -450,6 +618,9 @@ function apRunSeedForTesting(value)
     runSeed = value
     runFromSave = false
     seedlessWarned = false
+    shipRefusal = nil
+    shipWarned = false
+    held, heldIds, heldVictory = {}, {}, nil
 end
 
 local victories = {}
@@ -614,7 +785,11 @@ function apVictoryWith(layout)
     if layout == nil or victories[layout] then
         return
     end
-    if not apRunCounts() then
+    local counts, refusal = apRunCounts()
+    if not counts then
+        if refusal == "unknown" then
+            heldVictory = layout
+        end
         return
     end
     if not apLayoutInSeed(layout) then

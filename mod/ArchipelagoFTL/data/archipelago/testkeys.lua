@@ -476,8 +476,9 @@ script.on_internal_event(Defines.InternalEvents.ON_KEY_DOWN, function(key)
         testLog("F7 - unlock status")
         if _G.apUnlockStatus then _G.apUnlockStatus() end
     elseif key == Defines.SDL.KEY_F8 then
-        testLog("F8 - unlocking the Rock")
-        if _G.apUnlock then _G.apUnlock("PLAYER_SHIP_ROCK", 0) end
+        -- The way FTL itself does it (an event), not through Archipelago: the lock must refuse it.
+        testLog("F8 - FTL unlocking the Rock by itself")
+        pcall(function() Hyperspace.CustomShipUnlocks.instance:UnlockShip("PLAYER_SHIP_ROCK", false, true, true) end)
         if _G.apUnlockStatus then _G.apUnlockStatus() end
     elseif key == Defines.SDL.KEY_F9 then
         testLog("F9 - state survey")

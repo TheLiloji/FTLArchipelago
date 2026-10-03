@@ -269,6 +269,7 @@ local function resetWorld()
                   planetCalls = 0 }
     sim.powerManager = { currentPower = pair(0, 8) }
     sim.achievements = {}
+    sim.customAchievements = {}
     sim.enemy = nil
     sim.shipList = { open = false, page = 0, variant = 0 }
     sim.cargo = {}
@@ -291,6 +292,7 @@ local function resetWorld()
     sim.rarities = {}
     sim.gameLanguage = ""
     sim.hangarOpen = false
+    sim.menuOpen = nil
     sim.subScreen = nil
     sim.pauseOpen = false
     sim.tutorial = false
@@ -298,7 +300,7 @@ local function resetWorld()
     sim.meta = {}
     sim.durable = {}
 
-    sim.net = { present = true, calls = {}, events = {}, connectResult = true, checked = {},
+    sim.net = { present = true, calls = {}, events = {}, connectResult = true, checked = {}, shipLock = true,
                 last = { uri = "", slot = "" } }
     sim.net.client = {
         LastUri = function() return sim.net.last.uri end,
@@ -343,6 +345,27 @@ local function resetWorld()
             sim.net.calls[#sim.net.calls + 1] = { "HintLocation", name = name }
             return sim.net.connected == true
         end,
+        SetShipLock = function(_, on) sim.net.shipLock = on == true end,
+        UnlockShip = function(_, name, silent)
+            sim.net.calls[#sim.net.calls + 1] = { "UnlockShip", name = name, silent = silent }
+            sim.net.allowedShip = name
+            Hyperspace.CustomShipUnlocks.instance:UnlockShip(name, silent, true, false)
+            sim.net.allowedShip = nil
+            return sim.unlocked[name] == true
+        end,
+        LockShips = function(_, names)
+            local locked = 0
+            for i = 0, names:size() - 1 do
+                local name = names[i]
+                if name ~= "PLAYER_SHIP_HARD" and sim.unlocked[name] then
+                    sim.unlocked[name] = nil
+                    locked = locked + 1
+                end
+            end
+            sim.net.calls[#sim.net.calls + 1] = { "LockShips", count = locked }
+            return locked
+        end,
+        AchievementStatus = function(_, name) return sim.achievements[name] or -1 end,
         ScoutLocations = function(_, names)
             sim.net.calls[#sim.net.calls + 1] = { "ScoutLocations", count = #names }
             return true
@@ -550,7 +573,14 @@ local function resetWorld()
 
         CustomShipUnlocks = {
             instance = {
-                UnlockShip = function(_, name) sim.unlocked[name] = true end,
+                -- Like the module's lock: anything but the ship the mod asked for is refused and reported.
+                UnlockShip = function(_, name)
+                    if sim.net.shipLock and sim.net.allowedShip ~= name then
+                        sim.netEvent("unlock_denied", { name = name })
+                        return
+                    end
+                    sim.unlocked[name] = true
+                end,
                 GetShipUnlocked = function(_, name) return sim.unlocked[name] == true end,
                 GetCustomShipUnlocked = function(_, name, variant)
                     local suffixe = ({ [0] = "", [1] = "_2", [2] = "_3" })[variant or 0] or ""
@@ -599,8 +629,9 @@ local function resetWorld()
         },
         CustomAchievementTracker = {
             instance = {
+                -- Hyperspace's tracker only holds the achievements mods add, never FTL's own.
                 GetAchievementStatus = function(_, name)
-                    return sim.achievements[name] or -1
+                    return sim.customAchievements[name] or -1
                 end,
             },
         },
@@ -927,6 +958,10 @@ end
 
 function sim.earnAchievement(name, difficulty)
     sim.achievements[name] = difficulty or 0
+end
+
+function sim.earnCustomAchievement(name, difficulty)
+    sim.customAchievements[name] = difficulty or 0
 end
 
 function sim.startRun(newGame)

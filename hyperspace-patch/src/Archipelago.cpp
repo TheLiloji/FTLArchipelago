@@ -559,6 +559,11 @@ bool Client::IsConnected() const
     return _impl->connected;
 }
 
+void Client::Push(Event e)
+{
+    _impl->push(std::move(e));
+}
+
 void Client::Poll()
 {
     if (!_impl->ap) return;

@@ -392,6 +392,30 @@ function apLayoutInSeed(blueprint)
     return state.layouts == nil or state.layouts[blueprint] == true
 end
 
+function apSeedStartShip()
+    return state.startShip
+end
+
+-- With layout_unlocks: items the seed has a Type B or C among its items; with vanilla it has none, and
+-- FTL unlocks them itself. Read from the items so older seeds, which do not send that option, work too.
+local layoutItemsFor, layoutItems = nil, false
+
+function apSeedHasLayoutItems()
+    local descriptors = state.itemDescriptors or {}
+    if layoutItemsFor == descriptors then
+        return layoutItems
+    end
+    layoutItemsFor, layoutItems = descriptors, false
+    for _, descriptor in pairs(descriptors) do
+        if type(descriptor) == "table" and descriptor.k == "ship" and type(descriptor.bp) == "string"
+            and descriptor.bp:match("_[23]$") then
+            layoutItems = true
+            break
+        end
+    end
+    return layoutItems
+end
+
 function apSeedChangeLeftovers()
     return state.seedChangedWithUnlocks == true
 end
