@@ -229,7 +229,9 @@ local function safeToDeliver()
         if player == nil or player.bDestroyed then
             return false
         end
-        return Hyperspace.ships.enemy == nil
+        -- A ship that is not hostile (a guard, a trader, a quest giver) is not a fight.
+        local enemy = Hyperspace.ships.enemy
+        return enemy == nil or enemy._targetable.hostile == false
     end)
     return ok and safe
 end
@@ -431,6 +433,14 @@ function apDeliverPending()
     end
     local counts = runCounts()
     local inRun = safeToDeliver() and counts
+    if not inRun and counts and not noRunStarted() and _G.apShopKeepOwed then
+        for _, descriptor in ipairs(pending) do
+            if descriptor.kind == "shop" and not descriptor.isReplay and not descriptor.keptOwed then
+                descriptor.keptOwed = true
+                apShopKeepOwed(descriptor.bp)
+            end
+        end
+    end
     local deliverable = function(descriptor)
         if inRun or SHIPLESS_KINDS[descriptor.kind] == true then
             return true

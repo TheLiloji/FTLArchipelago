@@ -86,6 +86,7 @@ local function makeShip(shipId)
     end
 
     local ship = {
+        _targetable = { hostile = shipId == 1 },
         iShipId = shipId or 0,
         bDestroyed = false,
         fuel_count = 16,

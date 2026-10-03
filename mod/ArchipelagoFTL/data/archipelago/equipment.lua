@@ -174,9 +174,9 @@ function apDeliverEquipment(descriptor)
     end
 
     if delivered == nil then
-        -- Retried every few seconds until it fits: say it once, not at each try.
-        if not queued.waiting then
-            queued.waiting = true
+        -- Retried every few seconds until it fits: say it once per reason, not at each try.
+        if queued.waiting ~= err then
+            queued.waiting = err
             equipLog("delivery deferred for " .. tostring(name) .. ": " .. tostring(err))
             local label = descriptor.display or (_G.apHumaniseId and _G.apHumaniseId(name)) or name
             if descriptor.kind == "augment" and _G.apNotifyWaiting then

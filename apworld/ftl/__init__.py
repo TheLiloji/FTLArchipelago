@@ -237,8 +237,12 @@ class FTLWorld(World):
                 continue
             kind = pricing.importance(placed.item)
             sphere = spheres.get((self.player, location.name))
+            # Spheres stay shallow in practice: a package sold in a later sector costs at least that sector's price.
+            depth = sphere or 1
+            if self.options.shop_by_sector:
+                depth = max(depth, data.shop_sector(location.shop_slot))
             offers[location.check_id] = {
-                "price": pricing.price(pricing.price_tier(placed.item), sphere),
+                "price": pricing.price(pricing.price_tier(placed.item), depth),
                 "sphere": sphere,
                 "kind": kind,
             }

@@ -86,7 +86,8 @@ own items. Buying a package sends it right away:
 ![A package sent](../images/shop-sent.jpg)
 
 Filler costs 10 to 25 scrap, useful items 30 to 65, and important ones 70 to 150. A package that was sent never
-comes back. Each sector sells its own packages: the shop of sector 5 has other packages than the one of sector 2.
+comes back. Each sector sells its own packages: the shop of sector 5 has other packages than the one of sector 2,
+and they cost more.
 
 ### The four events
 

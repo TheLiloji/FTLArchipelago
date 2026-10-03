@@ -108,7 +108,7 @@ arrives during a run you are about to lose is not wasted, because it makes the n
   **Archipelago Shop per Ship** (off by default) also gives each package to one ship, or one layout: it is only
   sold while you fly that ship.
   Prices follow importance first, then depth: filler costs 10 to 25 scrap, useful items 30 to 65, and
-  progression items 70 to 150, more the later they sit in the multiworld.
+  progression items 70 to 150, more in later sectors and the later they sit in the multiworld.
 
 ## Archives
 

@@ -239,7 +239,21 @@ class TestShopPrices(FTLTestBase):
             self.assertGreater(offer["price"], 0, f"{key} must never be free")
             placed = self.multiworld.get_location(f"Archipelago Shop {key[5:]}", self.player).item
             self.assertEqual(offer["kind"], pricing.importance(placed))
-            self.assertEqual(offer["price"], pricing.price(pricing.price_tier(placed), offer["sphere"]))
+            depth = max(offer["sphere"] or 1, data.shop_sector(int(key[5:])))
+            self.assertEqual(offer["price"], pricing.price(pricing.price_tier(placed), depth))
+
+    def test_a_later_sector_sells_dearer_than_the_first(self) -> None:
+        from Fill import distribute_items_restrictive
+
+        distribute_items_restrictive(self.multiworld)
+        offers = self.world.fill_slot_data()["shop"]["offers"]
+        for key, offer in offers.items():
+            sector = data.shop_sector(int(key[5:]))
+            placed = self.multiworld.get_location(f"Archipelago Shop {key[5:]}", self.player).item
+            tier = pricing.price_tier(placed)
+            self.assertGreaterEqual(offer["price"], pricing.price(tier, sector), f"{key} is in sector {sector}")
+            if sector == data.SHOP_SECTORS:
+                self.assertGreater(offer["price"], pricing.price(tier, 1), f"{key}: sector 7 costs more than sector 1")
 
     def test_an_important_item_always_costs_more_than_filler(self) -> None:
         for sphere in range(0, 12):

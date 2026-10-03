@@ -581,6 +581,21 @@ test("nothing is delivered during combat", function()
     equals(sim.player.currentScrap, 50, "combat over: the item arrives")
 end)
 
+test("a neutral ship at the beacon does not hold deliveries back, a hostile one does", function()
+    sim.startRun(true)
+    sim.enemy = sim.makeShip(1)
+    sim.enemy._targetable.hostile = false
+    apQueueItem({ kind = "filler", res = "scrap", n = 50 })
+    sim.tick(240)
+    equals(sim.player.currentScrap, 50, "a guard or a trader waiting at the beacon is not a fight")
+
+    sim.enemy._targetable.hostile = true
+    apQueueItem({ kind = "filler", res = "scrap", n = 20 })
+    sim.tick(240)
+    equals(sim.player.currentScrap, 50, "once it turns hostile, the next item waits")
+    sim.enemy = nil
+end)
+
 test("all six of the apworld's resources are applied", function()
     sim.startRun(true)
     local before = { fuel = sim.player.fuel_count, missiles = sim.player._missiles,
@@ -1263,6 +1278,26 @@ test("with weapon slots and the cargo hold full, weapons and drones wait for roo
     sim.cargoCap = 999
 end)
 
+test("a weapon held back by the beacon limit, then by a full cargo hold, still says why it waits", function()
+    sim.startRun(true)
+    sim.slots.weapon = 0
+    sim.cargoCap = 4
+    sim.cargo = {}
+    for _ = 1, 4 do apQueueItem({ kind = "weapon", bp = "BEAM_2", display = "Halberd Beam" }) end
+    apQueueItem({ kind = "weapon", bp = "LASER_BURST_3", display = "Burst Laser Mark III" })
+    sim.tick(240)
+    equals(#sim.cargo, 4, "four per beacon fill the cargo hold")
+    equals(#_G.apFillerPendingForTesting(), 1, "the fifth waits for the next beacon")
+    sim.clearLog()
+    sim.jumpArrive()
+    sim.tick(240)
+    equals(#_G.apFillerPendingForTesting(), 1, "next beacon: the cargo hold is full, it still waits")
+    check(shownKey("item.waiting_cargo"), "and the player is told the cargo hold is full")
+    sim.cargo = {}
+    sim.cargoCap = 999
+    sim.tick(240)
+end)
+
 test("a weapon whose copy waits counts as received only once the copy is aboard", function()
     sim.startRun(true)
     _G.apShopConfig.deliver = true
@@ -1354,6 +1389,34 @@ test("a copy owed after a crash is not given twice when the saved run already ha
     apQueueItem({ kind = "shop", bp = "BEAM_2", display = "Halberd Beam", index = 3, isReplay = true })
     sim.tick(240)
     equals(#sim.cargo + #sim.equipped.weapon, 1, "the saved copy is enough")
+end)
+
+test("a weapon still waiting when the game closes comes aboard in the next run, not only in the catalogue", function()
+    sim.startRun(true)
+    apShopForgetSeed()
+    apFillerResetForTesting()
+    _G.apShopConfig.deliver = true
+    local marked = {}
+    local restore = stub("apNetItemDelivered", function(index) marked[#marked + 1] = index return true end)
+    sim.enemy = sim.makeShip(1)
+    apQueueItem({ kind = "shop", bp = "BEAM_2", display = "Halberd Beam", index = 9 })
+    sim.tick(240)
+    equals(#marked, 0, "held back by the fight")
+
+    -- The game is closed in the middle of the fight; at the next launch the server sends the item again.
+    apFillerResetForTesting()
+    apShopForgetSeed()
+    sim.enemy = nil
+    sim.started = false
+    apQueueItem({ kind = "shop", bp = "BEAM_2", display = "Halberd Beam", index = 9 })
+    sim.tick(240)
+    equals(#marked, 0, "at the menu, the item is not taken as done")
+    local before = sim.delivered()
+    sim.startRun(false)
+    sim.tick(240)
+    restore()
+    equals(sim.delivered(), before + 1, "the copy comes aboard once the run is back")
+    equals(marked[#marked], 9, "and only then is the item marked")
 end)
 
 test("a bundle unlocks each of its weapons, puts each aboard, and counts as received once", function()

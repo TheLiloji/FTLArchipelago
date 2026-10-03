@@ -158,6 +158,18 @@ function apShopOwedAlreadyAboard(name)
     return true
 end
 
+-- A copy received during a run but held back (a fight): if the game closes first, it is still owed.
+function apShopKeepOwed(name)
+    if not _G.apShopConfig.deliver or deliveredOnce[name] then
+        return
+    end
+    local owed = readOwed()
+    if not owed[name] then
+        owed[name] = true
+        writeOwed(owed)
+    end
+end
+
 function apShopForgetOwed(fingerprint)
     if _G.apNetRememberText then
         apNetRememberText(owedKey(fingerprint), "")
