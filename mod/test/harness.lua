@@ -357,7 +357,7 @@ local function resetWorld()
             local locked = 0
             for i = 0, names:size() - 1 do
                 local name = names[i]
-                if name ~= "PLAYER_SHIP_HARD" and sim.unlocked[name] then
+                if name ~= "PLAYER_SHIP_HARD" and name ~= "PLAYER_SHIP_MVKESTREL" and sim.unlocked[name] then
                     sim.unlocked[name] = nil
                     locked = locked + 1
                 end

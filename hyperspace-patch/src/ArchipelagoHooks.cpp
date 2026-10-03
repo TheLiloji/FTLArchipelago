@@ -59,8 +59,8 @@ int Client::LockShips(const std::vector<std::string>& blueprints)
     ScoreKeeper* scores = G_->GetScoreKeeper();
     int locked = 0;
     for (const auto& blueprint : blueprints) {
-        // FTL needs one playable ship: the Kestrel A is never taken away.
-        if (blueprint.empty() || blueprint == "PLAYER_SHIP_HARD") continue;
+        // FTL needs one playable ship: the Kestrel A, and Multiverse's Kestrel, are never taken away.
+        if (blueprint.empty() || blueprint == "PLAYER_SHIP_HARD" || blueprint == "PLAYER_SHIP_MVKESTREL") continue;
         bool changed = false;
         auto& list = unlocks->customUnlockedShips;
         auto it = std::find(list.begin(), list.end(), blueprint);
