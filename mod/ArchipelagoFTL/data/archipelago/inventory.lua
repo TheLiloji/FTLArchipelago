@@ -167,7 +167,8 @@ local function owned(blueprint)
     return false
 end
 
-local ALWAYS_THERE = { PLAYER_SHIP_HARD = true }
+-- The Kestrel A, and the Multiverse Kestrel that replaces it there: FTL always has them unlocked.
+local ALWAYS_THERE = { PLAYER_SHIP_HARD = true, PLAYER_SHIP_MVKESTREL = true }
 
 local function hasKey(ship)
     return ALWAYS_THERE[ship] == true or ship == (_G.apSeedStartShip and apSeedStartShip()) or owned(ship)
