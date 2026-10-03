@@ -418,3 +418,184 @@ test("ships: solo counts its start ship and refuses one FTL unlocked on its own"
     apSoloStop()
     shipDone()
 end)
+
+
+local function atMenu()
+    sim.started = false
+    sim.menuOpen = true
+    sim.hangarOpen = false
+end
+
+local function shownRelocked(n)
+    return shownKey("unlock.relocked", { n = n })
+end
+
+test("lock: an event unlocking a ship Archipelago did not give is refused", function()
+    shipConnect({ "Kestrel Cruiser Key", "Rock Cruiser Key" })
+    sim.clearLog()
+    Hyperspace.CustomShipUnlocks.instance:UnlockShip("PLAYER_SHIP_CIRCLE", false, true, true)
+    sim.tick(1)
+    check(not sim.unlocked["PLAYER_SHIP_CIRCLE"], "the Engi stays locked")
+    check(sim.logged("FTL tried to unlock PLAYER_SHIP_CIRCLE (not_received): refused"), "and the log says why")
+    shipDone()
+end)
+
+test("lock: received ships still unlock, silently when the inventory is applied again", function()
+    shipConnect({ "Kestrel Cruiser Key", "Rock Cruiser Key", "Engi Cruiser Key" })
+    check(sim.unlocked["PLAYER_SHIP_CIRCLE"], "the Engi key unlocks the Engi through the lock")
+    local silent = nil
+    for _, call in ipairs(sim.net.calls) do
+        if call[1] == "UnlockShip" and call.name == "PLAYER_SHIP_CIRCLE" then silent = call.silent end
+    end
+    equals(silent, true, "without a popup")
+    shipDone()
+end)
+
+test("lock: with vanilla layout unlocks, a Type B FTL earns for a received ship goes through", function()
+    local vanilla = {}
+    for name, descriptor in pairs(SHIP_ITEMS) do
+        if not tostring(descriptor.bp):match("_[23]$") then vanilla[name] = descriptor end
+    end
+    shipConnect({ "Kestrel Cruiser Key", "Engi Cruiser Key" }, { items = vanilla })
+    Hyperspace.CustomShipUnlocks.instance:UnlockShip("PLAYER_SHIP_CIRCLE_2", false, true, false)
+    sim.tick(1)
+    check(sim.unlocked["PLAYER_SHIP_CIRCLE_2"], "the Engi B earned by its achievements is unlocked")
+    shipDone()
+end)
+
+test("lock: a Type B FTL earns before its ship's key waits for the key", function()
+    local vanilla = {}
+    for name, descriptor in pairs(SHIP_ITEMS) do
+        if not tostring(descriptor.bp):match("_[23]$") then vanilla[name] = descriptor end
+    end
+    shipConnect({ "Kestrel Cruiser Key" }, { items = vanilla })
+    Hyperspace.CustomShipUnlocks.instance:UnlockShip("PLAYER_SHIP_CIRCLE_2", false, true, false)
+    sim.tick(1)
+    check(not sim.unlocked["PLAYER_SHIP_CIRCLE_2"], "no Engi key: the Engi B stays locked")
+    sim.netEvent("item", { name = "Engi Cruiser Key", sender = "Nina", index = 1 })
+    sim.tick(1)
+    sim.tick(120)
+    check(sim.unlocked["PLAYER_SHIP_CIRCLE"], "the key unlocks the Engi")
+    check(sim.unlocked["PLAYER_SHIP_CIRCLE_2"], "and the Engi B earned earlier along with it")
+    shipDone()
+end)
+
+test("lock: at the main menu, ships FTL unlocked on its own are locked again", function()
+    shipConnect({ "Kestrel Cruiser Key", "Rock Cruiser Key" })
+    -- An older profile: FTL unlocked these before the lock existed.
+    sim.unlocked["PLAYER_SHIP_CIRCLE"] = true
+    sim.unlocked["PLAYER_SHIP_MANTIS_3"] = true
+    sim.unlocked["PLAYER_SHIP_HARD"] = true
+    atMenu()
+    sim.clearLog()
+    sim.tick(240)
+    check(not sim.unlocked["PLAYER_SHIP_CIRCLE"], "the Engi is locked again")
+    check(not sim.unlocked["PLAYER_SHIP_MANTIS_3"], "so is the Mantis C, which has no Mantis key")
+    check(sim.unlocked["PLAYER_SHIP_ROCK"], "the received Rock stays")
+    check(sim.unlocked["PLAYER_SHIP_HARD"], "and the Kestrel A")
+    check(shownRelocked(2), "the player reads that two ships were locked again")
+    sim.clearLog()
+    sim.tick(240)
+    check(not shownRelocked(2), "said once, not every few seconds")
+    shipDone()
+end)
+
+test("lock: nothing is locked again during a run, in the hangar, or before the inventory is complete", function()
+    shipConnect({ "Kestrel Cruiser Key", "Rock Cruiser Key" })
+    sim.unlocked["PLAYER_SHIP_CIRCLE"] = true
+    startRunWith("PLAYER_SHIP_CIRCLE")
+    sim.menuOpen = false
+    sim.tick(240)
+    check(sim.unlocked["PLAYER_SHIP_CIRCLE"], "not in the middle of a run")
+    sim.started = true
+    sim.menuOpen = true
+    sim.hangarOpen = true
+    sim.tick(240)
+    check(sim.unlocked["PLAYER_SHIP_CIRCLE"], "not while the hangar is open")
+    apInventoryClear()
+    atMenu()
+    sim.tick(240)
+    check(sim.unlocked["PLAYER_SHIP_CIRCLE"], "not with an inventory that is not complete")
+    shipDone()
+end)
+
+test("lock: an older module without the lock still unlocks ships and locks nothing", function()
+    sim.net.client.SetShipLock = nil
+    sim.net.client.UnlockShip = nil
+    sim.net.client.LockShips = nil
+    sim.net.shipLock = false
+    shipConnect({ "Kestrel Cruiser Key", "Rock Cruiser Key" })
+    check(sim.unlocked["PLAYER_SHIP_ROCK"], "the Rock key still unlocks the Rock")
+    sim.unlocked["PLAYER_SHIP_CIRCLE"] = true
+    atMenu()
+    sim.tick(240)
+    check(sim.unlocked["PLAYER_SHIP_CIRCLE"], "nothing to lock with: left as it is, the run check still guards")
+    shipDone()
+end)
+
+test("achievements: FTL's own are read from FTL's tracker, not Hyperspace's", function()
+    sim.startRun(true)
+    applySeed({ loc = { ["ach:ACH_TOUGH_SHIP"] = "Achievement: Tough Little Ship" } })
+    sim.clearLog()
+    sim.earnAchievement("ACH_TOUGH_SHIP", 1)
+    equals(Hyperspace.CustomAchievementTracker.instance:GetAchievementStatus("ACH_TOUGH_SHIP"), -1,
+        "Hyperspace's tracker does not hold it, like in the game")
+    sim.jumpArrive()
+    check(sim.logged("CHECK ach:ACH_TOUGH_SHIP"), "the check goes out all the same")
+end)
+
+test("achievements: the ones a mod adds are still read from Hyperspace's tracker", function()
+    sim.startRun(true)
+    applySeed({ loc = { ["ach:ACH_TOUGH_SHIP"] = "Achievement: Tough Little Ship" } })
+    sim.clearLog()
+    sim.earnCustomAchievement("ACH_TOUGH_SHIP", 0)
+    sim.jumpArrive()
+    check(sim.logged("CHECK ach:ACH_TOUGH_SHIP"), "a custom achievement counts")
+end)
+
+test("achievements: an older module that cannot read FTL's says so once and keeps the custom ones", function()
+    sim.net.client.AchievementStatus = nil
+    sim.startRun(true)
+    applySeed({ loc = { ["ach:ACH_TOUGH_SHIP"] = "Achievement: Tough Little Ship" } })
+    sim.earnAchievement("ACH_TOUGH_SHIP", 1)
+    sim.jumpArrive()
+    check(not sim.logged("CHECK ach:ACH_TOUGH_SHIP"), "FTL's achievement cannot be seen")
+    sim.earnCustomAchievement("ACH_TOUGH_SHIP", 1)
+    sim.jumpArrive()
+    check(sim.logged("CHECK ach:ACH_TOUGH_SHIP"), "a custom one still can")
+end)
+
+test("checks: a sector check says what it sends, and to whom", function()
+    shipConnect({ "Kestrel Cruiser Key", "Rock Cruiser Key" })
+    sim.netEvent("scout", { name = "PLAYER_SHIP_ROCK: Reach sector 2", sender = "Nina",
+                            extra = "Hookshot", value = 1 })
+    sim.netEvent("scout", { name = "PLAYER_SHIP_ROCK: Reach sector 3", sender = "Navigator",
+                            extra = "Burst Laser II", value = 1 })
+    sim.tick(1)
+    startRunWith("PLAYER_SHIP_ROCK")
+    apNotifyResetForTesting()
+    sim.clearLog()
+    reachSector(2)
+    apNotifyFlushForTesting()
+    check(shownKey("check.sent.item", { location = "PLAYER_SHIP_ROCK: Reach sector 2", item = "Hookshot",
+                                        slot = "Nina" }), "the item and its player")
+    sim.clearLog()
+    reachSector(3)
+    apNotifyFlushForTesting()
+    check(shownKey("check.sent.item.self", { location = "PLAYER_SHIP_ROCK: Reach sector 3",
+                                             item = "Burst Laser II" }), "an item of our own says so")
+    shipDone()
+end)
+
+test("checks: every check of the seed is scouted, without a hint", function()
+    shipConnect({ "Kestrel Cruiser Key" })
+    local scouted = 0
+    for _, call in ipairs(sim.net.calls) do
+        if call[1] == "ScoutLocations" then scouted = math.max(scouted, call.count) end
+    end
+    local total = 0
+    for _ in pairs(_G.apContractState.locNames) do total = total + 1 end
+    equals(scouted, total, "the shop slots and every other check")
+    equals(sim.netCalls("HintLocation"), 0, "a scout is not a hint")
+    shipDone()
+end)

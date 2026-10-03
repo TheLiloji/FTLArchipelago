@@ -213,10 +213,11 @@ the Kestrel A that every FTL profile starts with stays available no matter what.
 item for the sake of uniformity, and it is handed to you at the start of the seed, which is why the logic may
 freely assume you own it. In practice: you are never stranded with nothing to fly.
 
-**A ship FTL unlocks by itself does not count.** FTL still unlocks ships its own way (an event, an
-achievement), and nothing can lock them again. A run only counts with a ship Archipelago gave you: its key,
-plus its layout item for a Type B or C when the seed has them. With any other ship, the mod says so when the run
-starts and the run sends nothing, not even its victory. The hangar marks such a ship NOT RECEIVED.
+**Only Archipelago unlocks ships.** FTL would unlock ships its own way (an event, an achievement): the mod
+refuses those unlocks, and at the main menu it locks again any ship FTL unlocked before (an older version of the
+mod could not). The one exception is Layout Unlocks set to vanilla, where a Type B or C earned through its ship's
+achievements is kept, and becomes playable once the ship's key is in. If a ship you did not receive is playable
+all the same, the hangar marks it NOT RECEIVED, and a run with it sends nothing, not even its victory.
 
 **A separate profile is created.** The mod tells Hyperspace to keep its own profile file
 (`hs_ap_prof.sav`) and to start it empty, which is the only way to have every ship locked at the beginning.
