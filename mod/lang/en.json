@@ -25,8 +25,12 @@
     "check.label.victory": "Victory with {ship}",
     "check.resent": "{n} checks caught up with the server.",
     "check.resent.one": "{n} check caught up with the server.",
+    "check.run_ship_not_in_seed": "Ship not in this seed ({ship}): this run does not count, no checks and no victory. Start a new game with a ship from the seed.",
+    "check.run_ship_not_received": "Ship not received from Archipelago ({ship}): FTL unlocked it on its own. This run does not count, no checks and no victory. Start a new game with a ship you received.",
     "check.run_without_seed": "This run did not start with the seed you are playing now: its checks and victories do not count. Start a new game with this seed loaded. Items for the run wait for the next one.",
     "check.sent": "Checked: {location}",
+    "check.sent.item": "Checked: {location}. {item} is on its way to {slot}.",
+    "check.sent.item.self": "Checked: {location}. {item} is yours.",
     "check.sent.many": "{n} checks sent.",
     "check.victory.unknown_ship": "Victory! But the ship was not recognised, so the check did not go out. See FTL_HS.log.",
     "connect.auto": "Connect automatically on launch",
@@ -175,6 +179,7 @@
     "goal.progress": "Victory {done} of {total}.",
     "goal.reached": "Goal complete. The multiworld knows.",
     "goal.too_easy": "Victory recorded, but the goal asks for {difficulty}.",
+    "hangar.not_received": "NOT RECEIVED",
     "hangar.out_of_seed": "NOT IN SEED",
     "hint.received.mine": "Hint: your {item} is waiting in {finder}'s world, at {location}.",
     "hint.received.solo": "Hint: your {item} is at {location}.",
@@ -327,6 +332,7 @@
     "trap.named": "{name}: {effect}",
     "trap.sprung": "Trap: {what}",
     "trap.system_damage": "{system} took {n} damage. Nothing hit it.",
-    "tutorial.blocked": "TUTORIAL UNAVAILABLE IN AN ARCHIPELAGO GAME"
+    "tutorial.blocked": "TUTORIAL UNAVAILABLE IN AN ARCHIPELAGO GAME",
+    "unlock.relocked": "{n} ship(s) locked again: FTL had unlocked them, not Archipelago."
   }
 }

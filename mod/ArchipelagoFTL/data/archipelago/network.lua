@@ -35,10 +35,14 @@ function apNetResetForTesting()
     state.delivered = {}
     state.scoutsPending = false
     state.scouted = {}
+    state.checkItems = {}
+    state.ownAlias = nil
     state.scoutRetries = 0
     state.scoutRetryAt = nil
     state.seedRefused = false
     state.refusal = nil
+    state.replayClean = false
+    state.itemsInBatch = false
     if _G.apNetForgetDurableStore then _G.apNetForgetDurableStore() end
 end
 
@@ -422,18 +426,31 @@ local function requestShopScouts()
             names[#names + 1] = name
         end
     end
+    local shopCount = #names
+    -- The other checks too, so a check can say what it sends. A scout is not a hint: nobody else sees it.
+    local others = {}
+    for key, name in pairs((_G.apContractState or {}).locNames or {}) do
+        if tostring(key):sub(1, 5) ~= "shop:" then
+            others[#others + 1] = name
+        end
+    end
+    table.sort(others)
+    for _, name in ipairs(others) do
+        names[#names + 1] = name
+    end
     local ap = client()
     if #names == 0 or ap == nil then
         return
     end
-    state.scoutsPending = true
+    state.scoutsPending = shopCount > 0
     state.scouted = {}
+    state.checkItems = {}
     local vector = Hyperspace.vector_string()
     for _, name in ipairs(names) do
         vector:push_back(name)
     end
     ap:ScoutLocations(vector)
-    netLog(#names .. " shop slot(s) to scout")
+    netLog(shopCount .. " shop slot(s) and " .. #others .. " other check(s) to scout")
 end
 
 local function onConnected(event)
@@ -444,7 +461,9 @@ local function onConnected(event)
     state.retryAt = nil
     state.unreachableSince = nil
     netLog("connected as \"" .. tostring(event.name) .. "\"")
+    state.ownAlias = tostring(event.name)
     state.seedRefused = false
+    state.replayClean = false
 
     local slotData = event.extra
     if type(slotData) == "string" and _G.apJsonDecode then
@@ -525,6 +544,9 @@ local function onScout(event)
     end
     local key = _G.apCheckKeyFor and _G.apCheckKeyFor(event.name) or event.name
     if tostring(key):sub(1, 5) ~= "shop:" then
+        state.checkItems = state.checkItems or {}
+        state.checkItems[key] = { item = tostring(event.extra), slot = tostring(event.sender),
+                                  mine = state.ownAlias ~= nil and tostring(event.sender) == state.ownAlias }
         return
     end
     state.scouted[#state.scouted + 1] = {
@@ -564,6 +586,15 @@ end
 local CHECKED_POLL_TICKS = 10 * 60
 
 local function onItem(event)
+    -- The server sends the whole list again from index 0 on each connection: once a full list came in with
+    -- every name, the inventory holds everything received so far.
+    state.itemsInBatch = true
+    if event.index == 0 then
+        state.replayClean = true
+    end
+    if tostring(event.name) == UNKNOWN then
+        state.replayClean = false
+    end
     if event.index >= 0 and event.index <= state.lastItemIndex then
         return
     end
@@ -681,6 +712,13 @@ local HANDLERS = {
         scheduleRetry()
     end,
 
+    -- FTL tried to unlock a ship by itself and the lock refused it.
+    unlock_denied = function(event)
+        if _G.apShipUnlockDenied then
+            _G.apShipUnlockDenied(tostring(event.name))
+        end
+    end,
+
     death = function(event)
         if _G.apDeathLinkReceive then
             _G.apDeathLinkReceive(event.sender, event.name)
@@ -731,6 +769,7 @@ local function drain()
         return
     end
 
+    state.itemsInBatch = false
     for i = 0, count - 1 do
         local event = events[i]
         local handler = HANDLERS[tostring(event.kind)]
@@ -740,6 +779,10 @@ local function drain()
                 netLog("error handling \"" .. tostring(event.kind) .. "\": " .. tostring(err))
             end
         end
+    end
+    if state.itemsInBatch and state.replayClean and state.connected and not state.seedRefused
+        and _G.apInventoryMarkSynced then
+        apInventoryMarkSynced()
     end
 
     if state.scoutsPending and #state.scouted > 0 then
@@ -773,6 +816,54 @@ script.on_internal_event(Defines.InternalEvents.ON_TICK, function()
     end
 end)
 
+-- The module of an older build has none of these: they answer nil and the mod carries on as before.
+local function moduleCall(method, ...)
+    local ap = client()
+    if ap == nil or ap[method] == nil then
+        return nil
+    end
+    local args = { ... }
+    local ok, result = pcall(function() return ap[method](ap, table.unpack(args)) end)
+    if not ok then
+        netLog(method .. " failed: " .. tostring(result))
+        return nil
+    end
+    return result
+end
+
+-- Whether the module can lock at all.
+function apNetShipLock(on)
+    local ap = client()
+    if ap == nil or ap.SetShipLock == nil then
+        return false
+    end
+    moduleCall("SetShipLock", on == true)
+    return true
+end
+
+-- Unlocks a ship the lock lets through; nil when the module cannot.
+function apNetUnlockShip(blueprint, silent)
+    return moduleCall("UnlockShip", tostring(blueprint), silent == true)
+end
+
+function apNetLockShips(blueprints)
+    local vector = Hyperspace.vector_string()
+    for _, blueprint in ipairs(blueprints) do
+        vector:push_back(blueprint)
+    end
+    return moduleCall("LockShips", vector)
+end
+
+-- FTL's own achievements: difficulty earned on, -1 if not, nil when the module cannot tell.
+function apNetAchievementStatus(name)
+    return moduleCall("AchievementStatus", tostring(name))
+end
+
+-- What a check sends, once the server answered the scout: { item, slot, mine }, or nil.
+function apNetScoutedItem(key)
+    return (state.checkItems or {})[key]
+end
+
 function apNetConnected()
     return state.connected == true
 end
@@ -792,6 +883,10 @@ function apNetStatus()
 end
 
 state.available = client() ~= nil
+-- From the very start: only Archipelago unlocks ships in this profile.
+if apNetShipLock(true) then
+    netLog("ship lock on: FTL's own ship unlocks are refused")
+end
 netLog(state.available
     and "network module present (console: LUA apNetStatus())"
     or "network module missing: the mod runs locally, everything else works")

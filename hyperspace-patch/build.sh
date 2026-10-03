@@ -50,7 +50,7 @@ mkdir -p "$SRC_DIR" "$OUT_DIR"
 tar -C "$ROOT/vendor/FTL-Hyperspace" --exclude=.git --exclude=build -cf - . | tar -C "$SRC_DIR" -xf -
 
 echo "== 2. the four integration points =="
-cp "$HERE/src/Archipelago.cpp" "$HERE/src/Archipelago.h" "$SRC_DIR/"
+cp "$HERE/src/Archipelago.cpp" "$HERE/src/Archipelago.h" "$HERE/src/ArchipelagoHooks.cpp" "$SRC_DIR/"
 
 mkdir -p "$SRC_DIR/vendor-ap"
 for dep in apclientpp wswrap websocketpp; do
@@ -119,6 +119,33 @@ if "ArchipelagoFTL::Instance().Poll()" not in t:
     print("   Misc.cpp: Poll() wired into the loop")
 else:
     print("   Misc.cpp: already wired")
+
+# Hyperspace's own unlock rules (Multiverse ships, multi-unlocks, events) go through these two places,
+# which are plain functions, not hookable: the lock is written into them.
+su = hs / "ShipUnlocks.cpp"
+t = su.read_text(encoding="utf-8")
+if "ArchipelagoFTL::ShipUnlockAllowed" not in t:
+    gates = [
+        ("void CustomShipUnlocks::UnlockShip(const std::string& ship, bool silent, bool checkMultiUnlocks, bool isEvent)\n{\n",
+         "    if (!ArchipelagoFTL::ShipUnlockAllowed(ship)) { ArchipelagoFTL::ShipUnlockDenied(ship); return; }\n"),
+        ("    G_->GetScoreKeeper()->UnlockShip(shipId, variant, true, false);\n    customUnlockedShips.push_back(unlock.unlocksShip);\n",
+         None),
+    ]
+    anchor, line = gates[0]
+    if t.count(anchor) != 1:
+        raise SystemExit("   FAIL: CustomShipUnlocks::UnlockShip not found once in ShipUnlocks.cpp")
+    t = t.replace(anchor, anchor + line, 1)
+    anchor = gates[1][0]
+    if t.count(anchor) != 1:
+        raise SystemExit("   FAIL: the vanilla unlock of CheckVanillaUnlocks not found once in ShipUnlocks.cpp")
+    gate = ("    if (!ArchipelagoFTL::ShipUnlockAllowed(unlock.unlocksShip))\n"
+            "    {\n        ArchipelagoFTL::ShipUnlockDenied(unlock.unlocksShip);\n        return false;\n    }\n")
+    t = t.replace(anchor, gate + anchor, 1)
+    t = t.replace('#include "ShipUnlocks.h"', '#include "ShipUnlocks.h"\n#include "Archipelago.h"', 1)
+    write(su, t)
+    print("   ShipUnlocks.cpp: ship lock wired into Hyperspace's unlocks")
+else:
+    print("   ShipUnlocks.cpp: already wired")
 
 # OpenSSL is C, and clang picks up mingw's GCC <stdatomic.h>, which it cannot compile. Without C11
 # atomics OpenSSL falls back to the __atomic builtins, which clang handles.

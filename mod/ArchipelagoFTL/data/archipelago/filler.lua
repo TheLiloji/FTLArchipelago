@@ -211,6 +211,16 @@ function apQueueItem(descriptor)
     return true
 end
 
+-- A ship key still in the queue is received but not in the inventory yet.
+function apFillerShipsWaiting()
+    for _, descriptor in ipairs(pending) do
+        if descriptor.kind == "ship" then
+            return true
+        end
+    end
+    return false
+end
+
 local SHIPLESS_KINDS = { ship = true, cap = true, start = true, archive = true }
 local CATALOG_KINDS = { shop = true, crew = true }
 

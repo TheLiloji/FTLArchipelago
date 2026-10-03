@@ -25,8 +25,12 @@
     "check.label.victory": "Vittoria con {ship}",
     "check.resent": "{n} check recuperati presso il server.",
     "check.resent.one": "{n} check recuperato presso il server.",
+    "check.run_ship_not_in_seed": "Nave fuori dalla seed ({ship}): questa run non conta, niente check e niente vittoria. Inizia una nuova partita con una nave della seed.",
+    "check.run_ship_not_received": "Nave non ricevuta da Archipelago ({ship}): FTL l'ha sbloccata da solo. Questa run non conta, niente check e niente vittoria. Inizia una nuova partita con una nave ricevuta.",
     "check.run_without_seed": "Questa run non è iniziata con la seed attuale: i suoi check e le sue vittorie non contano. Inizia una nuova partita con questa seed caricata. Gli oggetti per la run aspettano la prossima.",
     "check.sent": "Check inviato: {location}",
+    "check.sent.item": "Check inviato: {location}. {item} è in viaggio verso {slot}.",
+    "check.sent.item.self": "Check inviato: {location}. {item} è per te.",
     "check.sent.many": "{n} check inviati.",
     "check.victory.unknown_ship": "Vittoria! Ma la nave non è stata riconosciuta e il check non è partito. Vedi FTL_HS.log.",
     "connect.auto": "Connettersi automaticamente all'avvio",
@@ -175,6 +179,7 @@
     "goal.progress": "Vittoria {done} su {total}.",
     "goal.reached": "Obiettivo raggiunto. Il multiworld lo sa.",
     "goal.too_easy": "Vittoria registrata, ma l'obiettivo chiede {difficulty}.",
+    "hangar.not_received": "NON RICEVUTA",
     "hangar.out_of_seed": "FUORI DAL SEED",
     "hint.received.mine": "Indizio: il vostro {item} aspetta nel mondo di {finder}, a {location}.",
     "hint.received.solo": "Indizio: il tuo {item} si trova in {location}.",
@@ -327,6 +332,7 @@
     "trap.named": "{name}: {effect}",
     "trap.sprung": "Trappola: {what}",
     "trap.system_damage": "{system}: {n} di danno. Nessun colpo registrato.",
-    "tutorial.blocked": "TUTORIAL NON DISPONIBILE IN UNA PARTITA ARCHIPELAGO"
+    "tutorial.blocked": "TUTORIAL NON DISPONIBILE IN UNA PARTITA ARCHIPELAGO",
+    "unlock.relocked": "{n} nave/i bloccata/e di nuovo: le aveva sbloccate FTL, non Archipelago."
   }
 }

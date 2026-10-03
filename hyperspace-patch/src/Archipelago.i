@@ -40,6 +40,10 @@
 %rename("%s") ArchipelagoFTL::Client::ProfileResetRequested;
 %rename("%s") ArchipelagoFTL::Client::RememberState;
 %rename("%s") ArchipelagoFTL::Client::RecallState;
+%rename("%s") ArchipelagoFTL::Client::SetShipLock;
+%rename("%s") ArchipelagoFTL::Client::UnlockShip;
+%rename("%s") ArchipelagoFTL::Client::LockShips;
+%rename("%s") ArchipelagoFTL::Client::AchievementStatus;
 
 %immutable MainMenu::bScoreScreen;
 %rename("%s") MainMenu::bScoreScreen;

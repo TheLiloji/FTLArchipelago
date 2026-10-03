@@ -33,7 +33,7 @@ def _insert(lines, key, text):
             lines.insert(i, '    "%s": %s,\n' % (key, value))
             return lines
     end = _last(lines, start)
-    lines[end] = re.sub(r"\s*$", ",\n", lines[end])
+    lines[end] = re.sub(r"\s*$", ",\n", lines[end], count=1)
     lines.insert(end + 1, '    "%s": %s\n' % (key, value))
     return lines
 

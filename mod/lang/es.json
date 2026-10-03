@@ -25,8 +25,12 @@
     "check.label.victory": "Victoria con {ship}",
     "check.resent": "{n} checks recuperados con el servidor.",
     "check.resent.one": "{n} check recuperado con el servidor.",
+    "check.run_ship_not_in_seed": "Nave fuera de la seed ({ship}): esta partida no cuenta, ni checks ni victoria. Empieza una partida nueva con una nave de la seed.",
+    "check.run_ship_not_received": "Nave no recibida de Archipelago ({ship}): FTL la desbloqueó por su cuenta. Esta partida no cuenta, ni checks ni victoria. Empieza una partida nueva con una nave recibida.",
     "check.run_without_seed": "Esta partida no empezó con la seed actual: sus checks y victorias no cuentan. Empieza una partida nueva con esta seed cargada. Los objetos para la partida esperan a la siguiente.",
     "check.sent": "Comprobación enviada: {location}",
+    "check.sent.item": "Comprobación enviada: {location}. {item} va de camino a {slot}.",
+    "check.sent.item.self": "Comprobación enviada: {location}. {item} es para ti.",
     "check.sent.many": "{n} comprobaciones enviadas.",
     "check.victory.unknown_ship": "¡Victoria! Pero la nave no fue reconocida y el check no salió. Mira FTL_HS.log.",
     "connect.auto": "Conectarse automáticamente al iniciar",
@@ -175,6 +179,7 @@
     "goal.progress": "Victoria {done} de {total}.",
     "goal.reached": "Objetivo cumplido. El multiworld lo sabe.",
     "goal.too_easy": "Victoria registrada, pero el objetivo pide {difficulty}.",
+    "hangar.not_received": "NO RECIBIDA",
     "hangar.out_of_seed": "FUERA DE LA SEED",
     "hint.received.mine": "Pista: vuestro {item} espera en el mundo de {finder}, en {location}.",
     "hint.received.solo": "Pista: tu {item} está en {location}.",
@@ -327,6 +332,7 @@
     "trap.named": "{name}: {effect}",
     "trap.sprung": "Trampa: {what}",
     "trap.system_damage": "{system}: {n} de daño. Ningún impacto registrado.",
-    "tutorial.blocked": "TUTORIAL NO DISPONIBLE EN UNA PARTIDA ARCHIPELAGO"
+    "tutorial.blocked": "TUTORIAL NO DISPONIBLE EN UNA PARTIDA ARCHIPELAGO",
+    "unlock.relocked": "{n} nave(s) bloqueada(s) de nuevo: las desbloqueó FTL, no Archipelago."
   }
 }

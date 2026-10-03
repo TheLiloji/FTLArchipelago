@@ -136,8 +136,19 @@ function apNotifyItem(itemName, sender, fromServer)
                                         fromServer = fromServer }
 end
 
-function apNotifyCheck(locationName)
-    pendingChecks[#pendingChecks + 1] = tostring(locationName)
+-- found: what the check sends, when the server told us ({ item, slot, mine }).
+function apNotifyCheck(locationName, found)
+    pendingChecks[#pendingChecks + 1] = { name = tostring(locationName), found = found }
+end
+
+local function checkLine(check)
+    local found = check.found
+    if found == nil then
+        return apT("check.sent", { location = check.name })
+    elseif found.mine then
+        return apT("check.sent.item.self", { location = check.name, item = found.item })
+    end
+    return apT("check.sent.item", { location = check.name, item = found.item, slot = found.slot })
 end
 
 local pendingWaiting = {}
@@ -174,8 +185,7 @@ end
 
 local function flushAll()
     pendingItems = flushQueue(pendingItems, itemLine, "item.received.many", "good")
-    pendingChecks = flushQueue(pendingChecks,
-        function(name) return apT("check.sent", { location = name }) end, "check.sent.many", "border")
+    pendingChecks = flushQueue(pendingChecks, checkLine, "check.sent.many", "border")
     pendingWaiting = flushQueue(pendingWaiting,
         function(name) return apT("item.waiting_augment", { name = name }) end, "item.waiting_augment.many", "title")
     pendingCargo = flushQueue(pendingCargo,
