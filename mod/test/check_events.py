@@ -63,6 +63,12 @@ def main() -> int:
             trees[path.name] = parse(path)
         except etree.XMLSyntaxError as error:
             failures.append(f"{path.name}: invalid XML - {error}")
+            continue
+        # Slipstream only takes true or false here; ftlman is more lenient.
+        for element in trees[path.name].iter():
+            panic = element.get("panic")
+            if panic is not None and panic not in ("true", "false"):
+                failures.append(f"{path.name}: panic=\"{panic}\", Slipstream only accepts true or false")
     if failures:
         for problem in failures:
             print(f"  {problem}", file=sys.stderr)

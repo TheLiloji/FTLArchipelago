@@ -224,7 +224,7 @@ local function makeShip(shipId)
         end
     end
     function ship:GetSystem(_) return nil end
-    function ship:HasSystem(_) return false end
+    function ship:HasSystem(id) return (self._systemsHeld or {})[id] == true end
 
     return ship
 end
@@ -246,6 +246,7 @@ end
 
 local function resetWorld()
     sim.player = makeShip(0)
+    sim.cloneQueue = {}
     sim.space = {
         currentPlanet = { tex = nil, x = 0, y = 0, w = 0, h = 0 },
         SwitchBackground = function(_, name)
@@ -268,6 +269,7 @@ local function resetWorld()
     sim.powerManager = { currentPower = pair(0, 8) }
     sim.achievements = {}
     sim.enemy = nil
+    sim.shipList = { open = false, page = 0, variant = 0 }
     sim.cargo = {}
     sim.equipped = { weapon = {}, drone = {} }
     sim.slots = { weapon = 4, drone = 2 }
@@ -405,6 +407,12 @@ local function resetWorld()
 
         vector_string = function() return vector({}) end,
 
+        CrewFactory = {
+            GetCloneReadyList = function(_, player)
+                return vector(player and sim.cloneQueue or {})
+            end,
+        },
+
         App = {
             OnExit = function() sim.quitCalled = true end,
             menu = setmetatable({}, {
@@ -505,8 +513,9 @@ local function resetWorld()
                 return {
                     GetTextLibrary = function()
                         return {
+                            -- Like the game: an unknown key comes back as a message, not empty.
                             GetText = function(_, key)
-                                return sim.gameTexts[key] or ""
+                                return sim.gameTexts[key] or ("Could not find: " .. tostring(key))
                             end,
                         }
                     end,
@@ -523,6 +532,16 @@ local function resetWorld()
                             end,
                         }
                     end,
+                }
+            end,
+        },
+
+        CustomShipSelect = {
+            GetInstance = function()
+                return {
+                    IsOpen = function() return sim.shipList.open end,
+                    FirstPage = function() return sim.shipList.page == 0 end,
+                    shipSelect = { currentType = sim.shipList.variant },
                 }
             end,
         },

@@ -164,7 +164,8 @@ local function textLibraryLookup(key)
     local ok, text = pcall(function()
         return Hyperspace.Global.GetInstance():GetTextLibrary():GetText(key)
     end)
-    if ok and type(text) == "string" and text ~= "" then
+    -- The game answers an unknown key with "Could not find: <key>".
+    if ok and type(text) == "string" and text ~= "" and not text:find("^Could not find") then
         return text
     end
     return nil

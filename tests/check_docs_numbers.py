@@ -53,8 +53,8 @@ def preset_table() -> list[str]:
             if abs(real.get(key, -1) - announced) > 0.05:
                 issues.append(f"presets/{path.name}: announces {announced:g} {key}, "
                               f"the report measures {real.get(key)}")
-    if read != 6:
-        issues.append(f"suspicious extraction: {read} preset header(s) read instead of six")
+    if read != 3:
+        issues.append(f"suspicious extraction: {read} preset header(s) read instead of three")
     return issues
 
 
@@ -70,7 +70,7 @@ DESIGN_NUMBERS = (
     (GAME_DOC_PAGE, r"any number of layouts you like, (\w+) by default", "VictoriesRequired"),
     (GAME_DOC_PAGE, r"at least (\w+) slots by default \(Archipelago Shop", "ShopChecks"),
     (GAME_DOC_PAGE, r"filler makes up the difference \(at least (\w+), Minimum Filler\)", "MinimumFiller"),
-    (GAME_DOC_PAGE, r"(\w+) checks by default, one per system", "systems"),
+    (GAME_DOC_PAGE, r"installing a system is a check, (\w+) in all", "systems"),
     (GAME_DOC_PAGE, r"FTL has (\d+) weapons, drones and augments", "shop_items"),
 )
 

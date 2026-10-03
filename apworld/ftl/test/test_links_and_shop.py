@@ -24,7 +24,7 @@ class TestShopItemsOff(FTLTestBase):
 class TestShopItemsLocked(FTLTestBase):
     options = {
         "shop_weapons": 20, "shop_drones": 10, "shop_augments": 0,
-        "shop_unlock_mode": "locked",
+        "shop_unlock_mode": "locked", "weapon_bundle_size": 1, "drone_bundle_size": 1, "augment_bundle_size": 1,
         "shop_item_delivery": True,
         "sectorsanity": "full",
     }
@@ -88,6 +88,9 @@ class TestLinks(FTLTestBase):
         self.assertEqual(links["energy"]["enabled"], True)
         self.assertEqual(links["trap"]["enabled"], True)
 
+    def test_crew_the_clone_bay_brings_back_is_not_a_death_by_default(self) -> None:
+        self.assertIs(self.world.fill_slot_data()["links"]["death"]["cloned"], False)
+
     def test_the_old_trigger_names_still_read(self) -> None:
         from ..options import DeathLinkTrigger
 
@@ -103,6 +106,13 @@ class TestLinks(FTLTestBase):
         links = self.world.fill_slot_data()["links"]
         self.assertIsInstance(links["death"]["trigger"], str)
         self.assertIsInstance(links["death"]["effect"], str)
+
+
+class TestLinksCountingClonedCrew(FTLTestBase):
+    options = {"death_link": True, "death_link_cloned_crew": True}
+
+    def test_the_mod_is_told_to_count_cloned_crew(self) -> None:
+        self.assertIs(self.world.fill_slot_data()["links"]["death"]["cloned"], True)
 
 
 class TestLinksOff(FTLTestBase):
@@ -174,7 +184,7 @@ class TestSelectionIsReproducible(FTLTestBase):
 
 class TestShopChecks(FTLTestBase):
 
-    options = {"shop_checks": 12}
+    options = {"layout_count": 28, "shop_checks": 12, "systemsanity": "first_install"}
 
     def test_exactly_the_requested_number_exists(self) -> None:
         shop = [
@@ -201,7 +211,7 @@ class TestShopChecks(FTLTestBase):
 
 
 class TestShopChecksOff(FTLTestBase):
-    options = {"shop_checks": 0, "archives": 0, "archives_required": 0}
+    options = {"layout_count": 28, "shop_checks": 0, "archives": 0, "archives_required": 0, "systemsanity": "first_install"}
 
     def test_no_shop_location_exists(self) -> None:
         shop = [
@@ -216,7 +226,7 @@ class TestShopChecksOff(FTLTestBase):
 
 class TestShopPrices(FTLTestBase):
 
-    options = {"shop_checks": 12}
+    options = {"layout_count": 28, "shop_checks": 12, "systemsanity": "first_install"}
 
     def test_every_slot_is_priced_by_importance_and_sphere(self) -> None:
         from Fill import distribute_items_restrictive
@@ -227,7 +237,9 @@ class TestShopPrices(FTLTestBase):
         for key, offer in offers.items():
             self.assertTrue(key.startswith("shop:"), key)
             self.assertGreater(offer["price"], 0, f"{key} must never be free")
-            self.assertEqual(offer["price"], pricing.price(offer["kind"], offer["sphere"]))
+            placed = self.multiworld.get_location(f"Archipelago Shop {key[5:]}", self.player).item
+            self.assertEqual(offer["kind"], pricing.importance(placed))
+            self.assertEqual(offer["price"], pricing.price(pricing.price_tier(placed), offer["sphere"]))
 
     def test_an_important_item_always_costs_more_than_filler(self) -> None:
         for sphere in range(0, 12):
@@ -248,4 +260,122 @@ class TestShopPrices(FTLTestBase):
         table = re.search(r"local BASE_PRICE = \{([^}]*)\}", lua)
         self.assertIsNotNone(table, "the mod no longer has readable fallback prices")
         mod = {key: int(value) for key, value in re.findall(r"(\w+) = (\d+)", table.group(1))}
-        self.assertEqual(mod, pricing.BASE_PRICE)
+        self.assertEqual(mod, {kind: price for kind, price in pricing.BASE_PRICE.items() if kind != "bundle"},
+                         "the mod is never told \"bundle\": a bundle's offer says progression")
+
+
+class TestVictoryCollectsTheLayout(FTLTestBase):
+
+    def test_on_by_default_and_told_to_the_mod(self) -> None:
+        self.assertEqual(self.world.fill_slot_data()["options"]["victory_collects_layout"], 1)
+
+
+class TestVictoryCollectsTheLayoutOff(FTLTestBase):
+    options = {"victory_collects_layout": False}
+
+    def test_the_mod_is_told(self) -> None:
+        self.assertEqual(self.world.fill_slot_data()["options"]["victory_collects_layout"], 0)
+
+
+class TestShopBySector(FTLTestBase):
+    options = {"shop_checks": 14, "sector_logic": "standard", "layout_count": 28}
+
+    def test_each_slot_belongs_to_a_sector_from_one_to_seven(self) -> None:
+        self.assertEqual([data.shop_sector(slot) for slot in range(1, 16)],
+                         [1, 2, 3, 4, 5, 6, 7, 1, 2, 3, 4, 5, 6, 7, 1])
+        self.assertEqual(self.world.fill_slot_data()["shop"]["sectors"], data.SHOP_SECTORS)
+
+    def test_a_deep_package_waits_for_the_blueprints_of_its_sector(self) -> None:
+        state = self.multiworld.state.copy()
+        for name in ("Kestrel Cruiser Key",):
+            state.collect(self.world.create_item(name), True)
+        self.assertTrue(self.multiworld.get_location("Archipelago Shop 1", self.player).can_reach(state))
+        self.assertFalse(self.multiworld.get_location("Archipelago Shop 6", self.player).can_reach(state))
+        for system in ("Shields", "Engines", "Oxygen", "Weapon Control"):
+            state.collect(self.world.create_item(f"{system} blueprint"), True)
+        self.assertTrue(self.multiworld.get_location("Archipelago Shop 6", self.player).can_reach(state))
+
+
+class TestShopNotBySector(FTLTestBase):
+    options = {"shop_checks": 14, "sector_logic": "standard", "shop_by_sector": False}
+
+    def test_the_whole_shop_is_open_from_the_start(self) -> None:
+        self.assertNotIn("sectors", self.world.fill_slot_data()["shop"])
+        state = self.multiworld.state.copy()
+        self.assertTrue(self.multiworld.get_location("Archipelago Shop 6", self.player).can_reach(state))
+
+
+class TestShopPerClass(FTLTestBase):
+    options = {"layout_count": 28, "shop_checks": 30, "shop_per_ship": "per_class"}
+
+    def region(self, slot: int) -> str:
+        return self.multiworld.get_location(f"Archipelago Shop {slot}", self.player).parent_region.name
+
+    def test_each_package_is_flown_to_by_one_ship(self) -> None:
+        owners = self.world.fill_slot_data()["shop"]["owners"]
+        self.assertEqual(owners, [ship.blueprint for ship in data.SHIPS])
+        self.assertEqual(self.world.fill_slot_data()["shop"]["per"], "per_class")
+        self.assertEqual(self.region(1), "Lanius Cruiser A")
+        self.assertEqual(self.region(7), "Lanius Cruiser A", "a whole round of sectors per ship")
+        self.assertEqual(self.region(8), "Engi Cruiser A")
+
+
+class TestShopPerLayout(FTLTestBase):
+    options = {"layout_count": 28, "shop_checks": 30, "shop_per_ship": "per_layout", "shop_by_sector": False}
+
+    def test_each_package_belongs_to_one_layout(self) -> None:
+        owners = self.world.fill_slot_data()["shop"]["owners"]
+        self.assertEqual(len(owners), len(data.LAYOUTS))
+        for slot in (1, 2, 3):
+            region = self.multiworld.get_location(f"Archipelago Shop {slot}", self.player).parent_region.name
+            self.assertEqual(region, data.LAYOUTS_BY_BLUEPRINT[owners[slot - 1]].display)
+
+
+class TestShopForEveryShip(FTLTestBase):
+    options = {"shop_checks": 30}
+
+    def test_the_whole_shop_is_for_every_ship(self) -> None:
+        self.assertNotIn("owners", self.world.fill_slot_data()["shop"])
+        region = self.multiworld.get_location("Archipelago Shop 1", self.player).parent_region.name
+        self.assertEqual(region, "Menu")
+
+
+class TestBundles(FTLTestBase):
+
+    def test_bundles_replace_the_single_weapons_drones_and_augments(self) -> None:
+        groups = {data.ITEMS_BY_NAME[item.name].group for item in self.multiworld.itempool}
+        self.assertIn(data.GROUP_BUNDLES, groups)
+        for single in (data.GROUP_SHOP_WEAPONS, data.GROUP_SHOP_DRONES, data.GROUP_SHOP_AUGMENTS):
+            self.assertNotIn(single, groups)
+
+    def test_each_bundle_holds_its_share_and_together_they_hold_every_chosen_item(self) -> None:
+        descriptors = self.world.fill_slot_data()["items"]
+        for family, size in (("weapon", 3), ("drone", 2), ("augment", 3)):
+            label = data.BUNDLE_LABELS[family]
+            held = []
+            for name, descriptor in descriptors.items():
+                if name.startswith(label + " "):
+                    self.assertEqual(descriptor["k"], "bundle")
+                    self.assertLessEqual(len(descriptor["bps"]), size)
+                    self.assertEqual(len(descriptor["bps"]), len(descriptor["names"]))
+                    held.extend(descriptor["bps"])
+            chosen = [item.blueprint for item in self.world.shop_items if item.family == family]
+            self.assertEqual(sorted(held), sorted(chosen), f"{label}s hold each chosen {family} once")
+
+    def test_a_bundle_is_priced_as_an_important_package(self) -> None:
+        bundle = next(item for item in self.multiworld.itempool
+                      if data.ITEMS_BY_NAME[item.name].group == data.GROUP_BUNDLES)
+        self.assertEqual(pricing.importance(bundle), "progression")
+        self.assertEqual(pricing.price(pricing.price_tier(bundle), 1), 45, "but the first sector stays affordable")
+        self.assertEqual(pricing.price(pricing.price_tier(bundle), 99), 120)
+        self.assertGreater(pricing.price(pricing.price_tier(bundle), 1), pricing.price("useful", 1))
+
+
+class TestNoBundles(FTLTestBase):
+    options = {"weapon_bundle_size": 1, "drone_bundle_size": 1, "augment_bundle_size": 1}
+
+    def test_size_one_keeps_every_item_on_its_own(self) -> None:
+        groups = {data.ITEMS_BY_NAME[item.name].group for item in self.multiworld.itempool}
+        self.assertNotIn(data.GROUP_BUNDLES, groups)
+        self.assertIn(data.GROUP_SHOP_WEAPONS, groups)
+

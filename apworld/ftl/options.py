@@ -166,6 +166,19 @@ class ShipLayouts(Choice):
     default = option_all_layouts
 
 
+class LayoutCount(Range):
+    """How many ship layouts are in the seed, drawn at random among those Ship Layouts allows.
+
+    Your starting ship and the Kestrel Cruiser A are always in, and a Type B or C only comes with its
+    ship's Type A. The others are left out: no key, no check. Never fewer than Victories Required.
+    """
+
+    display_name = "Layouts in the Seed"
+    range_start = 1
+    range_end = len(data.LAYOUTS)
+    default = 7
+
+
 class LayoutUnlocks(Choice):
     """How the Type B and Type C layouts become available.
 
@@ -232,6 +245,13 @@ class SectorsanityLastSector(Range):
     default = data.SECTOR_COUNT
 
 
+class VictoryCollectsLayout(DefaultOnToggle):
+    """Beating the Flagship with a layout also sends every sector check of that layout still due.
+    """
+
+    display_name = "Victory Collects the Layout"
+
+
 class CrewChecks(DefaultOnToggle):
     """The first crew member of each race to join you sends a check: Human, Engi, Zoltan,
     Mantis, Rock, Slug and Lanius. 7 checks.
@@ -256,7 +276,7 @@ class CrewMembers(DefaultOnToggle):
 class Systemsanity(Choice):
     """Installing a system sends a check.
 
-    disabled: never.
+    disabled: never. The default: most ships start with half of the systems.
     first_install: once per system, 16 checks.
     every_level: every upgrade level too, 68 checks. A much longer game.
     """
@@ -268,7 +288,15 @@ class Systemsanity(Choice):
     alias_none = option_disabled
     alias_install = option_first_install
     alias_levels = option_every_level
-    default = option_first_install
+    default = option_disabled
+
+
+class SystemsanityPerShip(Toggle):
+    """With Systemsanity on: each ship has its own Install checks, like "Kestrel Cruiser: Install Cloaking".
+    A ship never has a check for a system it can start with. The level checks of every_level stay shared.
+    """
+
+    display_name = "Systemsanity per Ship"
 
 
 class ShipAchievementChecks(DefaultOnToggle):
@@ -327,6 +355,24 @@ class ProgressiveSystems(DefaultOnToggle):
     """
 
     display_name = "Progressive System Upgrades"
+
+
+class ProgressiveSystemsPerShip(Toggle):
+    """With Progressive System Upgrades on: the upgrades belong to one ship each, like "Kestrel Cruiser:
+    Progressive Shields", and only raise that ship's systems. Many more items: when the shop would pass 400
+    slots, the last copies of useful items are left out instead of refusing the seed.
+    """
+
+    display_name = "Progressive Upgrades per Ship"
+
+
+class FullSystemUpgrades(Toggle):
+    """Each Progressive system item gives every upgrade level of its system at once, instead of one level.
+
+    Fewer items, so a smaller Archipelago shop, but a coarser progression.
+    """
+
+    display_name = "Full System Upgrades"
 
 
 class HeadStarts(DefaultOnToggle):
@@ -513,6 +559,36 @@ class ShopAugments(Range):
     default = len(data.SHOP_ITEMS_BY_FAMILY["augment"])
 
 
+class _BundleSize(Range):
+    range_start = 1
+    range_end = 5
+
+
+class WeaponBundleSize(_BundleSize):
+    """How many weapons each Weapon Bundle holds. A bundle unlocks all of them at once.
+
+    1 means no bundles: every weapon is its own item. Bigger bundles mean fewer items, so a smaller
+    Archipelago shop.
+    """
+
+    display_name = "Weapon Bundle Size"
+    default = 3
+
+
+class DroneBundleSize(_BundleSize):
+    """How many drones each Drone Bundle holds. 1 means no bundles."""
+
+    display_name = "Drone Bundle Size"
+    default = 2
+
+
+class AugmentBundleSize(_BundleSize):
+    """How many augments each Augment Bundle holds. 1 means no bundles."""
+
+    display_name = "Augment Bundle Size"
+    default = 3
+
+
 class ShopUnlockMode(Choice):
     """What receiving a shop item does.
 
@@ -555,6 +631,31 @@ class ShopChecks(Range):
     range_start = 0
     range_end = 100
     default = 20
+
+
+class ShopBySector(DefaultOnToggle):
+    """Each package of the Archipelago shop belongs to one sector, 1 to 7, and is only sold at the Archipelago
+    beacon of that sector. The logic expects you to reach that sector first.
+
+    Off: every Archipelago beacon sells from the whole shop.
+    """
+
+    display_name = "Archipelago Shop by Sector"
+
+
+class ShopPerShip(Choice):
+    """Each package of the Archipelago shop belongs to one ship, and is only sold while you fly it.
+
+    off: every ship sees the whole shop.
+    per_class: one owner per ship, whatever its layout (Kestrel).
+    per_layout: one owner per layout (Kestrel B).
+    """
+
+    display_name = "Archipelago Shop per Ship"
+    option_off = 0
+    option_per_class = 1
+    option_per_layout = 2
+    default = option_off
 
 
 class MinimumFiller(Range):
@@ -603,6 +704,17 @@ class DeathLinkTrigger(Choice):
     alias_run_lost = option_ship_destroyed
     alias_hull_destroyed_only = option_ship_destroyed
     alias_any_crew_death = option_both
+
+
+class DeathLinkClonedCrew(Toggle):
+    """With Death Link on: whether a crew member the Clone Bay brings back counts as a death.
+
+    Off: only a crew member who does not come back sends a death, for example when the Clone Bay has no
+    power at the jump or the last crew member dies.
+    On: every crew death is sent, even one the Clone Bay will undo.
+    """
+
+    display_name = "Death Link Cloned Crew"
 
 
 class DeathLinkEffect(Choice):
@@ -661,6 +773,7 @@ class FTLOptions(PerGameCommonOptions):
     start_inventory_from_pool: StartInventoryPool
     death_link: DeathLink
     death_link_trigger: DeathLinkTrigger
+    death_link_cloned_crew: DeathLinkClonedCrew
     death_link_effect: DeathLinkEffect
     energy_link: EnergyLink
     trap_link: TrapLink
@@ -676,28 +789,38 @@ class FTLOptions(PerGameCommonOptions):
     start_ship: StartShip
 
     ship_layouts: ShipLayouts
+    layout_count: LayoutCount
     layout_unlocks: LayoutUnlocks
 
     sectorsanity: Sectorsanity
     sectorsanity_first_sector: SectorsanityFirstSector
     sectorsanity_last_sector: SectorsanityLastSector
+    victory_collects_layout: VictoryCollectsLayout
     crew_checks: CrewChecks
     crew_members: CrewMembers
     systemsanity: Systemsanity
+    systemsanity_per_ship: SystemsanityPerShip
     ship_achievements: ShipAchievementChecks
     general_achievements: GeneralAchievementChecks
     cross_run_achievements: CrossRunAchievementChecks
 
     system_blueprints: SystemBlueprints
     progressive_systems: ProgressiveSystems
+    full_system_upgrades: FullSystemUpgrades
+    progressive_systems_per_ship: ProgressiveSystemsPerShip
     head_starts: HeadStarts
     trap_chance: TrapChance
     shop_weapons: ShopWeapons
     shop_drones: ShopDrones
     shop_augments: ShopAugments
+    weapon_bundle_size: WeaponBundleSize
+    drone_bundle_size: DroneBundleSize
+    augment_bundle_size: AugmentBundleSize
     shop_unlock_mode: ShopUnlockMode
     shop_item_delivery: ShopItemDelivery
     shop_checks: ShopChecks
+    shop_by_sector: ShopBySector
+    shop_per_ship: ShopPerShip
     minimum_filler: MinimumFiller
 
     sector_logic: SectorLogic
@@ -713,18 +836,20 @@ ftl_option_groups = [
     OptionGroup("Goal", [VictoriesRequired, VictoryDifficulty, Archives, ArchivesRequired]),
     OptionGroup(
         "Game Size",
-        [ShipLayouts, Sectorsanity, Systemsanity, ShipAchievementChecks, GeneralAchievementChecks,
+        [ShipLayouts, LayoutCount, Sectorsanity, Systemsanity, ShipAchievementChecks, GeneralAchievementChecks,
          CrewChecks, ShopChecks],
     ),
     OptionGroup(
         "Playing with Others",
-        [DeathLink, DeathLinkTrigger, DeathLinkEffect, EnergyLink, TrapLink, TrapChance],
+        [DeathLink, DeathLinkTrigger, DeathLinkClonedCrew, DeathLinkEffect, EnergyLink, TrapLink, TrapChance],
     ),
     OptionGroup(
         "Advanced",
-        [StartShip, HeadStarts, ModLanguage, SectorsanityFirstSector, SectorsanityLastSector, LayoutUnlocks, CrossRunAchievementChecks,
-         SystemBlueprints, ProgressiveSystems, CrewMembers, ShopWeapons, ShopDrones, ShopAugments,
-         ShopUnlockMode, ShopItemDelivery, SectorLogic],
+        [StartShip, HeadStarts, ModLanguage, SectorsanityFirstSector, SectorsanityLastSector, VictoryCollectsLayout, LayoutUnlocks, CrossRunAchievementChecks,
+         SystemBlueprints, ProgressiveSystems, FullSystemUpgrades, CrewMembers, ShopWeapons, ShopDrones, ShopAugments,
+         WeaponBundleSize, DroneBundleSize, AugmentBundleSize,
+         ShopUnlockMode, ShopItemDelivery, ShopBySector, ShopPerShip, SystemsanityPerShip,
+         ProgressiveSystemsPerShip, SectorLogic],
         start_collapsed=True,
     ),
     OptionGroup(
@@ -855,3 +980,17 @@ def _check() -> None:
 
 
 _check()
+
+
+def bundle_size(options: FTLOptions, family: str) -> int:
+    return {
+        "weapon": options.weapon_bundle_size.value,
+        "drone": options.drone_bundle_size.value,
+        "augment": options.augment_bundle_size.value,
+    }[family]
+
+
+def item_copies(options: FTLOptions, item: data.Item) -> int:
+    if item.group == data.GROUP_SYSTEM_LEVELS and item.count and options.full_system_upgrades:
+        return 1
+    return item.count

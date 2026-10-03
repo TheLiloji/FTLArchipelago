@@ -18,6 +18,7 @@ from pathlib import Path
 AP = Path(os.environ.get("AP_ROOT", "~/.local/opt/Archipelago")).expanduser()
 GAME = "FTL: Faster Than Light"
 PORT = 38299
+PASSWORD = "ftl-roundtrip"
 
 _SEED_ARGUMENT = next(
     (Path(argument).resolve() for argument in sys.argv[1:]
@@ -45,9 +46,9 @@ async def send(socket, *messages) -> None:
     await socket.send(json.dumps(list(messages)))
 
 
-def connect_payload(slot: str) -> dict:
+def connect_payload(slot: str, password: str | None = PASSWORD) -> dict:
     return {
-        "cmd": "Connect", "game": GAME, "name": slot, "password": None,
+        "cmd": "Connect", "game": GAME, "name": slot, "password": password,
         "uuid": "ftl-roundtrip", "version": {"major": 0, "minor": 6, "build": 7,
                                              "class": "Version"},
         "items_handling": 0b111, "tags": [], "slot_data": True,
@@ -66,8 +67,25 @@ async def expect(socket, command: str, timeout: float = 20.0) -> dict:
     raise Failure(f"no \"{command}\" within the time given")
 
 
+async def refused(uri: str, slot: str, password: str | None) -> list[str]:
+    async with websockets.connect(uri, max_size=None) as socket:
+        await expect(socket, "RoomInfo")
+        await send(socket, connect_payload(slot, password))
+        try:
+            await expect(socket, "Connected")
+        except Failure as error:
+            return [str(error)]
+    return []
+
+
 async def roundtrip(slot: str, report: list[str]) -> None:
     uri = f"ws://localhost:{PORT}"
+    for wrong in ("not-the-password", None):
+        errors = await refused(uri, slot, wrong)
+        if not any("InvalidPassword" in error for error in errors):
+            raise Failure(f"the password {wrong!r} was not refused by a room that has one: {errors}")
+    report.append("0. Password: a wrong or missing password is refused (InvalidPassword)")
+
     async with websockets.connect(uri, max_size=None) as socket:
         room = await expect(socket, "RoomInfo")
         if GAME not in room.get("games", []):
@@ -158,7 +176,7 @@ def main() -> int:
     shutil.copy2(seed, working_seed)
 
     server = subprocess.Popen(
-        [str(AP / "ArchipelagoServer"), str(working_seed), "--port", str(PORT)],
+        [str(AP / "ArchipelagoServer"), str(working_seed), "--port", str(PORT), "--password", PASSWORD],
         cwd=AP, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
         stdin=subprocess.DEVNULL, text=True,
     )

@@ -1,6 +1,6 @@
 # Preset A1: FTL is one slot among several games. New to FTL.
 # Short sessions between other games: no traps, no DeathLink, relaxed logic, many shop slots.
-# Measured: 133 locations, 56 free shop slots, ~13.9 checks per hour,
+# Measured: 109 locations, 32 free shop slots, ~13.9 checks per hour,
 # ~3.3 h to the goal, ~13 minutes max wait with nothing to send.
 # Change the name line, then generate as usual.
 
@@ -16,6 +16,7 @@ accessibility: full
   victories_required: 1
   start_ship: kestrel_cruiser
   ship_layouts: type_a_only
+  layout_count: 28
   layout_unlocks: vanilla
   sectorsanity: full
   sectorsanity_first_sector: 1
@@ -24,6 +25,7 @@ accessibility: full
   general_achievements: basic
   cross_run_achievements: false
   shop_checks: 25
+  shop_by_sector: false
   minimum_filler: 5
   crew_members: false
   system_blueprints: true
@@ -48,3 +50,7 @@ accessibility: full
   victory_difficulty: any
   archives: 0
   archives_required: 0
+  systemsanity: first_install
+  weapon_bundle_size: 1
+  drone_bundle_size: 1
+  augment_bundle_size: 1

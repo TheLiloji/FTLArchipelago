@@ -1,0 +1,17 @@
+# Medium game: about 10 hours to the goal. These are the default options, the recommended ones.
+# Five victories with different ships on Normal or Hard, seven ship layouts, 10 Archives out of 12.
+# Measured: 151 locations, 65 free shop slots, ~13.9 checks per hour,
+# ~10.7 h to the goal, ~13 minutes max wait with nothing to send.
+# Change the name line, then generate as usual.
+
+name: Player
+description: Medium FTL game, about 10 hours to the goal (the recommended options).
+game: "FTL: Faster Than Light"
+requires:
+  version: 0.6.7
+"FTL: Faster Than Light":
+  victories_required: 5
+  victory_difficulty: normal
+  layout_count: 7
+  archives: 12
+  archives_required: 10

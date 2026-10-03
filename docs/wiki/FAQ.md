@@ -7,6 +7,12 @@ starts, so copy it right after a problem. Lines from the mod start with `[AP`.
 
 When you report a problem, attach that file and say what you were doing.
 
+## Slipstream says "Patching failed"
+
+The mod needs [ftlman](https://github.com/afishhh/ftlman/releases/latest), it does not work with Slipstream Mod
+Manager: it uses patch commands that only ftlman knows. Install the mods with ftlman as in the setup page for
+[Windows](Setup-Windows.md) or [Linux](Setup-Linux.md).
+
 ## The connection panel is missing
 
 Hyperspace is not loaded, or the mod was not applied. Check that the top right corner of the main menu shows
@@ -32,6 +38,11 @@ Type the port in the Port field, not after the address: `archipelago.gg` and `38
 
 Check the address and the port. For a room on archipelago.gg the port changes when the room goes to sleep and
 wakes up: look at the room page again.
+
+## I changed the room password but the old one still works
+
+A room started again from the same seed keeps its old password. Type `/option password <new password>` in the
+server console to change it.
 
 ## The game asks to wipe my profile
 

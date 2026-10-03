@@ -1,6 +1,6 @@
 # Preset C2: FTL alone in a multiworld, played over two evenings. You know FTL well.
 # Sectors 5 to 7, chosen victories, traps and DeathLink on, standard logic.
-# Measured: 185 locations, 41 free shop slots, ~9.8 checks per hour,
+# Measured: 174 locations, 30 free shop slots, ~9.8 checks per hour,
 # ~5.8 h to the goal, ~13 minutes max wait with nothing to send.
 # Change the name line, then generate as usual.
 
@@ -19,6 +19,7 @@ accessibility: full
     - Rock Cruiser B
   start_ship: lanius_cruiser
   ship_layouts: up_to_type_b
+  layout_count: 28
   layout_unlocks: items
   sectorsanity: full
   sectorsanity_first_sector: 5
@@ -27,6 +28,7 @@ accessibility: full
   general_achievements: most
   cross_run_achievements: false
   shop_checks: 30
+  shop_by_sector: false
   minimum_filler: 5
   crew_members: false
   system_blueprints: true
@@ -53,3 +55,7 @@ accessibility: full
   victory_difficulty: any
   archives: 0
   archives_required: 0
+  systemsanity: first_install
+  weapon_bundle_size: 1
+  drone_bundle_size: 1
+  augment_bundle_size: 1

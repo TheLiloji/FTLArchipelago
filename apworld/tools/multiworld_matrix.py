@@ -13,7 +13,7 @@ import tempfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
-PRESETS = ROOT / "presets"
+PRESETS = ROOT / "apworld" / "players" / "variety"
 AP = Path(os.environ.get("AP_ROOT", "~/.local/opt/Archipelago")).expanduser()
 GAME = "FTL: Faster Than Light"
 

@@ -10,6 +10,7 @@ from unittest import TestCase
 from .. import FTLWorld, data
 
 PRESETS = Path(__file__).resolve().parents[3] / "presets"
+VARIETY = Path(__file__).resolve().parents[2] / "players" / "variety"
 GAME = data.GAME_NAME
 GEN_STEPS = (
     "generate_early", "create_regions", "create_items", "set_rules",
@@ -18,7 +19,8 @@ GEN_STEPS = (
 
 
 def load(name: str) -> dict:
-    document = yaml.safe_load((PRESETS / name).read_text(encoding="utf-8"))
+    path = PRESETS / name if (PRESETS / name).exists() else VARIETY / name
+    document = yaml.safe_load(path.read_text(encoding="utf-8"))
     return document[GAME]
 
 
@@ -38,7 +40,30 @@ def locations_of_group(multiworld, group: str) -> list[str]:
     ]
 
 
-ALL_PRESETS = sorted(path.name for path in PRESETS.glob("*.yaml"))
+ALL_PRESETS = sorted(path.name for path in VARIETY.glob("*.yaml"))
+DURATION_PRESETS = sorted(path.name for path in PRESETS.glob("*.yaml"))
+
+
+class TestDurationPresets(TestCase):
+
+    def test_short_medium_and_long(self) -> None:
+        self.assertEqual(DURATION_PRESETS, ["long_game.yaml", "medium_game.yaml", "short_game.yaml"])
+
+    def test_each_one_generates_and_can_be_beaten(self) -> None:
+        for name in DURATION_PRESETS:
+            with self.subTest(preset=name):
+                multiworld, _ = build(name)
+                for location in multiworld.get_locations(1):
+                    if location.address is not None:
+                        self.assertIsNotNone(location.item, f"{location.name} stayed empty")
+                multiworld.state = multiworld.get_all_state()
+                self.assertTrue(multiworld.has_beaten_game(multiworld.state, 1))
+
+    def test_the_medium_one_is_the_defaults(self) -> None:
+        options = FTLWorld.options_dataclass.type_hints
+        for key, value in load("medium_game.yaml").items():
+            with self.subTest(option=key):
+                self.assertEqual(options[key].from_any(value).value, options[key].from_any(options[key].default).value)
 
 
 class TestEveryPresetGenerates(TestCase):
@@ -85,12 +110,12 @@ class TestPresetsKeepTheirPromises(TestCase):
 
     def test_the_shop_slot_counts_are_the_announced_ones(self) -> None:
         announced = {
-            "A1_multi_game_beginner.yaml": 56,
-            "A2_multi_game_veteran.yaml": 51,
+            "A1_multi_game_beginner.yaml": 32,
+            "A2_multi_game_veteran.yaml": 27,
             "B1_solo_beginner.yaml": 40,
             "B2_solo_veteran.yaml": 50,
-            "C1_two_evenings_beginner.yaml": 54,
-            "C2_two_evenings_veteran.yaml": 41,
+            "C1_two_evenings_beginner.yaml": 30,
+            "C2_two_evenings_veteran.yaml": 30,
         }
         for name, count in announced.items():
             with self.subTest(preset=name):

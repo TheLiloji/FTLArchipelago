@@ -42,6 +42,7 @@ class FTLWorld(World):
     created_locations: tuple[data.Location, ...]
     enabled_items: tuple[data.Item, ...]
     shop_items: tuple[data.ShopItem, ...]
+    bundles: dict[str, list[tuple[data.ShopItem, ...]]]
     start_ship: data.Ship
     logic: rules.LogicPlan
     sector_logic_level: int
@@ -49,11 +50,13 @@ class FTLWorld(World):
     goal_location_name = locations.GOAL_LOCATION
 
     def generate_early(self) -> None:
+        self.start_ship = self._resolve_start_ship()
+        self._draw_layouts()
         self.selected_layouts = locations.selected_layouts(self.options)
         self.created_locations = locations.selected_locations(self.options)
         self.shop_items = items.selected_shop_items(self.options, self.random)
         self.enabled_items = items.enabled_items(self.options, self.shop_items)
-        self.start_ship = self._resolve_start_ship()
+        self.bundles = items.bundled_families(self.options, self.shop_items, self.random)
         self._balance_shop_and_filler()
 
         rules.validate_goal(self)
@@ -80,6 +83,13 @@ class FTLWorld(World):
         if slot not in by_slot:  # pragma: no cover
             raise OptionError(f"FTL: start_ship={slot} does not name any known ship.")
         return by_slot[slot]
+
+    def _draw_layouts(self) -> None:
+        forced = [self.start_ship.blueprint, *data.ALWAYS_UNLOCKED_LAYOUTS]
+        forced.extend(options.goal_layouts(self.options) or ())
+        wanted = max(self.options.layout_count.value, options.goal_victory_count(self.options))
+        self.options.drawn_layouts = locations.draw_layouts(
+            self.options, self.random, tuple(dict.fromkeys(forced)), wanted)
 
     def _starting_keys(self) -> tuple[str, ...]:
         always = {
@@ -126,6 +136,15 @@ class FTLWorld(World):
 
     def fill_slot_data(self) -> Mapping[str, Any]:
         descriptors = {item.name: data.item_descriptor(item) for item in self._items_in_seed()}
+        shop_names = {item.blueprint: item.name for item in data.ITEMS if item.kind == data.KIND_SHOP}
+        for name, descriptor in descriptors.items():
+            item = data.ITEMS_BY_NAME[name]
+            if item.group == data.GROUP_SYSTEM_LEVELS and self.options.full_system_upgrades:
+                descriptor["n"] = item.count
+            if item.kind == data.KIND_BUNDLE:
+                members = self.bundles[item.family][int(name.rsplit(" ", 1)[1]) - 1]
+                descriptor["bps"] = [member.blueprint for member in members]
+                descriptor["names"] = [shop_names[member.blueprint] for member in members]
 
         kinds = {descriptor["k"] for descriptor in descriptors.values()}
         required_kinds = {
@@ -142,6 +161,7 @@ class FTLWorld(World):
             "seed_name": self.multiworld.seed_name,
             "seed_hash": zlib.crc32(self.multiworld.seed_name.encode("utf-8")) & 0x7FFFFFFF,
             "start_ship": self.start_ship.blueprint,
+            "layouts": [layout.blueprint for layout in self.selected_layouts],
             "language": options.mod_language(self.options),
             "goal": self._goal_for_the_mod(),
             "loc": self._check_key_table(),
@@ -151,7 +171,8 @@ class FTLWorld(World):
             "system_blueprints": bool(self.options.system_blueprints.value),
             "shop": self._shop_for_the_mod(),
             "links": self._links_for_the_mod(),
-            "options": self.options.as_dict("death_link", "sectorsanity", "trap_chance"),
+            "options": self.options.as_dict("death_link", "sectorsanity", "trap_chance",
+                                            "victory_collects_layout"),
         }
         return slot_data
 
@@ -160,8 +181,17 @@ class FTLWorld(World):
         non_shop_checks = sum(
             1 for location in self.created_locations if location.shop_slot is None
         )
+        room = non_shop_checks + self.options.shop_checks.value - self.options.minimum_filler.value
+        dropped = min(items.spare_items(self), max(0, items_needed - room))
         wanted_slots = max(self.options.shop_checks.value,
-                    items_needed + self.options.minimum_filler.value - non_shop_checks)
+                    items_needed - dropped + self.options.minimum_filler.value - non_shop_checks)
+        if wanted_slots > data.MAX_SHOP_SLOTS and self.options.progressive_systems_per_ship:
+            left_out = items_needed - non_shop_checks - data.MAX_SHOP_SLOTS
+            if left_out > 0:
+                logging.getLogger("FTL").warning(
+                    "FTL (%s): the Archipelago shop stops at %d slots, %d useful item(s) are left out.",
+                    self.player_name, data.MAX_SHOP_SLOTS, left_out)
+            wanted_slots = data.MAX_SHOP_SLOTS
         if wanted_slots > data.MAX_SHOP_SLOTS:
             raise OptionError(
                 f"FTL: these options create {items_needed} items for {non_shop_checks} checks; "
@@ -185,6 +215,12 @@ class FTLWorld(World):
             "deliver": bool(self.options.shop_item_delivery),
             "slots": self.options.shop_checks.value,
         }
+        if self.options.shop_by_sector:
+            shop["sectors"] = data.SHOP_SECTORS
+        owners = locations.shop_owners(self.options)
+        if owners:
+            shop["owners"] = [owner.blueprint for owner in owners]
+            shop["per"] = self.options.shop_per_ship.current_key
         if mode == "locked":
             shop["baseline"] = [item.blueprint for item in self.shop_items]
         shop["offers"] = self._shop_offers()
@@ -202,7 +238,7 @@ class FTLWorld(World):
             kind = pricing.importance(placed.item)
             sphere = spheres.get((self.player, location.name))
             offers[location.check_id] = {
-                "price": pricing.price(kind, sphere),
+                "price": pricing.price(pricing.price_tier(placed.item), sphere),
                 "sphere": sphere,
                 "kind": kind,
             }
@@ -213,6 +249,7 @@ class FTLWorld(World):
             "death": {
                 "enabled": bool(self.options.death_link),
                 "trigger": self.options.death_link_trigger.current_key,
+                "cloned": bool(self.options.death_link_cloned_crew),
                 "effect": self.options.death_link_effect.current_key,
             },
             "energy": {
@@ -256,7 +293,8 @@ class FTLWorld(World):
         for name in self._player_item_names():
             entry = data.ITEMS_BY_NAME.get(name)
             if entry is not None and entry.group == data.GROUP_SYSTEM_LEVELS and entry.system is not None:
-                totals[entry.system] = totals.get(entry.system, 0) + 1
+                levels = entry.count if self.options.full_system_upgrades else 1
+                totals[entry.system] = totals.get(entry.system, 0) + levels
         return totals
 
     def _check_key_table(self) -> dict[str, str]:

@@ -114,7 +114,8 @@ other game. The options worth a second look:
 - **Sectorsanity**, **Sectorsanity First Sector** and **Sectorsanity Last Sector** decide how big the seed is.
 - **Archipelago Shop Checks** puts goods for other players on sale at one ARCHIPELAGO beacon per sector. Each
   slot is one check, and the cheapest kind: scrap, no fight. The number is a minimum: when your options create
-  more items than checks, the seed adds shop slots until every item has a place.
+  more items than checks, the seed adds shop slots until every item has a place. With **Archipelago Shop by
+  Sector** (on by default) each slot belongs to one sector and is sold there only.
 - **Minimum Filler** is the other side of that balance: filler added when there are more checks than items.
 - **Shop Weapons / Shop Drones / Shop Augments** decide how much of FTL's catalogue Archipelago controls, all of
   it by default. **Shop Unlock Mode** decides what that means: `rarity_boost` (default) makes a received item

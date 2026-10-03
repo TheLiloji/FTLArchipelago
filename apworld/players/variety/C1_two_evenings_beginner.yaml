@@ -1,6 +1,6 @@
 # Preset C1: FTL alone in a multiworld, played over two evenings. New to FTL.
 # Sector 1 skipped, two victories, no traps, relaxed logic.
-# Measured: 141 locations, 54 free shop slots, ~13.9 checks per hour,
+# Measured: 117 locations, 30 free shop slots, ~13.9 checks per hour,
 # ~5.1 h to the goal, ~13 minutes max wait with nothing to send.
 # Change the name line, then generate as usual.
 
@@ -16,6 +16,7 @@ accessibility: full
   victories_required: 2
   start_ship: kestrel_cruiser
   ship_layouts: type_a_only
+  layout_count: 28
   layout_unlocks: vanilla
   sectorsanity: full
   sectorsanity_first_sector: 2
@@ -24,6 +25,7 @@ accessibility: full
   general_achievements: basic
   cross_run_achievements: false
   shop_checks: 30
+  shop_by_sector: false
   minimum_filler: 5
   crew_members: false
   system_blueprints: true
@@ -48,3 +50,7 @@ accessibility: full
   victory_difficulty: any
   archives: 0
   archives_required: 0
+  systemsanity: first_install
+  weapon_bundle_size: 1
+  drone_bundle_size: 1
+  augment_bundle_size: 1

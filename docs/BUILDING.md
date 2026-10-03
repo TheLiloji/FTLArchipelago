@@ -18,6 +18,10 @@ the scripts from Git Bash with Docker Desktop running and FTL closed, and give f
 `mod/build.sh --debug` (or `DEBUG=1 mod/install.sh`) keeps the test keys in the mod. Player builds leave them
 out. `apworld/ftl/docs/setup_en.md` has the exact commands and more troubleshooting.
 
+On GitHub, pushing a `v*` tag runs `.github/workflows/release.yml`: it builds both Hyperspace libraries, the
+player mod, the `.apworld` and `presets.zip`, and attaches them to a draft release of that tag. Started by
+hand (Run workflow), it only keeps them as a downloadable artifact.
+
 ## Repo layout
 
 | Folder | What it is |

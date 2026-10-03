@@ -10,6 +10,7 @@ local PROFILES = {
     empty = {
         ships = {},
         systemCaps = {},
+        shipCaps = {},
         startingUpgrades = {},
         shopAvailability = {},
         crew = {},
@@ -163,7 +164,7 @@ end
 
 local function repairInventory()
     local missing = {}
-    for _, section in ipairs({ "ships", "systemCaps", "startingUpgrades", "shopAvailability" }) do
+    for _, section in ipairs({ "ships", "systemCaps", "shipCaps", "startingUpgrades", "shopAvailability" }) do
         if type(_G.apInventory[section]) ~= "table" then
             _G.apInventory[section] = {}
             missing[#missing + 1] = section
@@ -209,9 +210,17 @@ function apInventoryAdd(descriptor)
             invLog("cap item without a system, ignored")
             return false
         end
-        local caps = _G.apInventory.systemCaps
-        caps[system] = (caps[system] or 1) + (descriptor.n or 1)
-        invLog(string.format("%s cap raised to %d", system, caps[system]))
+        if type(descriptor.ship) == "string" then
+            local caps = _G.apInventory.shipCaps
+            caps[descriptor.ship] = caps[descriptor.ship] or {}
+            caps[descriptor.ship][system] = (caps[descriptor.ship][system] or 0) + (descriptor.n or 1)
+            invLog(string.format("%s cap raised by %d on %s", system, caps[descriptor.ship][system],
+                descriptor.ship))
+        else
+            local caps = _G.apInventory.systemCaps
+            caps[system] = (caps[system] or 1) + (descriptor.n or 1)
+            invLog(string.format("%s cap raised to %d", system, caps[system]))
+        end
         if _G.apApplySystemRules then
             apTry(TAG, _G.apApplySystemRules)
         end

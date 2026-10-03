@@ -73,3 +73,101 @@ test("received crew member, full crew: waits in the menu, nothing lost", functio
     check(shownKey("crew.received.menu"), "and the player knows where to find it")
     sim.player._crewCap = nil
 end)
+
+local function cloneBayRun(cloned, trigger)
+    apDeathLinkConfigure({ enabled = true, trigger = trigger or "both", cloned = cloned, graceSeconds = 0 })
+    local sent = { n = 0 }
+    sent.restore = stub("apNetSendDeath", function() sent.n = sent.n + 1 return true end)
+    sim.startRun(true)
+    sim.player._systemsHeld = { [13] = true }
+    sim.tick(60)
+    local member = sim.player.vCrewList[0]
+    member.health.first = 0
+    sim.tick(30)
+    member.bDead = true
+    sim.tick(30)
+    table.remove(sim.player.vCrewList._store, 1)
+    sim.cloneQueue = { member }
+    sim.tick(60)
+    return sent, member
+end
+
+test("DeathLink: a crew member the Clone Bay brings back is not a death", function()
+    local sent, member = cloneBayRun(false)
+    equals(sent.n, 0, "waiting in the Clone Bay: nothing yet")
+    member.bDead = false
+    member.health.first = 100
+    sim.cloneQueue = {}
+    sim.player.vCrewList:push_back(member)
+    sim.tick(60)
+    sent.restore()
+    equals(sent.n, 0, "back on board: no death")
+end)
+
+test("DeathLink: a crew member the Clone Bay loses is a death", function()
+    local sent = cloneBayRun(false)
+    sim.cloneQueue = {}
+    sim.tick(60)
+    sent.restore()
+    equals(sent.n, 1, "gone from the Clone Bay without coming back: the death goes out")
+end)
+
+test("DeathLink: with cloned crew counted, a death in the Clone Bay goes out at once", function()
+    local sent = cloneBayRun(true)
+    sent.restore()
+    equals(sent.n, 1, "the option counts every crew death")
+end)
+
+test("DeathLink: a run lost while a crew member waits in the Clone Bay sends that death", function()
+    local sent = cloneBayRun(false, "crew_death")
+    apOnRunEnd("crew", "no living crew left")
+    sent.restore()
+    equals(sent.n, 1, "the crew member will never come back")
+end)
+
+test("DeathLink: a seed without the clone option does not keep the last seed's", function()
+    apDeathLinkConfigure({ cloned = true })
+    apContractResetForTesting()
+    applySeed({ links = { death = { enabled = true, trigger = "both", effect = "fire" } } })
+    equals(_G.apDeathLink.cloned, false, "back to the default")
+end)
+
+test("DeathLink: without a Clone Bay, a crew member lying dead aboard is a death at once", function()
+    apDeathLinkConfigure({ enabled = true, trigger = "both", cloned = false, graceSeconds = 0 })
+    local sent = 0
+    local restore = stub("apNetSendDeath", function() sent = sent + 1 return true end)
+    sim.startRun(true)
+    sim.tick(60)
+    sim.player.vCrewList[0].health.first = 0
+    sim.tick(30)
+    sim.player.vCrewList[0].bDead = true
+    sim.tick(30)
+    restore()
+    equals(sent, 1, "no Clone Bay to wait for")
+end)
+
+test("DeathLink: a run loaded with a crew member in the Clone Bay still counts their loss", function()
+    apDeathLinkConfigure({ enabled = true, trigger = "both", cloned = false, graceSeconds = 0 })
+    local sent = 0
+    local restore = stub("apNetSendDeath", function() sent = sent + 1 return true end)
+    sim.player._systemsHeld = { [13] = true }
+    local member = sim.player.vCrewList[0]
+    member.bDead = true
+    table.remove(sim.player.vCrewList._store, 1)
+    sim.cloneQueue = { member }
+    sim.startRun(false)
+    sim.tick(60)
+    equals(sent, 0, "waiting in the Clone Bay")
+    sim.cloneQueue = {}
+    sim.tick(60)
+    restore()
+    equals(sent, 1, "lost for good: the death goes out")
+end)
+
+test("contract: an unloaded seed forgets its layouts", function()
+    apContractResetForTesting()
+    applySeed({ layouts = { "PLAYER_SHIP_HARD" } })
+    check(not apLayoutInSeed("PLAYER_SHIP_ROCK"), "the Rock is not in this seed")
+    apContractUnload()
+    check(apLayoutInSeed("PLAYER_SHIP_ROCK"), "no seed, no filter")
+end)

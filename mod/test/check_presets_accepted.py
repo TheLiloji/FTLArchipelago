@@ -67,7 +67,7 @@ def lua_value(value, indent: int = 0) -> str:
 
 
 def main() -> int:
-    presets = sorted(PRESETS.glob("*.yaml"))
+    presets = sorted(PRESETS.glob("*.yaml")) + sorted((ROOT / "apworld" / "players" / "variety").glob("*.yaml"))
     if not presets:
         sys.exit(f"no preset in {PRESETS}")
 

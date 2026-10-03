@@ -13,6 +13,7 @@ ACHIEVEMENT_CHECK_FORMAT = "ach:{achievement}"
 SYSTEM_CHECK_FORMAT = "sys:{system}"
 CREW_CHECK_FORMAT = "crew:{race}"
 SYSTEM_LEVEL_CHECK_FORMAT = "sys:{system}:{level}"
+SHIP_SYSTEM_CHECK_FORMAT = "{ship}:sys:{system}"
 
 KIND_SHIP = "ship"
 KIND_CAP = "cap"
@@ -25,10 +26,11 @@ KIND_DRONE = "drone"
 KIND_AUGMENT = "augment"
 KIND_ARCHIVE = "archive"
 KIND_CREW = "crew"
+KIND_BUNDLE = "bundle"
 
 KINDS_IMPLEMENTED = (
     KIND_SHIP, KIND_CAP, KIND_START, KIND_FILLER, KIND_TRAP,
-    KIND_SHOP, KIND_WEAPON, KIND_DRONE, KIND_AUGMENT, KIND_ARCHIVE, KIND_CREW,
+    KIND_SHOP, KIND_WEAPON, KIND_DRONE, KIND_AUGMENT, KIND_ARCHIVE, KIND_CREW, KIND_BUNDLE,
 )
 
 REACTOR_TARGET = "reactor"
@@ -60,6 +62,8 @@ ITEM_OFFSET_SHOP_DRONE = 10_000
 ITEM_OFFSET_SHOP_AUGMENT = 11_000
 ITEM_OFFSET_ARCHIVE = 12_000
 ITEM_OFFSET_CREW = 13_000
+ITEM_OFFSET_SHIP_SYSTEM_LEVEL = 14_000
+ITEM_OFFSET_BUNDLE = 16_000
 
 LOCATION_OFFSET_SECTOR = 0
 LOCATION_OFFSET_VICTORY = 10_000
@@ -68,10 +72,14 @@ LOCATION_OFFSET_GENERAL_ACH = 30_000
 LOCATION_OFFSET_SHOP = 40_000
 LOCATION_OFFSET_SYSTEM = 50_000
 LOCATION_OFFSET_CREW = 60_000
+LOCATION_OFFSET_SHIP_SYSTEM = 70_000
 
 MAX_ACHIEVEMENTS_PER_SHIP = 10
 
 MAX_SHOP_SLOTS = 400
+
+# Sectors 1 to 7 have an Archipelago beacon; the Last Stand has none.
+SHOP_SECTORS = 7
 
 ARCHIVE_ITEM_NAME = "Archipelago Archive"
 MAX_ARCHIVES = 50
@@ -495,6 +503,7 @@ GROUP_SHIP_KEYS = "Ship keys"
 GROUP_SHIP_LAYOUTS = "Ship layouts"
 GROUP_BLUEPRINTS = "System blueprints"
 GROUP_SYSTEM_LEVELS = "System upgrades"
+GROUP_SHIP_SYSTEM_LEVELS = "Ship system upgrades"
 GROUP_HEAD_STARTS = "Head starts"
 GROUP_BONUSES = "Permanent bonuses"
 GROUP_FILLER = "Filler"
@@ -503,6 +512,7 @@ GROUP_SHOP_WEAPONS = "Weapons"
 GROUP_SHOP_DRONES = "Drones"
 GROUP_SHOP_AUGMENTS = "Augmentations"
 GROUP_ARCHIVES = "Archives"
+GROUP_BUNDLES = "Bundles"
 
 SHOP_FAMILIES: tuple[str, ...] = ("weapon", "drone", "augment")
 SHOP_FAMILY_GROUPS: dict[str, str] = {
@@ -515,8 +525,11 @@ SHOP_FAMILY_OFFSETS: dict[str, int] = {
     "drone": ITEM_OFFSET_SHOP_DRONE,
     "augment": ITEM_OFFSET_SHOP_AUGMENT,
 }
+BUNDLE_FAMILY_OFFSETS: dict[str, int] = {"weapon": 0, "drone": 100, "augment": 200}
+BUNDLE_LABELS: dict[str, str] = {"weapon": "Weapon Bundle", "drone": "Drone Bundle", "augment": "Augment Bundle"}
 
 GROUP_SYSTEMS = "Systems"
+GROUP_SHIP_SYSTEMS = "Ship systems"
 GROUP_CREW = "Crew"
 GROUP_CREW_MEMBERS = "Crew members"
 GROUP_SECTORS = "Sectors"
@@ -615,6 +628,14 @@ class Location:
     description: str = ""
 
 
+def shop_sector(slot: int) -> int:
+    return (slot - 1) % SHOP_SECTORS + 1
+
+
+def shop_owner(slot: int, owners: int, by_sector: bool) -> int:
+    return (slot - 1) // (SHOP_SECTORS if by_sector else 1) % owners
+
+
 def item_descriptor(item: Item) -> dict[str, object]:
     descriptor: dict[str, object] = {"k": item.kind}
     if item.blueprint is not None:
@@ -633,6 +654,8 @@ def item_descriptor(item: Item) -> dict[str, object]:
         descriptor["skill"] = item.skill
     if item.tiers:
         descriptor["tiers"] = item.tiers
+    if item.kind == KIND_CAP and item.ship is not None:
+        descriptor["ship"] = item.ship
     return descriptor
 
 
@@ -838,6 +861,20 @@ def _build_items() -> tuple[Item, ...]:
             count=tiers,
         ))
 
+    for ship in SHIPS:
+        for system in SYSTEMS:
+            if system.max_level > 1:
+                items.append(Item(
+                    name=f"{ship.display}: Progressive {system.display}",
+                    code=ITEM_ID_BASE + ITEM_OFFSET_SHIP_SYSTEM_LEVEL + ship.slot * 20 + system.slot,
+                    group=GROUP_SHIP_SYSTEM_LEVELS,
+                    classification="useful",
+                    kind=KIND_CAP,
+                    system=system.system_id,
+                    ship=ship.blueprint,
+                    count=system.max_level - 1,
+                ))
+
     for slot, name, effect, weight in TRAPS_RAW:
         items.append(Item(
             name=name,
@@ -849,6 +886,19 @@ def _build_items() -> tuple[Item, ...]:
             count=0,
             weight=weight,
         ))
+
+    for family in SHOP_FAMILIES:
+        family_size = sum(1 for shop_item in SHOP_ITEMS if shop_item.family == family)
+        for number in range(1, (family_size + 1) // 2 + 1):
+            items.append(Item(
+                name=f"{BUNDLE_LABELS[family]} {number}",
+                code=ITEM_ID_BASE + ITEM_OFFSET_BUNDLE + BUNDLE_FAMILY_OFFSETS[family] + number,
+                group=GROUP_BUNDLES,
+                classification="useful",
+                kind=KIND_BUNDLE,
+                family=family,
+                count=2 if family in ("weapon", "drone") else 1,
+            ))
 
     return tuple(items)
 
@@ -920,6 +970,18 @@ def _build_locations() -> tuple[Location, ...]:
                 group=GROUP_SYSTEMS,
                 system=system.system_id,
                 level=level,
+            ))
+
+    for ship in SHIPS:
+        for system in SYSTEMS:
+            locations.append(Location(
+                name=f"{ship.display}: Install {system.display}",
+                code=LOCATION_ID_BASE + LOCATION_OFFSET_SHIP_SYSTEM + ship.slot * 20 + system.slot,
+                check_id=SHIP_SYSTEM_CHECK_FORMAT.format(ship=ship.blueprint, system=system.system_id),
+                group=GROUP_SHIP_SYSTEMS,
+                ship=ship.blueprint,
+                system=system.system_id,
+                level=1,
             ))
 
     for slot, race, label in CREW_RACES:
@@ -1104,7 +1166,8 @@ def _check_vanilla_totals() -> None:
         "general achievements": (len(GENERAL_ACHIEVEMENTS_RAW), 21),
         "sellable items": (len(SHOP_ITEMS), 74),
         "locations": (len(LOCATIONS), 28 * SECTOR_COUNT + 28 + 30 + 21 + MAX_SHOP_SLOTS
-                      + sum(system.max_level for system in SYSTEMS) + len(CREW_RACES)),
+                      + sum(system.max_level for system in SYSTEMS) + len(CREW_RACES)
+                      + 10 * 16),
     }
     wrong = {label: pair for label, pair in expected.items() if pair[0] != pair[1]}
     if wrong:

@@ -1308,6 +1308,75 @@ test("a copy still owed when the game closes comes aboard in the next run, not o
     equals(sim.delivered(), before + 1, "a later replay does not give it a second time")
 end)
 
+test("a copy put aboard comes back after a crash, until the run is saved at the next jump", function()
+    sim.startRun(true)
+    apShopForgetSeed()
+    apFillerResetForTesting()
+    _G.apShopConfig.deliver = true
+    apQueueItem({ kind = "shop", bp = "BEAM_2", display = "Halberd Beam", index = 3 })
+    sim.tick(240)
+    equals(#sim.equipped.weapon, 1, "the copy comes aboard")
+
+    -- The game crashes: the run comes back as FTL saved it, before the copy.
+    apFillerResetForTesting()
+    apShopForgetSeed()
+    sim.equipped.weapon = {}
+    sim.startRun(false)
+    apQueueItem({ kind = "shop", bp = "BEAM_2", display = "Halberd Beam", index = 3, isReplay = true })
+    sim.tick(240)
+    equals(#sim.equipped.weapon, 1, "the copy comes aboard again")
+
+    -- This time FTL saved it: after a jump, a restart does not give it again.
+    sim.jumpArrive()
+    apFillerResetForTesting()
+    apShopForgetSeed()
+    sim.startRun(false)
+    apQueueItem({ kind = "shop", bp = "BEAM_2", display = "Halberd Beam", index = 3, isReplay = true })
+    sim.tick(240)
+    equals(#sim.equipped.weapon, 1, "no second copy once the run was saved")
+end)
+
+test("a copy owed after a crash is not given twice when the saved run already has it", function()
+    sim.startRun(true)
+    apShopForgetSeed()
+    apFillerResetForTesting()
+    _G.apShopConfig.deliver = true
+    apQueueItem({ kind = "shop", bp = "BEAM_2", display = "Halberd Beam", index = 3 })
+    sim.tick(240)
+    equals(#sim.cargo + #sim.equipped.weapon, 1, "the copy comes aboard")
+
+    -- The game is closed without a jump, but FTL saved the run on the way out.
+    apFillerResetForTesting()
+    apShopForgetSeed()
+    sim.equipped.weapon = {}
+    sim.cargo = { "BEAM_2" }
+    sim.startRun(false)
+    apQueueItem({ kind = "shop", bp = "BEAM_2", display = "Halberd Beam", index = 3, isReplay = true })
+    sim.tick(240)
+    equals(#sim.cargo + #sim.equipped.weapon, 1, "the saved copy is enough")
+end)
+
+test("a bundle unlocks each of its weapons, puts each aboard, and counts as received once", function()
+    sim.startRun(true)
+    apShopForgetSeed()
+    apFillerResetForTesting()
+    _G.apShopConfig.deliver = true
+    applySeed({ kinds = { "filler", "shop", "bundle" }, items = {
+        ["Weapon Bundle 1"] = { k = "bundle", bps = { "BEAM_2", "LASER_BURST_3" },
+                                names = { "Halberd Beam", "Burst Laser Mark III" } } } })
+    local marked = {}
+    local restore = stub("apNetItemDelivered", function(index) marked[#marked + 1] = index return true end)
+    local before = sim.delivered()
+    apReceiveItem("Weapon Bundle 1", "Nina", false, 5)
+    sim.tick(240)
+    restore()
+    equals(sim.delivered(), before + 2, "both weapons come aboard")
+    equals(_G.apInventory.shopAvailability.BEAM_2, 1, "the first one is now sold in stores")
+    equals(_G.apInventory.shopAvailability.LASER_BURST_3, 1, "and so is the second")
+    equals(#marked, 1, "the bundle is marked received once")
+    equals(marked[1], 5, "with its own number")
+end)
+
 test("further copies make the object more common", function()
     sim.weaponBlueprints.BEAM_2 = 4
     sim.resetBlueprints()
@@ -6869,4 +6938,219 @@ test("solo: starting it cancels a reconnection still pending from a lost server"
     check(_G.apSoloEnabled, "solo stays on")
     apSoloStop()
     apNetResetForTesting()
+end)
+
+test("goal: a victory with a layout left out of the seed does not count", function()
+    sim.startRun(true)
+    applySeed({ goal = { kind = "victories", count = 1 }, layouts = { "PLAYER_SHIP_HARD" } })
+    local sent = 0
+    local restore = stub("apNetSendGoal", function() sent = sent + 1 end)
+    apVictoryWith("PLAYER_SHIP_ROCK")
+    equals(apGoalProgress().done, 0, "the Rock is not in the seed")
+    check(shownKey("goal.layout_outside"), "and the player is told why")
+    apVictoryWith("PLAYER_SHIP_HARD")
+    equals(sent, 1, "the Kestrel is")
+    restore()
+end)
+
+test("goal: a seed that does not list its layouts counts them all", function()
+    sim.startRun(true)
+    applySeed({ goal = { kind = "victories", count = 1 } })
+    apVictoryWith("PLAYER_SHIP_ROCK")
+    equals(apGoalProgress().done, 1, "every layout is in")
+end)
+
+local function layoutSeed(collect)
+    local loc = { ["PLAYER_SHIP_HARD:victory"] = "Kestrel Cruiser A: Defeat the Flagship" }
+    for sector = 2, 8 do
+        loc["PLAYER_SHIP_HARD:sector:" .. sector] = "Kestrel Cruiser A: Reach sector " .. sector
+    end
+    apContractResetForTesting()
+    apForgetChecksForTesting()
+    applySeed({ goal = { kind = "victories", count = 3 }, loc = loc,
+                options = { victory_collects_layout = collect } })
+    sim.startRun(true)
+    sim.starMap.worldLevel = 1
+    sim.jumpArrive()
+end
+
+test("victory: the layout's sector checks still due go out with it", function()
+    layoutSeed(1)
+    check(apCheckAlreadySent("PLAYER_SHIP_HARD:sector:2"), "sector 2 was reached")
+    check(not apCheckAlreadySent("PLAYER_SHIP_HARD:sector:5"), "sector 5 not yet")
+    apOnRunEnd("victory")
+    for sector = 3, 8 do
+        check(apCheckAlreadySent("PLAYER_SHIP_HARD:sector:" .. sector), "sector " .. sector .. " collected")
+    end
+    check(apCheckAlreadySent("PLAYER_SHIP_HARD:victory"), "and the victory")
+    check(not sim.logged("out of seed"), "sector 1 is not in the seed and is not tried")
+    sim.starMap.worldLevel = 0
+end)
+
+test("victory: without the option only the victory goes out", function()
+    layoutSeed(0)
+    apOnRunEnd("victory")
+    check(not apCheckAlreadySent("PLAYER_SHIP_HARD:sector:5"), "sector 5 stays due")
+    check(apCheckAlreadySent("PLAYER_SHIP_HARD:victory"), "the victory goes out")
+    sim.starMap.worldLevel = 0
+end)
+
+local function sectorShop(sectors)
+    local gifts = {}
+    for slot = 1, 14 do
+        gifts[#gifts + 1] = { location = "shop:" .. slot, slot = "Nina", item = "Item " .. slot,
+                              kind = "useful", cost = 30 }
+    end
+    apShopConfigure({ mode = "rarity_boost", deliver = true, baseline = {}, sectors = sectors })
+    _G.apShopSlotCount = 14
+    apShopGiftsResetForTesting()
+    apShopGiftsConfigure(gifts)
+end
+
+local function shownItems()
+    local shown = {}
+    for rank = 1, 12 do
+        local text = sim.rarityFor("AP_GIFT_" .. rank, 0).description.data or ""
+        local item = text:match("^(Item %d+)")
+        if item then shown[#shown + 1] = item end
+    end
+    return table.concat(shown, ",")
+end
+
+test("shop by sector: an Archipelago beacon only sells the packages of its sector", function()
+    sim.startRun(true)
+    sim.starMap.worldLevel = 0
+    sectorShop(7)
+    equals(shownItems(), "Item 1,Item 8", "sector 1 sells slots 1 and 8")
+    sim.starMap.worldLevel = 3
+    sim.jumpArrive()
+    equals(shownItems(), "Item 4,Item 11", "sector 4 sells slots 4 and 11")
+    sim.starMap.worldLevel = 6
+    sim.jumpArrive()
+    equals(shownItems(), "Item 7,Item 14", "sector 7 sells slots 7 and 14")
+    sim.starMap.worldLevel = 0
+end)
+
+test("shop by sector: an event only hands out a package from a sector already reached", function()
+    sim.startRun(true)
+    sim.starMap.worldLevel = 1
+    sectorShop(7)
+    local offered = {}
+    for _, gift in ipairs(apShopGiftPeekMany(20)) do offered[#offered + 1] = gift.item end
+    equals(table.concat(offered, ","), "Item 1,Item 2,Item 8,Item 9", "sectors 1 and 2 only")
+    check(apShopGiftGiveAt("shop:6") == nil, "a sector 6 package waits")
+    sim.starMap.worldLevel = 0
+end)
+
+test("shop without sectors: every beacon sells from the whole shop", function()
+    sim.startRun(true)
+    sim.starMap.worldLevel = 3
+    sectorShop(nil)
+    equals(shownItems(), "Item 1,Item 2,Item 3", "the first packages, whatever the sector")
+    sim.starMap.worldLevel = 0
+end)
+
+test("systemsanity per ship: the system goes out under the ship's name too", function()
+    sim.startRun(true)
+    sim.player.myBlueprint.blueprintName = "PLAYER_SHIP_HARD_2"
+    applySeed({ loc = {
+        ["PLAYER_SHIP_HARD:sys:shields"] = "Kestrel Cruiser: Install Shields",
+    } })
+    sim.clearLog()
+    sim.jumpArrive(sim.player)
+    check(sim.logged("CHECK PLAYER_SHIP_HARD:sys:shields"), "the Kestrel B counts for the Kestrel")
+    check(not sim.logged("PLAYER_SHIP_HARD:sys:engines"), "a system without a check for this ship is not tried")
+    sim.player.myBlueprint.blueprintName = "PLAYER_SHIP_HARD"
+end)
+
+local function ownedShop(sectors, owners, per)
+    local gifts = {}
+    for slot = 1, 14 do
+        gifts[#gifts + 1] = { location = "shop:" .. slot, slot = "Nina", item = "Item " .. slot,
+                              kind = "useful", cost = 30 }
+    end
+    apShopConfigure({ mode = "rarity_boost", deliver = true, baseline = {}, sectors = sectors,
+                      owners = owners, per = per })
+    _G.apShopSlotCount = 14
+    apShopGiftsResetForTesting()
+    apShopGiftsConfigure(gifts)
+end
+
+test("shop per ship: a package is only sold while flying its ship", function()
+    sim.startRun(true)
+    sim.starMap.worldLevel = 0
+    sim.player.myBlueprint.blueprintName = "PLAYER_SHIP_HARD_2"
+    ownedShop(7, { "PLAYER_SHIP_HARD", "PLAYER_SHIP_ROCK" }, "per_class")
+    equals(shownItems(), "Item 1", "the Kestrel B sells the Kestrel's package of sector 1")
+    sim.player.myBlueprint.blueprintName = "PLAYER_SHIP_ROCK"
+    sim.jumpArrive()
+    equals(shownItems(), "Item 8", "the Rock sells its own")
+    local offered = {}
+    for _, gift in ipairs(apShopGiftPeekMany(20)) do offered[#offered + 1] = gift.item end
+    equals(table.concat(offered, ","), "Item 8", "and events hand out the Rock's packages only")
+    sim.player.myBlueprint.blueprintName = "PLAYER_SHIP_HARD"
+end)
+
+test("shop per layout: the Kestrel A and B each have their packages", function()
+    sim.startRun(true)
+    sim.player.myBlueprint.blueprintName = "PLAYER_SHIP_HARD_2"
+    ownedShop(nil, { "PLAYER_SHIP_HARD", "PLAYER_SHIP_HARD_2" }, "per_layout")
+    equals(shownItems(), "Item 2,Item 4,Item 6,Item 8,Item 10,Item 12,Item 14", "the B's packages")
+    sim.player.myBlueprint.blueprintName = "PLAYER_SHIP_HARD"
+    sim.jumpArrive()
+    equals(shownItems(), "Item 1,Item 3,Item 5,Item 7,Item 9,Item 11,Item 13", "the A's packages")
+end)
+
+test("inventory: an upgrade for one ship only raises that ship's cap", function()
+    sim.startRun(true)
+    apInventoryClear()
+    sim.player.myBlueprint.blueprintName = "PLAYER_SHIP_HARD_3"
+    local before = _G.apSystemCap("shields")
+    apQueueItem({ kind = "cap", sys = "shields", n = 1, ship = "PLAYER_SHIP_HARD",
+                  display = "Kestrel Cruiser: Progressive Shields" })
+    apQueueItem({ kind = "cap", sys = "shields", n = 1, ship = "PLAYER_SHIP_ROCK",
+                  display = "Rock Cruiser: Progressive Shields" })
+    drain()
+    equals(_G.apSystemCap("shields"), before + 1, "the Kestrel C gets the Kestrel's upgrade only")
+    equals(_G.apInventory.systemCaps.shields, nil, "the shared cap does not move")
+    sim.player.myBlueprint.blueprintName = "PLAYER_SHIP_ROCK"
+    equals(_G.apSystemCap("shields"), before + 1, "the Rock gets its own")
+    sim.player.myBlueprint.blueprintName = "PLAYER_SHIP_MANTIS"
+    equals(_G.apSystemCap("shields"), before, "a third ship gets nothing")
+    sim.player.myBlueprint.blueprintName = "PLAYER_SHIP_HARD"
+end)
+
+test("contract: an upgrade for one ship keeps its ship on the way to the inventory", function()
+    sim.startRun(true)
+    apInventoryClear()
+    applySeed({ items = { ["Rock Cruiser: Progressive Shields"] = { k = "cap", sys = "shields",
+                                                                     ship = "PLAYER_SHIP_ROCK" } } })
+    apReceiveItem("Rock Cruiser: Progressive Shields", "Captain", false, 1)
+    drain()
+    equals(((_G.apInventory.shipCaps or {}).PLAYER_SHIP_ROCK or {}).shields, 1, "the Rock's shields")
+    equals(_G.apInventory.systemCaps.shields, nil, "not the shared cap")
+end)
+
+test("shop per ship: a continued run sorts the shop again once its ship exists", function()
+    local ship = sim.player
+    sim.player = nil
+    sim.startRun(false)
+    sim.player = ship
+    sim.player.myBlueprint.blueprintName = "PLAYER_SHIP_ROCK"
+    sim.starMap.worldLevel = 0
+    local gifts = {}
+    for slot = 1, 14 do
+        gifts[#gifts + 1] = { location = "shop:" .. slot, slot = "Nina", item = "Item " .. slot, kind = "useful" }
+    end
+    apShopConfigure({ mode = "rarity_boost", deliver = true, baseline = {}, sectors = 7,
+                      owners = { "PLAYER_SHIP_HARD", "PLAYER_SHIP_ROCK" }, per = "per_class" })
+    _G.apShopSlotCount = 14
+    sim.player = nil
+    apShopGiftsConfigure(gifts)
+    sim.startRun(false)
+    equals(shownItems(), "", "no ship yet: nothing can be sorted")
+    sim.player = ship
+    sim.tick(1)
+    equals(shownItems(), "Item 8", "the Rock's package as soon as the ship is there")
+    sim.player.myBlueprint.blueprintName = "PLAYER_SHIP_HARD"
 end)

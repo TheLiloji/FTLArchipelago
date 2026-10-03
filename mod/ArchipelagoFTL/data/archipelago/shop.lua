@@ -120,12 +120,42 @@ local function writeOwed(owed)
     apNetRememberText(owedKey(seedFingerprint()), table.concat(list, ","))
 end
 
+-- FTL saves the run at each jump and on the way back to the menu: a copy put aboard since then stays owed, so a
+-- crash in between gives it again.
+local unsaved = {}
+local continuedRun = false
+
 function apShopCopyAboard(name)
     local owed = readOwed()
-    if owed[name] then
-        owed[name] = nil
+    if not owed[name] then
+        owed[name] = true
         writeOwed(owed)
     end
+    unsaved[name] = true
+end
+
+local function runSaved()
+    if next(unsaved) == nil then
+        return
+    end
+    local owed = readOwed()
+    for name in pairs(unsaved) do
+        owed[name] = nil
+    end
+    writeOwed(owed)
+    unsaved = {}
+end
+
+-- A continued run that already holds the owed copy was saved after it came aboard.
+function apShopOwedAlreadyAboard(name)
+    if not (continuedRun and _G.apShipHolds and apShipHolds(name)) then
+        return false
+    end
+    local owed = readOwed()
+    owed[name] = nil
+    writeOwed(owed)
+    shopLog("owed copy already in the saved run: " .. name)
+    return true
 end
 
 function apShopForgetOwed(fingerprint)
@@ -160,6 +190,9 @@ function apShopConfigure(settings)
     if settings.deliver ~= nil then config.deliver = settings.deliver end
     if settings.baseline ~= nil then config.baseline = settings.baseline end
     config.offers = type(settings.offers) == "table" and settings.offers or {}
+    config.sectors = tonumber(settings.sectors)
+    config.owners = type(settings.owners) == "table" and #settings.owners > 0 and settings.owners or nil
+    config.per = settings.per
 
     apApplyShopBaseline()
     shopLog("configured: mode=" .. config.mode .. " deliver=" .. tostring(config.deliver)
@@ -246,7 +279,7 @@ function apApplyShopItem(descriptor)
             shopLog("immediate delivery deferred, queued: " .. name)
         end
     elseif _G.apShopConfig.deliver and not deliveredOnce[name] and _G.apQueueItem and readOwed()[name] then
-        _G.apQueueItem({ kind = "weapon", bp = name, display = label,
+        _G.apQueueItem({ kind = "weapon", bp = name, display = label, owed = true,
                          index = not descriptor.isReplay and descriptor.index or nil })
         descriptor.index = nil
         deliveredOnce[name] = true
@@ -272,7 +305,24 @@ function apShopStatus()
     end
 end
 
-script.on_internal_event(Defines.InternalEvents.MAIN_MENU, apApplyShopRules)
-script.on_init(apApplyShopRules)
+script.on_internal_event(Defines.InternalEvents.MAIN_MENU, function()
+    runSaved()
+    apApplyShopRules()
+end)
+script.on_internal_event(Defines.InternalEvents.JUMP_ARRIVE, function(shipManager)
+    if shipManager ~= nil and shipManager.iShipId == 0 then
+        runSaved()
+    end
+end)
+script.on_init(function(newGame)
+    -- A restart from the pause menu leaves the old run behind with its copies.
+    continuedRun = newGame == false
+    if continuedRun then
+        unsaved = {}
+    else
+        runSaved()
+    end
+    apApplyShopRules()
+end)
 
 shopLog("shop module loaded (console: LUA apShopStatus())")

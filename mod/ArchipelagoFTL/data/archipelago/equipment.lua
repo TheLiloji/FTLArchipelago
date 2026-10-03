@@ -107,12 +107,44 @@ local function deliverAugment(name)
     return name
 end
 
+function apShipHolds(name)
+    local ok, found = pcall(function()
+        local player = Hyperspace.ships.player
+        local lists = {
+            player:GetWeaponList(),
+            Hyperspace.App.gui.equipScreen:GetCargoHold(),
+            player:GetAugmentationList(),
+        }
+        for _, list in ipairs(lists) do
+            for i = 0, list:size() - 1 do
+                local held = list[i]
+                if tostring(type(held) == "string" and held or held.blueprint.name) == name then
+                    return true
+                end
+            end
+        end
+        if player.droneSystem ~= nil then
+            local drones = player.droneSystem.drones
+            for i = 0, drones:size() - 1 do
+                if tostring(drones[i].blueprint.name) == name then
+                    return true
+                end
+            end
+        end
+        return false
+    end)
+    return ok and found
+end
+
 function apDeliverEquipment(descriptor)
     local queued = descriptor
     local name = descriptor.bp
     if name == nil or name == "" then
         equipLog("descriptor without a blueprint, ignored")
         return false
+    end
+    if descriptor.owed and _G.apShopOwedAlreadyAboard and apShopOwedAlreadyAboard(name) then
+        return true
     end
 
     local family = apBlueprintFamily(name)

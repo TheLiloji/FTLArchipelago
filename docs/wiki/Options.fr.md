@@ -16,18 +16,17 @@ Normal ou en Difficile**, et en réunissant **10 des 12 Archives** cachées dans
 C'est une partie de plusieurs soirées, une dizaine d'heures jusqu'à l'objectif.
 
 Si ton groupe joue avec le **Death Link**, active-le. Par défaut, la perte d'un membre d'équipage compte comme
-une mort, pas seulement une run perdue.
+une mort, pas seulement une run perdue. Un équipier que la baie de clonage ramène ne compte pas.
 
 ## Les presets
 
-Tu veux plus court ou plus long ? Choisis un preset en répondant à deux questions : combien de temps as-tu, et
-connais-tu bien FTL ?
+Tu veux une partie plus courte ou plus longue ? Choisis le preset qui correspond à ton temps :
 
-| | Tu débutes sur FTL | Tu connais bien FTL |
+| Preset | Durée jusqu'à l'objectif | Ce qui change |
 |---|---|---|
-| **FTL parmi d'autres jeux**, sessions courtes | `A1_multi_game_beginner` | `A2_multi_game_veteran` |
-| **Deux soirées** | `C1_two_evenings_beginner` | `C2_two_evenings_veteran` |
-| **FTL tout seul**, une longue partie | `B1_solo_beginner` | `B2_solo_veteran` |
+| `short_game` | environ 5 h | 2 victoires, 4 versions de vaisseaux, 4 Archives sur 5, toutes les améliorations d'un système d'un coup |
+| `medium_game` | environ 10 h | rien : ce sont les réglages par défaut |
+| `long_game` | 20 h ou plus | 10 victoires, 14 versions de vaisseaux, 16 Archives sur 20, installer un système est un check |
 
 Ils sont dans `presets.zip` sur la [page des releases](https://github.com/TheLiloji/FTLArchipelago/releases/latest),
 et dans le menu **Preset** de la page d'options du site. Le haut de chaque fichier donne son nombre de checks et
@@ -38,8 +37,8 @@ sa durée approximative. Change la ligne `name:` et c'est prêt.
 Le créateur d'options les range par groupes :
 
 - **Goal** : combien de victoires, dans quelle difficulté, et combien d'Archives.
-- **Game Size** : quelles versions des vaisseaux sont dans la partie, et ce qui envoie des checks (secteurs,
-  systèmes, succès, équipage, boutique Archipelago). Moins de checks, c'est une partie plus courte.
+- **Game Size** : quelles versions des vaisseaux sont dans la partie et combien (7 tirées au hasard par défaut),
+  et ce qui envoie des checks (secteurs, systèmes, succès, équipage, boutique Archipelago). Moins de checks, c'est une partie plus courte.
 - **Playing with Others** : Death Link, Energy Link (une réserve de carburant partagée), Trap Link, et la part
   de pièges.
 - **Advanced** (fermé au départ) : ton premier vaisseau, les objets Head Start, la langue du mod (il suit celle

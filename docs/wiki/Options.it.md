@@ -18,18 +18,17 @@ raccogliendo **10 dei 12 Archivi** nascosti nei mondi degli altri giocatori. È 
 10 ore fino all'obiettivo.
 
 Se il tuo gruppo gioca con il **Death Link**, attivalo. Di base anche la perdita di un membro dell'equipaggio
-conta come una morte, non solo una partita persa.
+conta come una morte, non solo una partita persa. Un membro che la baia di clonazione riporta indietro non conta.
 
 ## Preset
 
-Vuoi qualcosa di più corto o più lungo? Scegli un preset rispondendo a due domande: quanto tempo hai, e conosci
-bene FTL?
+Vuoi qualcosa di più corto o più lungo? Scegli il preset in base al tempo che hai:
 
-| | Nuovo su FTL | Conosci bene FTL |
+| Preset | Tempo fino all'obiettivo | Cosa cambia |
 |---|---|---|
-| **FTL tra altri giochi**, sessioni brevi | `A1_multi_game_beginner` | `A2_multi_game_veteran` |
-| **Due serate** | `C1_two_evenings_beginner` | `C2_two_evenings_veteran` |
-| **Solo FTL**, una partita lunga | `B1_solo_beginner` | `B2_solo_veteran` |
+| `short_game` | circa 5 h | 2 vittorie, 4 versioni delle navi, 4 Archivi su 5, tutti i miglioramenti di un sistema in una volta |
+| `medium_game` | circa 10 h | niente: sono le opzioni predefinite |
+| `long_game` | 20 h o più | 10 vittorie, 14 versioni delle navi, 16 Archivi su 20, installare un sistema è un check |
 
 Sono in `presets.zip` nella [pagina delle release](https://github.com/TheLiloji/FTLArchipelago/releases/latest),
 e nel menu **Preset** della pagina delle opzioni del sito. In cima a ogni file c'è quanti check ha e quanto dura
@@ -40,8 +39,8 @@ più o meno. Cambia la riga `name:` ed è pronto.
 L'Options Creator le mostra in gruppi:
 
 - **Goal**: quante vittorie, a quale difficoltà, e quanti Archivi.
-- **Game Size**: quali versioni delle navi sono in partita, e cosa manda check (settori, sistemi, obiettivi,
-  equipaggio, il negozio Archipelago). Meno check vuol dire una partita più corta.
+- **Game Size**: quali versioni delle navi sono in partita e quante (7 estratte a caso di base), e cosa manda
+  check (settori, sistemi, obiettivi, equipaggio, il negozio Archipelago). Meno check vuol dire una partita più corta.
 - **Playing with Others**: Death Link, Energy Link (una riserva di carburante condivisa), Trap Link, e quante
   trappole.
 - **Advanced** (chiuso all'inizio): la tua prima nave, gli oggetti Head Start, la lingua della mod (segue quella

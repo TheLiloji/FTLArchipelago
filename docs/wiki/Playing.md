@@ -30,13 +30,14 @@ should be.
 ![Locked ships](../images/hangar.jpg)
 
 Only the ships you own can be picked. The others stay locked until their key arrives, and new ships show up the
-next time you are back in the hangar, never in the middle of a run. Type B and C layouts are items of their own.
+next time you are back in the hangar, never in the middle of a run. Type B and C layouts are items of their own. In the ship list, a layout the seed left out is marked **NOT IN SEED**: it never unlocks.
 
 ## The start-of-run menu
 
 ![The start-of-run menu](../images/start-menu.jpg)
 
-Weapons and drones exist twice in the item pool, and crew members come in up to three steps. Once you have
+Weapons and drones exist twice in the item pool (by default in bundles of 3 weapons or 2 drones), and crew
+members come in up to three steps. Once you have
 received a second copy of something, a menu opens at the very start of each new run: pick **one weapon, one
 drone and one crew member** from everything you have collected, and they come along for that run. Click
 **Done** to close it, or just jump: the menu only stays until the first jump. If you quit the game before
@@ -85,7 +86,7 @@ own items. Buying a package sends it right away:
 ![A package sent](../images/shop-sent.jpg)
 
 Filler costs 10 to 25 scrap, useful items 30 to 65, and important ones 70 to 150. A package that was sent never
-comes back.
+comes back. Each sector sells its own packages: the shop of sector 5 has other packages than the one of sector 2.
 
 ### The four events
 
@@ -143,5 +144,6 @@ it aside, and clicking **Solo mode** again asks whether to continue or start ove
 - **Achievement checks are sent at the next jump** after you earn them.
 - **Received traps never destroy your ship.** They leave at least 3 hull and 2 fuel, and wait for a quiet beacon.
 - **Received deaths** (Death Link) never take your last hull point or your last crew member.
-- **You send a death** (Death Link) when you lose the run or a crew member, depending on the seed's options.
+- **You send a death** (Death Link) when you lose the run or a crew member, depending on the seed's options. A crew member
+  the Clone Bay brings back is not a death, unless the seed counts them.
   Dismissing a crew member from the crew screen, or losing a drone, does not count.

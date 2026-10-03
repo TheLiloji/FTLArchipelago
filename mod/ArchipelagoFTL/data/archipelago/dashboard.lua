@@ -77,7 +77,7 @@ end
 local function categoryOf(key)
     key = tostring(key)
     if key:sub(1, 5) == "shop:" then return "shop" end
-    if key:sub(1, 4) == "sys:" then return "system" end
+    if key:sub(1, 4) == "sys:" or key:find(":sys:", 1, true) then return "system" end
     if key:sub(1, 5) == "crew:" then return "crew" end
     if key:sub(1, 4) == "ach:" then return "achievement" end
     if key:find(":sector:", 1, true) then return "sector" end
@@ -138,10 +138,12 @@ local function shipRows()
         row.label = _G.apShipLabel and apShipLabel(ship.name) or ship.name
         for index = 0, (ship.layouts or 1) - 1 do
             local name = layoutName(ship.name, index)
-            row.layouts[#row.layouts + 1] = { name = name, letter = string.char(65 + index),
-                                              unlocked = unlocked[name] == true }
-            total = total + 1
-            if unlocked[name] then open = open + 1 end
+            if not _G.apLayoutInSeed or apLayoutInSeed(name) then
+                row.layouts[#row.layouts + 1] = { name = name, letter = string.char(65 + index),
+                                                  unlocked = unlocked[name] == true }
+                total = total + 1
+                if unlocked[name] then open = open + 1 end
+            end
         end
         for key in pairs(book) do
             local prefix = tostring(key):match("^(PLAYER_SHIP_[A-Z]+)")
@@ -149,7 +151,9 @@ local function shipRows()
                 row.remaining = row.remaining + 1
             end
         end
-        rows[#rows + 1] = row
+        if #row.layouts > 0 then
+            rows[#rows + 1] = row
+        end
     end
     return rows, open, total
 end
@@ -173,16 +177,17 @@ local function systemRows()
     local rows, unlocked = {}, 0
     for _, system in ipairs(((_G.apGameData or {}).systems) or {}) do
         local cap = caps[system.id] or 0
+        local bonus = _G.apShipCapBonus and apShipCapBonus(system.id) or 0
         local total = _G.apSystemCapTotal and apSystemCapTotal(system.id) or nil
         rows[#rows + 1] = {
             name = _G.apSystemLabel and apSystemLabel(system.id) or system.id,
-            locked = cap <= 0,
+            locked = cap <= 0 and bonus <= 0,
             aboard = aboard[system.id] == true,
-            received = math.max(0, cap - 1),
+            received = math.max(0, cap - 1) + bonus,
             total = total,
             start = starts[system.id] or 0,
         }
-        if cap > 0 then unlocked = unlocked + 1 end
+        if cap > 0 or bonus > 0 then unlocked = unlocked + 1 end
     end
     return rows, unlocked, starts.reactor or 0
 end

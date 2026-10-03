@@ -34,7 +34,7 @@ def entrance_name(layout: data.Layout) -> str:
     return f"Fly the {layout.display}"
 
 
-def selected_layouts(options) -> tuple[data.Layout, ...]:
+def allowed_layouts(options) -> tuple[data.Layout, ...]:
     if options.ship_layouts == options.ship_layouts.option_type_a_only:
         highest_variant = 0
     elif options.ship_layouts == options.ship_layouts.option_up_to_type_b:
@@ -42,6 +42,43 @@ def selected_layouts(options) -> tuple[data.Layout, ...]:
     else:
         highest_variant = 2
     return tuple(layout for layout in data.LAYOUTS if layout.variant <= highest_variant)
+
+
+def selected_layouts(options) -> tuple[data.Layout, ...]:
+    drawn = getattr(options, "drawn_layouts", None)
+    return tuple(layout for layout in allowed_layouts(options) if drawn is None or layout.blueprint in drawn)
+
+
+def selected_ships(options) -> frozenset[str]:
+    return frozenset(layout.ship for layout in selected_layouts(options))
+
+
+def available_systems(options) -> frozenset[str]:
+    return frozenset(system for layout in selected_layouts(options)
+                     for system in (*layout.start_systems, *layout.empty_slots))
+
+
+def ship_systems(options) -> dict[str, set[str]]:
+    room: dict[str, set[str]] = {}
+    for layout in selected_layouts(options):
+        room.setdefault(layout.ship, set()).update(layout.start_systems, layout.empty_slots)
+    return room
+
+
+def draw_layouts(options, rng, forced: tuple[str, ...], wanted: int) -> frozenset[str] | None:
+    # A Type B or C only comes with its ship's Type A: the hangar opens a ship by its Type A.
+    allowed = allowed_layouts(options)
+    if wanted >= len(allowed):
+        return None
+    picked = set(forced)
+    picked.update(data.LAYOUTS_BY_BLUEPRINT[blueprint].ship for blueprint in forced)
+    while len(picked) < wanted:
+        eligible = [
+            layout.blueprint for layout in allowed
+            if layout.blueprint not in picked and (layout.variant == 0 or layout.ship in picked)
+        ]
+        picked.add(rng.choice(eligible))
+    return frozenset(picked)
 
 
 def selected_sectors(options) -> tuple[int, ...]:
@@ -56,6 +93,14 @@ def selected_sectors(options) -> tuple[int, ...]:
 
 def selected_locations(options) -> tuple[data.Location, ...]:
     layouts = {layout.blueprint for layout in selected_layouts(options)}
+    ships = selected_ships(options)
+    every_ship = len(ships) == len(data.SHIPS)
+    systems = available_systems(options)
+    per_ship = bool(options.systemsanity_per_ship)
+    ship_room = ship_systems(options)
+    ship_start: dict[str, set[str]] = {}
+    for layout in selected_layouts(options):
+        ship_start.setdefault(layout.ship, set()).update(layout.start_systems)
     sectors = set(selected_sectors(options))
     tiers = set(_ACHIEVEMENT_TIERS_BY_LEVEL[options.general_achievements.value])
     cross_run = bool(options.cross_run_achievements)
@@ -73,20 +118,30 @@ def selected_locations(options) -> tuple[data.Location, ...]:
                 kept.append(location)
         elif location.group == data.GROUP_SYSTEMS:
             mode = options.systemsanity.value
-            if mode == options.systemsanity.option_disabled:
+            if mode == options.systemsanity.option_disabled or location.system not in systems:
+                continue
+            if location.level == 1 and per_ship:
                 continue
             if location.level == 1 or mode == options.systemsanity.option_every_level:
+                kept.append(location)
+        elif location.group == data.GROUP_SHIP_SYSTEMS:
+            if options.systemsanity == options.systemsanity.option_disabled or not per_ship:
+                continue
+            room = ship_room.get(location.ship, set()) - ship_start.get(location.ship, set())
+            if location.system in room:
                 kept.append(location)
         elif location.group == data.GROUP_CREW:
             if options.crew_checks:
                 kept.append(location)
         elif location.group == data.GROUP_SHIP_ACHIEVEMENTS:
-            if options.ship_achievements:
+            if options.ship_achievements and location.ship in ships:
                 kept.append(location)
         elif location.group == data.GROUP_GENERAL_ACHIEVEMENTS:
             if location.tier not in tiers:
                 continue
             if location.achievement in data.CROSS_RUN_ACHIEVEMENTS and not cross_run:
+                continue
+            if location.achievement == "ACH_UNLOCK_ALL" and not every_ship:
                 continue
             kept.append(location)
         else:  # pragma: no cover
@@ -97,7 +152,21 @@ def selected_locations(options) -> tuple[data.Location, ...]:
     return tuple(kept)
 
 
-def region_of(location: data.Location) -> str:
+def shop_owners(options) -> tuple[data.Layout, ...]:
+    mode = options.shop_per_ship
+    if mode == mode.option_per_layout:
+        return selected_layouts(options)
+    if mode == mode.option_per_class:
+        return tuple(layout for layout in selected_layouts(options) if layout.variant == 0)
+    return ()
+
+
+def region_of(location: data.Location, options=None) -> str:
+    if location.shop_slot is not None and options is not None:
+        owners = shop_owners(options)
+        if owners:
+            owner = owners[data.shop_owner(location.shop_slot, len(owners), bool(options.shop_by_sector))]
+            return region_name(owner)
     if location.layout is not None:
         return region_name(data.LAYOUTS_BY_BLUEPRINT[location.layout])
     if location.ship is not None:
@@ -110,5 +179,5 @@ def location_plan(options) -> dict[str, dict[str, int]]:
     for layout in selected_layouts(options):
         plan[region_name(layout)] = {}
     for location in selected_locations(options):
-        plan[region_of(location)][location.name] = location.code
+        plan[region_of(location, options)][location.name] = location.code
     return plan

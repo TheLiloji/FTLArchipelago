@@ -72,7 +72,7 @@ def main() -> int:
     lua = (DATA / "archipelago" / "events.lua").read_text(encoding="utf-8")
     tree = parse(DATA / "events.xml.append")
     placements = re.findall(
-        r'name="([A-Z_]+)" panic="throw">\s*((?:\s*<mod-append:event[^>]*>)+)',
+        r'name="([A-Z_]+)" panic="true">\s*((?:\s*<mod-append:event[^>]*>)+)',
         (DATA / "sector_data.xml.append").read_text(encoding="utf-8"),
     )
     sectors_of: dict[str, list[str]] = {}

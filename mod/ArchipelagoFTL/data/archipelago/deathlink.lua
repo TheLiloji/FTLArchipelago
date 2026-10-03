@@ -10,6 +10,7 @@ _G.apDeathLink = {
     enabled = false,
     trigger = "both",
     effect = "major_incident",
+    cloned = false,
     graceSeconds = 15,
 }
 
@@ -28,6 +29,7 @@ local state = {
     ignored = 0,
     knownCrew = nil,
     dying = {},
+    cloning = {},
     applying = false,
 }
 
@@ -38,13 +40,14 @@ function apDeathLinkConfigure(settings)
         return false
     end
     local config = _G.apDeathLink
-    for _, key in ipairs({ "enabled", "trigger", "effect", "graceSeconds" }) do
+    for _, key in ipairs({ "enabled", "trigger", "effect", "cloned", "graceSeconds" }) do
         if settings[key] ~= nil then
             config[key] = settings[key]
         end
     end
-    deathLog(string.format("configure: enabled=%s trigger=%s effect=%s grace=%ss",
-        tostring(config.enabled), config.trigger, config.effect, tostring(config.graceSeconds)))
+    deathLog(string.format("configure: enabled=%s trigger=%s effect=%s cloned=%s grace=%ss",
+        tostring(config.enabled), config.trigger, config.effect, tostring(config.cloned),
+        tostring(config.graceSeconds)))
     return true
 end
 
@@ -117,8 +120,13 @@ local SENT_CAUSES = {
 }
 
 function apDeathLinkOnRunEnd(cause, detail)
+    local _, waiting = next(state.cloning)
+    state.cloning = {}
     if cause == "victory" or cause == "menu" then
         return false
+    end
+    if waiting ~= nil and triggerCoversCrew() and not triggerCoversRunEnd() then
+        return apDeathLinkCrewDied(waiting.name, waiting.species)
     end
     if not triggerCoversRunEnd() then
         deathLog("run end '" .. tostring(cause) .. "' ignored by trigger setting")
@@ -338,6 +346,28 @@ local function livingCrew()
     return living, dead
 end
 
+local CLONE_BAY = 13
+
+-- Dead crew the Clone Bay may bring back: those in its queue, and those just dead aboard, who only join the
+-- queue on the next frame the game runs (not at all while it is paused).
+local function cloneQueue(dead)
+    local queued = {}
+    pcall(function()
+        if not Hyperspace.ships.player:HasSystem(CLONE_BAY) then
+            return
+        end
+        for key in pairs(dead) do
+            queued[key] = true
+        end
+        local list = Hyperspace.CrewFactory:GetCloneReadyList(true)
+        for i = 0, list:size() - 1 do
+            local member = list[i]
+            queued[crewKey(member, tostring(member:GetName()))] = true
+        end
+    end)
+    return queued
+end
+
 local CREW_SCREEN_SECONDS = 2
 
 -- A crew member who dies lies a few seconds at zero health before FTL marks them dead. One dismissed from
@@ -374,11 +404,40 @@ local function sampleCrew()
         return
     end
 
+    local queued = _G.apDeathLink.cloned and {} or cloneQueue(dead)
+    for key, last in pairs(state.cloning) do
+        if current[key] ~= nil then
+            deathLog(tostring(last.name) .. " came back from the Clone Bay: no DeathLink")
+            state.cloning[key] = nil
+        elseif not queued[key] then
+            state.cloning[key] = nil
+            apDeathLinkCrewDied(last.name, last.species)
+        end
+    end
+
+    -- A run loaded with someone already in the Clone Bay: they are waited for like the others.
+    if state.knownCrew == nil then
+        pcall(function()
+            local list = Hyperspace.CrewFactory:GetCloneReadyList(true)
+            for i = 0, list:size() - 1 do
+                local member = list[i]
+                local name = tostring(member:GetName())
+                local key = crewKey(member, name)
+                if current[key] == nil then
+                    state.cloning[key] = { name = name, species = member.species or "crew" }
+                end
+            end
+        end)
+    end
+
     if state.knownCrew ~= nil then
         for key, last in pairs(state.knownCrew) do
             if current[key] == nil then
                 if dismissed(key, dead) then
                     deathLog(tostring(last.name) .. " was dismissed: no DeathLink")
+                elseif queued[key] then
+                    deathLog(tostring(last.name) .. " waits for the Clone Bay")
+                    state.cloning[key] = last
                 else
                     apDeathLinkCrewDied(last.name, last.species)
                 end
@@ -421,6 +480,7 @@ end
 script.on_init(function()
     state.knownCrew = nil
     state.dying = {}
+    state.cloning = {}
     state.crewScreenAt = nil
     state.lastSentAt = nil
     state.lastReceivedAt = nil

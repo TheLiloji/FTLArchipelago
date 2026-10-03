@@ -20,6 +20,16 @@ end
 
 local NO_CAP = 99
 
+-- Upgrades received for one ship only count aboard that ship, whatever its layout.
+local function shipBonus(inventory, name)
+    local ok, blueprint = pcall(function() return Hyperspace.ships.player.myBlueprint.blueprintName end)
+    if not ok or blueprint == nil then
+        return 0
+    end
+    local ship = tostring(blueprint):gsub("_[23]$", "")
+    return ((inventory.shipCaps or {})[ship] or {})[name] or 0
+end
+
 local function allowedCap(name)
     if _G.apSystemCapsActive and not _G.apSystemCapsActive() then
         return NO_CAP
@@ -28,7 +38,7 @@ local function allowedCap(name)
     if inventory == nil or inventory.systemCaps == nil then
         return 1
     end
-    return inventory.systemCaps[name] or 1
+    return (inventory.systemCaps[name] or 1) + shipBonus(inventory, name)
 end
 
 local function startingLevel(name)
@@ -40,6 +50,10 @@ local function startingLevel(name)
 end
 
 _G.apSystemCap = allowedCap
+
+function apShipCapBonus(name)
+    return shipBonus(_G.apInventory or {}, name)
+end
 
 local capWarned = {}
 

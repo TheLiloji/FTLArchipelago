@@ -2,15 +2,25 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from . import data
+
 if TYPE_CHECKING:
     from BaseClasses import Item, MultiWorld
 
-BASE_PRICE: dict[str, int] = {"progression": 70, "useful": 30, "filler": 10, "trap": 10}
-PRICE_PER_SPHERE: dict[str, int] = {"progression": 8, "useful": 4, "filler": 2, "trap": 2}
-PRICE_CAP: dict[str, int] = {"progression": 150, "useful": 65, "filler": 25, "trap": 25}
+# A bundle is shown as an important package, but starts cheaper so the first sector stays affordable.
+BASE_PRICE: dict[str, int] = {"progression": 70, "bundle": 45, "useful": 30, "filler": 10, "trap": 10}
+PRICE_PER_SPHERE: dict[str, int] = {"progression": 8, "bundle": 8, "useful": 4, "filler": 2, "trap": 2}
+PRICE_CAP: dict[str, int] = {"progression": 150, "bundle": 120, "useful": 65, "filler": 25, "trap": 25}
+
+
+def is_bundle(item: "Item") -> bool:
+    entry = data.ITEMS_BY_NAME.get(item.name) if item.game == data.GAME_NAME else None
+    return entry is not None and entry.group == data.GROUP_BUNDLES
 
 
 def importance(item: "Item") -> str:
+    if is_bundle(item):
+        return "progression"
     if item.advancement:
         return "progression"
     if item.useful:
@@ -35,3 +45,7 @@ def spheres_of(multiworld: "MultiWorld") -> dict[tuple[int, str], int]:
                 cache.setdefault((location.player, location.name), index)
         setattr(multiworld, "_ftl_spheres", cache)
     return cache
+
+
+def price_tier(item: "Item") -> str:
+    return "bundle" if is_bundle(item) else importance(item)

@@ -18,18 +18,17 @@ oder Schwer** besiegst und **10 der 12 Archive** sammelst, die in den Welten der
 Das ist ein Spiel für mehrere Abende, etwa 10 Stunden bis zum Ziel.
 
 Wenn deine Gruppe mit **Death Link** spielt, schalte es ein. Standardmäßig zählt auch der Verlust eines
-Crewmitglieds als Tod, nicht nur ein verlorener Lauf.
+Crewmitglieds als Tod, nicht nur ein verlorener Lauf. Ein Crewmitglied, das die Klonkammer zurückholt, zählt nicht.
 
 ## Presets
 
-Lieber kürzer oder länger? Wähle ein Preset, indem du zwei Fragen beantwortest: Wie viel Zeit hast du, und
-kennst du FTL gut?
+Lieber kürzer oder länger? Wähle das Preset, das zu deiner Zeit passt:
 
-| | Neu bei FTL | Du kennst FTL gut |
+| Preset | Zeit bis zum Ziel | Was sich ändert |
 |---|---|---|
-| **FTL neben anderen Spielen**, kurze Sitzungen | `A1_multi_game_beginner` | `A2_multi_game_veteran` |
-| **Zwei Abende** | `C1_two_evenings_beginner` | `C2_two_evenings_veteran` |
-| **Nur FTL**, ein langes Spiel | `B1_solo_beginner` | `B2_solo_veteran` |
+| `short_game` | etwa 5 h | 2 Siege, 4 Schiffsvarianten, 4 von 5 Archiven, alle Verbesserungen eines Systems auf einmal |
+| `medium_game` | etwa 10 h | nichts: das sind die Standardoptionen |
+| `long_game` | 20 h oder mehr | 10 Siege, 14 Schiffsvarianten, 16 von 20 Archiven, ein System einzubauen ist ein Check |
 
 Sie liegen in `presets.zip` auf der [Release-Seite](https://github.com/TheLiloji/FTLArchipelago/releases/latest)
 und im Menü **Preset** der Optionsseite der Website. Oben in jeder Datei steht, wie viele Checks sie hat und wie
@@ -40,8 +39,8 @@ lange sie ungefähr dauert. Ändere die Zeile `name:` und fertig.
 Der Options Creator zeigt sie in Gruppen:
 
 - **Goal**: wie viele Siege, auf welcher Schwierigkeit, und wie viele Archive.
-- **Game Size**: welche Schiffsvarianten im Spiel sind und was Checks sendet (Sektoren, Systeme, Erfolge,
-  Crew, der Archipelago-Laden). Weniger Checks heißt ein kürzeres Spiel.
+- **Game Size**: welche Schiffsvarianten im Spiel sind und wie viele (standardmäßig 7 zufällig gezogene),
+  und was Checks sendet (Sektoren, Systeme, Erfolge, Crew, der Archipelago-Laden). Weniger Checks heißt ein kürzeres Spiel.
 - **Playing with Others**: Death Link, Energy Link (ein gemeinsamer Treibstoffvorrat), Trap Link und wie viele
   Fallen.
 - **Advanced** (zuerst geschlossen): dein erstes Schiff, die Head-Start-Gegenstände, die Sprache des Mods (er

@@ -36,6 +36,17 @@ step() {
     rm -f "$log"
 }
 
+# Hosts a real seed with a password and plays the client side of a connection against it.
+real_server() {
+    local keep
+    keep="$(mktemp -d)"
+    python3 "$HERE/multiworld_matrix.py" --case solo --keep "$keep" >/dev/null || { rm -rf "$keep"; return 1; }
+    python3 "$HERE/server_roundtrip.py" "$(ls "$keep"/solo/AP_*.zip)" --slot Solo
+    local status=$?
+    rm -rf "$keep"
+    return "$status"
+}
+
 step "Archipelago world: instantiation, ids, options, presets" \
     "$ROOT/apworld/run_tests.sh"
 
@@ -66,8 +77,10 @@ if [ -n "${FULL:-}" ]; then
 
     step "Real multiworlds: 1, 2, 3 and 6 slots with real other games" \
         python3 "$ROOT/apworld/tools/multiworld_matrix.py"
+
+    step "Real server: password, checks, items and resume" real_server
 else
-    skipped+=("phase sampling, option sweep and real multiworlds: long, run with FULL=1")
+    skipped+=("phase sampling, option sweep, real multiworlds and real server: long, run with FULL=1")
 fi
 
 echo

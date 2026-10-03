@@ -274,11 +274,12 @@ local function pollAchievements(layout)
     end
 end
 
-local function pollSystems()
+local function pollSystems(layout)
     local player = Hyperspace.ships.player
     if player == nil then
         return
     end
+    local ship = layout and layout:gsub("_[23]$", "") or nil
     local systems = player.vSystemList
     for index = 0, systems:size() - 1 do
         local system = systems[index]
@@ -286,6 +287,10 @@ local function pollSystems()
         if name ~= nil and name ~= "" then
             local label = (_G.apSystemLabel and _G.apSystemLabel(name)) or name
             apSendCheck("sys:" .. name, apT("check.label.system", { name = label }))
+            local perShip = ship and (ship .. ":sys:" .. name) or nil
+            if perShip and _G.apLocationNameFor and apLocationNameFor(perShip) ~= nil then
+                apSendCheck(perShip, apT("check.label.system", { name = label }))
+            end
             local level = system.powerState and system.powerState.second or 1
             for tier = 2, level do
                 apSendCheck("sys:" .. name .. ":" .. tier,
@@ -364,7 +369,7 @@ script.on_internal_event(Defines.InternalEvents.JUMP_ARRIVE, function(shipManage
         end
 
         pollAchievements(layout)
-        pollSystems()
+        pollSystems(layout)
         pollCrew()
     end)
 end)
@@ -380,6 +385,15 @@ function apOnRunEnd(cause, detail)
     end
     apTry(TAG, function()
         local layout = currentLayout()
+        if layout and (apSeedOption("victory_collects_layout") or 0) ~= 0 then
+            local ship = (_G.apShipLabel and _G.apShipLabel(layout)) or layout
+            for sector = 1, 8 do
+                local key = layout .. ":sector:" .. sector
+                if _G.apLocationNameFor and apLocationNameFor(key) ~= nil then
+                    apSendCheck(key, apT("check.label.sector", { n = sector, ship = ship }))
+                end
+            end
+        end
         if layout then
             apSendCheck(layout .. ":victory",
                 apT("check.label.victory",
@@ -589,6 +603,13 @@ function apVictoryWith(layout)
         return
     end
     if not apRunCounts() then
+        return
+    end
+    if not apLayoutInSeed(layout) then
+        checkLog("victory with " .. layout .. ", which is not in the seed: not counted")
+        if _G.apNotifyStatus then
+            _G.apNotifyStatus(apT("goal.layout_outside"))
+        end
         return
     end
 

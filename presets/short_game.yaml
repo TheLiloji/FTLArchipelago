@@ -1,0 +1,20 @@
+# Short game: about 5 hours to the goal.
+# Two victories, four ship layouts, a few Archives, every upgrade of a system at once.
+# Measured: 92 locations, 36 free shop slots, ~13.9 checks per hour,
+# ~5.1 h to the goal, ~13 minutes max wait with nothing to send.
+# Change the name line, then generate as usual.
+
+name: Player
+description: Short FTL game, about 5 hours to the goal.
+game: "FTL: Faster Than Light"
+requires:
+  version: 0.6.7
+"FTL: Faster Than Light":
+  victories_required: 2
+  layout_count: 4
+  archives: 5
+  archives_required: 4
+  full_system_upgrades: true
+  shop_weapons: 25
+  shop_drones: 10
+  shop_augments: 15

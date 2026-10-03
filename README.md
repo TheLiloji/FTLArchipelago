@@ -89,9 +89,9 @@ Your YAML decides which of these are in the seed. A short seed has around 130 ch
 | Progressive system upgrades | one per level | raise how far a system can be upgraded |
 | Head starts | 16 | a free level of that system at the start of every run |
 | Reactor Power | 8 | one more reactor bar at the start of every run |
-| Weapons | 37, twice each | 1st copy: one on board and more common in stores. 2nd: in the start-of-run menu |
-| Drones | 14, twice each | same as weapons |
-| Augments | 23 | one on board and more common in stores |
+| Weapons | 37, in bundles of 3, twice each | 1st copy: each one on board and more common in stores. 2nd: in the start-of-run menu |
+| Drones | 14, in bundles of 2, twice each | same as weapons |
+| Augments | 23, in bundles of 3 | each one on board and more common in stores |
 | Crew members | 8 races | 1st: joins your run. 2nd: in the start-of-run menu. 3rd: becomes an expert |
 | Archives | 0 to 50 | needed for the goal, if the seed uses them |
 | Filler | | scrap, fuel, missiles, drone parts, hull repair, a new crew member |

@@ -74,6 +74,8 @@ class TestIdentifiersAreWellFormed(unittest.TestCase):
                     expected = data.SYSTEM_LEVEL_CHECK_FORMAT.format(
                         system=location.system, level=location.level
                     )
+            elif location.group == data.GROUP_SHIP_SYSTEMS:
+                expected = data.SHIP_SYSTEM_CHECK_FORMAT.format(ship=location.ship, system=location.system)
             elif location.group == data.GROUP_CREW:
                 expected = data.CREW_CHECK_FORMAT.format(race=location.race)
             else:

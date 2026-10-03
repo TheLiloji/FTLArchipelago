@@ -16,18 +16,17 @@ by collecting **10 of the 12 Archives** hidden in the other players' worlds. It 
 around 10 hours to the goal.
 
 If your group plays with **Death Link**, turn it on. By default the loss of a crew member counts as a death,
-not only a lost run.
+not only a lost run. A crew member the Clone Bay brings back does not count.
 
 ## Presets
 
-Want something shorter or longer? Pick a preset by answering two questions: how much time do you have, and do
-you know FTL well?
+Want a shorter or longer game? Pick the preset for the time you have:
 
-| | New to FTL | You know FTL well |
+| Preset | Time to the goal | What changes |
 |---|---|---|
-| **FTL among other games**, short sessions | `A1_multi_game_beginner` | `A2_multi_game_veteran` |
-| **Two evenings** | `C1_two_evenings_beginner` | `C2_two_evenings_veteran` |
-| **FTL on its own**, a long game | `B1_solo_beginner` | `B2_solo_veteran` |
+| `short_game` | about 5 h | 2 victories, 4 ship layouts, 4 Archives out of 5, every upgrade of a system at once |
+| `medium_game` | about 10 h | nothing: these are the default options |
+| `long_game` | 20 h or more | 10 victories, 14 ship layouts, 16 Archives out of 20, installing a system is a check |
 
 They are in `presets.zip` on the [release page](https://github.com/TheLiloji/FTLArchipelago/releases/latest),
 and in the **Preset** menu of the website's options page. The top of each file says how many checks it has
@@ -38,8 +37,8 @@ and roughly how long it takes. Change the `name:` line and you are done.
 The Options Creator shows them in groups:
 
 - **Goal**: how many victories, on which difficulty, and how many Archives.
-- **Game Size**: which ship layouts are in the game, and what sends checks (sectors, systems, achievements,
-  crew, the Archipelago shop). Fewer checks means a shorter game.
+- **Game Size**: which ship layouts are in the game and how many (7 drawn at random by default), and what
+  sends checks (sectors, systems, achievements, crew, the Archipelago shop). Fewer checks means a shorter game.
 - **Playing with Others**: Death Link, Energy Link (a shared fuel reserve), Trap Link, and how many traps.
 - **Advanced** (closed at first): your first ship, the Head Start items, the language of the mod (it follows FTL
   by itself), the range of sectors that count, how Type B and C unlock, what is locked in stores, and how hard

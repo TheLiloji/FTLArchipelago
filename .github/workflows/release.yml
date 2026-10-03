@@ -1,0 +1,59 @@
+name: release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch the pinned dependencies
+        run: |
+          fetch() {
+            git init -q "vendor/$1"
+            git -C "vendor/$1" remote add origin "$2"
+            git -C "vendor/$1" fetch -q --depth 1 origin "$3"
+            git -C "vendor/$1" checkout -q FETCH_HEAD
+          }
+          fetch FTL-Hyperspace https://github.com/FTL-Hyperspace/FTL-Hyperspace.git 39d0eea3817842719781a30da93740ea81f201ef
+          fetch apclientpp https://github.com/black-sliver/apclientpp.git 79621690a3e845645f43888b0fe234a99c74892e
+          fetch websocketpp https://github.com/zaphoyd/websocketpp.git 4dfe1be74e684acca19ac1cf96cce0df9eac2a2d
+          fetch wswrap https://github.com/black-sliver/wswrap.git aeba7ac428028723fb26ce92488f260660f786b1
+
+      - name: Hyperspace for Linux
+        run: bash hyperspace-patch/build.sh linux
+
+      - name: Hyperspace for Windows
+        run: bash hyperspace-patch/build.sh windows
+
+      - name: Mod, apworld and presets
+        run: |
+          mkdir -p dist
+          bash mod/build.sh
+          cp mod/ArchipelagoFTL.ftl dist/
+          python3 apworld/tools/build_apworld.py --output dist/ftl.apworld
+          (cd presets && zip -q ../dist/presets.zip *.yaml)
+          cp hyperspace-patch/build/linux/Hyperspace.1.6.13.amd64.so hyperspace-patch/build/windows/Hyperspace.dll dist/
+          (cd dist && sha256sum * > SHA256SUMS.txt && cat SHA256SUMS.txt)
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-files
+          path: dist/
+
+      - name: Attach to the release (tags only)
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tag="${GITHUB_REF_NAME}"
+          gh release view "$tag" >/dev/null 2>&1 || gh release create "$tag" --draft --title "$tag" --notes ""
+          gh release upload "$tag" dist/* --clobber

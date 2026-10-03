@@ -540,3 +540,57 @@ test("the whole crew boarding the enemy is not a lost run", function()
     sim.enemy = nil
     equals(ended, nil, "the run goes on while the crew is aboard the enemy")
 end)
+
+test("hangar: the ship list marks the layouts the seed leaves out", function()
+    apConnectResetForTesting()
+    sim.startRun(false)
+    sim.started = false
+    applySeed({ layouts = { "PLAYER_SHIP_HARD", "PLAYER_SHIP_ROCK", "PLAYER_SHIP_MANTIS_2" } })
+    local label = apT("hangar.out_of_seed")
+    local function marked(left, top)
+        for _, draw in ipairs(sim.draws) do
+            if draw.text == label and draw.x >= left and draw.x < left + 205 and draw.y >= top and draw.y < top + 177 then
+                return true
+            end
+        end
+        return false
+    end
+    local function count()
+        local n = 0
+        for _, draw in ipairs(sim.draws) do
+            if draw.text == label then n = n + 1 end
+        end
+        return n
+    end
+
+    sim.renderMenu()
+    equals(count(), 0, "nothing while the list is closed")
+
+    sim.shipList = { open = true, page = 0, variant = 0 }
+    sim.renderMenu()
+    equals(count(), 8, "type A: every ship but the Kestrel and the Rock")
+    check(not marked(136, 161), "the Kestrel, top left, is in the seed")
+    check(not marked(341, 338), "so is the Rock, third from the right at the bottom")
+    check(marked(751, 338), "the Mantis A, bottom right, is not")
+    check(marked(956, 161), "nor the Lanius, top of the right column")
+
+    sim.shipList.variant = 1
+    sim.renderMenu()
+    check(not marked(751, 338), "type B: the Mantis B is in the seed")
+    check(marked(136, 161), "the Kestrel B is not")
+    equals(count(), 9, "nine layouts B out of ten")
+
+    sim.shipList.variant = 2
+    sim.renderMenu()
+    equals(count(), 8, "type C: the Lanius and the Crystal have none, nothing to mark")
+
+    sim.shipList = { open = true, page = 1, variant = 0 }
+    sim.renderMenu()
+    equals(count(), 0, "the pages of modded ships are left alone")
+
+    sim.shipList = { open = true, page = 0, variant = 0 }
+    applySeed({})
+    sim.renderMenu()
+    equals(count(), 0, "an older seed without its layouts marks nothing")
+    sim.shipList = { open = false, page = 0, variant = 0 }
+end)

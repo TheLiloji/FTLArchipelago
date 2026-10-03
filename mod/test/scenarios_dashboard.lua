@@ -216,3 +216,29 @@ test("dashboard: a system already on the ship is not shown as simply locked", fu
     check(sim.drawnText(apT("dash.system.aboard")), "shields on the ship read as aboard, upgrades locked")
     check(sim.drawnText(apT("dash.system.locked")), "and a system the ship lacks still reads as locked")
 end)
+
+test("dashboard: the ships page only lists the seed's layouts", function()
+    sim.startRun(true)
+    applySeed({
+        goal = { kind = "victories", count = 1 },
+        layouts = { "PLAYER_SHIP_HARD", "PLAYER_SHIP_ROCK", "PLAYER_SHIP_ROCK_3" },
+        loc = { ["PLAYER_SHIP_HARD:victory"] = "Kestrel Cruiser A: Defeat the Flagship" },
+    })
+    _G.apInventory.ships = { "PLAYER_SHIP_HARD" }
+    openDashboard("ships")
+    check(sim.drawnText(apT("dash.ships.header", { done = 1, total = 3 })), "three layouts in the seed")
+    check(not sim.drawnText(apShipLabel("PLAYER_SHIP_MANTIS")), "a ship left out is not listed")
+    check(sim.drawnText(apT("dash.ships.type", { letter = "C" })), "the Rock C is")
+    closeDashboard()
+end)
+
+test("dashboard: the systems page counts the upgrades of the ship being flown", function()
+    sim.startRun(true)
+    dashboardSeed()
+    _G.apInventory.systemCaps = {}
+    _G.apInventory.shipCaps = { PLAYER_SHIP_HARD = { shields = 2 }, PLAYER_SHIP_ROCK = { shields = 5 } }
+    openDashboard("systems")
+    check(sim.drawnText(apT("hud.system.received", { n = 2 })), "the Kestrel's two upgrades, not the Rock's")
+    closeDashboard()
+    _G.apInventory.shipCaps = {}
+end)

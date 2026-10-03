@@ -11,6 +11,7 @@ from worlds.generic.Rules import add_rule, set_rule
 from . import data, options as options_module
 from .locations import (
     MENU_REGION,
+    ship_systems,
     entrance_name,
     region_name,
     region_of,
@@ -99,7 +100,9 @@ _MENTIONS_A_SYSTEM = re.compile(
 )
 
 
-def location_depth(location: data.Location) -> int:
+def location_depth(location: data.Location, shop_by_sector: bool = False) -> int:
+    if shop_by_sector and location.shop_slot is not None:
+        return data.shop_sector(location.shop_slot)
     if location.group == data.GROUP_SECTORS:
         return location.sector or 0
     if location.group == data.GROUP_VICTORIES:
@@ -126,8 +129,8 @@ def blueprints_for_flagship(level: int) -> int:
     return max(SECTOR_LOGIC_TIERS[level].flagship, blueprints_for_sector(level, data.SECTOR_COUNT))
 
 
-def blueprints_required(level: int, location: data.Location) -> int:
-    required = blueprints_for_sector(level, location_depth(location))
+def blueprints_required(level: int, location: data.Location, shop_by_sector: bool = False) -> int:
+    required = blueprints_for_sector(level, location_depth(location, shop_by_sector))
     if location_needs_flagship(location):
         required = max(required, blueprints_for_flagship(level))
     return required
@@ -252,7 +255,8 @@ def _sphere_zero_room(world: "FTLWorld", level: int, start_items: set[str]) -> i
     return sum(
         1
         for location in world.created_locations
-        if region_of(location) in reachable and blueprints_required(level, location) == 0
+        if region_of(location, world.options) in reachable
+        and blueprints_required(level, location, bool(world.options.shop_by_sector)) == 0
     )
 
 
@@ -275,7 +279,7 @@ def _fits(
     margin = _bootstrap_cost(world, start_items)
     demands: dict[int, int] = {}
     for location in world.created_locations:
-        demand = blueprints_required(level, location)
+        demand = blueprints_required(level, location, bool(world.options.shop_by_sector))
         demands[demand] = demands.get(demand, 0) + 1
     for demand in sorted(demands):
         if demand and sum(n for d, n in demands.items() if d < demand) < demand + margin:
@@ -302,14 +306,16 @@ def _progression_item_count(world: "FTLWorld", level: int) -> int:
     for item in world.enabled_items:
         if item.count == 0:
             continue
-        copies = item.count
+        copies = options_module.item_copies(world.options, item)
         while item.name in precollected and copies > 0:
             precollected.remove(item.name)
             copies -= 1
         if copies <= 0:
             continue
-        promoted = (item.group == data.GROUP_SYSTEM_LEVELS
-                    and item.system in systems_whose_levels_the_rules_read(world.options))
+        promoted = ((item.group == data.GROUP_SYSTEM_LEVELS
+                     and item.system in systems_whose_levels_the_rules_read(world.options))
+                    or (item.group == data.GROUP_SHIP_SYSTEM_LEVELS
+                        and item.name in upgrades_the_rules_read(world)))
         if item.classification != "progression" and not promoted:
             continue
         if item.group == data.GROUP_BLUEPRINTS and item.name not in progression_blueprints:
@@ -361,7 +367,7 @@ def set_rules(world: "FTLWorld") -> None:
         set_rule(entrance, lambda state, names=requirements: state.has_all(names, player))
 
     for location in world.created_locations:
-        count = blueprints_required(level, location)
+        count = blueprints_required(level, location, bool(world.options.shop_by_sector))
         if count:
             set_rule(world.get_location(location.name), _has_blueprints(player, count))
 
@@ -378,7 +384,7 @@ def set_rules(world: "FTLWorld") -> None:
 
 
 def systems_a_location_needs(location: data.Location) -> tuple[str, ...]:
-    if location.group == data.GROUP_SYSTEMS and location.system is not None:
+    if location.group in (data.GROUP_SYSTEMS, data.GROUP_SHIP_SYSTEMS) and location.system is not None:
         return (location.system,)
     if location.achievement in SYSTEMS_AN_ACHIEVEMENT_NEEDS:
         return SYSTEMS_AN_ACHIEVEMENT_NEEDS[location.achievement]
@@ -488,24 +494,90 @@ def _set_system_rules(world: "FTLWorld", layouts) -> None:
     options = world.options
 
     for location in world.created_locations:
+        upgrades = _upgrades_needed(options, location)
+        if upgrades and options.progressive_systems_per_ship:
+            add_rule(world.get_location(location.name), _per_ship_upgrade_rule(world, location, upgrades))
+            continue
+
         rule = _system_rule(world, location)
         if rule is not None:
             add_rule(world.get_location(location.name), rule)
-
-        if not options.progressive_systems:
-            continue
-        if location.group == data.GROUP_SYSTEMS and location.system is not None:
-            level = location.level or 1
-            if level > 1:
-                upgrade = f"Progressive {data.SYSTEMS_BY_ID[location.system].display}"
-                add_rule(world.get_location(location.name),
-                         lambda state, name=upgrade, count=level - 1:
-                             state.has(name, player, count))
-        for system in SYSTEMS_AN_ACHIEVEMENT_MAXES.get(location.achievement or "", ()):
-            upgrade = f"Progressive {data.SYSTEMS_BY_ID[system].display}"
-            count = data.SYSTEMS_BY_ID[system].max_level - 1
+        for system, count in upgrades.items():
+            name = f"Progressive {data.SYSTEMS_BY_ID[system].display}"
+            if options.full_system_upgrades:
+                count = 1
             add_rule(world.get_location(location.name),
-                     lambda state, name=upgrade, count=count: state.has(name, player, count))
+                     lambda state, name=name, count=count: state.has(name, player, count))
+
+
+def _upgrades_needed(options, location: data.Location) -> dict[str, int]:
+    if not options.progressive_systems:
+        return {}
+    needed: dict[str, int] = {}
+    if location.group == data.GROUP_SYSTEMS and location.system is not None and (location.level or 1) > 1:
+        needed[location.system] = (location.level or 1) - 1
+    for system in SYSTEMS_AN_ACHIEVEMENT_MAXES.get(location.achievement or "", ()):
+        needed[system] = data.SYSTEMS_BY_ID[system].max_level - 1
+    return needed
+
+
+# With upgrades per ship, the logic counts on one ship: the achievement's own, or else the starting ship. That
+# same ship must hold the blueprints and the upgrades, or a check could be counted on two half ships.
+def _upgrade_ships(world: "FTLWorld", location: data.Location, systems) -> tuple[str, ...]:
+    room = ship_systems(world.options)
+    ship = location.ship or world.start_ship.blueprint
+    if all(system in room.get(ship, ()) for system in systems):
+        return (ship,)
+    return tuple(other for other in room if all(system in room[other] for system in systems))
+
+
+def _per_ship_upgrade_rule(world: "FTLWorld", location: data.Location,
+                           upgrades: dict[str, int]) -> Callable[[CollectionState], bool]:
+    player = world.player
+    gated = bool(world.options.system_blueprints)
+    ships = _upgrade_ships(world, location, upgrades)
+    paths = []
+    for layout in _layouts_able_to_try(world.options, location):
+        if layout.ship not in ships:
+            continue
+        room = set(layout.start_systems) | set(layout.empty_slots)
+        if not all(system in room for system in upgrades):
+            continue
+        missing = [system for system in upgrades if system not in layout.start_systems]
+        blueprints = tuple(data.BLUEPRINT_ITEM_NAMES[system] for system in missing) if gated else ()
+        ship = data.SHIPS_BY_BLUEPRINT[layout.ship].display
+        needs = tuple((f"{ship}: Progressive {data.SYSTEMS_BY_ID[system].display}", count)
+                      for system, count in upgrades.items())
+        paths.append((region_name(layout), blueprints, needs))
+
+    if not paths:
+        raise OptionError(
+            f"FTL: {location.name!r} needs upgrades that none of the selected ships can hold. Allow more ship "
+            "layouts or turn this check off."
+        )
+
+    def rule(state: CollectionState) -> bool:
+        return any(
+            state.can_reach_region(region, player) and state.has_all(blueprints, player)
+            and all(state.has(name, player, count) for name, count in needs)
+            for region, blueprints, needs in paths
+        )
+
+    return rule
+
+
+def upgrades_the_rules_read(world: "FTLWorld") -> frozenset[str]:
+    cached = getattr(world, "_ftl_upgrades_read", None)
+    if cached is not None and cached[0] is world.created_locations:
+        return cached[1]
+    names: set[str] = set()
+    for location in world.created_locations:
+        upgrades = _upgrades_needed(world.options, location)
+        for ship in _upgrade_ships(world, location, upgrades) if upgrades else ():
+            display = data.SHIPS_BY_BLUEPRINT[ship].display
+            names.update(f"{display}: Progressive {data.SYSTEMS_BY_ID[system].display}" for system in upgrades)
+    world._ftl_upgrades_read = (world.created_locations, frozenset(names))
+    return world._ftl_upgrades_read[1]
 
 
 def _goal_rule(world: "FTLWorld") -> Callable[[CollectionState], bool]:

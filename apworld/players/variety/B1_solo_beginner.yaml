@@ -16,6 +16,7 @@ accessibility: full
   victories_required: 3
   start_ship: kestrel_cruiser
   ship_layouts: all_layouts
+  layout_count: 28
   layout_unlocks: items
   sectorsanity: full
   sectorsanity_first_sector: 3
@@ -24,6 +25,7 @@ accessibility: full
   general_achievements: most
   cross_run_achievements: false
   shop_checks: 40
+  shop_by_sector: false
   system_blueprints: true
   progressive_systems: true
   head_starts: true
@@ -46,3 +48,7 @@ accessibility: full
   victory_difficulty: any
   archives: 0
   archives_required: 0
+  systemsanity: first_install
+  weapon_bundle_size: 1
+  drone_bundle_size: 1
+  augment_bundle_size: 1

@@ -43,6 +43,8 @@ runcheck python3 "$HERE/check_module.py" || exit 2
 
 runcheck python3 "$HERE/check_keys.py" || exit 2
 
+runcheck python3 "$HERE/check_version.py" || exit 2
+
 python3 "$HERE/build.py" "$@" > "$OUT" || exit 2
 
 OUTPUT="$("${FTLMAN:-ftlman}" lua-run "$OUT" 2>&1 | grep -v "Failed to get locale")"

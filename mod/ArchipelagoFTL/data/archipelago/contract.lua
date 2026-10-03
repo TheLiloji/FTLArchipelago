@@ -162,6 +162,13 @@ function apApplySlotData(slotData, slotName, solo)
 
     state.goal = slotData.goal
     state.startShip = slotData.start_ship
+    state.layouts = nil
+    if type(slotData.layouts) == "table" then
+        state.layouts = {}
+        for _, blueprint in ipairs(slotData.layouts) do
+            state.layouts[blueprint] = true
+        end
+    end
     state.seedName = slotData.seed_name
     state.options = slotData.options or {}
 
@@ -196,7 +203,11 @@ function apApplySlotData(slotData, slotName, solo)
     local links = solo and {} or (slotData.links or {})
     local off = { enabled = false }
     if _G.apDeathLinkConfigure then
-        configure("DeathLink", _G.apDeathLinkConfigure, links.death or off)
+        local death = { cloned = false }
+        for key, value in pairs(links.death or off) do
+            death[key] = value
+        end
+        configure("DeathLink", _G.apDeathLinkConfigure, death)
     end
     if _G.apEnergyLinkConfigure then
         configure("EnergyLink", _G.apEnergyLinkConfigure, links.energy or off)
@@ -265,10 +276,28 @@ function apReceiveItem(itemName, sender, isReplay, index)
         apRecordReceived(itemName, sender, index)
     end
 
+    -- A bundle is several shop items at once; it counts as received once its last one is through.
+    if kind == "bundle" then
+        local blueprints = descriptor.bps or {}
+        local names = descriptor.names or {}
+        for position, blueprint in ipairs(blueprints) do
+            apQueueItem({
+                kind = "shop",
+                bp = blueprint,
+                display = names[position] or blueprint,
+                sender = sender,
+                isReplay = isReplay == true,
+                index = position == #blueprints and index or nil,
+            })
+        end
+        return #blueprints > 0
+    end
+
     return apQueueItem({
         kind = kind,
         bp = descriptor.bp,
         sys = descriptor.sys,
+        ship = descriptor.ship,
         res = descriptor.res,
         eff = descriptor.eff,
         race = descriptor.race,
@@ -329,6 +358,15 @@ end
 
 function apGoal()
     return state.goal
+end
+
+function apSeedOption(name)
+    return (state.options or {})[name]
+end
+
+-- Older seeds do not list their layouts: all of them are in.
+function apLayoutInSeed(blueprint)
+    return state.layouts == nil or state.layouts[blueprint] == true
 end
 
 function apSeedChangeLeftovers()
@@ -403,6 +441,8 @@ function apContractResetForTesting()
     state.locNames = {}
     state.locKeys = {}
     state.goal = nil
+    state.layouts = nil
+    state.layoutList = nil
     state.startShip = nil
     state.seedName = nil
     state.options = {}

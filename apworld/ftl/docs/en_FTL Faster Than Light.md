@@ -30,13 +30,18 @@ Three things are taken away from you at the start and handed back as items.
 Kestrel, see below) and the hangar fills up as ship keys arrive. Type B and Type C layouts are items of their
 own by default, so you no longer have to earn two achievements with a ship before you may fly its Type B.
 
+**Layouts in the Seed** keeps 7 layouts by default, drawn at random among those Ship Layouts allows. Your first
+ship and the Kestrel A are always in, and a Type B or C only comes with its ship's Type A. The others have no key
+and no check.
+
 **System blueprints.** A system your ship does not start with cannot be bought until its blueprint arrives:
 stores refuse it, and if one sells it anyway the mod takes it back and refunds the scrap. A ship that starts
 with a system keeps it: nothing is ever torn out of your hull. Turn System Blueprints off and every system is for
 sale.
 
 **Upgrade levels.** Each "Progressive" item raises how far one system may be upgraded, up to the vanilla
-maximum. Scrap still has to be spent; the item only lifts the ceiling. A blueprint opens level 1 only, so the
+maximum. Scrap still has to be spent; the item only lifts the ceiling. With **Progressive Upgrades per Ship** each ship has its own
+upgrades ("Kestrel Cruiser: Progressive Shields"), which only count aboard that ship. A blueprint opens level 1 only, so the
 Progressive items alone take a system to its maximum. Turn Progressive System Upgrades off and systems upgrade
 as in the base game.
 
@@ -60,6 +65,11 @@ Every weapon and drone exists **twice** in the item pool. The first copy unlocks
 second puts it in the **Archipelago menu** that opens at the first beacon of every new run: there you take
 one weapon, one drone and one crew member from everything you have collected, for that run only.
 
+By default they come in **bundles**: a Weapon Bundle holds 3 weapons, a Drone Bundle 2 drones, an Augment
+Bundle 3 augments, drawn at random for each seed. A bundle does what each of its items would do on its own.
+It means fewer items for the same content, so the Archipelago shop stays reasonable. There a bundle shows as
+an important package: it starts at 45 scrap and gets dearer faster than a useful item. Set a bundle size to 1 to get every item on its own.
+
 **Crew members** are progressive items too (Crew Members, on by default), one per race. The first copy puts a
 crew member of that race aboard your current run; the second adds the race to the Archipelago menu; the third
 turns that menu entry into an expert with one skill mastered - a Human pilot, an Engi engineer, a Zoltan on
@@ -75,13 +85,17 @@ arrives during a run you are about to lose is not wasted, because it makes the n
   Rock Cruiser B to sector 4 is not the same check as flying the Rock Cruiser A there. This is where most of
   the checks live. It can be cut down to the two sectors FTL itself celebrates (5 and 8), trimmed from the
   shallow end with Sectorsanity First Sector, or turned off.
-- **Systems.** Installing a system is a check: the run where you finally buy Cloaking pays for itself.
-  Sixteen checks by default, one per system. Turned up to `every_level`, each level of each system is its
-  own check as well - sixty-eight in all, and every upgrade you buy sends something out.
+- **Systems.** Off by default: most ships start with half of the systems, so those checks would go out on the
+  first jump. Turned on (`first_install`), installing a system is a check, sixteen in all: the run where you
+  finally buy Cloaking pays for itself. With `every_level`, each level of each system is its own check as well -
+  sixty-eight in all, and every upgrade you buy sends something out.
+  With **Systemsanity per Ship**, each ship has its own Install checks ("Kestrel Cruiser: Install Cloaking"),
+  never for a system that ship can start with.
 - **Crew.** The first time a Human, Engi, Zoltan, Mantis, Rock, Slug or Lanius joins your crew, from an
   event, a store or a rescue. The crew you start a run with does not count. Seven checks, on by default
   (Crew Checks).
 - **Victories.** Destroying the Flagship with a given layout. One check per layout, always enabled.
+  The victory also sends that layout's sector checks still due (Victory Collects the Layout, on by default).
 - **Ship achievements.** The three achievements of each ship. FTL awards them to the ship and not to the
   layout, so earning one with Type A, B or C sends the same check.
 - **General achievements.** Up to twenty-one of them, in widening tiers: the straightforward ones, then the
@@ -89,6 +103,10 @@ arrives during a run you are about to lose is not wasted, because it makes the n
 - **The Archipelago shop.** One beacon per sector, marked ARCHIPELAGO on the map, sells goods for other players.
   Buying one sends it to its owner. The seed balances itself: at least twenty slots by default (Archipelago Shop Checks), and more when your options create more items than checks, so no item is ever left out; the other way round, filler makes up the difference (at least twenty, Minimum Filler). The bigger the shop, the more packages each ARCHIPELAGO beacon offers: 3, 6, 9 or 12. A package marked
   **FOR YOU** holds one of your own items. A package that was already sent never comes back on the shelf.
+  By default each package belongs to one sector, 1 to 7, and only that sector's beacon sells it: the logic
+  counts it as deep as its sector (Archipelago Shop by Sector).
+  **Archipelago Shop per Ship** (off by default) also gives each package to one ship, or one layout: it is only
+  sold while you fly that ship.
   Prices follow importance first, then depth: filler costs 10 to 25 scrap, useful items 30 to 65, and
   progression items 70 to 150, more the later they sit in the multiworld.
 
@@ -162,7 +180,7 @@ Destroy the Flagship with several **different layouts**. Two ways to say which:
 **Victory Difficulty** asks for those wins on Normal or Hard by default (Normal): an easier win still sends its
 victory check, it just does not count towards the goal. **Archives** can add a second condition (see above).
 
-A layout that your Ship Layouts option left out of the seed cannot count towards either.
+A layout left out of the seed (Ship Layouts, Layouts in the Seed) cannot count towards either.
 
 Nothing forces you to finish a run you are losing. Dying costs you the run, not your items, and the head
 starts you have collected apply to the next one.

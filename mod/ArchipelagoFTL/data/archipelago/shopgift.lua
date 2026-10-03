@@ -9,8 +9,66 @@ for numero = 1, 12 do
     GIFT_BLUEPRINTS[numero] = "AP_GIFT_" .. numero
 end
 
+local function giftSlot(gift)
+    local slot = gift and tostring(gift.location or ""):match("^shop:(%d+)$")
+    return slot and tonumber(slot) or nil
+end
+
+-- A package's sector and ship come from its slot number, counted the same way as in the apworld.
+local function giftSector(gift)
+    local sectors = (_G.apShopConfig or {}).sectors
+    local slot = giftSlot(gift)
+    if sectors == nil or slot == nil then
+        return nil
+    end
+    return (slot - 1) % sectors + 1
+end
+
+local function giftOwner(gift)
+    local config = _G.apShopConfig or {}
+    local slot = giftSlot(gift)
+    if config.owners == nil or slot == nil then
+        return nil
+    end
+    return config.owners[math.floor((slot - 1) / (config.sectors or 1)) % #config.owners + 1]
+end
+
+local function flying()
+    local ok, name = pcall(function() return Hyperspace.ships.player.myBlueprint.blueprintName end)
+    if not ok or name == nil then
+        return nil
+    end
+    name = tostring(name)
+    return (_G.apShopConfig or {}).per == "per_class" and name:gsub("_[23]$", "") or name
+end
+
+local function ownerAboard(gift)
+    local owner = giftOwner(gift)
+    return owner == nil or owner == flying()
+end
+
+local function currentSector()
+    local ok, level = pcall(function() return Hyperspace.App.world.starMap.worldLevel end)
+    return ok and tonumber(level) and math.floor(level) + 1 or nil
+end
+
+local function soldHere(gift)
+    local sector = giftSector(gift)
+    return (sector == nil or sector == currentSector()) and ownerAboard(gift)
+end
+
+local function sectorReached(gift)
+    local sector = giftSector(gift)
+    return (sector == nil or sector <= (currentSector() or 1)) and ownerAboard(gift)
+end
+
 function apShopPages()
     local slots = tonumber(_G.apShopSlotCount) or 0
+    local sectors = (_G.apShopConfig or {}).sectors
+    local owners = #((_G.apShopConfig or {}).owners or {})
+    if sectors ~= nil or owners > 0 then
+        return math.max(1, math.min(4, math.ceil(slots / (sectors or 1) / math.max(1, owners) / 3)))
+    end
     if slots > 100 then return 4 end
     if slots > 60 then return 3 end
     if slots > 30 then return 2 end
@@ -195,7 +253,7 @@ function apApplyShopGifts()
     for _, blueprintName in ipairs(GIFT_BLUEPRINTS) do
         local current = assignment[blueprintName]
         local key = giftKey(current)
-        if not alreadyGone(key) then
+        if not alreadyGone(key) and soldHere(current) then
             placed[key] = true
         else
             assignment[blueprintName] = nil
@@ -211,7 +269,7 @@ function apApplyShopGifts()
             while nextGift <= #_G.apShopGifts do
                 local candidate = _G.apShopGifts[nextGift]
                 local key = giftKey(candidate)
-                if alreadyGone(key) or placed[key] then
+                if alreadyGone(key) or placed[key] or not soldHere(candidate) then
                     nextGift = nextGift + 1
                 else
                     break
@@ -472,8 +530,14 @@ local function signDeal(index, blueprintName)
 end
 
 local pollDivider = 0
+local refreshOnFirstTick = false
 
 script.on_internal_event(Defines.InternalEvents.ON_TICK, function()
+    -- A continued run can call on_init before its ship exists: the shop is sorted again once it does.
+    if refreshOnFirstTick and Hyperspace.ships.player ~= nil then
+        refreshOnFirstTick = false
+        apApplyShopGifts()
+    end
     pollDivider = (pollDivider + 1) % 6
     if pollDivider ~= 0 then
         return
@@ -504,6 +568,7 @@ script.on_init(function()
     sold = {}
     dealsSigned = {}
     apApplyShopGifts()
+    refreshOnFirstTick = true
 end)
 
 script.on_internal_event(Defines.InternalEvents.JUMP_ARRIVE, function(shipManager)
@@ -535,7 +600,7 @@ end
 function apShopGiftPeekNext()
     for _, gift in ipairs(_G.apShopGifts or {}) do
         local key = gift and (gift.location or gift.item)
-        if not alreadyGone(key) then
+        if not alreadyGone(key) and sectorReached(gift) then
             return offerCopy(gift)
         end
     end
@@ -567,7 +632,7 @@ function apShopGiftPeekMany(n)
     local found = {}
     for _, gift in ipairs(_G.apShopGifts or {}) do
         local key = gift and (gift.location or gift.item)
-        if not alreadyGone(key) then
+        if not alreadyGone(key) and sectorReached(gift) then
             found[#found + 1] = offerCopy(gift)
             if #found >= (n or 2) then
                 break
@@ -583,7 +648,7 @@ function apShopGiftGiveAt(location)
     end
     for _, gift in ipairs(_G.apShopGifts or {}) do
         local key = gift and (gift.location or gift.item)
-        if key == location and not alreadyGone(key) then
+        if key == location and not alreadyGone(key) and sectorReached(gift) then
             if gift.location and _G.apSendCheck then
                 if _G.apSendCheck(gift.location, gift.item) == false then
                     giftLog("gift already sent: " .. tostring(gift.location))

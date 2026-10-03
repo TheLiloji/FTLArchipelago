@@ -24,6 +24,7 @@ def _a_ship_that_is_not_given_for_free(world) -> data.Ship:
 class TestMinimalSeed(FTLTestBase):
 
     options = {
+        "layout_count": 28,
         "archives": 0,
         "archives_required": 0,
         "minimum_filler": 0,
@@ -155,6 +156,7 @@ class TestArchivesRequiredAboveTotal(FTLTestBase):
 class TestEverythingEnabled(FTLTestBase):
 
     options = {
+        "layout_count": 28,
         "shop_checks": 60,
         "ship_layouts": "all_layouts",
         "sectorsanity": "full",
@@ -173,7 +175,9 @@ class TestEverythingEnabled(FTLTestBase):
 
     def test_every_location_of_the_table_exists(self) -> None:
         unused_shop_slots = data.MAX_SHOP_SLOTS - self.world.options.shop_checks.value
-        self.assertEqual(len(self.addressed_locations()), len(data.LOCATIONS) - unused_shop_slots)
+        per_ship = len(data.LOCATION_NAME_GROUPS[data.GROUP_SHIP_SYSTEMS])
+        self.assertEqual(len(self.addressed_locations()),
+                         len(data.LOCATIONS) - unused_shop_slots - per_ship)
 
     def test_pool_size_still_matches(self) -> None:
         self.assertEqual(len(self.multiworld.itempool), len(self.addressed_locations()))
@@ -202,7 +206,7 @@ class TestEverythingEnabled(FTLTestBase):
 
 class TestVanillaLayoutUnlocks(FTLTestBase):
 
-    options = {"layout_unlocks": "vanilla", "ship_layouts": "all_layouts"}
+    options = {"layout_count": 28, "layout_unlocks": "vanilla", "ship_layouts": "all_layouts"}
 
     def test_no_layout_item_is_created(self) -> None:
         created = {item.name for item in self.multiworld.itempool}
@@ -220,7 +224,7 @@ class TestVanillaLayoutUnlocks(FTLTestBase):
 
 class TestLayoutItems(FTLTestBase):
 
-    options = {"layout_unlocks": "items", "ship_layouts": "all_layouts"}
+    options = {"layout_count": 28, "layout_unlocks": "items", "ship_layouts": "all_layouts"}
 
     def test_the_ship_key_alone_does_not_open_type_b(self) -> None:
         ship = _a_ship_that_is_not_given_for_free(self.world)
@@ -421,6 +425,7 @@ class TestTheVictoryItemIsCreatedByName(FTLTestBase):
 class TestVictoriesBehindLockedShips(FTLTestBase):
 
     options = {
+        "layout_count": 28,
         "minimum_filler": 0,
         "shop_weapons": 0,
         "shop_drones": 0,
@@ -450,7 +455,7 @@ class TestVictoriesBehindLockedShips(FTLTestBase):
         level = self.world.logic.sector_logic
         free = [
             location for location in self.world.created_locations
-            if rules.blueprints_required(level, location) == 0
+            if rules.blueprints_required(level, location, bool(self.world.options.shop_by_sector)) == 0
         ]
         self.assertGreater(len(free), len(self.world.logic.starting_blueprints))
 
@@ -547,6 +552,7 @@ class TestSectorCeilingDefaultChangesNothing(FTLTestBase):
 class TestStructurallyBlockedSeed(FTLTestBase):
 
     options = {
+        "layout_count": 28,
         "archives": 0,
         "archives_required": 0,
         "minimum_filler": 0,
@@ -587,7 +593,7 @@ class TestStructurallyBlockedSeed(FTLTestBase):
 
 class TestTheGuardLeavesNormalSeedsAlone(FTLTestBase):
 
-    options = {"sector_logic": "strict"}
+    options = {"sector_logic": "strict", "sectorsanity_first_sector": 1}
 
     def test_strict_stays_strict(self) -> None:
         self.assertEqual(
@@ -678,6 +684,7 @@ class TestCrewChecksOff(FTLTestBase):
 
 
 class TestCrewMembers(FTLTestBase):
+    options = {"layout_count": 28}
 
     def test_each_race_is_progressive_with_an_expert_tier(self) -> None:
         names = [item.name for item in self.multiworld.itempool]
@@ -699,7 +706,7 @@ class TestCrewMembersOff(FTLTestBase):
 
 
 class TestWeaponsComeTwice(FTLTestBase):
-    options = {"sectorsanity": "full", "shop_checks": 60, "general_achievements": "all"}
+    options = {"sectorsanity": "full", "shop_checks": 60, "general_achievements": "all", "weapon_bundle_size": 1, "drone_bundle_size": 1, "augment_bundle_size": 1}
 
     def test_a_weapon_has_two_copies_and_an_augment_one(self) -> None:
         names = [item.name for item in self.multiworld.itempool]
@@ -727,12 +734,20 @@ class TestMoreItemsThanChecksGrowsTheShop(FTLTestBase):
         self.assertLessEqual(_filler_count(self), 24,
                              "and almost nothing above it: only items given at the start free up a slot")
 
-    def test_no_item_is_left_out(self) -> None:
+    def test_no_item_is_left_out_but_the_spare_ones(self) -> None:
         places = {item.name for item in self.multiworld.itempool}
         places.update(self.world.precollected_item_names)
+        skipped = (data.GROUP_FILLER, data.GROUP_TRAPS, data.GROUP_ARCHIVES, *items.SPARE_GROUPS)
         for item in self.world.enabled_items:
-            if item.count and item.group not in (data.GROUP_FILLER, data.GROUP_TRAPS, data.GROUP_ARCHIVES):
+            if item.count and item.group not in skipped:
                 self.assertIn(item.name, places, "every item has its place")
+
+    def test_head_starts_and_crew_go_first_instead_of_growing_the_shop(self) -> None:
+        kept = [item for item in self.multiworld.itempool
+                if data.ITEMS_BY_NAME[item.name].group in items.SPARE_GROUPS and not item.advancement]
+        self.assertLessEqual(len(kept), len(self.world.precollected_item_names),
+                             "only the slots freed by items given at the start keep one")
+        self.assertLess(len(kept), items.spare_items(self.world), "the others left the pool")
 
 
 class TestMoreChecksThanItemsAddsFiller(FTLTestBase):
@@ -751,3 +766,20 @@ class TestTheFloorsAreSettings(FTLTestBase):
     def test_both_floors_are_respected(self) -> None:
         self.assertGreaterEqual(self.world.options.shop_checks.value, 35)
         self.assertGreaterEqual(_filler_count(self), 40)
+
+
+class TestFullSystemUpgrades(FTLTestBase):
+    options = {"full_system_upgrades": True, "systemsanity": "every_level", "layout_count": 28}
+
+    def test_each_system_has_one_item_for_every_level(self) -> None:
+        names = [item.name for item in self.multiworld.itempool]
+        self.assertEqual(names.count("Progressive Shields"), 1)
+        descriptor = self.world.fill_slot_data()["items"]["Progressive Shields"]
+        self.assertEqual(descriptor["n"], data.SYSTEMS_BY_ID["shields"].max_level - 1)
+
+    def test_a_high_level_check_needs_the_single_item(self) -> None:
+        location = self.world.get_location("Shields level 8")
+        state = self.multiworld.get_all_state(False)
+        self.assertTrue(location.can_reach(state))
+        state.remove(self.world.create_item("Progressive Shields"))
+        self.assertFalse(location.can_reach(state))
