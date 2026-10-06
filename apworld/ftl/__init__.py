@@ -36,7 +36,7 @@ class FTLWorld(World):
     }
 
     origin_region_name = locations.MENU_REGION
-    topology_present = True
+    topology_present = False
 
     selected_layouts: tuple[data.Layout, ...]
     created_locations: tuple[data.Location, ...]
