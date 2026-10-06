@@ -73,8 +73,6 @@ def centred(icon: Image.Image, size) -> Image.Image:
 
 def main() -> None:
     small = filled("shade")
-    centred(outlined(shrink(small, 21), BLACK), (23, 27)).save(
-        IMG / "upgradeUI" / "Equipment" / "aug_lock.png", optimize=True)
     centred(outlined(shrink(small, 24), BLACK), (26, 26)).save(
         IMG / "systemUI" / "weapbox_icon_W_ap.png", optimize=True)
     centred(filled("night"), (256, 256)).save(IMG / "ap_logo.png", optimize=True)
