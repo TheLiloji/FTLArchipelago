@@ -31,6 +31,9 @@ jobs:
       - name: Hyperspace for Linux
         run: bash hyperspace-patch/build.sh linux
 
+      - name: Hyperspace for Linux, GOG and Humble (FTL 1.6.12)
+        run: bash hyperspace-patch/build.sh linux-gog
+
       - name: Hyperspace for Windows
         run: bash hyperspace-patch/build.sh windows
 
@@ -41,7 +44,7 @@ jobs:
           cp mod/ArchipelagoFTL.ftl dist/
           python3 apworld/tools/build_apworld.py --output dist/ftl.apworld
           (cd presets && zip -q ../dist/presets.zip *.yaml)
-          cp hyperspace-patch/build/linux/Hyperspace.1.6.13.amd64.so hyperspace-patch/build/windows/Hyperspace.dll dist/
+          cp hyperspace-patch/build/linux/Hyperspace.1.6.13.amd64.so hyperspace-patch/build/linux-gog/Hyperspace.1.6.12.amd64.so hyperspace-patch/build/windows/Hyperspace.dll dist/
           (cd dist && sha256sum * > SHA256SUMS.txt && cat SHA256SUMS.txt)
 
       - uses: actions/upload-artifact@v4
