@@ -12,13 +12,19 @@ case "$TARGET" in
         STEAM_1_6_13=ON
         LIBRARY=Hyperspace.1.6.13.amd64.so
         ;;
+    linux-gog)
+        # GOG and Humble sell FTL 1.6.12 for Linux: same build without the Steam 1.6.13 addresses.
+        TRIPLET=amd64-linux-ftl
+        STEAM_1_6_13=OFF
+        LIBRARY=Hyperspace.1.6.12.amd64.so
+        ;;
     windows)
         TRIPLET=x86-windows-ftl
         STEAM_1_6_13=OFF
         LIBRARY=Hyperspace.dll
         ;;
     *)
-        echo "usage: $0 linux|windows [--install]" >&2
+        echo "usage: $0 linux|linux-gog|windows [--install]" >&2
         exit 1
         ;;
 esac
