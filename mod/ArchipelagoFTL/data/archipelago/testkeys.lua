@@ -469,6 +469,10 @@ script.on_internal_event(Defines.InternalEvents.ON_KEY_DOWN, function(key)
             nextCustomEvent, #CUSTOM_EVENTS, name))
         playEvent(name)
         nextCustomEvent = nextCustomEvent % #CUSTOM_EVENTS + 1
+    elseif key == Defines.SDL.KEY_n then
+        -- The sector map, as at an exit beacon: a quick way to the next sector.
+        testLog("N - next sector map")
+        pcall(function() Hyperspace.App.world.starMap.bChoosingNewSector = true end)
     elseif key == Defines.SDL.KEY_b then
         testLog("B - event summary")
         if _G.apEventStatus then _G.apEventStatus() end
@@ -559,5 +563,5 @@ end)
 testLog("shortcuts: F6 AP connection, F1 shop, F2 scrap, F4 shop status, "
     .. "F5 items, E equipment, H unlock, K DeathLink, G EnergyLink, J TrapLink, "
     .. "C Archipelago shop, B event summary, V events, P progression, "
-    .. "R reset, S solo mode, X end combat and load FTL drive, TAB dashboard, "
+    .. "R reset, S solo mode, X end combat and load FTL drive, N next sector map, TAB dashboard, "
     .. "F9 full status")
