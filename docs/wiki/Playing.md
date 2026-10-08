@@ -31,6 +31,9 @@ should be.
 
 Only the ships you own can be picked. The others stay locked until their key arrives, and new ships show up the
 next time you are back in the hangar, never in the middle of a run. Type B and C layouts are items of their own. In the ship list, a layout the seed left out is marked **NOT IN SEED**: it never unlocks.
+FTL cannot unlock ships by itself: the mod refuses it, and locks again at the main menu a ship FTL unlocked
+before. If one is playable all the same, it is marked **NOT RECEIVED**, and a run with it counts for
+nothing, no checks and no victory.
 
 ## The start-of-run menu
 

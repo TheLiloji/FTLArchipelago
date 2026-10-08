@@ -433,7 +433,7 @@ local function collect(index, blueprintName)
         end
         -- Refused because this run does not count, not because it went out before: the package stays for later.
         local seedLoaded = _G.apContractState ~= nil and _G.apContractState.connected == true
-        local notCounted = seedLoaded and ((_G.apRunMatchesSeed ~= nil and not apRunMatchesSeed())
+        local notCounted = seedLoaded and ((_G.apRunRefusal ~= nil and apRunRefusal() ~= nil)
             or (_G.apTutorialRunning ~= nil and apTutorialRunning()))
         if not notCounted or gift == nil or gift.location == nil then
             giftLog("gift already sent before (" .. blueprintName .. "): refunded")

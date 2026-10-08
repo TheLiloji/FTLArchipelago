@@ -107,7 +107,23 @@ _G.apInventory = deepCopy(PROFILES[AP_PROFILE] or PROFILES.mid)
 
 local pristine = deepCopy(_G.apInventory)
 
+-- Complete once the server has sent every item again after a connection, with their names. Before that,
+-- a ship missing from the inventory may only be on its way.
+local synced = false
+
+function apInventorySynced()
+    return synced and not (_G.apFillerShipsWaiting and apFillerShipsWaiting())
+end
+
+function apInventoryMarkSynced()
+    if not synced then
+        synced = true
+        invLog("inventory complete: every item received so far is in")
+    end
+end
+
 function apInventoryClear()
+    synced = false
     -- An empty inventory must get every item again: the server's next replay is not skipped.
     if _G.apNetForgetItems then pcall(_G.apNetForgetItems) end
     local reset = EMPTY
@@ -142,24 +158,73 @@ function apInventoryResetForTesting()
     end
 end
 
-function apApplyInventory()
-    local unlocks = Hyperspace.CustomShipUnlocks.instance
-    local applied, failed = 0, 0
+local function owned(blueprint)
+    for _, known in ipairs(_G.apInventory.ships or {}) do
+        if known == blueprint then
+            return true
+        end
+    end
+    return false
+end
 
+local ALWAYS_THERE = { PLAYER_SHIP_HARD = true }
+
+local function hasKey(ship)
+    return ALWAYS_THERE[ship] == true or ship == (_G.apSeedStartShip and apSeedStartShip()) or owned(ship)
+end
+
+-- Whether a run may count with this layout: "ok", "not_in_seed" or "not_received". FTL unlocks ships on its
+-- own and cannot lock them again, so the hangar alone proves nothing. The start ship and the Kestrel A are
+-- given by the seed even when the item is missing (solo does not hand out the starting items).
+function apShipReceived(layout)
+    if type(layout) ~= "string" or layout == "" then
+        return "not_received"
+    end
+    if _G.apLayoutInSeed and not apLayoutInSeed(layout) then
+        return "not_in_seed"
+    end
+    local ship = layout:gsub("_[23]$", "")
+    if not hasKey(ship) then
+        return "not_received"
+    end
+    if layout == ship or owned(layout) then
+        return "ok"
+    end
+    if _G.apSeedHasLayoutItems and apSeedHasLayoutItems() then
+        return "not_received"
+    end
+    return "ok"
+end
+
+function apApplyInventory()
+    local applied, failed, waiting = 0, 0, 0
+
+    local names = {}
     for _, shipName in ipairs(_G.apInventory.ships) do
-        local ok, err = pcall(function()
-            unlocks:UnlockShip(shipName, true, true, false)
-        end)
-        if ok then
-            applied = applied + 1
+        names[#names + 1] = shipName
+    end
+    for _, shipName in ipairs(_G.apEarnedLayoutsReady and apEarnedLayoutsReady() or {}) do
+        names[#names + 1] = shipName
+    end
+    for _, shipName in ipairs(names) do
+        local ship = shipName:gsub("_[23]$", "")
+        -- A Type B or C waits for its ship's key: it is unlocked along with it.
+        if ship ~= shipName and not hasKey(ship) then
+            waiting = waiting + 1
         else
-            failed = failed + 1
-            invLog("failed to unlock " .. shipName .. ": " .. tostring(err))
+            local ok, err = apUnlockLayout(shipName, true)
+            if ok then
+                applied = applied + 1
+            else
+                failed = failed + 1
+                invLog("failed to unlock " .. shipName .. ": " .. tostring(err))
+            end
         end
     end
 
-    invLog(string.format("profile \"%s\" applied: %d ship(s) unlocked%s",
-        AP_PROFILE, applied, failed > 0 and (", " .. failed .. " failure(s)") or ""))
+    invLog(string.format("profile \"%s\" applied: %d ship(s) unlocked%s%s",
+        AP_PROFILE, applied, failed > 0 and (", " .. failed .. " failure(s)") or "",
+        waiting > 0 and (", " .. waiting .. " layout(s) waiting for their ship's key") or ""))
 end
 
 local function repairInventory()

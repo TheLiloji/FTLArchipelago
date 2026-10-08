@@ -24,8 +24,12 @@
     "check.label.victory": "Victoire avec {ship}",
     "check.resent": "{n} checks rattrapés auprès du serveur.",
     "check.resent.one": "{n} check rattrapé auprès du serveur.",
+    "check.run_ship_not_in_seed": "Vaisseau hors de la seed ({ship}) : cette run ne compte pas, ni checks ni victoire. Lancez une nouvelle partie avec un vaisseau de la seed.",
+    "check.run_ship_not_received": "Vaisseau non reçu d'Archipelago ({ship}) : FTL l'a débloqué tout seul. Cette run ne compte pas, ni checks ni victoire. Lancez une nouvelle partie avec un vaisseau reçu.",
     "check.run_without_seed": "Cette run n'a pas commencé avec la seed en cours : ses checks et ses victoires ne comptent pas. Lancez une nouvelle partie avec cette seed chargée. Les objets pour la run attendent la prochaine.",
     "check.sent": "Check validé : {location}",
+    "check.sent.item": "Check validé : {location}. {item} part pour {slot}.",
+    "check.sent.item.self": "Check validé : {location}. {item} est pour vous.",
     "check.sent.many": "{n} checks envoyés.",
     "check.victory.unknown_ship": "Victoire ! Mais le vaisseau n'a pas été reconnu : le check n'est pas parti. Voir FTL_HS.log.",
     "connect.auto": "Connexion automatique au lancement",
@@ -174,6 +178,7 @@
     "goal.progress": "Victoire {done} sur {total}.",
     "goal.reached": "Objectif atteint. Le multiworld est au courant.",
     "goal.too_easy": "Victoire enregistrée, mais l'objectif demande {difficulty}.",
+    "hangar.not_received": "NON REÇU",
     "hangar.out_of_seed": "HORS SEED",
     "hint.received.mine": "Indice : votre {item} attend chez {finder}, à {location}.",
     "hint.received.solo": "Indice : votre {item} se trouve à {location}.",
@@ -326,6 +331,7 @@
     "trap.named": "{name} : {effect}",
     "trap.sprung": "Piège : {what}",
     "trap.system_damage": "{system} : {n} de dégâts. Aucun tir enregistré.",
-    "tutorial.blocked": "TUTORIEL INDISPONIBLE EN PARTIE ARCHIPELAGO"
+    "tutorial.blocked": "TUTORIEL INDISPONIBLE EN PARTIE ARCHIPELAGO",
+    "unlock.relocked": "{n} vaisseau(x) reverrouillé(s) : c'est FTL qui les avait débloqués, pas Archipelago."
   }
 }

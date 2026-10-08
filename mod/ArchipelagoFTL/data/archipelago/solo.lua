@@ -193,6 +193,8 @@ local function loadSeed()
 
     if _G.apForgetChecks then apForgetChecks() end
     if _G.apRunAdoptSeed then apRunAdoptSeed() end
+    -- Solo items are all here: given back right after on a resume, then one per check.
+    if _G.apInventoryMarkSynced then apInventoryMarkSynced() end
     return true
 end
 

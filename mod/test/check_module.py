@@ -15,7 +15,9 @@ HARNESS = ROOT / "test" / "harness.lua"
 def calls_in_mod() -> dict[str, str]:
     calls: dict[str, str] = {}
     for path in sorted(MODULES.glob("*.lua")):
-        for name in re.findall(r"\bap:([A-Z][A-Za-z]+)\(", path.read_text(encoding="utf-8")):
+        text = path.read_text(encoding="utf-8")
+        # Direct calls, and the ones an older module may lack, made by name through moduleCall.
+        for name in re.findall(r"\bap:([A-Z][A-Za-z]+)\(", text) + re.findall(r'moduleCall\("([A-Z][A-Za-z]+)"', text):
             calls.setdefault(name, path.name)
     return calls
 

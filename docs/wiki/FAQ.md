@@ -54,6 +54,8 @@ Archipelago one, and a dated copy is kept next to it.
 
 - Was the run started while you were connected to this seed? A run started before connecting, or saved under
   another seed, does not count. The mod says so at the first jump.
+- Did Archipelago give you that ship? FTL can unlock a ship by itself, and a run with it does not count. The
+  hangar marks it NOT RECEIVED and the mod says so when the run starts.
 - Does the seed ask for Normal or Hard wins? An easier win does not count for the goal.
 - Did you already win with that ship? Each victory must use a different ship.
 - Does the seed need Archives? The goal waits until you have enough of them.

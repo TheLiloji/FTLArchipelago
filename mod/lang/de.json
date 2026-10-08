@@ -25,8 +25,12 @@
     "check.label.victory": "Sieg mit {ship}",
     "check.resent": "{n} Checks beim Server nachgeholt.",
     "check.resent.one": "{n} Check beim Server nachgeholt.",
+    "check.run_ship_not_in_seed": "Schiff nicht im Seed ({ship}): Dieser Lauf zählt nicht, keine Checks und kein Sieg. Starte ein neues Spiel mit einem Schiff aus dem Seed.",
+    "check.run_ship_not_received": "Schiff nicht von Archipelago erhalten ({ship}): FTL hat es selbst freigeschaltet. Dieser Lauf zählt nicht, keine Checks und kein Sieg. Starte ein neues Spiel mit einem erhaltenen Schiff.",
     "check.run_without_seed": "Dieser Lauf hat nicht mit dem aktuellen Seed begonnen: seine Checks und Siege zählen nicht. Starte ein neues Spiel mit diesem Seed. Gegenstände für den Lauf warten auf den nächsten.",
     "check.sent": "Check gesendet: {location}",
+    "check.sent.item": "Check gesendet: {location}. {item} ist unterwegs zu {slot}.",
+    "check.sent.item.self": "Check gesendet: {location}. {item} ist für dich.",
     "check.sent.many": "{n} Checks gesendet.",
     "check.victory.unknown_ship": "Sieg! Aber das Schiff wurde nicht erkannt, der Check ging nicht raus. Siehe FTL_HS.log.",
     "connect.auto": "Beim Start automatisch verbinden",
@@ -175,6 +179,7 @@
     "goal.progress": "Sieg {done} von {total}.",
     "goal.reached": "Ziel erreicht. Das Multiworld weiß Bescheid.",
     "goal.too_easy": "Sieg gezählt, aber das Ziel verlangt {difficulty}.",
+    "hangar.not_received": "NICHT ERHALTEN",
     "hangar.out_of_seed": "NICHT IM SEED",
     "hint.received.mine": "Hinweis: euer {item} wartet bei {finder}, an {location}.",
     "hint.received.solo": "Hinweis: dein {item} liegt bei {location}.",
@@ -327,6 +332,7 @@
     "trap.named": "{name}: {effect}",
     "trap.sprung": "Falle: {what}",
     "trap.system_damage": "{system}: {n} Schaden. Kein Treffer registriert.",
-    "tutorial.blocked": "TUTORIAL IN EINEM ARCHIPELAGO-SPIEL NICHT VERFÜGBAR"
+    "tutorial.blocked": "TUTORIAL IN EINEM ARCHIPELAGO-SPIEL NICHT VERFÜGBAR",
+    "unlock.relocked": "{n} Schiff(e) wieder gesperrt: FTL hatte sie freigeschaltet, nicht Archipelago."
   }
 }

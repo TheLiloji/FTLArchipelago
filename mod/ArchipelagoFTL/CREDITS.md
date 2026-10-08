@@ -5,7 +5,7 @@
 The logo (Archipelago's six circles carrying FTL's system icons) was drawn by **Trapper444** for this
 project. The original is `mod/art/ftl_archipelago_logo.png` in the repository;
 `mod/tools/gen_logo_art.py` builds the in-game copies from it: `img/ap_logo.png` (main menu and
-start-of-run menu), `img/upgradeUI/Equipment/aug_lock.png` and `img/systemUI/weapbox_icon_W_ap.png`.
+start-of-run menu) and `img/systemUI/weapbox_icon_W_ap.png`.
 
 ## Archipelago logo
 

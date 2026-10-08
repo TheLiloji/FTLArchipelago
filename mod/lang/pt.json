@@ -25,8 +25,12 @@
     "check.label.victory": "Vitória com {ship}",
     "check.resent": "{n} checks recuperados junto ao servidor.",
     "check.resent.one": "{n} check recuperado junto ao servidor.",
+    "check.run_ship_not_in_seed": "Nave fora da seed ({ship}): esta run não conta, sem checks nem vitória. Começa um jogo novo com uma nave da seed.",
+    "check.run_ship_not_received": "Nave não recebida do Archipelago ({ship}): o FTL desbloqueou-a sozinho. Esta run não conta, sem checks nem vitória. Começa um jogo novo com uma nave recebida.",
     "check.run_without_seed": "Esta run não começou com a seed atual: os seus checks e vitórias não contam. Começa um jogo novo com esta seed carregada. Os objetos para a run esperam pela próxima.",
     "check.sent": "Check enviado: {location}",
+    "check.sent.item": "Check enviado: {location}. {item} está a caminho de {slot}.",
+    "check.sent.item.self": "Check enviado: {location}. {item} é para ti.",
     "check.sent.many": "{n} checks enviados.",
     "check.victory.unknown_ship": "Vitória! Mas a nave não foi reconhecida e o check não saiu. Vê FTL_HS.log.",
     "connect.auto": "Ligar automaticamente ao iniciar",
@@ -175,6 +179,7 @@
     "goal.progress": "Vitória {done} de {total}.",
     "goal.reached": "Objetivo cumprido. O multiworld já sabe.",
     "goal.too_easy": "Vitória registada, mas o objetivo pede {difficulty}.",
+    "hangar.not_received": "NÃO RECEBIDA",
     "hangar.out_of_seed": "FORA DA SEED",
     "hint.received.mine": "Pista: o vosso {item} espera no mundo de {finder}, em {location}.",
     "hint.received.solo": "Pista: o teu {item} está em {location}.",
@@ -327,6 +332,7 @@
     "trap.named": "{name}: {effect}",
     "trap.sprung": "Armadilha: {what}",
     "trap.system_damage": "{system}: {n} de dano. Nenhum impacto registrado.",
-    "tutorial.blocked": "TUTORIAL INDISPONÍVEL NUMA PARTIDA ARCHIPELAGO"
+    "tutorial.blocked": "TUTORIAL INDISPONÍVEL NUMA PARTIDA ARCHIPELAGO",
+    "unlock.relocked": "{n} nave(s) bloqueada(s) de novo: foi o FTL que as desbloqueou, não o Archipelago."
   }
 }

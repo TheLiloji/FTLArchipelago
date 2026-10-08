@@ -75,6 +75,7 @@ local function test(name, body)
     if _G.apNetResetForTesting then _G.apNetResetForTesting() end
     if _G.apSoloResetForTesting then _G.apSoloResetForTesting() end
     _G.apRunStartCheckForTesting = false
+    _G.apShipCheckForTesting = false
     local ok, err = pcall(body)
     if not ok then
         failed = failed + 1
@@ -2871,7 +2872,7 @@ test("a package bought in a run that does not count is refunded and stays on sal
     sim.startRun(true)
     apShopGiftsConfigure({ { slot = "Nina", item = "Seashell", location = "shop:1", kind = "filler", cost = 40 } })
     local restoreSend = stub("apSendCheck", function() return false end)
-    local restoreSent = stub("apRunMatchesSeed", function() return false end)
+    local restoreSent = stub("apRunRefusal", function() return "seed" end)
     sim.player.currentScrap = 0
     sim.clearLog()
     sim.buy("AP_GIFT_1")
