@@ -6,6 +6,9 @@
 This is for the native Linux version of FTL from Steam (1.6.13). Do not run FTL through Proton for this: the
 Linux library below will not load there. Takes about ten minutes.
 
+FTL from GOG or Humble is version 1.6.12: download `Hyperspace.1.6.12.amd64.so` from the release
+instead, and use that name wherever this page says `Hyperspace.1.6.13.amd64.so`.
+
 ## What to download
 
 Put everything in the same folder, for example `Downloads`.
