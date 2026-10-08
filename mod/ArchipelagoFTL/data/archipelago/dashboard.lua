@@ -133,7 +133,7 @@ local function shipRows()
     local unlocked = unlockedLayouts()
     local book = ((_G.apContractState or {}).locNames) or {}
     local rows, open, total = {}, 0, 0
-    for _, ship in ipairs(((_G.apGameData or {}).ships) or {}) do
+    for _, ship in ipairs(apSeedShips()) do
         local row = { base = ship.name, layouts = {}, remaining = 0 }
         row.label = _G.apShipLabel and apShipLabel(ship.name) or ship.name
         for index = 0, (ship.layouts or 1) - 1 do
@@ -146,8 +146,8 @@ local function shipRows()
             end
         end
         for key in pairs(book) do
-            local prefix = tostring(key):match("^(PLAYER_SHIP_[A-Z]+)")
-            if prefix == ship.name and not sentCheck(key) then
+            local prefix = tostring(key):match("^(PLAYER_SHIP_[A-Z0-9_]-):")
+            if prefix and prefix:gsub("_[23]$", "") == ship.name and not sentCheck(key) then
                 row.remaining = row.remaining + 1
             end
         end

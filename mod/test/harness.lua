@@ -552,6 +552,7 @@ local function resetWorld()
                                 return {
                                     blueprintName = name,
                                     name = { GetText = function() return displayName end },
+                                    shipClass = { GetText = function() return sim.shipClasses[name] or "" end },
                                 }
                             end,
                         }
@@ -666,6 +667,7 @@ local function resetWorld()
         PLAYER_SHIP_STEALTH_2 = "DA-SR 12",
         PLAYER_SHIP_CIRCLE_2 = "The Vortex",
     }
+    sim.shipClasses = {}
 
     sim.starMap = {
         worldLevel = 0.0,

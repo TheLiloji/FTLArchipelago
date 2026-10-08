@@ -232,6 +232,26 @@ test("dashboard: the ships page only lists the seed's layouts", function()
     closeDashboard()
 end)
 
+test("dashboard: Multiverse ships come from the seed, not from the base game's list", function()
+    sim.startRun(true)
+    applySeed({
+        goal = { kind = "victories", count = 1 },
+        multiverse = true,
+        layouts = { "PLAYER_SHIP_MVKESTREL", "PLAYER_SHIP_UNION", "PLAYER_SHIP_UNION_2" },
+        loc = { ["PLAYER_SHIP_UNION_2:victory"] = "Union Cruiser B: Defeat the Flagship" },
+    })
+    _G.apInventory.ships = { "PLAYER_SHIP_MVKESTREL" }
+    -- Multiverse's ships are not in the base game's ftl.dat, the fake only knows them here.
+    sim.shipNames.PLAYER_SHIP_UNION, sim.shipClasses.PLAYER_SHIP_UNION = "Chrysippus", "Union Cruiser"
+    openDashboard("ships")
+    check(sim.drawnText(apT("dash.ships.header", { done = 1, total = 3 })), "three Multiverse layouts")
+    check(sim.drawnText(apShipLabel("PLAYER_SHIP_UNION")), "the Union Cruiser has its row")
+    check(sim.drawnText("Union Cruiser"), "under its class, as the seed names it")
+    check(not sim.drawnText("Chrysippus"), "not under the name of the ship itself")
+    check(sim.drawnText(apT("dash.ships.remaining", { n = 1 })), "with its check left")
+    closeDashboard()
+end)
+
 test("dashboard: the systems page counts the upgrades of the ship being flown", function()
     sim.startRun(true)
     dashboardSeed()
@@ -241,4 +261,32 @@ test("dashboard: the systems page counts the upgrades of the ship being flown", 
     check(sim.drawnText(apT("hud.system.received", { n = 2 })), "the Kestrel's two upgrades, not the Rock's")
     closeDashboard()
     _G.apInventory.shipCaps = {}
+end)
+
+test("profile: a Multiverse ship already unlocked counts, the MV Kestrel does not", function()
+    sim.unlocked = {}
+    sim.unlocked["PLAYER_SHIP_MVKESTREL"] = true
+    check(not apProfileHasShips({ "PLAYER_SHIP_MVKESTREL", "PLAYER_SHIP_UNION_2" }), "a fresh Multiverse profile")
+    sim.unlocked["PLAYER_SHIP_UNION_2"] = true
+    check(apProfileHasShips({ "PLAYER_SHIP_MVKESTREL", "PLAYER_SHIP_UNION_2" }), "the Union B was unlocked before")
+    sim.unlocked = {}
+end)
+
+test("dashboard: checks of a ship whose name has an underscore are counted on its row", function()
+    sim.startRun(true)
+    applySeed({
+        goal = { kind = "victories", count = 1 },
+        layouts = { "PLAYER_SHIP_AUTO", "PLAYER_SHIP_AUTO_FED" },
+        loc = { ["PLAYER_SHIP_AUTO_FED:victory"] = "Federation Auto-Cruiser A: Defeat the Flagship",
+                ["PLAYER_SHIP_AUTO:victory"] = "Auto-Cruiser A: Defeat the Flagship" },
+    })
+    _G.apInventory.ships = {}
+    openDashboard("ships")
+    local remaining = apT("dash.ships.remaining", { n = 1 })
+    local found = 0
+    for _, draw in ipairs(sim.draws) do
+        if draw.text == remaining then found = found + 1 end
+    end
+    equals(found, 2, "one check left on each row, not two on the Auto-Cruiser's")
+    closeDashboard()
 end)

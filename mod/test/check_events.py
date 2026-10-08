@@ -211,8 +211,10 @@ def main() -> int:
                 failures.append(f"the sector patch does not apply: {result.stderr.strip()}")
             else:
                 applied = len(re.findall(r'name="AP_EVT_[A-Z_]+"', result.stdout))
-                expected = len(re.findall(r'<mod-(?:append|before):event name="AP_EVT_[A-Z_]+"',
-                                          SECTORS.read_text(encoding="utf-8")))
+                # Multiverse's sectors are marked panic="false": the base game does not have them.
+                base_game = re.sub(r'<mod:findName[^>]*panic="false".*?</mod:findName>', "",
+                                   SECTORS.read_text(encoding="utf-8"), flags=re.S)
+                expected = len(re.findall(r'<mod-(?:append|before):event name="AP_EVT_[A-Z_]+"', base_game))
                 if applied != expected:
                     failures.append(
                         f"sector patch: {applied} placements applied out of {expected} declared"

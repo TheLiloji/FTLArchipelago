@@ -57,7 +57,7 @@ class VictoriesRequired(Range):
     default = 5
 
 
-_LAYOUT_BY_DISPLAY: dict[str, data.Layout] = {layout.display: layout for layout in data.LAYOUTS}
+_LAYOUT_BY_DISPLAY: dict[str, data.Layout] = {layout.display: layout for layout in data.ALL_LAYOUTS}
 _LAYOUT_SHORT_NAMES: dict[str, data.Layout] = {
     f"{layout.display.split()[0]} {layout.letter}": layout for layout in data.LAYOUTS
 }
@@ -120,7 +120,7 @@ class VictoryLayouts(OptionSet):
         f'"{data.LAYOUTS[0].display}".\n'
         "\n"
         "    Every layout you list must be part of the seed, so keep Ship Layouts wide enough to "
-        "contain them."
+        "contain them. With Multiverse, name its layouts, like \"Union Cruiser B\"."
     )
 
     display_name = "Victory Layouts"
@@ -164,6 +164,26 @@ class ShipLayouts(Choice):
     option_up_to_type_b = 1
     option_all_layouts = 2
     default = option_all_layouts
+
+
+class Multiverse(Toggle):
+    """Play with FTL: Multiverse instead of the base game: its ships replace the base game's.
+
+    Install Multiverse with the mod (see the setup guide). Starting Ship is then ignored: you start with the
+    MV Kestrel Cruiser, the ship Multiverse always gives.
+    """
+
+    display_name = "Multiverse"
+
+
+class MultiverseAchievementChecks(Toggle):
+    """With Multiverse, whether 26 of its achievements (Accomplishments and Special Events) send a check.
+
+    They only ever hold filler or traps: nothing the seed needs is hidden behind them, since some are
+    long or rare.
+    """
+
+    display_name = "Multiverse Achievement Checks"
 
 
 class LayoutCount(Range):
@@ -788,6 +808,8 @@ class FTLOptions(PerGameCommonOptions):
     victory_layouts: VictoryLayouts
     start_ship: StartShip
 
+    multiverse: Multiverse
+    multiverse_achievements: MultiverseAchievementChecks
     ship_layouts: ShipLayouts
     layout_count: LayoutCount
     layout_unlocks: LayoutUnlocks
@@ -845,7 +867,7 @@ ftl_option_groups = [
     ),
     OptionGroup(
         "Advanced",
-        [StartShip, HeadStarts, ModLanguage, SectorsanityFirstSector, SectorsanityLastSector, VictoryCollectsLayout, LayoutUnlocks, CrossRunAchievementChecks,
+        [Multiverse, MultiverseAchievementChecks, StartShip, HeadStarts, ModLanguage, SectorsanityFirstSector, SectorsanityLastSector, VictoryCollectsLayout, LayoutUnlocks, CrossRunAchievementChecks,
          SystemBlueprints, ProgressiveSystems, FullSystemUpgrades, CrewMembers, ShopWeapons, ShopDrones, ShopAugments,
          WeaponBundleSize, DroneBundleSize, AugmentBundleSize,
          ShopUnlockMode, ShopItemDelivery, ShopBySector, ShopPerShip, SystemsanityPerShip,
@@ -970,8 +992,9 @@ def _check() -> None:
     if len(set(shorts)) != len(shorts):
         raise ValueError(f"ambiguous ship aliases: {sorted(shorts)}")
 
-    for table, label in ((_LAYOUT_BY_DISPLAY, "long"), (_LAYOUT_SHORT_NAMES, "short")):
-        if len(table) != len(data.LAYOUTS):
+    for table, label, expected in ((_LAYOUT_BY_DISPLAY, "long", data.ALL_LAYOUTS),
+                                   (_LAYOUT_SHORT_NAMES, "short", data.LAYOUTS)):
+        if len(table) != len(expected):
             raise ValueError(f"two layouts share the same {label} name")
     collisions = sorted(set(_LAYOUT_SHORT_NAMES) & set(_LAYOUT_BY_DISPLAY))
     for key in collisions:

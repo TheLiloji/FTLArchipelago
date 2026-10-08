@@ -4,7 +4,7 @@ import logging
 import zlib
 from typing import Any, ClassVar, Iterator, Mapping
 
-from BaseClasses import Region
+from BaseClasses import LocationProgressType, Region
 from Options import OptionError, PerGameCommonOptions
 from worlds.AutoWorld import World
 
@@ -78,6 +78,8 @@ class FTLWorld(World):
             self.multiworld.local_early_items[self.player][name] = 1
 
     def _resolve_start_ship(self) -> data.Ship:
+        if locations.multiverse(self.options):
+            return data.SHIPS_BY_BLUEPRINT[data.MV_ALWAYS_UNLOCKED_LAYOUTS[0]]
         by_slot = {ship.slot: ship for ship in data.SHIPS}
         slot = self.options.start_ship.value
         if slot not in by_slot:  # pragma: no cover
@@ -85,7 +87,7 @@ class FTLWorld(World):
         return by_slot[slot]
 
     def _draw_layouts(self) -> None:
-        forced = [self.start_ship.blueprint, *data.ALWAYS_UNLOCKED_LAYOUTS]
+        forced = [self.start_ship.blueprint, *locations.always_unlocked(self.options)]
         forced.extend(options.goal_layouts(self.options) or ())
         wanted = max(self.options.layout_count.value, options.goal_victory_count(self.options))
         self.options.drawn_layouts = locations.draw_layouts(
@@ -93,7 +95,7 @@ class FTLWorld(World):
 
     def _starting_keys(self) -> tuple[str, ...]:
         always = {
-            data.LAYOUTS_BY_BLUEPRINT[blueprint].ship for blueprint in data.ALWAYS_UNLOCKED_LAYOUTS
+            data.LAYOUTS_BY_BLUEPRINT[blueprint].ship for blueprint in locations.always_unlocked(self.options)
         }
         wanted = dict.fromkeys([self.start_ship.blueprint, *sorted(always)])
         return tuple(data.SHIP_KEY_NAMES[blueprint] for blueprint in wanted)
@@ -110,6 +112,9 @@ class FTLWorld(World):
 
         for name, contents in plan.items():
             regions[name].add_locations(contents, FTLLocation)
+        for location in self.created_locations:
+            if location.group == data.GROUP_MV_ACHIEVEMENTS:
+                self.get_location(location.name).progress_type = LocationProgressType.EXCLUDED
 
         menu = regions[locations.MENU_REGION]
         for layout in self.selected_layouts:
@@ -136,7 +141,8 @@ class FTLWorld(World):
 
     def fill_slot_data(self) -> Mapping[str, Any]:
         descriptors = {item.name: data.item_descriptor(item) for item in self._items_in_seed()}
-        shop_names = {item.blueprint: item.name for item in data.ITEMS if item.kind == data.KIND_SHOP}
+        # Multiverse and the base game share blueprints: name each one as this seed's catalogue does.
+        shop_names = {item.blueprint: data.SHOP_ITEM_NAMES[item] for item in self.shop_items}
         for name, descriptor in descriptors.items():
             item = data.ITEMS_BY_NAME[name]
             if item.group == data.GROUP_SYSTEM_LEVELS and self.options.full_system_upgrades:
@@ -161,6 +167,9 @@ class FTLWorld(World):
             "seed_name": self.multiworld.seed_name,
             "seed_hash": zlib.crc32(self.multiworld.seed_name.encode("utf-8")) & 0x7FFFFFFF,
             "start_ship": self.start_ship.blueprint,
+            "multiverse": locations.multiverse(self.options),
+            "all_layouts": ([layout.blueprint for layout in data.MV_LAYOUTS]
+                            if locations.multiverse(self.options) else []),
             "layouts": [layout.blueprint for layout in self.selected_layouts],
             "language": options.mod_language(self.options),
             "goal": self._goal_for_the_mod(),
@@ -181,10 +190,11 @@ class FTLWorld(World):
         non_shop_checks = sum(
             1 for location in self.created_locations if location.shop_slot is None
         )
-        room = non_shop_checks + self.options.shop_checks.value - self.options.minimum_filler.value
+        reserved = items.reserved_filler(self)
+        room = non_shop_checks + self.options.shop_checks.value - reserved
         dropped = min(items.spare_items(self), max(0, items_needed - room))
         wanted_slots = max(self.options.shop_checks.value,
-                    items_needed - dropped + self.options.minimum_filler.value - non_shop_checks)
+                    items_needed - dropped + reserved - non_shop_checks)
         if wanted_slots > data.MAX_SHOP_SLOTS and self.options.progressive_systems_per_ship:
             left_out = items_needed - non_shop_checks - data.MAX_SHOP_SLOTS
             if left_out > 0:
