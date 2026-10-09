@@ -33,10 +33,13 @@ local deliveredHere = 0
 -- item waits for room instead.
 local CARGO_SLOTS = 4
 local CARGO_FULL = "weapon slots and cargo full"
-local CARGO_KEPT = "cargo kept free at a store"
+local CARGO_KEPT = "last cargo slot kept free at a store"
+-- Right at a jump the game still points at the beacon left behind, so whether the new one has a store is only
+-- known from the next tick on.
+local justArrived = false
 
--- A store sells an Archipelago package as a weapon, so buying one takes a cargo slot: there, what would land in
--- the cargo hold waits for the next jump instead of taking the slot the player just freed.
+-- A store sells an Archipelago package as a weapon, so buying one takes a cargo slot: there, the last free cargo
+-- slot is kept for buying, and what would take it waits until the player leaves the store.
 local function atAStore()
     return _G.apAtAStore ~= nil and apAtAStore()
 end
@@ -52,13 +55,14 @@ local function noRoom(family)
                 return nil
             end
         end
-        if atAStore() then
+        local held = Hyperspace.App.gui.equipScreen:GetCargoHold():size()
+        if held >= CARGO_SLOTS then
+            return CARGO_FULL
+        end
+        if held == CARGO_SLOTS - 1 and (atAStore() or justArrived) then
             return CARGO_KEPT
         end
-        if Hyperspace.App.gui.equipScreen:GetCargoHold():size() < CARGO_SLOTS then
-            return nil
-        end
-        return CARGO_FULL
+        return nil
     end)
     return ok and why or nil
 end
@@ -88,7 +92,12 @@ end
 script.on_internal_event(Defines.InternalEvents.JUMP_ARRIVE, function(shipManager)
     if shipManager ~= nil and shipManager.iShipId == 0 then
         deliveredHere = 0
+        justArrived = true
     end
+end)
+
+script.on_internal_event(Defines.InternalEvents.ON_TICK, function()
+    justArrived = false
 end)
 
 script.on_init(function()

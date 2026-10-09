@@ -7263,3 +7263,38 @@ test("an Archipelago beacon counts as a store too, though its store comes from a
     sim.cargo = {}
     sim.cargoCap = 999
 end)
+
+test("at a store, the cargo hold still fills up, all but its last slot", function()
+    sim.startRun(true)
+    sim.slots.weapon = 0
+    sim.cargoCap = 4
+    sim.cargo = { "BEAM_2" }
+    sim.setStore(true)
+    for _ = 1, 3 do apQueueItem({ kind = "weapon", bp = "LASER_BURST_3", display = "Burst Laser Mark III" }) end
+    sim.tick(240)
+    equals(#sim.cargo, 3, "two arrive in cargo, the last slot stays free")
+    equals(#_G.apFillerPendingForTesting(), 1, "only the third waits")
+    sim.cargo = {}
+    sim.cargoCap = 999
+end)
+
+test("arriving at a store, a delivery made at the jump does not take the last cargo slot", function()
+    sim.startRun(true)
+    sim.slots.weapon = 0
+    sim.cargoCap = 4
+    sim.cargo = { "BEAM_2", "BEAM_2", "BEAM_2" }
+    sim.setStore(false)
+    sim.setStore(true)
+    apQueueItem({ kind = "weapon", bp = "LASER_BURST_3", display = "Burst Laser Mark III" })
+    sim.tick(240)
+    equals(#sim.cargo, 3, "held at the store")
+    -- The game still points at the beacon left behind during the jump: here, one without a store.
+    sim.starMap.currentLoc.event = { store = false, eventName = "NOTHING" }
+    sim.jumpArrive()
+    sim.starMap.currentLoc.event = { store = true }
+    equals(#sim.cargo, 3, "the delivery made at the jump waits for the new beacon to be known")
+    sim.tick(240)
+    equals(#sim.cargo, 3, "and the new beacon has a store: the last slot stays free")
+    sim.cargo = {}
+    sim.cargoCap = 999
+end)
