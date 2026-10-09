@@ -250,13 +250,19 @@ end
 
 local pendingRefusal = {}
 
-local function atAStore()
+-- An Archipelago beacon loads its store from a sub-event: the beacon's own event has no store, only its name.
+function apAtAStore()
     local ok, hasStore = pcall(function()
         local loc = Hyperspace.App.world.starMap.currentLoc
-        return loc ~= nil and loc.event ~= nil and loc.event.store == true
+        if loc == nil or loc.event == nil then
+            return false
+        end
+        return loc.event.store == true or tostring(loc.event.eventName or ""):sub(1, 14) == "AP_STORE_EVENT"
     end)
     return ok and hasStore
 end
+
+local atAStore = apAtAStore
 
 local lastScrap = nil
 

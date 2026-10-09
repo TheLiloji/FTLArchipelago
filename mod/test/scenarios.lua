@@ -7246,3 +7246,20 @@ test("at a store, a weapon that would go to cargo waits for the jump, so the fre
     sim.cargo = {}
     sim.cargoCap = 999
 end)
+
+test("an Archipelago beacon counts as a store too, though its store comes from a sub-event", function()
+    sim.startRun(true)
+    sim.slots.weapon = 0
+    sim.cargoCap = 4
+    sim.cargo = { "BEAM_2", "BEAM_2", "BEAM_2" }
+    sim.starMap.currentLoc = sim.makeLocation()
+    sim.starMap.currentLoc.event = { store = false, eventName = "AP_STORE_EVENT" }
+    check(apAtAStore(), "the beacon is seen as a store")
+    apQueueItem({ kind = "weapon", bp = "LASER_BURST_3", display = "Burst Laser Mark III" })
+    sim.tick(240)
+    equals(#sim.cargo, 3, "the free cargo slot stays free for buying a package")
+    sim.starMap.currentLoc.event = { store = false, eventName = "HOSTILE_REBEL" }
+    check(not apAtAStore(), "an ordinary beacon is not")
+    sim.cargo = {}
+    sim.cargoCap = 999
+end)

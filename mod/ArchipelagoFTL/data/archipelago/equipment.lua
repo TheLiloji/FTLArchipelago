@@ -38,11 +38,7 @@ local CARGO_KEPT = "cargo kept free at a store"
 -- A store sells an Archipelago package as a weapon, so buying one takes a cargo slot: there, what would land in
 -- the cargo hold waits for the next jump instead of taking the slot the player just freed.
 local function atAStore()
-    local ok, hasStore = pcall(function()
-        local loc = Hyperspace.App.world.starMap.currentLoc
-        return loc ~= nil and loc.event ~= nil and loc.event.store == true
-    end)
-    return ok and hasStore
+    return _G.apAtAStore ~= nil and apAtAStore()
 end
 
 -- nil when the item fits, else why it waits.
