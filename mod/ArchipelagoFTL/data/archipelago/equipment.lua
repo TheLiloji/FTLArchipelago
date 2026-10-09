@@ -34,9 +34,13 @@ local deliveredHere = 0
 local CARGO_SLOTS = 4
 local CARGO_FULL = "weapon slots and cargo full"
 local CARGO_KEPT = "last cargo slot kept free at a store"
--- Right at a jump the game still points at the beacon left behind, so whether the new one has a store is only
--- known from the next tick on.
+local NEXT_JUMP = "waits for the next jump"
+-- Weapons and drones only come aboard as the ship arrives at a beacon: coming in at any time, they would take
+-- back each cargo slot the player frees to sell or buy. Right at a jump the game still points at the beacon
+-- left behind, so the delivery is made on the next tick, once the new one is known.
 local justArrived = false
+local arrivalDue = false
+local arrivalOpen = false
 
 -- A store sells an Archipelago package as a weapon, so buying one takes a cargo slot: there, the last free cargo
 -- slot is kept for buying, and what would take it waits until the player leaves the store.
@@ -59,7 +63,7 @@ local function noRoom(family)
         if held >= CARGO_SLOTS then
             return CARGO_FULL
         end
-        if held == CARGO_SLOTS - 1 and (atAStore() or justArrived) then
+        if held == CARGO_SLOTS - 1 and atAStore() then
             return CARGO_KEPT
         end
         return nil
@@ -71,6 +75,9 @@ local function deliverEquipped(name, family, chosen)
     local equipment = Hyperspace.App.gui.equipScreen
     if equipment == nil then
         return nil, "equipment screen unavailable"
+    end
+    if not arrivalOpen and not chosen then
+        return nil, NEXT_JUMP
     end
     if deliveredHere >= PER_BEACON and not chosen then
         return nil, "enough equipment for this beacon"
@@ -93,15 +100,41 @@ script.on_internal_event(Defines.InternalEvents.JUMP_ARRIVE, function(shipManage
     if shipManager ~= nil and shipManager.iShipId == 0 then
         deliveredHere = 0
         justArrived = true
+        arrivalDue = true
     end
 end)
 
+-- Held back by a fight, the arrival delivery waits for it to end, still at this beacon.
+local function deliverOnArrival()
+    if not (_G.apFillerCanDeliver and apFillerCanDeliver() and _G.apDeliverPending) then
+        return
+    end
+    arrivalDue = false
+    arrivalOpen = true
+    pcall(apDeliverPending)
+    arrivalOpen = false
+    local waiting = _G.apFillerEquipmentWaiting and apFillerEquipmentWaiting() or 0
+    if waiting > 0 then
+        equipLog(waiting .. " weapon(s) or drone(s) wait for the next jump")
+        if _G.apNotifyStatus then
+            _G.apNotifyStatus(apT("item.waiting_jump", { n = waiting }))
+        end
+    end
+end
+
 script.on_internal_event(Defines.InternalEvents.ON_TICK, function()
-    justArrived = false
+    if justArrived then
+        justArrived = false
+        return
+    end
+    if arrivalDue then
+        deliverOnArrival()
+    end
 end)
 
 script.on_init(function()
     deliveredHere = 0
+    arrivalDue = true
 end)
 
 local AUGMENT_SLOTS = 3
