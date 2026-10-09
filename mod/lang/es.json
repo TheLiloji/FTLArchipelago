@@ -106,7 +106,7 @@
     "dash.status.offline": "Sin conexión, seed conservada",
     "dash.status.online": "En línea como {slot}",
     "dash.status.solo": "Modo solo",
-    "dash.system.aboard": "Instalado, falta su plano",
+    "dash.system.aboard": "{received}/{total}, falta el plano",
     "dash.system.locked": "Bloqueado",
     "dash.system.start": "+{n} al inicio",
     "dash.systems.header": "Sistemas: {done} de {total} desbloqueados",

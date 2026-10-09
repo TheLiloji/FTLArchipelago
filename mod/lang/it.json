@@ -106,7 +106,7 @@
     "dash.status.offline": "Offline, seed conservata",
     "dash.status.online": "Online come {slot}",
     "dash.status.solo": "Modalità solo",
-    "dash.system.aboard": "Installato, manca il progetto",
+    "dash.system.aboard": "{received}/{total}, manca il progetto",
     "dash.system.locked": "Bloccato",
     "dash.system.start": "+{n} all'inizio",
     "dash.systems.header": "Sistemi: {done} su {total} sbloccati",
