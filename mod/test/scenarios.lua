@@ -7218,3 +7218,31 @@ test("shop per ship: a continued run sorts the shop again once its ship exists",
     equals(shownItems(), "Item 8", "the Rock's package as soon as the ship is there")
     sim.player.myBlueprint.blueprintName = "PLAYER_SHIP_HARD"
 end)
+
+test("at a store, a weapon that would go to cargo waits for the jump, so the freed slot is kept for buying", function()
+    sim.startRun(true)
+    sim.slots.weapon = 1
+    sim.equipped.weapon = { "BEAM_2" }
+    sim.cargoCap = 4
+    sim.cargo = { "BEAM_2", "BEAM_2", "BEAM_2" }
+    sim.setStore(true)
+    sim.clearLog()
+    apQueueItem({ kind = "weapon", bp = "LASER_BURST_3", display = "Burst Laser Mark III" })
+    sim.tick(240)
+    equals(#sim.cargo, 3, "the free cargo slot stays free at the store")
+    equals(#_G.apFillerPendingForTesting(), 1, "the weapon waits")
+    check(not shownKey("item.waiting_cargo"), "and the player is not told the cargo hold is full: it is not")
+    sim.equipped.weapon = {}
+    sim.tick(240)
+    equals(#sim.equipped.weapon, 1, "a free weapon slot still takes it, even at a store")
+    apQueueItem({ kind = "weapon", bp = "BEAM_2", display = "Halberd Beam" })
+    sim.tick(240)
+    equals(#_G.apFillerPendingForTesting(), 1, "the next one waits again for want of a slot")
+    sim.setStore(false)
+    sim.jumpArrive()
+    sim.tick(240)
+    equals(#sim.cargo, 4, "after the jump, away from the store, it goes to cargo")
+    equals(#_G.apFillerPendingForTesting(), 0, "nothing left waiting")
+    sim.cargo = {}
+    sim.cargoCap = 999
+end)

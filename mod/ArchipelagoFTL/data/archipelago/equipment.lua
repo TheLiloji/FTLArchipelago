@@ -33,20 +33,38 @@ local deliveredHere = 0
 -- item waits for room instead.
 local CARGO_SLOTS = 4
 local CARGO_FULL = "weapon slots and cargo full"
+local CARGO_KEPT = "cargo kept free at a store"
 
-local function hasRoom(family)
-    local ok, room = pcall(function()
+-- A store sells an Archipelago package as a weapon, so buying one takes a cargo slot: there, what would land in
+-- the cargo hold waits for the next jump instead of taking the slot the player just freed.
+local function atAStore()
+    local ok, hasStore = pcall(function()
+        local loc = Hyperspace.App.world.starMap.currentLoc
+        return loc ~= nil and loc.event ~= nil and loc.event.store == true
+    end)
+    return ok and hasStore
+end
+
+-- nil when the item fits, else why it waits.
+local function noRoom(family)
+    local ok, why = pcall(function()
         local player = Hyperspace.ships.player
         local system = family == "weapon" and player.weaponSystem or player.droneSystem
         if system ~= nil then
             local held = family == "weapon" and system.weapons or system.drones
             if held:size() < system.slot_count then
-                return true
+                return nil
             end
         end
-        return Hyperspace.App.gui.equipScreen:GetCargoHold():size() < CARGO_SLOTS
+        if atAStore() then
+            return CARGO_KEPT
+        end
+        if Hyperspace.App.gui.equipScreen:GetCargoHold():size() < CARGO_SLOTS then
+            return nil
+        end
+        return CARGO_FULL
     end)
-    return not ok or room
+    return ok and why or nil
 end
 
 local function deliverEquipped(name, family, chosen)
@@ -57,8 +75,9 @@ local function deliverEquipped(name, family, chosen)
     if deliveredHere >= PER_BEACON and not chosen then
         return nil, "enough equipment for this beacon"
     end
-    if not hasRoom(family) then
-        return nil, CARGO_FULL
+    local why = noRoom(family)
+    if why ~= nil then
+        return nil, why
     end
     local blueprints = Hyperspace.Blueprints
     if family == "weapon" then

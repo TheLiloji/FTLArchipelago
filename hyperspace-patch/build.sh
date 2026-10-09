@@ -153,6 +153,29 @@ if "ArchipelagoFTL::ShipUnlockAllowed" not in t:
 else:
     print("   ShipUnlocks.cpp: already wired")
 
+# FTL's own unlock rules for events (a quest, the Engi at sector 5 with the Kestrel) retry at every beacon
+# while the ship stays locked, adding "you unlocked a ship" to each event: they ask the lock first.
+cs = hs / "CustomStore.cpp"
+t = cs.read_text(encoding="utf-8")
+if "ArchipelagoFTL::ShipUnlockAllowed" not in t:
+    rules = [
+        ("if (!G_->GetScoreKeeper()->GetShipUnlocked(event->unlockShip, 0))",
+         "if (!G_->GetScoreKeeper()->GetShipUnlocked(event->unlockShip, 0)"
+         " && ArchipelagoFTL::ShipUnlockAllowed(G_->GetScoreKeeper()->GetShipBlueprint(event->unlockShip)))", 2),
+        ("if (!G_->GetScoreKeeper()->GetShipUnlocked(3, 0))",
+         "if (!G_->GetScoreKeeper()->GetShipUnlocked(3, 0)"
+         " && ArchipelagoFTL::ShipUnlockAllowed(G_->GetScoreKeeper()->GetShipBlueprint(3)))", 1),
+    ]
+    for anchor, replacement, count in rules:
+        if t.count(anchor) != count:
+            raise SystemExit(f"   FAIL: expected {count} of `{anchor}` in CustomStore.cpp, found {t.count(anchor)}")
+        t = t.replace(anchor, replacement)
+    t = t.replace('#include "CustomStore.h"', '#include "CustomStore.h"\n#include "Archipelago.h"', 1)
+    write(cs, t)
+    print("   CustomStore.cpp: event unlocks ask the ship lock first")
+else:
+    print("   CustomStore.cpp: already wired")
+
 # OpenSSL is C, and clang picks up mingw's GCC <stdatomic.h>, which it cannot compile. Without C11
 # atomics OpenSSL falls back to the __atomic builtins, which clang handles.
 overlay = hs / "ap-vcpkg"
