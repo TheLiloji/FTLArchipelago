@@ -428,6 +428,26 @@ local function deliverOne(descriptor)
     return false
 end
 
+-- Whether a delivery pass can hand things out now (in a run that counts, no fight).
+function apFillerCanDeliver()
+    return safeToDeliver() and apFillerRunCounts()
+end
+
+-- Weapons and drones still waiting, for the "wait for the next jump" line.
+function apFillerEquipmentWaiting()
+    local count = 0
+    for _, descriptor in ipairs(pending) do
+        local family = descriptor.kind
+        if family == "shop" and descriptor.bp and _G.apBlueprintFamily then
+            family = apBlueprintFamily(descriptor.bp)
+        end
+        if family == "weapon" or family == "drone" then
+            count = count + 1
+        end
+    end
+    return count
+end
+
 -- A run started without this seed does not count: what it would use up waits for a run that does.
 local function runCounts()
     local contract = _G.apContractState
@@ -435,6 +455,10 @@ local function runCounts()
         return true
     end
     return apRunMatchesSeed()
+end
+
+function apFillerRunCounts()
+    return runCounts()
 end
 
 function apDeliverPending()

@@ -33,20 +33,42 @@ local deliveredHere = 0
 -- item waits for room instead.
 local CARGO_SLOTS = 4
 local CARGO_FULL = "weapon slots and cargo full"
+local CARGO_KEPT = "last cargo slot kept free at a store"
+local NEXT_JUMP = "waits for the next jump"
+-- Weapons and drones only come aboard as the ship arrives at a beacon: coming in at any time, they would take
+-- back each cargo slot the player frees to sell or buy. Right at a jump the game still points at the beacon
+-- left behind, so the delivery is made on the next tick, once the new one is known.
+local justArrived = false
+local arrivalDue = false
+local arrivalOpen = false
 
-local function hasRoom(family)
-    local ok, room = pcall(function()
+-- A store sells an Archipelago package as a weapon, so buying one takes a cargo slot: there, the last free cargo
+-- slot is kept for buying, and what would take it waits until the player leaves the store.
+local function atAStore()
+    return _G.apAtAStore ~= nil and apAtAStore()
+end
+
+-- nil when the item fits, else why it waits.
+local function noRoom(family)
+    local ok, why = pcall(function()
         local player = Hyperspace.ships.player
         local system = family == "weapon" and player.weaponSystem or player.droneSystem
         if system ~= nil then
             local held = family == "weapon" and system.weapons or system.drones
             if held:size() < system.slot_count then
-                return true
+                return nil
             end
         end
-        return Hyperspace.App.gui.equipScreen:GetCargoHold():size() < CARGO_SLOTS
+        local held = Hyperspace.App.gui.equipScreen:GetCargoHold():size()
+        if held >= CARGO_SLOTS then
+            return CARGO_FULL
+        end
+        if held == CARGO_SLOTS - 1 and atAStore() then
+            return CARGO_KEPT
+        end
+        return nil
     end)
-    return not ok or room
+    return ok and why or nil
 end
 
 local function deliverEquipped(name, family, chosen)
@@ -54,11 +76,15 @@ local function deliverEquipped(name, family, chosen)
     if equipment == nil then
         return nil, "equipment screen unavailable"
     end
+    if not arrivalOpen and not chosen then
+        return nil, NEXT_JUMP
+    end
     if deliveredHere >= PER_BEACON and not chosen then
         return nil, "enough equipment for this beacon"
     end
-    if not hasRoom(family) then
-        return nil, CARGO_FULL
+    local why = noRoom(family)
+    if why ~= nil then
+        return nil, why
     end
     local blueprints = Hyperspace.Blueprints
     if family == "weapon" then
@@ -73,11 +99,42 @@ end
 script.on_internal_event(Defines.InternalEvents.JUMP_ARRIVE, function(shipManager)
     if shipManager ~= nil and shipManager.iShipId == 0 then
         deliveredHere = 0
+        justArrived = true
+        arrivalDue = true
+    end
+end)
+
+-- Held back by a fight, the arrival delivery waits for it to end, still at this beacon.
+local function deliverOnArrival()
+    if not (_G.apFillerCanDeliver and apFillerCanDeliver() and _G.apDeliverPending) then
+        return
+    end
+    arrivalDue = false
+    arrivalOpen = true
+    pcall(apDeliverPending)
+    arrivalOpen = false
+    local waiting = _G.apFillerEquipmentWaiting and apFillerEquipmentWaiting() or 0
+    if waiting > 0 then
+        equipLog(waiting .. " weapon(s) or drone(s) wait for the next jump")
+        if _G.apNotifyStatus then
+            _G.apNotifyStatus(apT("item.waiting_jump", { n = waiting }))
+        end
+    end
+end
+
+script.on_internal_event(Defines.InternalEvents.ON_TICK, function()
+    if justArrived then
+        justArrived = false
+        return
+    end
+    if arrivalDue then
+        deliverOnArrival()
     end
 end)
 
 script.on_init(function()
     deliveredHere = 0
+    arrivalDue = true
 end)
 
 local AUGMENT_SLOTS = 3

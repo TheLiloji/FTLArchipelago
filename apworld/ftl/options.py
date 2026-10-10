@@ -337,9 +337,9 @@ class CrossRunAchievementChecks(Toggle):
 class SystemBlueprints(DefaultOnToggle):
     """Whether system blueprints are items.
 
-    Without a system's blueprint, that system stays stuck at level 1: you can still install it in
-    a store, but it never goes past the first bar until Archipelago sends you the blueprint. A
-    ship that starts with the system keeps it: it is never torn out, only capped.
+    Without a system's blueprint, stores will not sell you that system, and a system your ship
+    starts with stays at level 1 until Archipelago sends you the blueprint: it is never torn out,
+    only capped.
 
     Turning this off also silences the five per-system blueprint logic options below, and leaves
     Sector Logic with nothing to require.

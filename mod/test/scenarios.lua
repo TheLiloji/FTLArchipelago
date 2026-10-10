@@ -89,9 +89,11 @@ local function stub(name, replacement)
     return function() _G[name] = previous end
 end
 
+-- Like the game: a jump, then the ticks after it, when weapons and drones come aboard.
 local function drain(times)
     for _ = 1, (times or 3) do
         sim.jumpArrive()
+        sim.tick(2)
     end
     apNotifyFlushForTesting()
 end
@@ -1271,9 +1273,13 @@ test("with weapon slots and the cargo hold full, weapons and drones wait for roo
     check(not shownKey("item.waiting_cargo"), "once, not at every retry")
     table.remove(sim.cargo)
     sim.tick(240)
-    equals(#sim.cargo, 4, "a freed cargo slot takes the next one")
+    equals(#sim.cargo, 3, "a slot freed during the stay stays free: selling does not refill it")
+    sim.jumpArrive()
+    sim.tick(240)
+    equals(#sim.cargo, 4, "the next arrival fills it")
     equals(#_G.apFillerPendingForTesting(), 1, "the other keeps waiting")
     sim.cargo = {}
+    sim.jumpArrive()
     sim.tick(240)
     equals(#_G.apFillerPendingForTesting(), 0, "and it comes when there is room")
     sim.cargoCap = 999
@@ -1304,7 +1310,7 @@ test("a weapon whose copy waits counts as received only once the copy is aboard"
     _G.apShopConfig.deliver = true
     local marked = {}
     local restore = stub("apNetItemDelivered", function(index) marked[#marked + 1] = index return true end)
-    for _ = 1, 4 do apDeliverEquipment({ kind = "weapon", bp = "BEAM_2", display = "Halberd Beam" }) end
+    for _ = 1, 4 do apQueueItem({ kind = "weapon", bp = "BEAM_2", display = "Halberd Beam" }) end
     apQueueItem({ kind = "shop", bp = "BEAM_2", display = "Halberd Beam", index = 7 })
     sim.tick(240)
     equals(#marked, 0, "held back by the beacon limit: not marked yet")
@@ -1321,7 +1327,7 @@ test("a copy still owed when the game closes comes aboard in the next run, not o
     _G.apShopConfig.deliver = true
     local marked = {}
     local restore = stub("apNetItemDelivered", function(index) marked[#marked + 1] = index return true end)
-    for _ = 1, 4 do apDeliverEquipment({ kind = "weapon", bp = "BEAM_2", display = "Halberd Beam" }) end
+    for _ = 1, 4 do apQueueItem({ kind = "weapon", bp = "BEAM_2", display = "Halberd Beam" }) end
     apQueueItem({ kind = "shop", bp = "BEAM_2", display = "Halberd Beam", index = 7 })
     sim.tick(240)
     equals(#marked, 0, "held back by the beacon limit")
@@ -1557,7 +1563,7 @@ test("immediate delivery gives one copy, and only one", function()
     equals(_G.apInventory.shopAvailability.LASER_BURST_3, 2, "but both count in the shop")
 end)
 
-test("a shop object delivered right away is announced only once", function()
+test("a shop object is announced once when it unlocks, and its copy once when it comes aboard", function()
     _G.apInventory = { ships = {}, shopAvailability = {} }
     apShopConfigure({ mode = "rarity_boost", deliver = true, baseline = {} })
     sim.startRun(true)
@@ -1572,9 +1578,8 @@ test("a shop object delivered right away is announced only once", function()
             shownCount = shownCount + 1
         end
     end
-    equals(shownCount, 1, "a single line on screen for a single item")
-    check(shownKey("shop.unlocked.aboard"),
-        "and it states both effects: sold in the shop, and one copy aboard")
+    equals(shownCount, 2, "one line when it unlocks, one when its copy lands at the next arrival")
+    check(shownKey("shop.unlocked", { item = "Artemis Missiles" }), "the first says it is sold in stores now")
     equals(sim.delivered(), 1, "the copy is delivered anyway")
 end)
 
@@ -7217,4 +7222,123 @@ test("shop per ship: a continued run sorts the shop again once its ship exists",
     sim.tick(1)
     equals(shownItems(), "Item 8", "the Rock's package as soon as the ship is there")
     sim.player.myBlueprint.blueprintName = "PLAYER_SHIP_HARD"
+end)
+
+test("at a store, a weapon that would go to cargo waits for the jump, so the freed slot is kept for buying", function()
+    sim.startRun(true)
+    sim.slots.weapon = 1
+    sim.equipped.weapon = { "BEAM_2" }
+    sim.cargoCap = 4
+    sim.cargo = { "BEAM_2", "BEAM_2", "BEAM_2" }
+    sim.setStore(true)
+    sim.clearLog()
+    apQueueItem({ kind = "weapon", bp = "LASER_BURST_3", display = "Burst Laser Mark III" })
+    sim.tick(240)
+    equals(#sim.cargo, 3, "the free cargo slot stays free at the store")
+    equals(#_G.apFillerPendingForTesting(), 1, "the weapon waits")
+    check(not shownKey("item.waiting_cargo"), "and the player is not told the cargo hold is full: it is not")
+    sim.equipped.weapon = {}
+    sim.jumpArrive()
+    sim.tick(240)
+    equals(#sim.equipped.weapon, 1, "arriving at another store, a free weapon slot still takes it")
+    apQueueItem({ kind = "weapon", bp = "BEAM_2", display = "Halberd Beam" })
+    sim.jumpArrive()
+    sim.tick(240)
+    equals(#_G.apFillerPendingForTesting(), 1, "the next one waits again for want of a slot")
+    sim.setStore(false)
+    sim.jumpArrive()
+    sim.tick(240)
+    equals(#sim.cargo, 4, "after the jump, away from the store, it goes to cargo")
+    equals(#_G.apFillerPendingForTesting(), 0, "nothing left waiting")
+    sim.cargo = {}
+    sim.cargoCap = 999
+end)
+
+test("an Archipelago beacon counts as a store too, though its store comes from a sub-event", function()
+    sim.startRun(true)
+    sim.slots.weapon = 0
+    sim.cargoCap = 4
+    sim.cargo = { "BEAM_2", "BEAM_2", "BEAM_2" }
+    sim.starMap.currentLoc = sim.makeLocation()
+    sim.starMap.currentLoc.event = { store = false, eventName = "AP_STORE_EVENT" }
+    check(apAtAStore(), "the beacon is seen as a store")
+    apQueueItem({ kind = "weapon", bp = "LASER_BURST_3", display = "Burst Laser Mark III" })
+    sim.tick(240)
+    equals(#sim.cargo, 3, "the free cargo slot stays free for buying a package")
+    sim.starMap.currentLoc.event = { store = false, eventName = "HOSTILE_REBEL" }
+    check(not apAtAStore(), "an ordinary beacon is not")
+    sim.cargo = {}
+    sim.cargoCap = 999
+end)
+
+test("at a store, the cargo hold still fills up, all but its last slot", function()
+    sim.startRun(true)
+    sim.slots.weapon = 0
+    sim.cargoCap = 4
+    sim.cargo = { "BEAM_2" }
+    sim.setStore(true)
+    for _ = 1, 3 do apQueueItem({ kind = "weapon", bp = "LASER_BURST_3", display = "Burst Laser Mark III" }) end
+    sim.tick(240)
+    equals(#sim.cargo, 3, "two arrive in cargo, the last slot stays free")
+    equals(#_G.apFillerPendingForTesting(), 1, "only the third waits")
+    sim.cargo = {}
+    sim.cargoCap = 999
+end)
+
+test("arriving at a store, a delivery made at the jump does not take the last cargo slot", function()
+    sim.startRun(true)
+    sim.slots.weapon = 0
+    sim.cargoCap = 4
+    sim.cargo = { "BEAM_2", "BEAM_2", "BEAM_2" }
+    sim.setStore(false)
+    sim.setStore(true)
+    apQueueItem({ kind = "weapon", bp = "LASER_BURST_3", display = "Burst Laser Mark III" })
+    sim.tick(240)
+    equals(#sim.cargo, 3, "held at the store")
+    -- The game still points at the beacon left behind during the jump: here, one without a store.
+    sim.starMap.currentLoc.event = { store = false, eventName = "NOTHING" }
+    sim.jumpArrive()
+    sim.starMap.currentLoc.event = { store = true }
+    equals(#sim.cargo, 3, "the delivery made at the jump waits for the new beacon to be known")
+    sim.tick(240)
+    equals(#sim.cargo, 3, "and the new beacon has a store: the last slot stays free")
+    sim.cargo = {}
+    sim.cargoCap = 999
+end)
+
+test("a weapon received in the middle of a stay waits for the next jump, and the player is told", function()
+    sim.startRun(true)
+    sim.tick(10)
+    sim.slots.weapon = 4
+    sim.equipped.weapon = {}
+    apQueueItem({ kind = "weapon", bp = "LASER_BURST_3", display = "Burst Laser Mark III" })
+    sim.tick(240)
+    equals(#sim.equipped.weapon, 0, "not in the middle of the stay")
+    sim.clearLog()
+    sim.jumpArrive()
+    sim.tick(2)
+    equals(#sim.equipped.weapon, 1, "it comes aboard as the ship arrives")
+    sim.slots.weapon = 0
+    sim.cargo = { "BEAM_2", "BEAM_2", "BEAM_2", "BEAM_2" }
+    for _ = 1, 3 do apQueueItem({ kind = "weapon", bp = "BEAM_2", display = "Halberd Beam" }) end
+    sim.clearLog()
+    sim.jumpArrive()
+    sim.tick(2)
+    check(shownKey("item.waiting_jump", { n = 3 }), "what does not fit: the player reads that three wait for the next jump")
+    sim.cargo = {}
+end)
+
+test("arriving in a fight, weapons come aboard once it is over, at the same beacon", function()
+    sim.startRun(true)
+    sim.tick(10)
+    sim.slots.weapon = 4
+    sim.equipped.weapon = {}
+    apQueueItem({ kind = "weapon", bp = "LASER_BURST_3", display = "Burst Laser Mark III" })
+    sim.enemy = sim.makeShip(1)
+    sim.jumpArrive()
+    sim.tick(240)
+    equals(#sim.equipped.weapon, 0, "not during the fight")
+    sim.enemy = nil
+    sim.tick(2)
+    equals(#sim.equipped.weapon, 1, "right after it, without waiting for another jump")
 end)
