@@ -148,3 +148,536 @@
         <mod-before:event name="AP_STORE_EVENT" min="1" max="1"/>
     </mod:insertByFind>
 </mod:findName>
+
+<!-- Multiverse sectors: absent from the base game, so nothing happens there. -->
+
+<mod:findName type="sectorDescription" name="SECTOR_FEDERATION" panic="false">
+    <mod:insertByFind>
+        <mod:findLike type="event" limit="1" panic="false"/>
+        <mod-before:event name="AP_STORE_EVENT" min="1" max="1"/>
+        <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
+        <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
+    </mod:insertByFind>
+</mod:findName>
+
+<mod:findName type="sectorDescription" name="SECTOR_FEDERATION_UNIQUE" panic="false">
+    <mod:insertByFind>
+        <mod:findLike type="event" limit="1" panic="false"/>
+        <mod-before:event name="AP_STORE_EVENT" min="1" max="1"/>
+        <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
+        <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
+    </mod:insertByFind>
+</mod:findName>
+
+<mod:findName type="sectorDescription" name="SECTOR_UNION" panic="false">
+    <mod:insertByFind>
+        <mod:findLike type="event" limit="1" panic="false"/>
+        <mod-before:event name="AP_STORE_EVENT" min="1" max="1"/>
+        <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
+        <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
+    </mod:insertByFind>
+</mod:findName>
+
+<mod:findName type="sectorDescription" name="SECTOR_UNION_UNIQUE" panic="false">
+    <mod:insertByFind>
+        <mod:findLike type="event" limit="1" panic="false"/>
+        <mod-before:event name="AP_STORE_EVENT" min="1" max="1"/>
+        <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
+        <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
+    </mod:insertByFind>
+</mod:findName>
+
+<mod:findName type="sectorDescription" name="SECTOR_MILITIA_UNIQUE" panic="false">
+    <mod:insertByFind>
+        <mod:findLike type="event" limit="1" panic="false"/>
+        <mod-before:event name="AP_STORE_EVENT" min="1" max="1"/>
+        <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
+        <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
+    </mod:insertByFind>
+</mod:findName>
+
+<mod:findName type="sectorDescription" name="SECTOR_HARMONY" panic="false">
+    <mod:insertByFind>
+        <mod:findLike type="event" limit="1" panic="false"/>
+        <mod-before:event name="AP_STORE_EVENT" min="1" max="1"/>
+        <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
+        <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
+    </mod:insertByFind>
+</mod:findName>
+
+<mod:findName type="sectorDescription" name="SECTOR_HARMONY_UNIQUE" panic="false">
+    <mod:insertByFind>
+        <mod:findLike type="event" limit="1" panic="false"/>
+        <mod-before:event name="AP_STORE_EVENT" min="1" max="1"/>
+        <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
+        <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
+    </mod:insertByFind>
+</mod:findName>
+
+<mod:findName type="sectorDescription" name="SECTOR_MINISTRY" panic="false">
+    <mod:insertByFind>
+        <mod:findLike type="event" limit="1" panic="false"/>
+        <mod-before:event name="AP_STORE_EVENT" min="1" max="1"/>
+        <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
+        <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
+    </mod:insertByFind>
+</mod:findName>
+
+<mod:findName type="sectorDescription" name="SECTOR_MINISTRY_UNIQUE" panic="false">
+    <mod:insertByFind>
+        <mod:findLike type="event" limit="1" panic="false"/>
+        <mod-before:event name="AP_STORE_EVENT" min="1" max="1"/>
+        <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
+        <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
+    </mod:insertByFind>
+</mod:findName>
+
+<mod:findName type="sectorDescription" name="SECTOR_MONK_UNIQUE" panic="false">
+    <mod:insertByFind>
+        <mod:findLike type="event" limit="1" panic="false"/>
+        <mod-before:event name="AP_STORE_EVENT" min="1" max="1"/>
+        <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
+        <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
+    </mod:insertByFind>
+</mod:findName>
+
+<mod:findName type="sectorDescription" name="SECTOR_GATHERING" panic="false">
+    <mod:insertByFind>
+        <mod:findLike type="event" limit="1" panic="false"/>
+        <mod-before:event name="AP_STORE_EVENT" min="1" max="1"/>
+        <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
+        <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
+    </mod:insertByFind>
+</mod:findName>
+
+<mod:findName type="sectorDescription" name="SECTOR_GATHERING_UNIQUE" panic="false">
+    <mod:insertByFind>
+        <mod:findLike type="event" limit="1" panic="false"/>
+        <mod-before:event name="AP_STORE_EVENT" min="1" max="1"/>
+        <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
+        <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
+    </mod:insertByFind>
+</mod:findName>
+
+<mod:findName type="sectorDescription" name="SECTOR_FREEMANTIS" panic="false">
+    <mod:insertByFind>
+        <mod:findLike type="event" limit="1" panic="false"/>
+        <mod-before:event name="AP_STORE_EVENT" min="1" max="1"/>
+        <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
+        <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
+    </mod:insertByFind>
+</mod:findName>
+
+<mod:findName type="sectorDescription" name="SECTOR_FREEMANTIS_UNIQUE" panic="false">
+    <mod:insertByFind>
+        <mod:findLike type="event" limit="1" panic="false"/>
+        <mod-before:event name="AP_STORE_EVENT" min="1" max="1"/>
+        <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
+        <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
+    </mod:insertByFind>
+</mod:findName>
+
+<mod:findName type="sectorDescription" name="SECTOR_IMPERIAL" panic="false">
+    <mod:insertByFind>
+        <mod:findLike type="event" limit="1" panic="false"/>
+        <mod-before:event name="AP_STORE_EVENT" min="1" max="1"/>
+        <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
+        <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
+    </mod:insertByFind>
+</mod:findName>
+
+<mod:findName type="sectorDescription" name="SECTOR_IMPERIAL_UNIQUE" panic="false">
+    <mod:insertByFind>
+        <mod:findLike type="event" limit="1" panic="false"/>
+        <mod-before:event name="AP_STORE_EVENT" min="1" max="1"/>
+        <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
+        <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
+    </mod:insertByFind>
+</mod:findName>
+
+<mod:findName type="sectorDescription" name="SECTOR_OUTCAST" panic="false">
+    <mod:insertByFind>
+        <mod:findLike type="event" limit="1" panic="false"/>
+        <mod-before:event name="AP_STORE_EVENT" min="1" max="1"/>
+        <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
+        <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
+    </mod:insertByFind>
+</mod:findName>
+
+<mod:findName type="sectorDescription" name="SECTOR_OUTCAST_UNIQUE" panic="false">
+    <mod:insertByFind>
+        <mod:findLike type="event" limit="1" panic="false"/>
+        <mod-before:event name="AP_STORE_EVENT" min="1" max="1"/>
+        <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
+        <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
+    </mod:insertByFind>
+</mod:findName>
+
+<mod:findName type="sectorDescription" name="SECTOR_UNEXPLORED_GENERIC" panic="false">
+    <mod:insertByFind>
+        <mod:findLike type="event" limit="1" panic="false"/>
+        <mod-before:event name="AP_STORE_EVENT" min="1" max="1"/>
+        <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
+        <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
+    </mod:insertByFind>
+</mod:findName>
+
+<mod:findName type="sectorDescription" name="SECTOR_ASTEROID_GENERIC" panic="false">
+    <mod:insertByFind>
+        <mod:findLike type="event" limit="1" panic="false"/>
+        <mod-before:event name="AP_STORE_EVENT" min="1" max="1"/>
+        <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
+        <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
+    </mod:insertByFind>
+</mod:findName>
+
+<mod:findName type="sectorDescription" name="SECTOR_STARGROVE_UNIQUE" panic="false">
+    <mod:insertByFind>
+        <mod:findLike type="event" limit="1" panic="false"/>
+        <mod-before:event name="AP_STORE_EVENT" min="1" max="1"/>
+        <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
+        <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
+    </mod:insertByFind>
+</mod:findName>
+
+<mod:findName type="sectorDescription" name="SECTOR_ABANDONED_GENERIC" panic="false">
+    <mod:insertByFind>
+        <mod:findLike type="event" limit="1" panic="false"/>
+        <mod-before:event name="AP_STORE_EVENT" min="1" max="1"/>
+        <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
+        <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
+    </mod:insertByFind>
+</mod:findName>
+
+<mod:findName type="sectorDescription" name="SECTOR_ABANDONED_GENERIC_HEKTAR" panic="false">
+    <mod:insertByFind>
+        <mod:findLike type="event" limit="1" panic="false"/>
+        <mod-before:event name="AP_STORE_EVENT" min="1" max="1"/>
+        <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
+        <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
+    </mod:insertByFind>
+</mod:findName>
+
+<mod:findName type="sectorDescription" name="SECTOR_SEPARATIST" panic="false">
+    <mod:insertByFind>
+        <mod:findLike type="event" limit="1" panic="false"/>
+        <mod-before:event name="AP_STORE_EVENT" min="1" max="1"/>
+        <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
+        <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
+    </mod:insertByFind>
+</mod:findName>
+
+<mod:findName type="sectorDescription" name="SECTOR_SEPARATIST_UNIQUE" panic="false">
+    <mod:insertByFind>
+        <mod:findLike type="event" limit="1" panic="false"/>
+        <mod-before:event name="AP_STORE_EVENT" min="1" max="1"/>
+        <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
+        <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
+    </mod:insertByFind>
+</mod:findName>
+
+<mod:findName type="sectorDescription" name="SECTOR_CONFEDERATE" panic="false">
+    <mod:insertByFind>
+        <mod:findLike type="event" limit="1" panic="false"/>
+        <mod-before:event name="AP_STORE_EVENT" min="1" max="1"/>
+        <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
+        <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
+    </mod:insertByFind>
+</mod:findName>
+
+<mod:findName type="sectorDescription" name="SECTOR_CONFEDERATE_UNIQUE" panic="false">
+    <mod:insertByFind>
+        <mod:findLike type="event" limit="1" panic="false"/>
+        <mod-before:event name="AP_STORE_EVENT" min="1" max="1"/>
+        <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
+        <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
+    </mod:insertByFind>
+</mod:findName>
+
+<mod:findName type="sectorDescription" name="SECTOR_GENIOCRACY" panic="false">
+    <mod:insertByFind>
+        <mod:findLike type="event" limit="1" panic="false"/>
+        <mod-before:event name="AP_STORE_EVENT" min="1" max="1"/>
+        <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
+        <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
+    </mod:insertByFind>
+</mod:findName>
+
+<mod:findName type="sectorDescription" name="SECTOR_GENIOCRACY_UNIQUE" panic="false">
+    <mod:insertByFind>
+        <mod:findLike type="event" limit="1" panic="false"/>
+        <mod-before:event name="AP_STORE_EVENT" min="1" max="1"/>
+        <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
+        <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
+    </mod:insertByFind>
+</mod:findName>
+
+<mod:findName type="sectorDescription" name="SECTOR_REPUBLIC" panic="false">
+    <mod:insertByFind>
+        <mod:findLike type="event" limit="1" panic="false"/>
+        <mod-before:event name="AP_STORE_EVENT" min="1" max="1"/>
+        <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
+        <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
+    </mod:insertByFind>
+</mod:findName>
+
+<mod:findName type="sectorDescription" name="SECTOR_REPUBLIC_UNIQUE" panic="false">
+    <mod:insertByFind>
+        <mod:findLike type="event" limit="1" panic="false"/>
+        <mod-before:event name="AP_STORE_EVENT" min="1" max="1"/>
+        <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
+        <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
+    </mod:insertByFind>
+</mod:findName>
+
+<mod:findName type="sectorDescription" name="SECTOR_REPUBLIC_HEKTAR" panic="false">
+    <mod:insertByFind>
+        <mod:findLike type="event" limit="1" panic="false"/>
+        <mod-before:event name="AP_STORE_EVENT" min="1" max="1"/>
+        <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
+        <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
+    </mod:insertByFind>
+</mod:findName>
+
+<mod:findName type="sectorDescription" name="SECTOR_PIRATE" panic="false">
+    <mod:insertByFind>
+        <mod:findLike type="event" limit="1" panic="false"/>
+        <mod-before:event name="AP_STORE_EVENT" min="1" max="1"/>
+        <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
+        <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
+    </mod:insertByFind>
+</mod:findName>
+
+<mod:findName type="sectorDescription" name="SECTOR_PIRATE_UNIQUE" panic="false">
+    <mod:insertByFind>
+        <mod:findLike type="event" limit="1" panic="false"/>
+        <mod-before:event name="AP_STORE_EVENT" min="1" max="1"/>
+        <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
+        <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
+    </mod:insertByFind>
+</mod:findName>
+
+<mod:findName type="sectorDescription" name="SECTOR_PIRATE_HEKTAR" panic="false">
+    <mod:insertByFind>
+        <mod:findLike type="event" limit="1" panic="false"/>
+        <mod-before:event name="AP_STORE_EVENT" min="1" max="1"/>
+        <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
+        <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
+    </mod:insertByFind>
+</mod:findName>
+
+<mod:findName type="sectorDescription" name="SECTOR_VAGABOND" panic="false">
+    <mod:insertByFind>
+        <mod:findLike type="event" limit="1" panic="false"/>
+        <mod-before:event name="AP_STORE_EVENT" min="1" max="1"/>
+        <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
+        <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
+    </mod:insertByFind>
+</mod:findName>
+
+<mod:findName type="sectorDescription" name="SECTOR_VAGABOND_UNIQUE" panic="false">
+    <mod:insertByFind>
+        <mod:findLike type="event" limit="1" panic="false"/>
+        <mod-before:event name="AP_STORE_EVENT" min="1" max="1"/>
+        <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
+        <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
+    </mod:insertByFind>
+</mod:findName>
+
+<mod:findName type="sectorDescription" name="SECTOR_LOSTSUN_UNIQUE" panic="false">
+    <mod:insertByFind>
+        <mod:findLike type="event" limit="1" panic="false"/>
+        <mod-before:event name="AP_STORE_EVENT" min="1" max="1"/>
+        <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
+        <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
+    </mod:insertByFind>
+</mod:findName>
+
+<mod:findName type="sectorDescription" name="SECTOR_CLAN_UNIQUE" panic="false">
+    <mod:insertByFind>
+        <mod:findLike type="event" limit="1" panic="false"/>
+        <mod-before:event name="AP_STORE_EVENT" min="1" max="1"/>
+        <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
+        <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
+    </mod:insertByFind>
+</mod:findName>
+
+<mod:findName type="sectorDescription" name="SECTOR_LANIUS_UNIQUE" panic="false">
+    <mod:insertByFind>
+        <mod:findLike type="event" limit="1" panic="false"/>
+        <mod-before:event name="AP_STORE_EVENT" min="1" max="1"/>
+        <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
+        <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
+    </mod:insertByFind>
+</mod:findName>
+
+<mod:findName type="sectorDescription" name="SECTOR_REBEL" panic="false">
+    <mod:insertByFind>
+        <mod:findLike type="event" limit="1" panic="false"/>
+        <mod-before:event name="AP_STORE_EVENT" min="1" max="1"/>
+        <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
+        <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
+    </mod:insertByFind>
+</mod:findName>
+
+<mod:findName type="sectorDescription" name="SECTOR_REBEL_UNIQUE" panic="false">
+    <mod:insertByFind>
+        <mod:findLike type="event" limit="1" panic="false"/>
+        <mod-before:event name="AP_STORE_EVENT" min="1" max="1"/>
+        <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
+        <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
+    </mod:insertByFind>
+</mod:findName>
+
+<mod:findName type="sectorDescription" name="SECTOR_AUTO" panic="false">
+    <mod:insertByFind>
+        <mod:findLike type="event" limit="1" panic="false"/>
+        <mod-before:event name="AP_STORE_EVENT" min="1" max="1"/>
+        <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
+        <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
+    </mod:insertByFind>
+</mod:findName>
+
+<mod:findName type="sectorDescription" name="SECTOR_AUTO_UNIQUE" panic="false">
+    <mod:insertByFind>
+        <mod:findLike type="event" limit="1" panic="false"/>
+        <mod-before:event name="AP_STORE_EVENT" min="1" max="1"/>
+        <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
+        <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
+    </mod:insertByFind>
+</mod:findName>
+
+<mod:findName type="sectorDescription" name="SECTOR_HIVE" panic="false">
+    <mod:insertByFind>
+        <mod:findLike type="event" limit="1" panic="false"/>
+        <mod-before:event name="AP_STORE_EVENT" min="1" max="1"/>
+        <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
+        <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
+    </mod:insertByFind>
+</mod:findName>
+
+<mod:findName type="sectorDescription" name="SECTOR_HIVE_UNIQUE" panic="false">
+    <mod:insertByFind>
+        <mod:findLike type="event" limit="1" panic="false"/>
+        <mod-before:event name="AP_STORE_EVENT" min="1" max="1"/>
+        <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
+        <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
+    </mod:insertByFind>
+</mod:findName>
+
+<mod:findName type="sectorDescription" name="SECTOR_THEOCRACY" panic="false">
+    <mod:insertByFind>
+        <mod:findLike type="event" limit="1" panic="false"/>
+        <mod-before:event name="AP_STORE_EVENT" min="1" max="1"/>
+        <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
+        <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
+    </mod:insertByFind>
+</mod:findName>
+
+<mod:findName type="sectorDescription" name="SECTOR_THEOCRACY_UNIQUE" panic="false">
+    <mod:insertByFind>
+        <mod:findLike type="event" limit="1" panic="false"/>
+        <mod-before:event name="AP_STORE_EVENT" min="1" max="1"/>
+        <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
+        <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
+    </mod:insertByFind>
+</mod:findName>
+
+<mod:findName type="sectorDescription" name="SECTOR_KLEPTOCRACY" panic="false">
+    <mod:insertByFind>
+        <mod:findLike type="event" limit="1" panic="false"/>
+        <mod-before:event name="AP_STORE_EVENT" min="1" max="1"/>
+        <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
+        <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
+    </mod:insertByFind>
+</mod:findName>
+
+<mod:findName type="sectorDescription" name="SECTOR_KLEPTOCRACY_UNIQUE" panic="false">
+    <mod:insertByFind>
+        <mod:findLike type="event" limit="1" panic="false"/>
+        <mod-before:event name="AP_STORE_EVENT" min="1" max="1"/>
+        <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
+        <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
+    </mod:insertByFind>
+</mod:findName>
+
+<mod:findName type="sectorDescription" name="SECTOR_KLEPTOCRACY_HEKTAR" panic="false">
+    <mod:insertByFind>
+        <mod:findLike type="event" limit="1" panic="false"/>
+        <mod-before:event name="AP_STORE_EVENT" min="1" max="1"/>
+        <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
+        <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
+    </mod:insertByFind>
+</mod:findName>
+
+<mod:findName type="sectorDescription" name="SECTOR_DUSKBRINGER" panic="false">
+    <mod:insertByFind>
+        <mod:findLike type="event" limit="1" panic="false"/>
+        <mod-before:event name="AP_STORE_EVENT" min="1" max="1"/>
+        <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
+        <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
+    </mod:insertByFind>
+</mod:findName>
+
+<mod:findName type="sectorDescription" name="SECTOR_DUSKBRINGER_UNIQUE" panic="false">
+    <mod:insertByFind>
+        <mod:findLike type="event" limit="1" panic="false"/>
+        <mod-before:event name="AP_STORE_EVENT" min="1" max="1"/>
+        <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
+        <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
+    </mod:insertByFind>
+</mod:findName>
+
+<mod:findName type="sectorDescription" name="SECTOR_DYNASTY" panic="false">
+    <mod:insertByFind>
+        <mod:findLike type="event" limit="1" panic="false"/>
+        <mod-before:event name="AP_STORE_EVENT" min="1" max="1"/>
+        <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
+        <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
+    </mod:insertByFind>
+</mod:findName>
+
+<mod:findName type="sectorDescription" name="SECTOR_DYNASTY_UNIQUE" panic="false">
+    <mod:insertByFind>
+        <mod:findLike type="event" limit="1" panic="false"/>
+        <mod-before:event name="AP_STORE_EVENT" min="1" max="1"/>
+        <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
+        <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
+    </mod:insertByFind>
+</mod:findName>
+
+<mod:findName type="sectorDescription" name="SECTOR_COALITION" panic="false">
+    <mod:insertByFind>
+        <mod:findLike type="event" limit="1" panic="false"/>
+        <mod-before:event name="AP_STORE_EVENT" min="1" max="1"/>
+        <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
+        <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
+    </mod:insertByFind>
+</mod:findName>
+
+<mod:findName type="sectorDescription" name="SECTOR_COALITION_UNIQUE" panic="false">
+    <mod:insertByFind>
+        <mod:findLike type="event" limit="1" panic="false"/>
+        <mod-before:event name="AP_STORE_EVENT" min="1" max="1"/>
+        <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
+        <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
+    </mod:insertByFind>
+</mod:findName>
+
+<mod:findName type="sectorDescription" name="SECTOR_MORPH_UNIQUE" panic="false">
+    <mod:insertByFind>
+        <mod:findLike type="event" limit="1" panic="false"/>
+        <mod-before:event name="AP_STORE_EVENT" min="1" max="1"/>
+        <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
+        <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
+    </mod:insertByFind>
+</mod:findName>
+
+<mod:findName type="sectorDescription" name="SECTOR_HACKER_UNIQUE" panic="false">
+    <mod:insertByFind>
+        <mod:findLike type="event" limit="1" panic="false"/>
+        <mod-before:event name="AP_STORE_EVENT" min="1" max="1"/>
+        <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
+        <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
+    </mod:insertByFind>
+</mod:findName>
