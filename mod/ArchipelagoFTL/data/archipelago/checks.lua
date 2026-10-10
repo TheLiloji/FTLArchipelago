@@ -454,10 +454,21 @@ local function pollSystems(layout)
     end
 end
 
-local startingRaces = nil
+-- The crew aboard when the run started, one by one: a human who joins the Kestrel's human crew is still a
+-- recruit, so the check goes by who joined, not by which species was already there.
+local startingCrew = nil
 
-local function racesAboard()
-    local races = {}
+local function crewKey(member)
+    local ok, id = pcall(function() return member.extend.selfId end)
+    if ok and id ~= nil and id >= 0 then
+        return "id" .. tostring(id)
+    end
+    return "name:" .. tostring(member.name) .. ":" .. tostring(member.species)
+end
+
+-- Our living crew, not counting drones or boarders: who -> species.
+local function crewAboard()
+    local crew = {}
     local player = Hyperspace.ships.player
     if player == nil then
         return nil
@@ -473,24 +484,24 @@ local function racesAboard()
         if member.iShipId == 0 and not member.bDead and not drone then
             local species = tostring(member.species or "")
             if species ~= "" then
-                races[species] = true
+                crew[crewKey(member)] = species
             end
         end
     end
-    return races
+    return crew
 end
 
 local function pollCrew()
-    local present = racesAboard()
+    local present = crewAboard()
     if present == nil then
         return
     end
-    if startingRaces == nil then
-        startingRaces = present
+    if startingCrew == nil then
+        startingCrew = present
         return
     end
-    for species in pairs(present) do
-        if not startingRaces[species] then
+    for key, species in pairs(present) do
+        if startingCrew[key] == nil then
             local label = (_G.apRaceLabel and _G.apRaceLabel(species)) or species
             apSendCheck("crew:" .. species, apT("check.label.crew", { name = label }))
         end
@@ -498,9 +509,9 @@ local function pollCrew()
 end
 
 script.on_internal_event(Defines.InternalEvents.ON_TICK, function()
-    if startingRaces == nil then
+    if startingCrew == nil then
         pcall(function()
-            startingRaces = racesAboard()
+            startingCrew = crewAboard()
         end)
     end
     apTry(TAG, function()
@@ -575,7 +586,7 @@ end
 -- Hyperspace loads the run's variables after on_init, so a continued run reads its seed later.
 script.on_init(function(newGame)
     lastSector = nil
-    startingRaces = nil
+    startingCrew = nil
     seedlessWarned = false
     shipRefusal = nil
     shipWarned = false
