@@ -256,7 +256,7 @@ function apRelockShips()
     if #extra == 0 then
         return 0
     end
-    local locked = apNetLockShips(extra) or 0
+    local locked = math.floor(apNetLockShips(extra) or 0)
     if locked > 0 then
         unlockLog(locked .. " ship(s) locked again, not given by Archipelago: " .. table.concat(extra, ", "))
         if _G.apNotifyStatus then
