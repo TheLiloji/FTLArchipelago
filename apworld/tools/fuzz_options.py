@@ -45,7 +45,7 @@ from Fill import FillError, distribute_items_restrictive  # noqa: E402
 from Options import Choice, NamedRange, OptionSet, Range, Toggle  # noqa: E402
 from test.general import setup_multiworld  # noqa: E402
 from worlds.ftl import FTLWorld, data  # noqa: E402
-from worlds.ftl.options import FTLOptions  # noqa: E402
+from worlds.ftl.options import FTLOptions, VictoriesRequired  # noqa: E402
 
 COMMON = {
     "progression_balancing", "accessibility", "local_items", "non_local_items",
@@ -79,9 +79,10 @@ def sample(rng: random.Random, name: str, option: type) -> object:
 
 def make_the_goal_reachable(rng: random.Random, options: dict) -> dict:
     last_variant = options["ship_layouts"]
-    available = [layout.display for layout in data.LAYOUTS if layout.variant <= last_variant]
+    pool = data.MV_LAYOUTS if options.get("multiverse") else data.LAYOUTS
+    available = [layout.display for layout in pool if layout.variant <= last_variant]
     if options["goal"] == 0:
-        options["victories_required"] = rng.randint(1, len(available))
+        options["victories_required"] = rng.randint(1, min(len(available), VictoriesRequired.range_end))
         options["victory_layouts"] = []
     else:
         options["victory_layouts"] = sorted(

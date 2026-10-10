@@ -201,9 +201,10 @@ def main() -> int:
         check(False, "ftl.dat extraction produced no blueprint at all: "
                      "ftlman or the archive is broken")
     else:
+        multiverse = {data.SHOP_ITEM_NAMES[item] for item in data.MV_SHOP_ITEMS}
         unknown = sorted(
             item.blueprint for item in data.ITEMS
-            if item.kind == data.KIND_SHOP and item.blueprint not in known
+            if item.kind == data.KIND_SHOP and item.blueprint not in known and item.name not in multiverse
         )
         check(not unknown,
               f"shop items unknown to ftl.dat: {unknown}")

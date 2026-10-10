@@ -30,6 +30,13 @@ Three things are taken away from you at the start and handed back as items.
 Kestrel, see below) and the hangar fills up as ship keys arrive. Type B and Type C layouts are items of their
 own by default, so you no longer have to earn two achievements with a ship before you may fly its Type B.
 
+**Multiverse** (off by default) plays with FTL: Multiverse 5.5.1 instead: its ships replace the base game's, and
+you start with the MV Kestrel Cruiser. Apply Multiverse's Data and Assets with the mod. Victory Layouts then
+takes Multiverse's names, like "Union Cruiser B". Shop Weapons, Shop Drones and Shop Augments draw from Multiverse's
+own catalogue (120 weapons, 25 drones and 22 augments for sale).
+**Multiverse Achievement Checks** (off by default) adds 26 of Multiverse's achievements (Accomplishments and
+Special Events) as checks. They only ever hold filler or traps.
+
 **Layouts in the Seed** keeps 7 layouts by default, drawn at random among those Ship Layouts allows. Your first
 ship and the Kestrel A are always in, and a Type B or C only comes with its ship's Type A. The others have no key
 and no check.

@@ -75,7 +75,7 @@ function apApplySlotData(slotData, slotName, solo)
         contractLog(string.format("seed fingerprint: stored %d, incoming %d, hash %s",
             stored, incoming, tostring(identity.hash)))
         if incoming ~= stored
-            and _G.apProfileHasShips and _G.apProfileHasShips() then
+            and _G.apProfileHasShips and _G.apProfileHasShips(slotData.all_layouts) then
             state.seedChangedWithUnlocks = true
             state.seedChangeReason = stored == 0 and "foreign" or "seedchange"
             state.refusedFingerprint = incoming
@@ -162,9 +162,12 @@ function apApplySlotData(slotData, slotName, solo)
 
     state.goal = slotData.goal
     state.startShip = slotData.start_ship
+    state.multiverse = slotData.multiverse == true
     state.layouts = nil
+    state.layoutList = nil
     if type(slotData.layouts) == "table" then
         state.layouts = {}
+        state.layoutList = slotData.layouts
         for _, blueprint in ipairs(slotData.layouts) do
             state.layouts[blueprint] = true
         end
@@ -356,12 +359,32 @@ function apSeedFingerprint(identity)
     return fingerprint
 end
 
+function apSeedIsMultiverse()
+    return state.multiverse == true
+end
+
 function apGoal()
     return state.goal
 end
 
 function apSeedOption(name)
     return (state.options or {})[name]
+end
+
+-- The seed's ships, one entry per class in the seed's order. Without a list, the base game's ships.
+function apSeedShips()
+    if state.layoutList == nil then
+        return (_G.apGameData or {}).ships or {}
+    end
+    local ships, seen = {}, {}
+    for _, blueprint in ipairs(state.layoutList) do
+        local class = tostring(blueprint):gsub("_[23]$", "")
+        if not seen[class] then
+            seen[class] = true
+            ships[#ships + 1] = { name = class, layouts = 3 }
+        end
+    end
+    return ships
 end
 
 -- Older seeds do not list their layouts: all of them are in.
@@ -432,6 +455,19 @@ end
 
 function apLocationNameFor(checkKey)
     return (state.locNames or {})[checkKey]
+end
+
+-- Every achievement the seed has a check for.
+function apSeedAchievements()
+    local found = {}
+    for key in pairs(state.locNames or {}) do
+        local achievement = tostring(key):match("^ach:(.+)$")
+        if achievement then
+            found[#found + 1] = achievement
+        end
+    end
+    table.sort(found)
+    return found
 end
 
 function apSystemCapsActive()

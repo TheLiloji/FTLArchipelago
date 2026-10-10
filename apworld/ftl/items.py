@@ -66,7 +66,8 @@ def selected_shop_items(options, rng) -> tuple[data.ShopItem, ...]:
     for family, count in requested.items():
         if count <= 0:
             continue
-        pool = list(data.SHOP_ITEMS_BY_FAMILY.get(family, ()))
+        catalogue = data.MV_SHOP_ITEMS_BY_FAMILY if locations.multiverse(options) else data.SHOP_ITEMS_BY_FAMILY
+        pool = list(catalogue.get(family, ()))
         if len(pool) <= count:
             chosen.extend(pool)
         else:
@@ -94,7 +95,7 @@ def enabled_items(options, shop_items: tuple[data.ShopItem, ...] = ()) -> tuple[
     ship_room = locations.ship_systems(options)
     per_ship = bool(options.progressive_systems_per_ship)
     layout_items = options.layout_unlocks == options.layout_unlocks.option_items
-    shop_blueprints = {item.blueprint for item in shop_items}
+    shop_names = {data.SHOP_ITEM_NAMES[item] for item in shop_items}
     bundle_counts = {family: len(chunk) for family, chunk in bundled_families(options, shop_items).items()}
 
     kept: list[data.Item] = []
@@ -133,7 +134,7 @@ def enabled_items(options, shop_items: tuple[data.ShopItem, ...] = ()) -> tuple[
             if options.trap_chance.value > 0:
                 kept.append(item)
         elif group in (data.GROUP_SHOP_WEAPONS, data.GROUP_SHOP_DRONES, data.GROUP_SHOP_AUGMENTS):
-            if item.blueprint in shop_blueprints and ftl_options.bundle_size(options, item.family) == 1:
+            if item.name in shop_names and ftl_options.bundle_size(options, item.family) == 1:
                 kept.append(item)
         elif group == data.GROUP_BUNDLES:
             if int(item.name.rsplit(" ", 1)[1]) <= bundle_counts.get(item.family, 0):
@@ -167,6 +168,12 @@ def items_wanting_a_place(world: "FTLWorld") -> int:
             continue
         total += options.archives.value if item.group == data.GROUP_ARCHIVES else ftl_options.item_copies(options, item)
     return total - len(world.precollected_item_names)
+
+
+# Excluded checks only take filler: there must be at least one filler item for each.
+def reserved_filler(world: "FTLWorld") -> int:
+    excluded = sum(1 for location in world.created_locations if location.group == data.GROUP_MV_ACHIEVEMENTS)
+    return max(world.options.minimum_filler.value, excluded)
 
 
 def build_item_pool(world: "FTLWorld") -> list[FTLItem]:
@@ -204,7 +211,7 @@ def build_item_pool(world: "FTLWorld") -> list[FTLItem]:
     world.random.shuffle(optional)
     optional.sort(key=lambda entry: (entry[0], entry[1]))
     room = capacity - len(required)
-    room -= min(options.minimum_filler.value, room)
+    room -= min(reserved_filler(world), room)
     kept_optional = [name for _, _, name in optional[:room]]
 
     filler_needed = capacity - len(required) - len(kept_optional)

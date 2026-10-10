@@ -394,6 +394,18 @@ local function watchedAchievements(layout)
             watched[#watched + 1] = ach
         end
     end
+
+    -- Achievements the base game does not have (Multiverse's) belong to no ship: always watched.
+    local known = {}
+    for _, ach in ipairs(data.generalAchievements) do known[ach] = true end
+    for _, list in pairs(data.shipAchievements) do
+        for _, ach in ipairs(list) do known[ach] = true end
+    end
+    for _, ach in ipairs(_G.apSeedAchievements and apSeedAchievements() or {}) do
+        if not known[ach] then
+            watched[#watched + 1] = ach
+        end
+    end
     return watched
 end
 
@@ -633,7 +645,7 @@ end
 local function allLayouts()
     local layouts = {}
     local data = _G.apGameData or {}
-    for _, ship in ipairs(data.ships or {}) do
+    for _, ship in ipairs(apSeedShips()) do
         for index = 0, (ship.layouts or 1) - 1 do
             layouts[#layouts + 1] = ship.name .. ((data.variantSuffix or {})[index] or "")
         end
