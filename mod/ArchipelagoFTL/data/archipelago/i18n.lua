@@ -190,7 +190,12 @@ function apShipLabel(name)
     end
     local ok, text = pcall(function()
         local bp = Hyperspace.Global.GetInstance():GetBlueprints():GetShipBlueprint(name, -1)
-        return bp ~= nil and bp.name:GetText() or nil
+        if bp == nil then
+            return nil
+        end
+        -- Multiverse ships go by their class in the seed ("Militia Cruiser"); their own names mean little.
+        local class = _G.apSeedIsMultiverse and apSeedIsMultiverse() and bp.shipClass:GetText() or ""
+        return class ~= "" and class or bp.name:GetText()
     end)
     if ok and type(text) == "string" and text ~= "" then
         return text
@@ -202,7 +207,10 @@ function apAchievementLabel(id)
     if id == nil or id == "" then
         return "?"
     end
-    return textLibraryLookup(tostring(id) .. "_name") or tostring(id)
+    local seedName = _G.apLocationNameFor and apLocationNameFor("ach:" .. tostring(id))
+    return textLibraryLookup(tostring(id) .. "_name")
+        or (seedName and seedName:match("^MV Achievement: (.+)$"))
+        or tostring(id)
 end
 
 function apHumaniseId(name)

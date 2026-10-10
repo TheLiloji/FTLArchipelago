@@ -11,6 +11,7 @@ from worlds.generic.Rules import add_rule, set_rule
 from . import data, options as options_module
 from .locations import (
     MENU_REGION,
+    always_unlocked,
     ship_systems,
     entrance_name,
     region_name,
@@ -226,7 +227,7 @@ def _relieve_with_free_keys(
 
 def _free_ship_keys(world: "FTLWorld") -> tuple[str, ...]:
     ships = {world.start_ship.blueprint}
-    ships.update(data.LAYOUTS_BY_BLUEPRINT[bp].ship for bp in data.ALWAYS_UNLOCKED_LAYOUTS)
+    ships.update(data.LAYOUTS_BY_BLUEPRINT[bp].ship for bp in always_unlocked(world.options))
     return tuple(data.SHIP_KEY_NAMES[ship] for ship in sorted(ships))
 
 
@@ -375,7 +376,7 @@ def set_rules(world: "FTLWorld") -> None:
 
     fleet = _location_of_achievement(world, "ACH_UNLOCK_ALL")
     if fleet is not None:
-        keys = tuple(data.SHIP_KEY_NAMES.values())
+        keys = tuple(data.SHIP_KEY_NAMES[ship.blueprint] for ship in data.SHIPS)
         add_rule(world.get_location(fleet.name), lambda state: state.has_all(keys, player))
 
     goal_rule = _goal_rule(world)

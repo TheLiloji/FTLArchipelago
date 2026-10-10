@@ -68,6 +68,20 @@ script.on_game_event("BOSS_DESTROYED", false, function()
     declareEnd("victory", "flagship destroyed")
 end)
 
+-- Multiverse's other endings: events whose every outcome wins. It keeps BOSS_DESTROYED for the Flagship.
+local MULTIVERSE_ENDINGS = {
+    "HER_FINALE_REAL", "KNIGHT_BEANS_THEFT", "KNIGHT_PALACE_THEFT",
+    "NEXUS_ENDING_BAD_KILL", "NEXUS_ENDING_BAD_SAVE", "NEXUS_ENDING_GOOD_KILL", "NEXUS_ENDING_GOOD_SAVE",
+    "NEXUS_HER_HELP_BAD", "THE_ONE_WHO_RHYMES_WIN", "THE_ONE_WHO_RHYMES_WIN_CHAOS", "TRUE_VICTORY_BOMB",
+    "TRUE_VICTORY_SAVE",
+}
+
+for _, ending in ipairs(MULTIVERSE_ENDINGS) do
+    script.on_game_event(ending, false, function()
+        declareEnd("victory", "Multiverse ending " .. ending)
+    end)
+end
+
 local pollDivider = 0
 
 script.on_internal_event(Defines.InternalEvents.ON_TICK, function()

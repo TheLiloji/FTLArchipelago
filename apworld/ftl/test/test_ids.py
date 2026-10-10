@@ -101,8 +101,10 @@ class TestIdentifiersDoNotDependOnOrder(unittest.TestCase):
             setattr(module, table, tuple(reversed(getattr(module, table))))
 
         module.SHIPS = module._build_ships()
-        module.SHIPS_BY_BLUEPRINT = {ship.blueprint: ship for ship in module.SHIPS}
-        module.LAYOUTS = module._build_layouts()
+        module.ALL_SHIPS = module.SHIPS + module.MV_SHIPS
+        module.SHIPS_BY_BLUEPRINT = {ship.blueprint: ship for ship in module.ALL_SHIPS}
+        module.LAYOUTS = module._build_layouts(module.SHIPS)
+        module.ALL_LAYOUTS = module.LAYOUTS + module.MV_LAYOUTS
         module.SYSTEMS = module._build_systems()
         module.SYSTEMS_BY_ID = {system.system_id: system for system in module.SYSTEMS}
 

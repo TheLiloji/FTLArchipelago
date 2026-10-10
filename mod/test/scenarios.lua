@@ -2266,6 +2266,24 @@ test("an earned achievement becomes a check, with its readable name", function()
     check(not sim.shown("ACH_TOUGH_SHIP"), "and the engine's id isn't shown")
 end)
 
+test("a Multiverse achievement the seed lists becomes a check, another ship's achievement does not", function()
+    sim.startRun(true)
+    applySeed({ loc = {
+        ["ach:ACH_ACC_DATABASE"] = "MV Achievement: Well Informed",
+        ["ach:ACH_STEALTH_TACTICAL"] = "Stealth Cruiser: Tactical Approach",
+    } })
+    sim.clearLog()
+
+    sim.earnAchievement("ACH_ACC_DATABASE", 0)
+    sim.earnAchievement("ACH_STEALTH_TACTICAL", 0)
+    sim.jumpArrive()
+
+    check(sim.logged("CHECK ach:ACH_ACC_DATABASE"), "the Multiverse achievement is reported")
+    check(sim.logged("Well Informed"), "under its name, which the game's text library does not have")
+    check(not sim.logged("Could not find"), "and never as the game's missing-text message")
+    check(not sim.logged("CHECK ach:ACH_STEALTH_TACTICAL"), "but not the achievement of a ship not being flown")
+end)
+
 test("a locked achievement is not reported", function()
     sim.startRun(true)
     applySeed({ loc = { ["ach:ACH_TOUGH_SHIP"] = "Achievement: solid hull" } })
