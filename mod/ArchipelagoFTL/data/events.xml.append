@@ -149,6 +149,12 @@
             <damage amount="1"/>
         </event>
     </choice>
+    <choice>
+        <text id="ap_evt_slug_whisper_c3"/>
+        <event name="AP_EVT_SLUG_WHISPER_C">
+            <text id="ap_evt_slug_whisper_c3_text"/>
+        </event>
+    </choice>
 </event>
 
 

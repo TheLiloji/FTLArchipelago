@@ -18,6 +18,8 @@
 <text name="ap_evt_slug_whisper_c1_text" language="fr">Il vous lâche une chose qu'il sait : un objet et qui l'attend, ou un endroit où il reste quelque chose. Laquelle, il ne vous laisse pas le choisir. Les Slug mentent rarement sur les petites choses. Ce sont les grandes qui coûtent.</text>
 <text name="ap_evt_slug_whisper_c2" language="fr">Couper le canal.</text>
 <text name="ap_evt_slug_whisper_c2_text" language="fr">Le Slug s'en va, vexé, et en partant accroche votre coque d'une rafale qu'il qualifiera certainement d'accident. Il lâche aussi une charge dont il n'a plus l'usage. Vous y gagnez en ferraille et vous y perdez en blindage.</text>
+<text name="ap_evt_slug_whisper_c3" language="fr">Le laisser parler, et partir.</text>
+<text name="ap_evt_slug_whisper_c3_text" language="fr">Vous laissez le canal ouvert et retournez à vos affaires. Un moment plus tard, le Slug parle encore. Il n'a rien remarqué.</text>
 
 <text name="ap_evt_another_world_text" language="fr">La surtension arrive sur une bande qu'aucun vaisseau de cette galaxie n'emploie. Elle porte un nom que vous ne reconnaissez pas et un horodatage venu d'un endroit qui ne partage pas votre horloge. Personne ne vous l'a envoyée exprès : elle passe, et il faut bien qu'elle tombe quelque part.</text>
 <text name="ap_evt_another_world_c1" language="fr">L'encaisser. La faire passer par votre propre coque.</text>
