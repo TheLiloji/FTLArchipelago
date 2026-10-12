@@ -3110,6 +3110,30 @@ test("network: a shop scouted before the data packet is asked again, not left em
     equals(sim.netCalls("ScoutLocations"), 2, "nothing more is asked once it worked")
 end)
 
+test("network: a shop the module cannot scout yet (first connection to a seed) is asked again", function()
+    local refusals = 2
+    local scout = sim.net.client.ScoutLocations
+    sim.net.client.ScoutLocations = function(self, names)
+        if refusals > 0 then
+            refusals = refusals - 1
+            sim.net.calls[#sim.net.calls + 1] = { "ScoutLocations", count = 0 }
+            return false
+        end
+        return scout(self, names)
+    end
+    connectWithShop(1)
+    equals(sim.netCalls("ScoutLocations"), 1, "the module had no location names, nothing went out")
+    sim.tick(200)
+    equals(sim.netCalls("ScoutLocations"), 2, "asked again a few seconds later")
+    sim.tick(200)
+    equals(sim.netCalls("ScoutLocations"), 3, "and again until the module knows the names")
+    sim.netEvent("scout", { name = "Archipelago Shop 1", sender = "Berserker", extra = "Seashell", value = 1 })
+    sim.tick(1)
+    equals(_G.apShopGifts[1] and _G.apShopGifts[1].location, "shop:1", "the shop fills without restarting the game")
+    sim.tick(400)
+    equals(sim.netCalls("ScoutLocations"), 3, "nothing more is asked once it worked")
+end)
+
 test("network: a shop that fails to configure doesn't cut the tick", function()
     connectWithShop(1)
     _G.apShopGiftsScouted = function() error("shop broken") end
