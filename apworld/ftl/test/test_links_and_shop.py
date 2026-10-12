@@ -184,7 +184,7 @@ class TestSelectionIsReproducible(FTLTestBase):
 
 class TestShopChecks(FTLTestBase):
 
-    options = {"layout_count": 28, "shop_checks": 12, "systemsanity": "first_install"}
+    options = {"layout_count": 28, "shop_checks": 12, "systemsanity": "first_install", "shop_by_sector": True}
 
     def test_exactly_the_requested_number_exists(self) -> None:
         shop = [
@@ -226,7 +226,7 @@ class TestShopChecksOff(FTLTestBase):
 
 class TestShopPrices(FTLTestBase):
 
-    options = {"layout_count": 28, "shop_checks": 12, "systemsanity": "first_install"}
+    options = {"layout_count": 28, "shop_checks": 12, "systemsanity": "first_install", "shop_by_sector": True}
 
     def test_every_slot_is_priced_by_importance_and_sphere(self) -> None:
         from Fill import distribute_items_restrictive
@@ -292,7 +292,7 @@ class TestVictoryCollectsTheLayoutOff(FTLTestBase):
 
 
 class TestShopBySector(FTLTestBase):
-    options = {"shop_checks": 14, "sector_logic": "standard", "layout_count": 28}
+    options = {"shop_checks": 14, "sector_logic": "standard", "layout_count": 28, "shop_by_sector": True}
 
     def test_each_slot_belongs_to_a_sector_from_one_to_seven(self) -> None:
         self.assertEqual([data.shop_sector(slot) for slot in range(1, 16)],
@@ -320,7 +320,7 @@ class TestShopNotBySector(FTLTestBase):
 
 
 class TestShopPerClass(FTLTestBase):
-    options = {"layout_count": 28, "shop_checks": 30, "shop_per_ship": "per_class"}
+    options = {"layout_count": 28, "shop_checks": 30, "shop_per_ship": "per_class", "shop_by_sector": True}
 
     def region(self, slot: int) -> str:
         return self.multiworld.get_location(f"Archipelago Shop {slot}", self.player).parent_region.name

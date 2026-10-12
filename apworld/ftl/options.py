@@ -635,11 +635,11 @@ class ShopChecks(Range):
     default = 20
 
 
-class ShopBySector(DefaultOnToggle):
+class ShopBySector(Toggle):
     """Each package of the Archipelago shop belongs to one sector, 1 to 7, and is only sold at the Archipelago
     beacon of that sector. The logic expects you to reach that sector first.
 
-    Off: every Archipelago beacon sells from the whole shop.
+    Off (default): every Archipelago beacon sells from the whole shop.
     """
 
     display_name = "Archipelago Shop by Sector"
