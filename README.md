@@ -11,8 +11,11 @@ Your ships, systems and weapons are scattered across your friends' games. Theirs
 <a href="https://github.com/TheLiloji/FTLArchipelago/releases">Download</a> ·
 <a href="docs/wiki/Setup-Windows.md">Setup on Windows</a> ·
 <a href="docs/wiki/Setup-Linux.md">Setup on Linux</a> ·
-<a href="docs/wiki/Home.md">Wiki</a>
+<a href="docs/wiki/Home.md">Wiki</a> ·
+<a href="https://discord.gg/BVQnQu843Q">Discord</a>
 </p>
+
+<p align="center">Questions, bugs or just need help? <a href="https://discord.gg/BVQnQu843Q"><b>Join the Discord</b></a>.</p>
 
 > **Beta.** Played from start to goal on Windows and Linux. Found something odd? Open an
 > [issue](https://github.com/TheLiloji/FTLArchipelago/issues) with your `FTL_HS.log`.
