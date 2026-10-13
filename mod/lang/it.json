@@ -75,6 +75,7 @@
     "dash.cat.crew": "Primi membri d'equipaggio",
     "dash.cat.other": "Altro",
     "dash.cat.sector": "Settori raggiunti",
+    "filler.run_start_scrap": "Inizio partita: +{n} rottami da quelli ricevuti.",
     "shop.place.sector": "settore {n}",
     "dash.cat.shop": "Negozio Archipelago",
     "dash.cat.system": "Sistemi installati",

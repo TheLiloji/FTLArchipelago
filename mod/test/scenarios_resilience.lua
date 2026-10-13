@@ -382,6 +382,30 @@ test("system install: the default keeps the store as the only way", function()
     sim.hullPlaces = nil
 end)
 
+test("run start scrap: a share of every scrap item received comes back at each new run", function()
+    _G.apInventory = { ships = {}, systemCaps = {}, startingUpgrades = {}, shopAvailability = {} }
+    applySeed({ kinds = { "filler" }, options = { run_start_scrap = 25 } })
+    sim.startRun(true)
+    apQueueItem({ kind = "filler", res = "scrap", n = 20, display = "20 Scrap" })
+    apQueueItem({ kind = "filler", res = "scrap", n = 20, display = "20 Scrap", isReplay = true })
+    drain()
+    equals(apRunStartScrap(), 10, "25% of the 40 scrap of the seed, a replayed item counting too")
+    local before = sim.player.currentScrap
+    sim.startRun(true)
+    equals(sim.player.currentScrap - before, 10, "given at the start of the next run")
+    check(sim.shown("+10"), "the player is told")
+    before = sim.player.currentScrap
+    sim.startRun(false)
+    equals(sim.player.currentScrap, before, "not again when a saved run is continued")
+end)
+
+test("run start scrap: off by default", function()
+    _G.apInventory = { ships = {}, systemCaps = {}, startingUpgrades = {}, shopAvailability = {} }
+    applySeed({ kinds = { "filler" } })
+    apQueueItem({ kind = "filler", res = "scrap", n = 50, display = "50 Scrap", isReplay = true })
+    equals(apRunStartScrap(), 0, "nothing without the option")
+end)
+
 test("shop: with no blueprints in the seed, every system can be bought", function()
     _G.apInventory = { ships = {}, systemCaps = {}, startingUpgrades = {}, shopAvailability = {} }
     applySeed({ system_blueprints = false })

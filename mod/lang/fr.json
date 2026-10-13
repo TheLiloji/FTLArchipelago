@@ -74,6 +74,7 @@
     "dash.cat.crew": "Premiers équipiers",
     "dash.cat.other": "Autres",
     "dash.cat.sector": "Secteurs atteints",
+    "filler.run_start_scrap": "Début de run : +{n} ferraille grâce à la ferraille reçue.",
     "shop.place.sector": "secteur {n}",
     "dash.cat.shop": "Boutique Archipelago",
     "dash.cat.system": "Systèmes installés",

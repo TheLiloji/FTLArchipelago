@@ -75,6 +75,7 @@
     "dash.cat.crew": "Primeros tripulantes",
     "dash.cat.other": "Otros",
     "dash.cat.sector": "Sectores alcanzados",
+    "filler.run_start_scrap": "Inicio de partida: +{n} de chatarra de la chatarra recibida.",
     "shop.place.sector": "sector {n}",
     "dash.cat.shop": "Tienda de Archipelago",
     "dash.cat.system": "Sistemas instalados",

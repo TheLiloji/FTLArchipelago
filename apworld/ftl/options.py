@@ -399,6 +399,17 @@ class SystemInstall(Choice):
     default = option_store
 
 
+class RunStartScrap(Range):
+    """At the start of every run, you get this percentage of all the scrap items you received so far.
+    Scrap items still give their scrap once when they arrive. 0 turns it off; 10 to 25 is a good range.
+    """
+
+    display_name = "Run Start Scrap (%)"
+    range_start = 0
+    range_end = 100
+    default = 0
+
+
 class HeadStarts(DefaultOnToggle):
     """Head Start items give a free system level, or a reactor bar, at the start of every
     future run. They make each new run a little stronger.
@@ -836,6 +847,7 @@ class FTLOptions(PerGameCommonOptions):
     full_system_upgrades: FullSystemUpgrades
     free_upgrades: FreeUpgrades
     system_install: SystemInstall
+    run_start_scrap: RunStartScrap
     progressive_systems_per_ship: ProgressiveSystemsPerShip
     head_starts: HeadStarts
     trap_chance: TrapChance
@@ -875,7 +887,7 @@ ftl_option_groups = [
     OptionGroup(
         "Advanced",
         [StartShip, HeadStarts, ModLanguage, SectorsanityFirstSector, SectorsanityLastSector, VictoryCollectsLayout, LayoutUnlocks, CrossRunAchievementChecks,
-         SystemBlueprints, ProgressiveSystems, FullSystemUpgrades, FreeUpgrades, SystemInstall, CrewMembers, ShopWeapons, ShopDrones, ShopAugments,
+         SystemBlueprints, ProgressiveSystems, FullSystemUpgrades, FreeUpgrades, SystemInstall, RunStartScrap, CrewMembers, ShopWeapons, ShopDrones, ShopAugments,
          WeaponBundleSize, DroneBundleSize, AugmentBundleSize,
          ShopUnlockMode, ShopItemDelivery, ShopBySector, ShopPerShip, SystemsanityPerShip,
          ProgressiveSystemsPerShip, SectorLogic],

@@ -75,6 +75,7 @@
     "dash.cat.crew": "First crew members",
     "dash.cat.other": "Other",
     "dash.cat.sector": "Sectors reached",
+    "filler.run_start_scrap": "Run start: +{n} scrap from the scrap you received.",
     "shop.place.sector": "sector {n}",
     "dash.cat.shop": "Archipelago shop",
     "dash.cat.system": "Systems installed",

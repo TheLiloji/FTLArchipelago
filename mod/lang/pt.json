@@ -75,6 +75,7 @@
     "dash.cat.crew": "Primeiros tripulantes",
     "dash.cat.other": "Outros",
     "dash.cat.sector": "Setores alcançados",
+    "filler.run_start_scrap": "Início da partida: +{n} de sucata da sucata recebida.",
     "shop.place.sector": "setor {n}",
     "dash.cat.shop": "Loja Archipelago",
     "dash.cat.system": "Sistemas instalados",
