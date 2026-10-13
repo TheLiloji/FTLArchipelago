@@ -329,6 +329,59 @@ test("free upgrades: with no progressive upgrades in the seed, nothing is given 
     equals(oxygen().powerState.second, 1, "without caps every level would be free: the option does nothing")
 end)
 
+local function withTeleporterPlace()
+    sim.hullPlaces = { [9] = true, [10] = true }
+    _G.apInventory = { ships = {}, systemCaps = {}, startingUpgrades = {}, shopAvailability = {} }
+end
+
+test("system install: at the start of a run, a system whose blueprint came in is put aboard", function()
+    withTeleporterPlace()
+    applySeed({ kinds = { "cap" }, options = { system_install = 1 } })
+    apQueueItem({ kind = "cap", sys = "teleporter", n = 0, display = "Teleporter blueprint" })
+    drain()
+    sim.startRun(true)
+    check(sim.player:HasSystem(9), "the teleporter is aboard from the first beacon")
+    check(not sim.player:HasSystem(10), "cloaking, with no blueprint, is not")
+    check(sim.shown("Teleporter"), "the player is told")
+    sim.hullPlaces = nil
+end)
+
+test("system install: no place in the hull, nothing is forced aboard", function()
+    withTeleporterPlace()
+    sim.hullPlaces = {}
+    applySeed({ kinds = { "cap" }, options = { system_install = 1 } })
+    apQueueItem({ kind = "cap", sys = "teleporter", n = 0, display = "Teleporter blueprint" })
+    drain()
+    sim.startRun(true)
+    check(not sim.player:HasSystem(9), "a ship without a teleporter room gets no teleporter")
+    sim.hullPlaces = nil
+end)
+
+test("system install: immediately, a blueprint received mid-run is put aboard", function()
+    withTeleporterPlace()
+    applySeed({ kinds = { "cap" }, options = { system_install = 2 } })
+    sim.startRun(true)
+    sim.jumpArrive()
+    apQueueItem({ kind = "cap", sys = "teleporter", n = 0, display = "Teleporter blueprint" })
+    drain()
+    sim.tick(61)
+    check(sim.player:HasSystem(9), "the teleporter comes aboard during the run")
+    sim.hullPlaces = nil
+end)
+
+test("system install: the default keeps the store as the only way", function()
+    withTeleporterPlace()
+    applySeed({ kinds = { "cap" } })
+    sim.startRun(true)
+    sim.jumpArrive()
+    apQueueItem({ kind = "cap", sys = "teleporter", n = 0, display = "Teleporter blueprint" })
+    drain()
+    sim.tick(61)
+    sim.startRun(true)
+    check(not sim.player:HasSystem(9), "nothing put aboard without the option")
+    sim.hullPlaces = nil
+end)
+
 test("shop: with no blueprints in the seed, every system can be bought", function()
     _G.apInventory = { ships = {}, systemCaps = {}, startingUpgrades = {}, shopAvailability = {} }
     applySeed({ system_blueprints = false })

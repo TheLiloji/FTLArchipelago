@@ -315,6 +315,7 @@
     "status.prefix": "Archipelago: {message}",
     "system.free_levels": "{name}: nivel {level} instalado gratis.",
     "system.from_event": "{name}: sistema recuperado.",
+    "system.installed_free": "Instalado gratis: {list}.",
     "system.locked": "{name}: no hay un plano a bordo.",
     "system.locked.refunded": "{name}: no hay un plano a bordo. Recuperas {refund} de chatarra.",
     "system.reactor": "Reactor",

@@ -226,6 +226,21 @@ local function makeShip(shipId)
     end
     function ship:GetSystem(_) return nil end
     function ship:HasSystem(id) return (self._systemsHeld or {})[id] == true end
+    -- systemInfo lists the systems the hull has a place for, as the game's blueprint does.
+    ship.myBlueprint.systemInfo = setmetatable({}, { __index = function(_, id)
+        if (sim.hullPlaces or {})[id] then
+            return { location = { size = function() return 1 end } }
+        end
+        return nil
+    end })
+    function ship:CanFitSystem(id) return (sim.systemSlotsFree or 8) > 0 end
+    function ship:CanFitSubsystem(id) return (sim.systemSlotsFree or 8) > 0 end
+    function ship:AddSystem(id)
+        self._systemsHeld = self._systemsHeld or {}
+        self._systemsHeld[id] = true
+        sim.systemsAdded = (sim.systemsAdded or 0) + 1
+        return 1
+    end
 
     return ship
 end
@@ -597,7 +612,13 @@ local function resetWorld()
         }),
 
         ShipSystem = {
-            SystemIdToName = function(id) return tostring(id) end,
+            -- The game's ids; the fake's own systems use their name as type, which comes back unchanged.
+            SystemIdToName = function(id)
+                local names = { [0] = "shields", "engines", "oxygen", "weapons", "drones", "medbay", "pilot",
+                                "sensors", "doors", "teleporter", "cloaking", "artillery", "battery", "clonebay",
+                                "mind", "hacking" }
+                return type(id) == "number" and names[id] or tostring(id)
+            end,
             NameToSystemId = function(name) return name end,
         },
 

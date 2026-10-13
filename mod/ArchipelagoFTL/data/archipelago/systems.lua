@@ -104,6 +104,81 @@ local function installFreeLevels(system, name, cap)
     end
 end
 
+-- System Install: a system whose blueprint came in is put aboard for free, when the hull has a place for it.
+local SUBSYSTEMS = { pilot = true, sensors = true, doors = true, battery = true }
+local INSTALL_ORDER = { "shields", "engines", "oxygen", "weapons", "medbay", "pilot", "sensors", "doors",
+                        "drones", "teleporter", "cloaking", "hacking", "mind", "battery", "clonebay", "artillery" }
+local systemIds = nil
+
+local function systemId(name)
+    if systemIds == nil then
+        systemIds = {}
+        for id = 0, 20 do
+            local ok, found = pcall(Hyperspace.ShipSystem.SystemIdToName, id)
+            if ok and found ~= nil and found ~= "" then
+                systemIds[found] = id
+            end
+        end
+    end
+    return systemIds[name]
+end
+
+local function installMode()
+    local mode = _G.apSeedOption ~= nil and apSeedOption("system_install") or 0
+    if _G.apSystemBlueprintsActive and not _G.apSystemBlueprintsActive() then
+        return 0
+    end
+    return tonumber(mode) or 0
+end
+
+local function hullHasPlace(player, id)
+    local ok, found = pcall(function()
+        local info = player.myBlueprint.systemInfo[id]
+        return info ~= nil and info.location:size() > 0
+    end)
+    return ok and found == true
+end
+
+local function installReceivedSystems(reason)
+    local player = Hyperspace.ships.player
+    local caps = (_G.apInventory or {}).systemCaps
+    if player == nil or caps == nil then
+        return 0
+    end
+    local installed = {}
+    for _, name in ipairs(INSTALL_ORDER) do
+        local id = systemId(name)
+        if id ~= nil and caps[name] ~= nil and not player:HasSystem(id) and hullHasPlace(player, id) then
+            local replaces = (name == "medbay" and player:HasSystem(systemId("clonebay")))
+                or (name == "clonebay" and player:HasSystem(systemId("medbay")))
+            local fits = SUBSYSTEMS[name] and player:CanFitSubsystem(id) or player:CanFitSystem(id)
+            if fits and not replaces then
+                player:AddSystem(id)
+                if player:HasSystem(id) then
+                    installed[#installed + 1] = apSystemLabel(name)
+                    sysLog(name .. ": installed for free (" .. reason .. ")")
+                end
+            end
+        end
+    end
+    if #installed > 0 and _G.apNotifyStatus then
+        _G.apNotifyStatus(apT("system.installed_free", { list = table.concat(installed, ", ") }))
+    end
+    return #installed
+end
+
+function apInstallReceivedSystems(reason)
+    if installMode() == 0 or not inRun() then
+        return 0
+    end
+    local ok, count = pcall(installReceivedSystems, reason or "check")
+    if not ok then
+        sysLog("system install failed: " .. tostring(count))
+        return 0
+    end
+    return count
+end
+
 local function applyCap(system)
     local name = systemName(system)
     if name == nil then
@@ -426,6 +501,9 @@ script.on_init(function(newGame)
     fromSave = newGame == false
     if not fromSave then
         apApplySystemRules()
+        if installMode() > 0 then
+            pcall(installReceivedSystems, "start of the run")
+        end
         applyStartingUpgrades()
         apApplySystemRules()
     end
@@ -446,6 +524,9 @@ script.on_internal_event(Defines.InternalEvents.ON_TICK, function()
 
     capDivider = (capDivider + 1) % 60
     if capDivider == 0 then
+        if installMode() == 2 and purchaseGuardArmed then
+            apInstallReceivedSystems("received")
+        end
         apApplySystemRules()
     end
 end)

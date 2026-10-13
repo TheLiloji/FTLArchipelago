@@ -315,6 +315,7 @@
     "status.prefix": "Archipelago: {message}",
     "system.free_levels": "{name}: level {level} installed for free.",
     "system.from_event": "{name}, salvaged.",
+    "system.installed_free": "Installed for free: {list}.",
     "system.locked": "{name}: no blueprint aboard.",
     "system.locked.refunded": "{name}: no blueprint aboard. {refund} scrap back.",
     "system.reactor": "Reactor",

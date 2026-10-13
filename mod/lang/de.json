@@ -315,6 +315,7 @@
     "status.prefix": "Archipelago: {message}",
     "system.free_levels": "{name}: Stufe {level} kostenlos eingebaut.",
     "system.from_event": "{name}: System geborgen.",
+    "system.installed_free": "Kostenlos eingebaut: {list}.",
     "system.locked": "{name}: kein Bauplan an Bord.",
     "system.locked.refunded": "{name}: kein Bauplan an Bord. {refund} Schrott zurück.",
     "system.reactor": "Reaktor",
