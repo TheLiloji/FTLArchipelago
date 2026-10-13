@@ -491,6 +491,17 @@ local function crewAboard()
     return crew
 end
 
+-- Multiverse splits species into kinds (engi_separatist, human_soldier, zoltan_monk...): each counts as its race.
+local RACE_FAMILY = {
+    human = "human", engi = "engi", energy = "energy", zoltan = "energy", mantis = "mantis",
+    rock = "rock", slug = "slug", anaerobic = "anaerobic", lanius = "anaerobic", crystal = "crystal",
+}
+
+function apRaceFamily(species)
+    species = tostring(species or "")
+    return RACE_FAMILY[species] or RACE_FAMILY[species:match("^(%a+)_") or ""] or species
+end
+
 local function pollCrew()
     local present = crewAboard()
     if present == nil then
@@ -502,8 +513,9 @@ local function pollCrew()
     end
     for key, species in pairs(present) do
         if startingCrew[key] == nil then
-            local label = (_G.apRaceLabel and _G.apRaceLabel(species)) or species
-            apSendCheck("crew:" .. species, apT("check.label.crew", { name = label }))
+            local race = apRaceFamily(species)
+            local label = (_G.apRaceLabel and _G.apRaceLabel(race)) or race
+            apSendCheck("crew:" .. race, apT("check.label.crew", { name = label }))
         end
     end
 end
