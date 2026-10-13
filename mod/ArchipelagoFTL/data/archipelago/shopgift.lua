@@ -62,6 +62,40 @@ local function sectorReached(gift)
     return (sector == nil or sector <= (currentSector() or 1)) and ownerAboard(gift)
 end
 
+local function shipClassOf(base)
+    local ok, class = pcall(function()
+        local bp = Hyperspace.Global.GetInstance():GetBlueprints():GetShipBlueprint(base, -1)
+        return bp ~= nil and bp.shipClass:GetText() or nil
+    end)
+    if ok and type(class) == "string" and class ~= "" then
+        return class
+    end
+    return _G.apShipLabel and apShipLabel(base) or base
+end
+
+-- Where a shop slot is sold in this seed ("Kestrel Cruiser B, sector 6"), as hints say it: nil when anywhere.
+function apShopPlace(key)
+    local gift = { location = tostring(key) }
+    if giftSlot(gift) == nil then
+        return nil
+    end
+    local parts = {}
+    local owner = giftOwner(gift)
+    if owner ~= nil then
+        local label = shipClassOf((tostring(owner):gsub("_[23]$", "")))
+        if (_G.apShopConfig or {}).per == "per_layout" then
+            local variant = tostring(owner):match("_([23])$")
+            label = label .. " " .. (variant == "2" and "B" or variant == "3" and "C" or "A")
+        end
+        parts[#parts + 1] = label
+    end
+    local sector = giftSector(gift)
+    if sector ~= nil then
+        parts[#parts + 1] = apT("shop.place.sector", { n = sector })
+    end
+    return #parts > 0 and table.concat(parts, ", ") or nil
+end
+
 function apShopPages()
     local slots = tonumber(_G.apShopSlotCount) or 0
     local sectors = (_G.apShopConfig or {}).sectors

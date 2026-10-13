@@ -624,7 +624,9 @@ class ShopChecks(Range):
     """The smallest number of packages in the Archipelago shop, a special shop at one beacon
     per sector. Buying a package sends it to the player it belongs to.
 
-    More packages are added by themselves if the game needs room for its items.
+    This is a total for the whole shop, not a number per ship. If your options create more items
+    than there are checks, packages are added by themselves (up to 400) until every item has a
+    place. With Archipelago Shop per Ship, the packages are then split between the ships.
     """
 
     display_name = "Archipelago Shop Checks (minimum)"
@@ -633,11 +635,11 @@ class ShopChecks(Range):
     default = 20
 
 
-class ShopBySector(DefaultOnToggle):
+class ShopBySector(Toggle):
     """Each package of the Archipelago shop belongs to one sector, 1 to 7, and is only sold at the Archipelago
     beacon of that sector. The logic expects you to reach that sector first.
 
-    Off: every Archipelago beacon sells from the whole shop.
+    Off (default): every Archipelago beacon sells from the whole shop.
     """
 
     display_name = "Archipelago Shop by Sector"
@@ -645,6 +647,7 @@ class ShopBySector(DefaultOnToggle):
 
 class ShopPerShip(Choice):
     """Each package of the Archipelago shop belongs to one ship, and is only sold while you fly it.
+    This adds no packages: the shop's packages are split between the ships.
 
     off: every ship sees the whole shop.
     per_class: one owner per ship, whatever its layout (Kestrel).

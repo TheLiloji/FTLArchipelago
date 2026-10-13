@@ -415,6 +415,14 @@ end
 local SCOUT_RETRY_TICKS = 3 * 60
 local SCOUT_RETRIES = 20
 
+local function scheduleRescout(message)
+    if state.scoutRetryAt == nil and (state.scoutRetries or 0) < SCOUT_RETRIES then
+        state.scoutRetries = (state.scoutRetries or 0) + 1
+        state.scoutRetryAt = state.ticks + SCOUT_RETRY_TICKS
+        netLog(message)
+    end
+end
+
 local function requestShopScouts()
     if not (_G.apShopSlotKeys and _G.apLocationNameFor) then
         return
@@ -427,6 +435,10 @@ local function requestShopScouts()
         end
     end
     local shopCount = #names
+    -- A seed without a shop: what the shop held before (solo, the demo, another seed) must go.
+    if shopCount == 0 and _G.apShopGiftsConfigure then
+        pcall(_G.apShopGiftsConfigure, {})
+    end
     -- The other checks too, so a check can say what it sends. A scout is not a hint: nobody else sees it.
     local others = {}
     for key, name in pairs((_G.apContractState or {}).locNames or {}) do
@@ -449,7 +461,12 @@ local function requestShopScouts()
     for _, name in ipairs(names) do
         vector:push_back(name)
     end
-    ap:ScoutLocations(vector)
+    -- On a first connection to a seed the module does not know the location names yet: nothing goes out.
+    local ok, accepted = pcall(function() return ap:ScoutLocations(vector) end)
+    if not ok or accepted == false then
+        scheduleRescout("shop not scouted, the data packet is not in yet: asked again in a few seconds")
+        return
+    end
     netLog(shopCount .. " shop slot(s) and " .. #others .. " other check(s) to scout")
 end
 
@@ -535,11 +552,7 @@ end
 local function onScout(event)
     -- Before the data package, names come as "Unknown" and the reply cannot be read: ask again a bit later.
     if tostring(event.name) == UNKNOWN or tostring(event.extra) == UNKNOWN then
-        if state.scoutRetryAt == nil and (state.scoutRetries or 0) < SCOUT_RETRIES then
-            state.scoutRetries = (state.scoutRetries or 0) + 1
-            state.scoutRetryAt = state.ticks + SCOUT_RETRY_TICKS
-            netLog("shop scouted before the data packet, asked again in a few seconds")
-        end
+        scheduleRescout("shop scouted before the data packet, asked again in a few seconds")
         return
     end
     local key = _G.apCheckKeyFor and _G.apCheckKeyFor(event.name) or event.name
@@ -801,6 +814,10 @@ local function rescoutIfDue()
         state.scoutRetryAt = nil
         if state.connected then
             requestShopScouts()
+            -- Checks made before the data packet could not go out either.
+            if _G.apResendPendingChecks then
+                pcall(_G.apResendPendingChecks)
+            end
         end
     end
 end

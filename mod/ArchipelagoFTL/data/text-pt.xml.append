@@ -18,6 +18,8 @@
 <text name="ap_evt_slug_whisper_c1_text" language="pt">Dá-vos uma coisa que por acaso sabe: um objeto e quem espera por ele, ou um sítio onde ainda há alguma coisa. Qual das duas, não são vocês que escolhem. Nas coisas pequenas os slugs raramente mentem. As grandes é que custam.</text>
 <text name="ap_evt_slug_whisper_c2" language="pt">Cortar o canal.</text>
 <text name="ap_evt_slug_whisper_c2_text" language="pt">O slug vai-se embora ofendido e, ao sair, raspa o casco com uma rajada de despedida a que certamente chamará acidente. Também larga uma carga que já não lhe serve. Ganham em sucata e perdem em blindagem.</text>
+<text name="ap_evt_slug_whisper_c3" language="pt">Deixá-lo falar, e ir embora.</text>
+<text name="ap_evt_slug_whisper_c3_text" language="pt">Deixam o canal aberto e voltam ao trabalho. Algum tempo depois, o slug ainda está a falar. Não deu por nada.</text>
 
 <text name="ap_evt_another_world_text" language="pt">A descarga entra numa banda que esta galáxia não usa. Traz um nome que não reconhecem e uma hora vinda de um sítio que não partilha o vosso relógio. Ninguém a apontou a vocês. Está só de passagem, e tem de aterrar algures.</text>
 <text name="ap_evt_another_world_c1" language="pt">Aceitá-la. Escoar a descarga pelo vosso próprio casco.</text>

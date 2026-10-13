@@ -2,8 +2,11 @@
 
 ## Where is the options page?
 
-The [player options page for this game](../player-options) contains all the options you need to configure and
-export a config file.
+FTL is not hosted on archipelago.gg, so there is no options page on the website. Make your YAML with
+**ArchipelagoOptionsCreator** (in the Archipelago Launcher, once `ftl.apworld` is installed), or start from one of
+the ready-made files in `presets.zip` on the
+[releases page](https://github.com/TheLiloji/FTLArchipelago/releases/latest). Every option is explained in the
+[options guide](https://github.com/TheLiloji/FTLArchipelago/blob/main/docs/wiki/Options.md).
 
 ## Status
 

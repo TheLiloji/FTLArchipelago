@@ -181,3 +181,30 @@ test("crew: a recruit of a species already aboard at the start counts too", func
     sim.jumpArrive()
     check(apCheckAlreadySent("crew:human"), "a human bought for the Kestrel's human crew sends First Human aboard")
 end)
+
+test("crew: a Multiverse kind of a race counts as that race", function()
+    apContractResetForTesting()
+    apForgetChecksForTesting()
+    applySeed({ loc = {
+        ["crew:human"] = "First Human aboard",
+        ["crew:engi"] = "First Engi aboard",
+        ["crew:energy"] = "First Zoltan aboard",
+        ["crew:anaerobic"] = "First Lanius aboard",
+    } })
+    sim.startRun(true)
+    sim.tick(1)
+    sim.player:AddCrewMemberFromString("Alex", "engi_separatist", false, 0)
+    sim.player:AddCrewMemberFromString("Monk", "zoltan_monk", false, 0)
+    sim.player:AddCrewMemberFromString("Welder", "lanius_welder", false, 0)
+    sim.jumpArrive()
+    check(apCheckAlreadySent("crew:engi"), "a Separatist Engi sends First Engi aboard")
+    check(apCheckAlreadySent("crew:energy"), "a Zoltan Monk sends First Zoltan aboard")
+    check(apCheckAlreadySent("crew:anaerobic"), "a Lanius Welder sends First Lanius aboard")
+end)
+
+test("crew: a species of no race stays itself", function()
+    equals(apRaceFamily("human_soldier"), "human", "a Multiverse soldier is a human")
+    equals(apRaceFamily("crystal"), "crystal", "a base race is unchanged")
+    equals(apRaceFamily("technolanius"), "technolanius", "a name that only contains a race is not that race")
+    equals(apRaceFamily("orchid_vampweed"), "orchid_vampweed", "a species with no race of the seed stays as is")
+end)

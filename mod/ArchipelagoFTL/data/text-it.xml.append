@@ -18,6 +18,8 @@
 <text name="ap_evt_slug_whisper_c1_text" language="it">Vi dà una cosa che per caso sa: un oggetto e chi lo aspetta, oppure un posto dove c'è ancora qualcosa. Quale delle due, non lo scegliete voi. Sulle piccole cose gli slug mentono di rado. Sono le grandi a costare.</text>
 <text name="ap_evt_slug_whisper_c2" language="it">Chiudere il canale.</text>
 <text name="ap_evt_slug_whisper_c2_text" language="it">Lo slug se ne va offeso e andandosene sfiora lo scafo con una raffica d'addio che definirà senz'altro un incidente. Lascia cadere anche un carico che non gli serve più. Ci guadagnate in rottami e ci perdete in corazza.</text>
+<text name="ap_evt_slug_whisper_c3" language="it">Lasciarlo parlare, e andarsene.</text>
+<text name="ap_evt_slug_whisper_c3_text" language="it">Lasciate il canale aperto e tornate al lavoro. Qualche tempo dopo lo slug sta ancora parlando. Non se n'è accorto.</text>
 
 <text name="ap_evt_another_world_text" language="it">La scarica arriva su una banda che questa galassia non usa. Porta un nome che non riconoscete e un orario che viene da un posto che non condivide il vostro orologio. Nessuno l'ha puntata su di voi. Sta solo passando, e da qualche parte deve atterrare.</text>
 <text name="ap_evt_another_world_c1" language="it">Prenderla. Scaricarla attraverso il vostro scafo.</text>

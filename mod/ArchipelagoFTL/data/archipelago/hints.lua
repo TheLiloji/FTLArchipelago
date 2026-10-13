@@ -17,28 +17,39 @@ local function forMe(hint)
     return own ~= nil and tostring(hint.receiver) == tostring(own)
 end
 
+-- A hint on one of our shop slots says where it is sold: its name alone cannot.
+local function placeOf(hint)
+    local own = _G.apOwnSlotName and _G.apOwnSlotName() or nil
+    local ours = hint.solo or (own ~= nil and tostring(hint.finder) == tostring(own))
+    if not ours or not (_G.apCheckKeyFor and _G.apShopPlace) then
+        return hint.location
+    end
+    local place = apShopPlace(apCheckKeyFor(hint.location))
+    return place and (tostring(hint.location) .. " (" .. place .. ")") or hint.location
+end
+
 function apHintText(hint)
     if hint.solo then
-        return apT("hint.received.solo", { item = hint.item, location = hint.location })
+        return apT("hint.received.solo", { item = hint.item, location = placeOf(hint) })
     end
     if forMe(hint) then
         return apT("hint.received.mine", { item = hint.item, finder = hint.finder,
-                                           location = hint.location })
+                                           location = placeOf(hint) })
     end
     return apT("hint.received.theirs", { item = hint.item, receiver = hint.receiver,
-                                         location = hint.location })
+                                         location = placeOf(hint) })
 end
 
 function apHintLine(hint)
     if hint.solo then
-        return apT("hud.hint.solo", { item = hint.item, location = hint.location })
+        return apT("hud.hint.solo", { item = hint.item, location = placeOf(hint) })
     end
     if forMe(hint) then
         return apT("hud.hint.mine", { item = hint.item, finder = hint.finder,
-                                      location = hint.location })
+                                      location = placeOf(hint) })
     end
     return apT("hud.hint.theirs", { item = hint.item, receiver = hint.receiver,
-                                    location = hint.location })
+                                    location = placeOf(hint) })
 end
 
 function apHintReceived(hint)

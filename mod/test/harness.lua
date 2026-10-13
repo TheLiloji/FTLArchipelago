@@ -552,6 +552,7 @@ local function resetWorld()
                                 return {
                                     blueprintName = name,
                                     name = { GetText = function() return displayName end },
+                                    shipClass = { GetText = function() return (sim.shipClasses or {})[name] or "" end },
                                 }
                             end,
                         }

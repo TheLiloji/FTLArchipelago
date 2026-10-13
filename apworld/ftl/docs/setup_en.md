@@ -108,7 +108,8 @@ generates the seed needs it.
 
 ## Generating a seed
 
-Create your YAML from the [player options page](../player-options), put it in `Players/`, and generate as for any
+Create your YAML with **ArchipelagoOptionsCreator** (in the Archipelago Launcher) or start from a file in
+`presets.zip`, put it in `Players/`, and generate as for any
 other game. The options worth a second look:
 
 - **Sectorsanity**, **Sectorsanity First Sector** and **Sectorsanity Last Sector** decide how big the seed is.

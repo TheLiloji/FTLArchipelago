@@ -18,6 +18,8 @@
 <text name="ap_evt_slug_whisper_c1_text" language="de">Er gibt euch eine Sache, die er zufällig weiß: einen Gegenstand und wen er erwartet, oder einen Ort, an dem noch etwas liegt. Welche von beiden, dürft ihr nicht wählen. Bei kleinen Dingen lügen Slugs selten. Die großen sind teuer.</text>
 <text name="ap_evt_slug_whisper_c2" language="de">Den Kanal schließen.</text>
 <text name="ap_evt_slug_whisper_c2_text" language="de">Der Slug verschwindet beleidigt und streift im Gehen eure Hülle mit einem Abschiedsschuss, den er sicher einen Unfall nennen wird. Dabei lässt er eine Ladung fallen, für die er keine Verwendung mehr hat. Ihr gewinnt an Schrott und verliert an Panzerung.</text>
+<text name="ap_evt_slug_whisper_c3" language="de">Ihn reden lassen und gehen.</text>
+<text name="ap_evt_slug_whisper_c3_text" language="de">Ihr lasst den Kanal offen und macht weiter mit eurer Arbeit. Eine Weile später redet der Slug immer noch. Er hat nichts bemerkt.</text>
 
 <text name="ap_evt_another_world_text" language="de">Die Entladung kommt auf einem Band herein, das diese Galaxie nicht benutzt. Sie trägt einen Namen, den ihr nicht kennt, und einen Zeitstempel von einem Ort, der eure Uhr nicht teilt. Niemand hat sie auf euch gerichtet. Sie zieht nur vorbei, und irgendwo muss sie landen.</text>
 <text name="ap_evt_another_world_c1" language="de">Annehmen. Die Entladung über die eigene Hülle ableiten.</text>

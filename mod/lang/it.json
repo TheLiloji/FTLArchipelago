@@ -75,6 +75,7 @@
     "dash.cat.crew": "Primi membri d'equipaggio",
     "dash.cat.other": "Altro",
     "dash.cat.sector": "Settori raggiunti",
+    "shop.place.sector": "settore {n}",
     "dash.cat.shop": "Negozio Archipelago",
     "dash.cat.system": "Sistemi installati",
     "dash.cat.victory": "Vittorie",

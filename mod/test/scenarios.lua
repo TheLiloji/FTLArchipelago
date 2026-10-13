@@ -3081,6 +3081,45 @@ test("network: connecting requests the contents of the shop slots", function()
     equals(#names, 3, "translated into Archipelago names, the only ones the server knows")
 end)
 
+test("network: a seed without a shop empties what solo left in it", function()
+    _G.apShopGiftsConfigure({ { mine = true, item = "Progressive Engines", location = "shop:1" } }, "solo")
+    equals(#_G.apShopGifts, 1, "solo mode stocked the shop")
+    connectWithShop(0)
+    equals(#_G.apShopGifts, 0, "the seed has no shop slot: nothing from solo is left on sale")
+end)
+
+test("shop place: a slot says which ship and sector sell it, as hints do", function()
+    connectWithShop(14)
+    sim.shipNames = sim.shipNames or {}
+    sim.shipNames.PLAYER_SHIP_HARD, sim.shipNames.PLAYER_SHIP_CIRCLE = "The Kestrel", "The Torus"
+    sim.shipClasses = { PLAYER_SHIP_HARD = "Kestrel Cruiser", PLAYER_SHIP_CIRCLE = "Engi Cruiser" }
+    _G.apShopConfig.owners = { "PLAYER_SHIP_HARD", "PLAYER_SHIP_CIRCLE" }
+    _G.apShopConfig.per = "per_class"
+    _G.apShopConfig.sectors = 7
+    equals(apShopPlace("shop:1"), "Kestrel Cruiser, sector 1", "the first round of sectors is the first ship's")
+    equals(apShopPlace("shop:9"), "Engi Cruiser, sector 2", "the second round is the next ship's")
+    _G.apShopConfig.per = "per_layout"
+    _G.apShopConfig.owners = { "PLAYER_SHIP_HARD", "PLAYER_SHIP_HARD_2" }
+    equals(apShopPlace("shop:8"), "Kestrel Cruiser B, sector 1", "per layout names the layout")
+    _G.apShopConfig.owners, _G.apShopConfig.sectors = nil, nil
+    equals(apShopPlace("shop:8"), nil, "sold everywhere: nothing to add")
+    equals(apShopPlace("sector:2"), nil, "not a shop slot")
+    sim.shipClasses = nil
+end)
+
+test("shop place: a hint on one of our shop slots says where to buy it", function()
+    connectWithShop(14)
+    sim.shipClasses = { PLAYER_SHIP_HARD = "Kestrel Cruiser" }
+    _G.apShopConfig.owners, _G.apShopConfig.per, _G.apShopConfig.sectors = { "PLAYER_SHIP_HARD" }, "per_class", 7
+    local text = apHintText({ item = "Seashell", receiver = "Berserker", finder = "Navigator",
+                              location = "Archipelago Shop 3" })
+    check(text:find("Archipelago Shop 3 (Kestrel Cruiser, sector 3)", 1, true), "the hint says where: " .. text)
+    local theirs = apHintText({ item = "Laser", receiver = "Navigator", finder = "Berserker",
+                                location = "Archipelago Shop 3" })
+    check(not theirs:find("Kestrel", 1, true), "a slot of another world is not ours to place: " .. theirs)
+    sim.shipClasses = nil
+end)
+
 test("network: a received scout fills the shop slot", function()
     connectWithShop(2)
     sim.netEvent("scout", { name = "Archipelago Shop 1", sender = "Berserker",
@@ -3108,6 +3147,30 @@ test("network: a shop scouted before the data packet is asked again, not left em
     equals(_G.apShopGifts[1] and _G.apShopGifts[1].location, "shop:1", "and the second reply fills it")
     sim.tick(400)
     equals(sim.netCalls("ScoutLocations"), 2, "nothing more is asked once it worked")
+end)
+
+test("network: a shop the module cannot scout yet (first connection to a seed) is asked again", function()
+    local refusals = 2
+    local scout = sim.net.client.ScoutLocations
+    sim.net.client.ScoutLocations = function(self, names)
+        if refusals > 0 then
+            refusals = refusals - 1
+            sim.net.calls[#sim.net.calls + 1] = { "ScoutLocations", count = 0 }
+            return false
+        end
+        return scout(self, names)
+    end
+    connectWithShop(1)
+    equals(sim.netCalls("ScoutLocations"), 1, "the module had no location names, nothing went out")
+    sim.tick(200)
+    equals(sim.netCalls("ScoutLocations"), 2, "asked again a few seconds later")
+    sim.tick(200)
+    equals(sim.netCalls("ScoutLocations"), 3, "and again until the module knows the names")
+    sim.netEvent("scout", { name = "Archipelago Shop 1", sender = "Berserker", extra = "Seashell", value = 1 })
+    sim.tick(1)
+    equals(_G.apShopGifts[1] and _G.apShopGifts[1].location, "shop:1", "the shop fills without restarting the game")
+    sim.tick(400)
+    equals(sim.netCalls("ScoutLocations"), 3, "nothing more is asked once it worked")
 end)
 
 test("network: a shop that fails to configure doesn't cut the tick", function()

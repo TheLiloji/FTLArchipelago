@@ -184,7 +184,7 @@ class TestSelectionIsReproducible(FTLTestBase):
 
 class TestShopChecks(FTLTestBase):
 
-    options = {"layout_count": 28, "shop_checks": 12, "systemsanity": "first_install"}
+    options = {"layout_count": 28, "shop_checks": 12, "systemsanity": "first_install", "shop_by_sector": True}
 
     def test_exactly_the_requested_number_exists(self) -> None:
         shop = [
@@ -224,9 +224,18 @@ class TestShopChecksOff(FTLTestBase):
         self.assertEqual(self.world.fill_slot_data()["shop"]["slots"], 0)
 
 
+
+def shop_hints(test, slots):
+    hint_data: dict[int, dict[int, str]] = {}
+    test.world.extend_hint_information(hint_data)
+    found = hint_data.get(test.player, {})
+    return [found.get(test.multiworld.get_location(f"Archipelago Shop {slot}", test.player).address)
+            for slot in slots]
+
+
 class TestShopPrices(FTLTestBase):
 
-    options = {"layout_count": 28, "shop_checks": 12, "systemsanity": "first_install"}
+    options = {"layout_count": 28, "shop_checks": 12, "systemsanity": "first_install", "shop_by_sector": True}
 
     def test_every_slot_is_priced_by_importance_and_sphere(self) -> None:
         from Fill import distribute_items_restrictive
@@ -292,7 +301,7 @@ class TestVictoryCollectsTheLayoutOff(FTLTestBase):
 
 
 class TestShopBySector(FTLTestBase):
-    options = {"shop_checks": 14, "sector_logic": "standard", "layout_count": 28}
+    options = {"shop_checks": 14, "sector_logic": "standard", "layout_count": 28, "shop_by_sector": True}
 
     def test_each_slot_belongs_to_a_sector_from_one_to_seven(self) -> None:
         self.assertEqual([data.shop_sector(slot) for slot in range(1, 16)],
@@ -315,12 +324,13 @@ class TestShopNotBySector(FTLTestBase):
 
     def test_the_whole_shop_is_open_from_the_start(self) -> None:
         self.assertNotIn("sectors", self.world.fill_slot_data()["shop"])
+        self.assertEqual(shop_hints(self, (1, 6)), [None, None], "sold everywhere: hints add nothing")
         state = self.multiworld.state.copy()
         self.assertTrue(self.multiworld.get_location("Archipelago Shop 6", self.player).can_reach(state))
 
 
 class TestShopPerClass(FTLTestBase):
-    options = {"layout_count": 28, "shop_checks": 30, "shop_per_ship": "per_class"}
+    options = {"layout_count": 28, "shop_checks": 30, "shop_per_ship": "per_class", "shop_by_sector": True}
 
     def region(self, slot: int) -> str:
         return self.multiworld.get_location(f"Archipelago Shop {slot}", self.player).parent_region.name
@@ -333,6 +343,10 @@ class TestShopPerClass(FTLTestBase):
         self.assertEqual(self.region(7), "Lanius Cruiser A", "a whole round of sectors per ship")
         self.assertEqual(self.region(8), "Engi Cruiser A")
 
+    def test_hints_say_which_ship_and_sector_sell_a_package(self) -> None:
+        self.assertEqual(shop_hints(self, (1, 7, 8)),
+                         ["Lanius Cruiser, sector 1", "Lanius Cruiser, sector 7", "Engi Cruiser, sector 1"])
+
 
 class TestShopPerLayout(FTLTestBase):
     options = {"layout_count": 28, "shop_checks": 30, "shop_per_ship": "per_layout", "shop_by_sector": False}
@@ -343,6 +357,11 @@ class TestShopPerLayout(FTLTestBase):
         for slot in (1, 2, 3):
             region = self.multiworld.get_location(f"Archipelago Shop {slot}", self.player).parent_region.name
             self.assertEqual(region, data.LAYOUTS_BY_BLUEPRINT[owners[slot - 1]].display)
+
+    def test_hints_name_the_layout_without_a_sector(self) -> None:
+        owners = self.world.fill_slot_data()["shop"]["owners"]
+        self.assertEqual(shop_hints(self, (1, 2)),
+                         [data.LAYOUTS_BY_BLUEPRINT[owners[0]].display, data.LAYOUTS_BY_BLUEPRINT[owners[1]].display])
 
 
 class TestShopForEveryShip(FTLTestBase):

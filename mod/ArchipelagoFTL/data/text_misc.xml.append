@@ -18,6 +18,8 @@
 <text name="ap_evt_slug_whisper_c1_text">He gives you one thing he happens to know: an item and who it is waiting for, or a place that still has something in it. Which one, he does not let you pick. Slugs rarely lie about small things. It is the large ones that cost.</text>
 <text name="ap_evt_slug_whisper_c2">Cut the channel.</text>
 <text name="ap_evt_slug_whisper_c2_text">The Slug leaves, insulted, and in leaving clips your hull with a parting burst that it will certainly describe as an accident. It also drops a payload it no longer has a use for. You come out ahead on scrap and behind on plating.</text>
+<text name="ap_evt_slug_whisper_c3">Let him talk, and leave.</text>
+<text name="ap_evt_slug_whisper_c3_text">You leave the channel open and get back to work. A while later the Slug is still talking. He has not noticed.</text>
 
 <text name="ap_evt_another_world_text">The surge comes in on no band this galaxy uses. It carries a name you do not recognise and a timestamp from somewhere that does not share your clock. Nobody aimed it at you. It is simply passing through, and it has to land somewhere.</text>
 <text name="ap_evt_another_world_c1">Take it. Ground the surge through your own hull.</text>

@@ -75,6 +75,7 @@
     "dash.cat.crew": "First crew members",
     "dash.cat.other": "Other",
     "dash.cat.sector": "Sectors reached",
+    "shop.place.sector": "sector {n}",
     "dash.cat.shop": "Archipelago shop",
     "dash.cat.system": "Systems installed",
     "dash.cat.victory": "Victories",
