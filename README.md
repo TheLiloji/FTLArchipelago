@@ -120,12 +120,13 @@ More in the wiki: [playing](docs/wiki/Playing.md), [options](docs/wiki/Options.m
 ## Languages
 
 English, French, Spanish, German, Italian and Portuguese, following FTL's own language. The French text was
-written by hand; the other translations were made with AI and may have mistakes, fixes are welcome.
+written by hand and the Spanish was reviewed by Trapper444; the other translations were made with AI and may
+have mistakes, fixes are welcome.
 
 ## Credits
 
 The first design of the items and locations comes from the [FTL Manual by Et0san](https://github.com/Et0san/Manual)
-(MIT). The FTL Archipelago logo was drawn by Trapper444. Built on
+(MIT). The FTL Archipelago logo was drawn by Trapper444, who also translated the mod into Spanish. Built on
 [FTL: Hyperspace](https://github.com/FTL-Hyperspace/FTL-Hyperspace) (CC-BY-SA 4.0). See
 `apworld/ftl/LICENSE.md` and `mod/ArchipelagoFTL/CREDITS.md`.
 
