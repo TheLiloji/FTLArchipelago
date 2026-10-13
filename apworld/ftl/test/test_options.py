@@ -171,6 +171,7 @@ class TestEverythingEnabled(FTLTestBase):
         "trap_chance": 50,
         "sector_logic": "strict",
         "victories_required": 3,
+        "combat_checks": 10,
     }
 
     def test_every_location_of_the_table_exists(self) -> None:

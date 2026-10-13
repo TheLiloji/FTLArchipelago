@@ -15,10 +15,11 @@ local PAGE_TITLE = {
     checks = "dash.tab.checks", journal = "dash.tab.journal",
 }
 
-local CATEGORIES = { "shop", "sector", "victory", "achievement", "system", "crew", "other" }
+local CATEGORIES = { "shop", "sector", "victory", "achievement", "system", "crew", "fight", "other" }
 local CATEGORY_TITLE = {
     shop = "dash.cat.shop", sector = "dash.cat.sector", victory = "dash.cat.victory",
     achievement = "dash.cat.achievement", system = "dash.cat.system", crew = "dash.cat.crew",
+    fight = "dash.cat.fight",
     other = "dash.cat.other",
 }
 
@@ -79,6 +80,7 @@ local function categoryOf(key)
     if key:sub(1, 5) == "shop:" then return "shop" end
     if key:sub(1, 4) == "sys:" or key:find(":sys:", 1, true) then return "system" end
     if key:sub(1, 5) == "crew:" then return "crew" end
+    if key:find(":fight:", 1, true) then return "fight" end
     if key:sub(1, 4) == "ach:" then return "achievement" end
     if key:find(":sector:", 1, true) then return "sector" end
     if key:sub(-8) == ":victory" then return "victory" end

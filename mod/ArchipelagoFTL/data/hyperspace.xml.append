@@ -346,6 +346,7 @@
     <script>data/archipelago/events.lua</script>
     <script>data/archipelago/contract.lua</script>
     <script>data/archipelago/checks.lua</script>
+    <script>data/archipelago/combat.lua</script>
     <script>data/archipelago/json.lua</script>
     <script>data/archipelago/network.lua</script>
     <script>data/archipelago/solo_order.lua</script>

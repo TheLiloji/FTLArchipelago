@@ -14,6 +14,7 @@ SYSTEM_CHECK_FORMAT = "sys:{system}"
 CREW_CHECK_FORMAT = "crew:{race}"
 SYSTEM_LEVEL_CHECK_FORMAT = "sys:{system}:{level}"
 SHIP_SYSTEM_CHECK_FORMAT = "{ship}:sys:{system}"
+FIGHT_CHECK_FORMAT = "{ship}:fight:{n}"
 
 KIND_SHIP = "ship"
 KIND_CAP = "cap"
@@ -77,6 +78,10 @@ LOCATION_OFFSET_SHOP = 40_000
 LOCATION_OFFSET_SYSTEM = 50_000
 LOCATION_OFFSET_CREW = 60_000
 LOCATION_OFFSET_SHIP_SYSTEM = 70_000
+LOCATION_OFFSET_FIGHT = 80_000
+
+# Combat checks: the first fights a ship wins in a run, at most this many per ship.
+MAX_FIGHTS_PER_SHIP = 10
 
 MAX_ACHIEVEMENTS_PER_SHIP = 10
 
@@ -541,6 +546,7 @@ GROUP_VICTORIES = "Ship victories"
 GROUP_SHIP_ACHIEVEMENTS = "Ship achievements"
 GROUP_GENERAL_ACHIEVEMENTS = "General achievements"
 GROUP_SHOP_SLOTS = "Archipelago shop"
+GROUP_FIGHTS = "Fights won"
 
 TIER_GENERAL = "general"
 TIER_DISTANCE = "distance"
@@ -629,6 +635,7 @@ class Location:
     system: str | None = None
     level: int | None = None
     race: str | None = None
+    fight: int | None = None
     description: str = ""
 
 
@@ -988,6 +995,18 @@ def _build_locations() -> tuple[Location, ...]:
                 level=1,
             ))
 
+    for ship in SHIPS:
+        for n in range(1, MAX_FIGHTS_PER_SHIP + 1):
+            locations.append(Location(
+                name=f"{ship.display}: Fight {n} won",
+                code=LOCATION_ID_BASE + LOCATION_OFFSET_FIGHT + ship.slot * 20 + n,
+                check_id=FIGHT_CHECK_FORMAT.format(ship=ship.blueprint, n=n),
+                group=GROUP_FIGHTS,
+                ship=ship.blueprint,
+                fight=n,
+                description=f"Win {n} fight(s) in a single run with the {ship.display}.",
+            ))
+
     for slot, race, label in CREW_RACES:
         locations.append(Location(
             name=f"First {label} aboard",
@@ -1171,7 +1190,7 @@ def _check_vanilla_totals() -> None:
         "sellable items": (len(SHOP_ITEMS), 74),
         "locations": (len(LOCATIONS), 28 * SECTOR_COUNT + 28 + 30 + 21 + MAX_SHOP_SLOTS
                       + sum(system.max_level for system in SYSTEMS) + len(CREW_RACES)
-                      + 10 * 16),
+                      + 10 * 16 + 10 * MAX_FIGHTS_PER_SHIP),
     }
     wrong = {label: pair for label, pair in expected.items() if pair[0] != pair[1]}
     if wrong:

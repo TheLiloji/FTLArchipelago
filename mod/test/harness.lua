@@ -159,6 +159,13 @@ local function makeShip(shipId)
         end
         return before - self.ship.hullIntegrity.first
     end
+    function ship:CountCrew(boarders)
+        local n = 0
+        for i = 0, self.vCrewList:size() - 1 do
+            if not self.vCrewList[i].bDead then n = n + 1 end
+        end
+        return n
+    end
     function ship:StartFire(roomId) self._fires[#self._fires + 1] = roomId end
     function ship:DamageArea(_, damage)
         if damage.breachChance and damage.breachChance > 0 then

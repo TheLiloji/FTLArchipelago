@@ -262,6 +262,29 @@ class VictoryCollectsLayout(Choice):
     default = option_sectors
 
 
+class CombatChecks(Range):
+    """Winning fights sends checks: with each ship, the first fights you win in a run (by destroying the enemy
+    or killing its crew) send "Fight 1 won", "Fight 2 won"... up to this number. 0 turns them off.
+    A fight that sends a check gives less scrap (see Combat Check Scrap); missiles, fuel and drone parts stay.
+    """
+
+    display_name = "Combat Checks per Ship"
+    range_start = 0
+    range_end = 10
+    default = 0
+
+
+class CombatCheckScrap(Range):
+    """The percentage of a fight's scrap you still get when that fight sends a combat check.
+    Fights that send nothing keep their full reward.
+    """
+
+    display_name = "Combat Check Scrap (%)"
+    range_start = 0
+    range_end = 100
+    default = 50
+
+
 class CrewChecks(DefaultOnToggle):
     """The first crew member of each race to join you sends a check: Human, Engi, Zoltan,
     Mantis, Rock, Slug and Lanius. 7 checks.
@@ -858,6 +881,8 @@ class FTLOptions(PerGameCommonOptions):
     free_upgrades: FreeUpgrades
     system_install: SystemInstall
     run_start_scrap: RunStartScrap
+    combat_checks: CombatChecks
+    combat_check_scrap: CombatCheckScrap
     progressive_systems_per_ship: ProgressiveSystemsPerShip
     head_starts: HeadStarts
     trap_chance: TrapChance
@@ -888,7 +913,7 @@ ftl_option_groups = [
     OptionGroup(
         "Game Size",
         [ShipLayouts, LayoutCount, Sectorsanity, Systemsanity, ShipAchievementChecks, GeneralAchievementChecks,
-         CrewChecks, ShopChecks],
+         CrewChecks, CombatChecks, CombatCheckScrap, ShopChecks],
     ),
     OptionGroup(
         "Playing with Others",

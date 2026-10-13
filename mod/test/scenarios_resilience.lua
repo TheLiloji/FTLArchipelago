@@ -406,6 +406,69 @@ test("run start scrap: off by default", function()
     equals(apRunStartScrap(), 0, "nothing without the option")
 end)
 
+local function fightSeed(percent)
+    _G.apInventory = { ships = {}, systemCaps = {}, startingUpgrades = {}, shopAvailability = {} }
+    apContractResetForTesting()
+    apForgetChecksForTesting()
+    applySeed({ loc = { ["PLAYER_SHIP_HARD:fight:1"] = "Kestrel Cruiser: Fight 1 won",
+                        ["PLAYER_SHIP_HARD:fight:2"] = "Kestrel Cruiser: Fight 2 won" },
+                options = { combat_check_scrap = percent } })
+    sim.startRun(true)
+    sim.jumpArrive()
+end
+
+local function winFight(scrap)
+    sim.enemy = sim.makeShip(1)
+    sim.enemy:DamageHull(100)
+    local event = { stuff = { scrap = scrap, fuel = 2, missiles = 1 } }
+    fire("PRE_CREATE_CHOICEBOX", event)
+    return event
+end
+
+test("combat checks: the first fights won in a run send their checks, with less scrap", function()
+    fightSeed(50)
+    local event = winFight(30)
+    check(apCheckAlreadySent("PLAYER_SHIP_HARD:fight:1"), "fight 1 won sends its check")
+    equals(event.stuff.scrap, 15, "half the scrap is kept")
+    equals(event.stuff.fuel, 2, "fuel and missiles stay")
+    winFight(30)
+    check(not apCheckAlreadySent("PLAYER_SHIP_HARD:fight:2"), "a second box at the same beacon is the same fight")
+    sim.jumpArrive()
+    winFight(30)
+    check(apCheckAlreadySent("PLAYER_SHIP_HARD:fight:2"), "the next beacon's fight is fight 2")
+    sim.jumpArrive()
+    local third = winFight(30)
+    equals(third.stuff.scrap, 30, "a fight beyond the seed's checks keeps its full scrap")
+    sim.enemy = nil
+end)
+
+test("combat checks: a new run counts from fight 1 again, and an already sent check costs nothing", function()
+    fightSeed(50)
+    winFight(30)
+    sim.startRun(true)
+    sim.jumpArrive()
+    local event = winFight(30)
+    equals(event.stuff.scrap, 30, "fight 1 was already sent: full scrap")
+    sim.enemy = nil
+end)
+
+test("combat checks: the game's float run variable still gives a whole fight number", function()
+    fightSeed(50)
+    sim.runVariables.ap_fights_won = 1.0
+    winFight(30)
+    check(apCheckAlreadySent("PLAYER_SHIP_HARD:fight:2"), "fight 2, not fight 2.0")
+    sim.enemy = nil
+end)
+
+test("combat checks: a living enemy, like a surrender, is not a won fight", function()
+    fightSeed(50)
+    sim.enemy = sim.makeShip(1)
+    sim.enemy.vCrewList = sim.vector({ sim.makeCrew("Rebel", "human", 1) })
+    fire("PRE_CREATE_CHOICEBOX", { stuff = { scrap = 10 } })
+    check(not apCheckAlreadySent("PLAYER_SHIP_HARD:fight:1"), "nothing sent while the enemy lives")
+    sim.enemy = nil
+end)
+
 test("shop: with no blueprints in the seed, every system can be bought", function()
     _G.apInventory = { ships = {}, systemCaps = {}, startingUpgrades = {}, shopAvailability = {} }
     applySeed({ system_blueprints = false })
