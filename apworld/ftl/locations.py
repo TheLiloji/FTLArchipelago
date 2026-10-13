@@ -134,6 +134,9 @@ def selected_locations(options) -> tuple[data.Location, ...]:
             if options.crew_checks:
                 kept.append(location)
         elif location.group == data.GROUP_SHIP_ACHIEVEMENTS:
+            needed = data.ACHIEVEMENT_LAYOUT.get(location.achievement or "")
+            if needed is not None and needed not in layouts:
+                continue
             if options.ship_achievements and location.ship in ships:
                 kept.append(location)
         elif location.group == data.GROUP_GENERAL_ACHIEVEMENTS:
@@ -182,6 +185,9 @@ def region_of(location: data.Location, options=None) -> str:
         if owners:
             owner = owners[data.shop_owner(location.shop_slot, len(owners), bool(options.shop_by_sector))]
             return region_name(owner)
+    needed = data.ACHIEVEMENT_LAYOUT.get(location.achievement or "")
+    if needed is not None:
+        return region_name(data.LAYOUTS_BY_BLUEPRINT[needed])
     if location.layout is not None:
         return region_name(data.LAYOUTS_BY_BLUEPRINT[location.layout])
     if location.ship is not None:
