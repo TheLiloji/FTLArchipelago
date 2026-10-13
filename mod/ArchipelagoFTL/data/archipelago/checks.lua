@@ -563,6 +563,25 @@ end)
 
 local previousOnRunEnd = apOnRunEnd
 
+-- Victory Collects the Layout set to everything: the ship's own achievements and per-ship system checks.
+local function collectShipChecks(layout)
+    local ship = tostring(layout):gsub("_[23]$", "")
+    local data = _G.apGameData or {}
+    for _, achievement in ipairs((data.shipAchievements or {})[ship] or {}) do
+        local key = "ach:" .. achievement
+        if _G.apLocationNameFor and apLocationNameFor(key) ~= nil then
+            apSendCheck(key, apT("check.label.achievement", {
+                name = (_G.apAchievementLabel and apAchievementLabel(achievement)) or achievement }))
+        end
+    end
+    local prefix = ship .. ":sys:"
+    for key, name in pairs(((_G.apContractState or {}).locNames) or {}) do
+        if tostring(key):sub(1, #prefix) == prefix then
+            apSendCheck(key, tostring(name))
+        end
+    end
+end
+
 function apOnRunEnd(cause, detail)
     if previousOnRunEnd then
         previousOnRunEnd(cause, detail)
@@ -572,7 +591,8 @@ function apOnRunEnd(cause, detail)
     end
     apTry(TAG, function()
         local layout = currentLayout()
-        if layout and (apSeedOption("victory_collects_layout") or 0) ~= 0 then
+        local collect = tonumber(apSeedOption("victory_collects_layout") or 0) or 0
+        if layout and collect >= 1 then
             local ship = (_G.apShipLabel and _G.apShipLabel(layout)) or layout
             for sector = 1, 8 do
                 local key = layout .. ":sector:" .. sector
@@ -580,6 +600,9 @@ function apOnRunEnd(cause, detail)
                     apSendCheck(key, apT("check.label.sector", { n = sector, ship = ship }))
                 end
             end
+        end
+        if layout and collect >= 2 then
+            collectShipChecks(layout)
         end
         if layout then
             apSendCheck(layout .. ":victory",

@@ -300,6 +300,13 @@ class TestVictoryCollectsTheLayoutOff(FTLTestBase):
         self.assertEqual(self.world.fill_slot_data()["options"]["victory_collects_layout"], 0)
 
 
+class TestVictoryCollectsEverything(FTLTestBase):
+    options = {"victory_collects_layout": "everything"}
+
+    def test_the_mod_is_told(self) -> None:
+        self.assertEqual(self.world.fill_slot_data()["options"]["victory_collects_layout"], 2)
+
+
 class TestShopBySector(FTLTestBase):
     options = {"shop_checks": 14, "sector_logic": "standard", "layout_count": 28, "shop_by_sector": True}
 

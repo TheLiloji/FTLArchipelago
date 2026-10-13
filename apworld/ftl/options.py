@@ -245,11 +245,21 @@ class SectorsanityLastSector(Range):
     default = data.SECTOR_COUNT
 
 
-class VictoryCollectsLayout(DefaultOnToggle):
-    """Beating the Flagship with a layout also sends every sector check of that layout still due.
+class VictoryCollectsLayout(Choice):
+    """What beating the Flagship with a layout also sends, among its checks still due.
+
+    off: nothing more than the victory.
+    sectors: every sector check of that layout.
+    everything: its sector checks, and its ship's achievements and per-ship system checks.
     """
 
     display_name = "Victory Collects the Layout"
+    option_off = 0
+    option_sectors = 1
+    option_everything = 2
+    alias_false = 0
+    alias_true = 1
+    default = option_sectors
 
 
 class CrewChecks(DefaultOnToggle):
