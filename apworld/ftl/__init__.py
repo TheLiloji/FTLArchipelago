@@ -134,6 +134,16 @@ class FTLWorld(World):
     def set_rules(self) -> None:
         rules.set_rules(self)
 
+    def extend_hint_information(self, hint_data: dict[int, dict[int, str]]) -> None:
+        # A shop slot's name cannot say where it is sold (its ship changes with each seed): hints say it instead.
+        places: dict[int, str] = {}
+        for location in self.created_locations:
+            place = locations.shop_place(location, self.options)
+            if place is not None:
+                places[location.code] = place
+        if places:
+            hint_data.setdefault(self.player, {}).update(places)
+
     def fill_slot_data(self) -> Mapping[str, Any]:
         descriptors = {item.name: data.item_descriptor(item) for item in self._items_in_seed()}
         shop_names = {item.blueprint: item.name for item in data.ITEMS if item.kind == data.KIND_SHOP}

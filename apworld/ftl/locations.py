@@ -161,6 +161,21 @@ def shop_owners(options) -> tuple[data.Layout, ...]:
     return ()
 
 
+def shop_place(location: data.Location, options) -> str | None:
+    """Where an Archipelago shop slot is sold in this seed (ship, sector), for hints: None when anywhere."""
+    if location.shop_slot is None:
+        return None
+    parts: list[str] = []
+    owners = shop_owners(options)
+    if owners:
+        owner = owners[data.shop_owner(location.shop_slot, len(owners), bool(options.shop_by_sector))]
+        per_class = options.shop_per_ship == options.shop_per_ship.option_per_class
+        parts.append(data.SHIPS_BY_BLUEPRINT[owner.ship].display if per_class else owner.display)
+    if options.shop_by_sector:
+        parts.append(f"sector {data.shop_sector(location.shop_slot)}")
+    return ", ".join(parts) or None
+
+
 def region_of(location: data.Location, options=None) -> str:
     if location.shop_slot is not None and options is not None:
         owners = shop_owners(options)
