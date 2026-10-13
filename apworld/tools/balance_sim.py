@@ -1,308 +1,280 @@
 #!/usr/bin/env python3
 """Compares sector logic proposals by generating seeds with each and replaying them.
 
-usage: balance_sim.py [seeds per proposal]
+usage: balance_sim.py [seeds per proposal] [proposal name filter]
 
-For every proposal, seeds are generated with that rule, then played sphere by sphere. It reports when
-sector 5, sector 8 and the Flagship come into logic (as a share of the seed's checks) and how strong the
-player is at that point: shield layers, weapon level, engine level.
+Built in: "current standard" and "current strict" (the apworld as it is). Every other proposal is a plugin
+file in apworld/tools/sim_proposals/ (see _template.py). For each one, seeds are generated with its rule,
+then replayed item by item. It reports, for sector 5, sector 8 and the Flagship, when they come into logic
+(share of the seed's checks already done) and how strong the player is then: shield layers, weapon level,
+engine level of the strongest flyable layout.
+
+Environment:
+  SIM_PRESET=presets/long_game.yaml   generate with a preset's options instead of the defaults
+  SIM_JSON=path                       also write the results as JSON
+  SIM_DEBUG=1                         print why a generation failed
 """
 
 from __future__ import annotations
 
+import importlib.util
+import json
 import os
 import statistics
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
+HERE = Path(__file__).resolve().parent
+ROOT = HERE.parents[1]
+sys.path.insert(0, str(HERE))
 from curve import bootstrap  # noqa: E402
 
-# Levels most ships start with: the logic is ship-agnostic, so it assumes a typical start.
-BASE_LEVEL = {"shields": 2, "engines": 2, "weapons": 3, "oxygen": 1, "pilot": 1, "doors": 1, "sensors": 1,
-              "medbay": 1}
-CORE = set(BASE_LEVEL)
+START_LEVELS: dict[str, dict[str, int]] = json.loads((HERE / "ship_start_levels.json").read_text())
+# A typical start, for checks that belong to no ship.
+TYPICAL = {"shields": 2, "engines": 2, "weapons": 3, "oxygen": 1, "pilot": 1, "doors": 1, "sensors": 1,
+           "medbay": 1, "reactor": 8}
 
 
-def levels(state, player, data, system: str) -> int:
-    progressive = state.count(f"Progressive {data.SYSTEMS_BY_ID[system].display}", player)
-    if system in CORE:
-        base = BASE_LEVEL[system]
-    elif state.has(f"{data.SYSTEMS_BY_ID[system].display} blueprint", player):
-        base = 1
-    else:
-        return 0
-    return min(base + progressive, data.SYSTEMS_BY_ID[system].max_level)
+class Helpers:
+    """What a proposal can read from a CollectionState."""
+
+    def __init__(self, world, data, rules, locations_module):
+        self.world = world
+        self.player = world.player
+        self.data = data
+        self.rules = rules
+        self.locations = locations_module
+        self.layouts = locations_module.selected_layouts(world.options)
+
+    def start_level(self, system: str, layout: str | None) -> int:
+        table = START_LEVELS.get(layout, TYPICAL) if layout else TYPICAL
+        return table.get(system, 0)
+
+    def level(self, state, system: str, layout: str | None = None) -> int:
+        """The highest level of a system the player may have on that layout (or a typical ship): its start
+        level plus the Progressive items received, or 1 + Progressive once its blueprint came in."""
+        spec = self.data.SYSTEMS_BY_ID[system]
+        progressive = state.count(f"Progressive {spec.display}", self.player)
+        base = self.start_level(system, layout)
+        if base == 0:
+            if not state.has(f"{spec.display} blueprint", self.player):
+                return 0
+            base = 1
+        return min(base + progressive, spec.max_level)
+
+    def reactor(self, state, layout: str | None = None) -> int:
+        return self.start_level("reactor", layout) + state.count("Reactor Power", self.player)
+
+    def layers(self, state, layout: str | None = None) -> int:
+        return self.level(state, "shields", layout) // 2
+
+    def flyable(self, state) -> list[str]:
+        """The layouts whose region the player can reach."""
+        out = []
+        for layout in self.layouts:
+            region = self.world.multiworld.get_region(self.locations.region_name(layout), self.player)
+            if region.can_reach(state):
+                out.append(layout.blueprint)
+        return out
+
+    def layout_of(self, location) -> str | None:
+        """The layout a check is played with, or None when any ship can do it."""
+        if location.layout:
+            return location.layout
+        if location.ship:
+            return location.ship
+        return None
+
+    def depth(self, location) -> int:
+        return self.rules.location_depth(location, bool(self.world.options.shop_by_sector))
+
+    def needs_flagship(self, location) -> bool:
+        return self.rules.location_needs_flagship(location)
 
 
-def score_weighted(state, player, data) -> float:
-    """Shields count a lot and keep their value; engines and weapons lose value in their last levels."""
-    score = 4.0 * (levels(state, player, data, "shields") // 2)
-    engines = levels(state, player, data, "engines")
-    score += 1.5 * min(engines, 6) + 0.5 * max(0, engines - 6)
-    weapons = levels(state, player, data, "weapons")
-    score += 2.0 * min(weapons, 6) + 1.0 * max(0, weapons - 6)
-    drones = levels(state, player, data, "drones")
-    score += (3.0 + drones) if drones else 0.0
-    for system in ("teleporter", "cloaking", "hacking", "mind", "artillery"):
-        n = levels(state, player, data, system)
-        score += (2.0 + n) if n else 0.0
-    for system in ("oxygen", "pilot", "doors", "sensors", "medbay", "clonebay", "battery"):
-        score += 0.5 * levels(state, player, data, system)
-    score += 1.0 * state.count("Reactor Power", player)
-    return score
+def load_plugins() -> dict:
+    found = {}
+    for path in sorted((HERE / "sim_proposals").glob("*.py")):
+        if path.name.startswith("_"):
+            continue
+        spec = importlib.util.spec_from_file_location(f"sim_proposal_{path.stem}", path)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        found[module.NAME] = module
+    return found
 
 
-def score_flat(state, player, data) -> float:
-    """Every upgrade item counts the same: blueprints, progressive levels and reactor bars."""
-    total = sum(state.count(f"Progressive {s.display}", player) + state.count(f"{s.display} blueprint", player)
-                for s in data.SYSTEMS)
-    return float(total + state.count("Reactor Power", player))
+def preset_options() -> dict | None:
+    preset = os.environ.get("SIM_PRESET")
+    if not preset:
+        return None
+    import yaml
+    from worlds.ftl import data
+    content = yaml.safe_load((ROOT / preset).read_text())
+    return content[data.GAME_NAME]
 
 
-def score_current(state, player, data) -> float:
-    return float(state.count_group(data.GROUP_BLUEPRINTS, player))
-
-
-# Milestones: minimum levels per sector instead of a score (shields count in levels: 2 levels = 1 layer).
-MILESTONES = {
-    5: {"shields": 4},
-    8: {"shields": 4, "weapons": 5},
-    "boss": {"shields": 6, "weapons": 6, "engines": 4},
-}
-
-PROPOSALS = {
-    "current standard": None,
-    "current strict": None,
-    "A weighted, gentle": (score_weighted, {3: 0.10, 5: 0.20, 7: 0.32, "boss": 0.40}),
-    "B weighted, medium": (score_weighted, {3: 0.15, 5: 0.30, 7: 0.45, "boss": 0.55}),
-    "B2 weighted, lower": (score_weighted, {3: 0.08, 5: 0.16, 7: 0.26, "boss": 0.34}),
-    "C flat, medium": (score_flat, {3: 0.10, 5: 0.25, 7: 0.40, "boss": 0.50}),
-    "D milestones, soft": "milestones",
-    "E milestones, firm": "milestones",
-}
-
-MILESTONE_SETS = {
-    "D milestones, soft": {5: {"shields": 4}, 8: {"shields": 4, "weapons": 4},
-                           "boss": {"shields": 6, "weapons": 5}},
-    "E milestones, firm": {5: {"shields": 4}, 8: {"shields": 4, "weapons": 5},
-                           "boss": {"shields": 6, "weapons": 6, "engines": 4}},
-}
-
-if os.environ.get("SIM_MILESTONES") == "shields":
-    MILESTONES = {5: {"shields": 4}, 8: {"shields": 4}, "boss": {"shields": 6}}
-if os.environ.get("SIM_MILESTONES") == "boss":
-    MILESTONES = {5: {}, 8: {}, "boss": {"shields": 6}}
-if os.environ.get("SIM_MILESTONES") == "soft":
-    MILESTONES = {5: {"shields": 4}, 8: {"shields": 4, "weapons": 4}, "boss": {"shields": 6, "weapons": 5}}
-
-
-def run(name: str, seeds: int):
+def run(name: str, plugin, seeds: int):
     from BaseClasses import ItemClassification
     from Fill import distribute_items_restrictive
-    from test.general import setup_solo_multiworld
+    from test.general import setup_multiworld, setup_solo_multiworld
     from worlds.AutoWorld import AutoWorldRegister
-    from worlds.ftl import data, items as ftl_items, rules
+    from worlds.ftl import data, items as ftl_items, locations as ftl_locations, rules
 
     world_type = AutoWorldRegister.world_types[data.GAME_NAME]
-    proposal = PROPOSALS[name]
-    global MILESTONES
-    if name in MILESTONE_SETS:
-        MILESTONES = MILESTONE_SETS[name]
     original_set_rules = world_type.set_rules
     original_create_item = ftl_items.create_item
-    upgrade_groups = {data.GROUP_SYSTEM_LEVELS, data.GROUP_BLUEPRINTS}
+    wanted = plugin.progression_items(data) if plugin else set()
 
-    # Only what the rule reads becomes progression: marking every upgrade overloads the early locations.
-    milestone_systems = {system for wanted in MILESTONES.values() for system in wanted}
-
+    # The pool is built with items.create_item, not the world's method: patch that one.
     def create_item(world, item_name):
         item = original_create_item(world, item_name)
-        entry = data.ITEMS_BY_NAME.get(item_name)
-        if not proposal or not entry:
-            return item
-        if proposal == "milestones":
-            if entry.group == data.GROUP_SYSTEM_LEVELS and entry.system in milestone_systems:
-                item.classification = ItemClassification.progression
-        elif entry.group in upgrade_groups or item_name == "Reactor Power":
+        if item_name in wanted:
             item.classification = ItemClassification.progression
         return item
 
     def set_rules(self):
-        if name == "current strict":
-            self.options.sector_logic.value = self.options.sector_logic.option_strict
-            self.sector_logic_level = self.options.sector_logic.value
-        if name == "current standard":
-            self.options.sector_logic.value = self.options.sector_logic.option_standard
-            self.sector_logic_level = self.options.sector_logic.value
-        if proposal:
-            self.options.sector_logic.value = self.options.sector_logic.option_relaxed
-            self.sector_logic_level = self.options.sector_logic.value
+        level = {"current standard": "option_standard", "current strict": "option_strict"}.get(name,
+                                                                                             "option_relaxed")
+        self.options.sector_logic.value = getattr(self.options.sector_logic, level)
+        self.sector_logic_level = self.options.sector_logic.value
         original_set_rules(self)
-        if not proposal:
+        if not plugin:
             return
-        player = self.player
-        if proposal == "milestones":
-            def meets(state, wanted):
-                return all(levels(state, player, data, system) >= level for system, level in wanted.items())
-
-            def wanted_at(depth, boss):
-                wanted = {}
-                for sector in (5, 8):
-                    if depth >= sector:
-                        wanted = MILESTONES[sector]
-                if boss:
-                    wanted = MILESTONES["boss"]
-                return wanted
-
-            for location in self.created_locations:
-                wanted = wanted_at(rules.location_depth(location, bool(self.options.shop_by_sector)),
-                                   rules.location_needs_flagship(location))
-                if wanted:
-                    placed = self.get_location(location.name)
-                    old = placed.access_rule
-                    placed.access_rule = lambda state, old=old, w=wanted: old(state) and meets(state, w)
-            old_win = self.multiworld.completion_condition[player]
-            self.multiworld.completion_condition[player] = (
-                lambda state: old_win(state) and meets(state, MILESTONES["boss"]))
-            return
-        score, steps = proposal
-        full = score(_FullState(self, data), player, data)
-
-        def need(depth, boss):
-            share = 0.0
-            for sector, value in steps.items():
-                if sector != "boss" and depth >= sector:
-                    share = value
-            if boss:
-                share = max(share, steps["boss"])
-            return share * full
-
+        helpers = Helpers(self, data, rules, ftl_locations)
+        # Optional: a proposal may also act on placement, e.g. multiworld.early_items or local_early_items.
+        if hasattr(plugin, "adjust"):
+            plugin.adjust(helpers, self)
         for location in self.created_locations:
-            threshold = need(rules.location_depth(location, bool(self.options.shop_by_sector)),
-                             rules.location_needs_flagship(location))
-            if threshold > 0:
+            rule = plugin.location_rule(helpers, location)
+            if rule is not None:
                 placed = self.get_location(location.name)
                 old = placed.access_rule
-                placed.access_rule = (lambda state, old=old, t=threshold:
-                                      old(state) and score(state, player, data) >= t)
-        boss_need = steps["boss"] * full
-        old_win = self.multiworld.completion_condition[player]
-        self.multiworld.completion_condition[player] = (
-            lambda state: old_win(state) and score(state, player, data) >= boss_need)
+                placed.access_rule = lambda state, old=old, rule=rule: old(state) and rule(state)
+        win = plugin.win_rule(helpers)
+        if win is not None:
+            old_win = self.multiworld.completion_condition[self.player]
+            self.multiworld.completion_condition[self.player] = lambda state: old_win(state) and win(state)
 
     world_type.set_rules = set_rules
     ftl_items.create_item = create_item
-    from worlds.ftl import options as ftl_options
-    combat_default = ftl_options.CombatChecks.default
-    ftl_options.CombatChecks.default = int(os.environ.get("SIM_COMBAT", "0"))
-    results = []
-    failures = 0
+    options = preset_options()
+    results, failures = [], 0
     try:
         for seed in range(seeds):
             try:
-                multiworld = setup_solo_multiworld(world_type, seed=seed)
+                if options is None:
+                    multiworld = setup_solo_multiworld(world_type, seed=seed)
+                else:
+                    steps = ("generate_early", "create_regions", "create_items", "set_rules",
+                             "connect_entrances", "generate_basic", "pre_fill")
+                    multiworld = setup_multiworld(world_type, steps, seed=seed, options=options)
                 distribute_items_restrictive(multiworld)
             except Exception as error:
                 failures += 1
                 if os.environ.get("SIM_DEBUG"):
-                    print(f"  {name} seed {seed}: {type(error).__name__}: {str(error)[-900:]}")
+                    print(f"  {name} seed {seed}: {type(error).__name__}: {str(error)[-600:]}")
                 continue
-            results.append(replay(multiworld, data, rules))
+            helpers = Helpers(multiworld.worlds[1], data, rules, ftl_locations)
+            results.append(replay(multiworld, data, rules, helpers))
     finally:
         world_type.set_rules = original_set_rules
         ftl_items.create_item = original_create_item
-        ftl_options.CombatChecks.default = combat_default
     return results, failures
 
 
-class _FullState:
-    """Counts every item of the world's pool: the most a seed can give."""
-
-    def __init__(self, world, data):
-        self.counts = {}
-        for item in world.multiworld.itempool:
-            if item.player == world.player:
-                self.counts[item.name] = self.counts.get(item.name, 0) + 1
-        self.data = data
-
-    def count(self, name, player):
-        return self.counts.get(name, 0)
-
-    def has(self, name, player, count=1):
-        return self.counts.get(name, 0) >= count
-
-    def count_group(self, group, player):
-        return sum(n for name, n in self.counts.items()
-                   if name in self.data.ITEMS_BY_NAME and self.data.ITEMS_BY_NAME[name].group == group)
+def strongest(helpers, state):
+    best = (0, 0, 0)
+    for layout in helpers.flyable(state) or [None]:
+        best = max(best, (helpers.layers(state, layout), helpers.level(state, "weapons", layout),
+                          helpers.level(state, "engines", layout)))
+    return best
 
 
-def replay(multiworld, data, rules):
+def replay(multiworld, data, rules, helpers):
     player = 1
     state = multiworld.state.copy()
     remaining = [loc for loc in multiworld.get_filled_locations(player) if loc.item is not None]
     total = len(remaining)
-    done = 0
-    opened = {}
-    spheres = 0
-    probes = {5: None, 8: None, "boss": None}
-    probe_locations = {key: [] for key in probes}
+    probes = {5: [], 8: [], "boss": []}
     for loc in remaining:
         entry = data.LOCATIONS_BY_NAME.get(loc.name)
         if entry is None:
             continue
-        depth = rules.location_depth(entry)
         if rules.location_needs_flagship(entry):
-            probe_locations["boss"].append(loc)
-        elif depth == 8:
-            probe_locations[8].append(loc)
-        elif depth == 5:
-            probe_locations[5].append(loc)
+            probes["boss"].append(loc)
+        elif rules.location_depth(entry) == 8:
+            probes[8].append(loc)
+        elif rules.location_depth(entry) == 5:
+            probes[5].append(loc)
+    opened, done, spheres, first_sphere = {}, 0, 0, 0
     while remaining:
         reachable = [loc for loc in remaining if loc.can_reach(state)]
         if not reachable:
             break
         spheres += 1
+        if spheres == 1:
+            first_sphere = len(reachable)
         for loc in reachable:
             # Checked after every item, not every sphere: a seed has only a handful of spheres.
-            for key, locs in probe_locations.items():
+            for key, locs in probes.items():
                 if key not in opened and any(probe.can_reach(state) for probe in locs):
-                    opened[key] = (done / total, levels(state, player, data, "shields") // 2,
-                                   levels(state, player, data, "weapons"),
-                                   levels(state, player, data, "engines"))
+                    opened[key] = (done / total, *strongest(helpers, state))
             state.collect(loc.item, prevent_sweep=True)
             remaining.remove(loc)
             done += 1
-    return {"opened": opened, "spheres": spheres}
+    return {"opened": opened, "spheres": spheres, "first_sphere": first_sphere, "total": total}
+
+
+def summarize(results):
+    out = {}
+    for key in (5, 8, "boss"):
+        rows = [r["opened"][key] for r in results if key in r["opened"]]
+        if rows:
+            out[str(key)] = {"at": statistics.mean(r[0] for r in rows),
+                             "layers": statistics.mean(r[1] for r in rows),
+                             "weapons": statistics.mean(r[2] for r in rows),
+                             "engines": statistics.mean(r[3] for r in rows)}
+    if results:
+        out["spheres"] = statistics.mean(r["spheres"] for r in results)
+        out["first_sphere"] = statistics.mean(r["first_sphere"] for r in results)
+    return out
 
 
 def main() -> int:
     bootstrap()
     seeds = int(sys.argv[1]) if len(sys.argv) > 1 else 30
-    print(f"{seeds} seeds per proposal, default options. 'open at' = share of the seed's checks done "
-          "when it comes into logic; then shield layers / weapon level / engine level at that point.")
+    only = sys.argv[2] if len(sys.argv) > 2 else os.environ.get("SIM_ONLY")
+    plugins = load_plugins()
+    proposals = {"current standard": None, "current strict": None, **plugins}
+    print(f"{seeds} seeds per proposal, options: {os.environ.get('SIM_PRESET') or 'defaults'}.")
+    print("'open' = share of the seed's checks done when it comes into logic, then shield layers / weapon "
+          "level / engine level of the strongest flyable layout. 'early' = checks reachable at the start.")
     print()
-    header = f"{'proposal':<22} {'fail':>4} {'spheres':>7} | {'sector 5':^22} | {'sector 8':^22} | {'Flagship':^22}"
+    header = (f"{'proposal':<28} {'fail':>4} {'early':>5} {'sph':>4} | {'sector 5':^20} | {'sector 8':^20} | "
+              f"{'Flagship':^20}")
     print(header)
     print("-" * len(header))
-    only = os.environ.get("SIM_ONLY")
-    for name in PROPOSALS:
+    report = {}
+    for name, plugin in proposals.items():
         if only and only not in name:
             continue
-        results, failures = run(name, seeds)
+        results, failures = run(name, plugin, seeds)
+        summary = summarize(results)
+        summary["failures"] = failures
+        summary["seeds"] = seeds
+        report[name] = summary
         cells = []
-        for key in (5, 8, "boss"):
-            rows = [r["opened"][key] for r in results if key in r["opened"]]
-            if not rows:
-                cells.append(f"{'-':^22}")
+        for key in ("5", "8", "boss"):
+            if key not in summary:
+                cells.append(f"{'-':^20}")
                 continue
-            at = statistics.mean(r[0] for r in rows) * 100
-            sh = statistics.mean(r[1] for r in rows)
-            wp = statistics.mean(r[2] for r in rows)
-            en = statistics.mean(r[3] for r in rows)
-            cells.append(f"{at:4.0f}%  {sh:3.1f}sh {wp:3.1f}w {en:3.1f}e")
-        spheres = statistics.mean(r["spheres"] for r in results) if results else 0
-        print(f"{name:<22} {failures:>4} {spheres:7.1f} | " + " | ".join(cells))
+            s = summary[key]
+            cells.append(f"{s['at'] * 100:3.0f}% {s['layers']:3.1f}L {s['weapons']:3.1f}w {s['engines']:3.1f}e")
+        print(f"{name:<28} {failures:>4} {summary.get('first_sphere', 0):5.0f} {summary.get('spheres', 0):4.1f} | "
+              + " | ".join(cells), flush=True)
+    if os.environ.get("SIM_JSON"):
+        Path(os.environ["SIM_JSON"]).write_text(json.dumps(report, indent=1))
     return 0
 
 
