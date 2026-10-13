@@ -3081,6 +3081,13 @@ test("network: connecting requests the contents of the shop slots", function()
     equals(#names, 3, "translated into Archipelago names, the only ones the server knows")
 end)
 
+test("network: a seed without a shop empties what solo left in it", function()
+    _G.apShopGiftsConfigure({ { mine = true, item = "Progressive Engines", location = "shop:1" } }, "solo")
+    equals(#_G.apShopGifts, 1, "solo mode stocked the shop")
+    connectWithShop(0)
+    equals(#_G.apShopGifts, 0, "the seed has no shop slot: nothing from solo is left on sale")
+end)
+
 test("network: a received scout fills the shop slot", function()
     connectWithShop(2)
     sim.netEvent("scout", { name = "Archipelago Shop 1", sender = "Berserker",

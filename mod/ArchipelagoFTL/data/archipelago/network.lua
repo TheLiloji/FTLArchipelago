@@ -435,6 +435,10 @@ local function requestShopScouts()
         end
     end
     local shopCount = #names
+    -- A seed without a shop: what the shop held before (solo, the demo, another seed) must go.
+    if shopCount == 0 and _G.apShopGiftsConfigure then
+        pcall(_G.apShopGiftsConfigure, {})
+    end
     -- The other checks too, so a check can say what it sends. A scout is not a hint: nobody else sees it.
     local others = {}
     for key, name in pairs((_G.apContractState or {}).locNames or {}) do
