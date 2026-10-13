@@ -313,6 +313,7 @@
     "start.received": "Bonificación inicial: {item}",
     "start.summary": "Bonificación inicial: {list}",
     "status.prefix": "Archipelago: {message}",
+    "system.free_levels": "{name}: nivel {level} instalado gratis.",
     "system.from_event": "{name}: sistema recuperado.",
     "system.locked": "{name}: no hay un plano a bordo.",
     "system.locked.refunded": "{name}: no hay un plano a bordo. Recuperas {refund} de chatarra.",

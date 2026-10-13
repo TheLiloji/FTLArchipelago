@@ -375,6 +375,14 @@ class FullSystemUpgrades(Toggle):
     display_name = "Full System Upgrades"
 
 
+class FreeUpgrades(Toggle):
+    """System upgrade levels you receive are installed for free: right away if you are in a run, and again at
+    the start of every run. Off: a received level only lets you buy it at a store.
+    """
+
+    display_name = "Free Upgrades"
+
+
 class HeadStarts(DefaultOnToggle):
     """Head Start items give a free system level, or a reactor bar, at the start of every
     future run. They make each new run a little stronger.
@@ -810,6 +818,7 @@ class FTLOptions(PerGameCommonOptions):
     system_blueprints: SystemBlueprints
     progressive_systems: ProgressiveSystems
     full_system_upgrades: FullSystemUpgrades
+    free_upgrades: FreeUpgrades
     progressive_systems_per_ship: ProgressiveSystemsPerShip
     head_starts: HeadStarts
     trap_chance: TrapChance
@@ -849,7 +858,7 @@ ftl_option_groups = [
     OptionGroup(
         "Advanced",
         [StartShip, HeadStarts, ModLanguage, SectorsanityFirstSector, SectorsanityLastSector, VictoryCollectsLayout, LayoutUnlocks, CrossRunAchievementChecks,
-         SystemBlueprints, ProgressiveSystems, FullSystemUpgrades, CrewMembers, ShopWeapons, ShopDrones, ShopAugments,
+         SystemBlueprints, ProgressiveSystems, FullSystemUpgrades, FreeUpgrades, CrewMembers, ShopWeapons, ShopDrones, ShopAugments,
          WeaponBundleSize, DroneBundleSize, AugmentBundleSize,
          ShopUnlockMode, ShopItemDelivery, ShopBySector, ShopPerShip, SystemsanityPerShip,
          ProgressiveSystemsPerShip, SectorLogic],

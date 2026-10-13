@@ -313,6 +313,7 @@
     "start.received": "Head start: {item}",
     "start.summary": "Head start: {list}",
     "status.prefix": "Archipelago: {message}",
+    "system.free_levels": "{name}: level {level} installed for free.",
     "system.from_event": "{name}, salvaged.",
     "system.locked": "{name}: no blueprint aboard.",
     "system.locked.refunded": "{name}: no blueprint aboard. {refund} scrap back.",

@@ -292,6 +292,43 @@ test("cap: a blueprint allows the purchase without consuming an upgrade", functi
         "blueprint then two upgrades: exactly the teleporter's maximum, nothing wasted")
 end)
 
+test("free upgrades: a received level is installed at once, no store needed", function()
+    _G.apInventory = { ships = {}, systemCaps = {}, startingUpgrades = {}, shopAvailability = {} }
+    applySeed({ kinds = { "cap" }, options = { free_upgrades = 1 } })
+    sim.startRun(true)
+    apApplySystemRules()
+    local start = oxygen().powerState.second
+    apQueueItem({ kind = "cap", sys = "oxygen", n = 1, display = "Progressive Oxygen" })
+    drain()
+    apApplySystemRules()
+    equals(oxygen().powerState.second, start + 1, "the oxygen level Archipelago gave is already installed")
+    oxygen().powerState.second, oxygen().maxLevel = start, 3 -- a new run comes with a fresh ship
+    sim.startRun(true)
+    apApplySystemRules()
+    equals(oxygen().powerState.second, start + 1, "and again at the start of the next run")
+end)
+
+test("free upgrades: off, a received level only allows the purchase", function()
+    _G.apInventory = { ships = {}, systemCaps = {}, startingUpgrades = {}, shopAvailability = {} }
+    applySeed({ kinds = { "cap" } })
+    sim.startRun(true)
+    apApplySystemRules()
+    local start = oxygen().powerState.second
+    apQueueItem({ kind = "cap", sys = "oxygen", n = 1, display = "Progressive Oxygen" })
+    drain()
+    apApplySystemRules()
+    equals(oxygen().powerState.second, start, "nothing installed by itself")
+    equals(oxygen().maxLevel, start + 1, "but the level can be bought")
+end)
+
+test("free upgrades: with no progressive upgrades in the seed, nothing is given for free", function()
+    _G.apInventory = { ships = {}, systemCaps = {}, startingUpgrades = {}, shopAvailability = {} }
+    applySeed({ system_caps = false, options = { free_upgrades = 1 } })
+    sim.startRun(true)
+    apApplySystemRules()
+    equals(oxygen().powerState.second, 1, "without caps every level would be free: the option does nothing")
+end)
+
 test("shop: with no blueprints in the seed, every system can be bought", function()
     _G.apInventory = { ships = {}, systemCaps = {}, startingUpgrades = {}, shopAvailability = {} }
     applySeed({ system_blueprints = false })

@@ -74,6 +74,36 @@ local function recordStart(name, level)
     pcall(function() Hyperspace.playerVariables["ap_start_" .. name] = level end)
 end
 
+local function inRun()
+    local ok, running = pcall(function()
+        local app = Hyperspace.App
+        return app.world.bStartedGame == true and app.menu.shipBuilder.bOpen ~= true
+    end)
+    return ok and running
+end
+
+-- With Free Upgrades, a level Archipelago gave is installed at once, no store needed.
+local function freeUpgrades()
+    return _G.apSeedOption ~= nil and (apSeedOption("free_upgrades") or 0) ~= 0
+        and not (_G.apSystemCapsActive and not _G.apSystemCapsActive())
+end
+
+local function installFreeLevels(system, name, cap)
+    local before = system.powerState.second
+    while system.powerState.second < cap do
+        if not system:UpgradeSystem(1) then
+            break
+        end
+    end
+    local gained = system.powerState.second - before
+    if gained > 0 then
+        sysLog(string.format("%s: %d free level(s) installed, now %d", name, gained, system.powerState.second))
+        if _G.apNotifyStatus then
+            _G.apNotifyStatus(apT("system.free_levels", { name = apSystemLabel(name), level = system.powerState.second }))
+        end
+    end
+end
+
 local function applyCap(system)
     local name = systemName(system)
     if name == nil then
@@ -124,6 +154,9 @@ local function applyCap(system)
             name, system.maxLevel, cap, originalMaxLevel[name], allowedCap(name)))
     end
     system.maxLevel = cap
+    if freeUpgrades() and inRun() and current < cap then
+        installFreeLevels(system, name, cap)
+    end
 end
 
 function apApplySystemRules()
@@ -268,14 +301,6 @@ local lastScrap = nil
 
 -- Stores never sell these, every ship has them: removing one would break the ship.
 local NEVER_SOLD = { pilot = true, oxygen = true, shields = true, engines = true, weapons = true }
-
-local function inRun()
-    local ok, running = pcall(function()
-        local app = Hyperspace.App
-        return app.world.bStartedGame == true and app.menu.shipBuilder.bOpen ~= true
-    end)
-    return ok and running
-end
 
 local function disarm(reason)
     if purchaseGuardArmed then

@@ -313,6 +313,7 @@
     "start.received": "Bonus iniziale: {item}",
     "start.summary": "Bonus iniziale: {list}",
     "status.prefix": "Archipelago: {message}",
+    "system.free_levels": "{name}: livello {level} installato gratis.",
     "system.from_event": "{name}: sistema recuperato.",
     "system.locked": "{name}: nessun progetto a bordo.",
     "system.locked.refunded": "{name}: nessun progetto a bordo. {refund} rottami restituiti.",
