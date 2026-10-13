@@ -75,6 +75,7 @@
     "dash.cat.crew": "Primeiros tripulantes",
     "dash.cat.other": "Outros",
     "dash.cat.sector": "Setores alcançados",
+    "shop.place.sector": "setor {n}",
     "dash.cat.shop": "Loja Archipelago",
     "dash.cat.system": "Sistemas instalados",
     "dash.cat.victory": "Vitórias",

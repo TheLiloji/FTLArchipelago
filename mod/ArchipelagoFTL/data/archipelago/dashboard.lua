@@ -104,7 +104,9 @@ local function checkBook()
             entry.done = entry.done + 1
             book.done = book.done + 1
         else
-            entry.remaining[#entry.remaining + 1] = { key = key, name = tostring(name) }
+            local place = categoryOf(key) == "shop" and _G.apShopPlace and apShopPlace(key) or nil
+            entry.remaining[#entry.remaining + 1] = { key = key,
+                name = place and (tostring(name) .. " (" .. place .. ")") or tostring(name) }
         end
     end
     local function natural(name)

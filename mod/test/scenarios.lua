@@ -3088,6 +3088,38 @@ test("network: a seed without a shop empties what solo left in it", function()
     equals(#_G.apShopGifts, 0, "the seed has no shop slot: nothing from solo is left on sale")
 end)
 
+test("shop place: a slot says which ship and sector sell it, as hints do", function()
+    connectWithShop(14)
+    sim.shipNames = sim.shipNames or {}
+    sim.shipNames.PLAYER_SHIP_HARD, sim.shipNames.PLAYER_SHIP_CIRCLE = "The Kestrel", "The Torus"
+    sim.shipClasses = { PLAYER_SHIP_HARD = "Kestrel Cruiser", PLAYER_SHIP_CIRCLE = "Engi Cruiser" }
+    _G.apShopConfig.owners = { "PLAYER_SHIP_HARD", "PLAYER_SHIP_CIRCLE" }
+    _G.apShopConfig.per = "per_class"
+    _G.apShopConfig.sectors = 7
+    equals(apShopPlace("shop:1"), "Kestrel Cruiser, sector 1", "the first round of sectors is the first ship's")
+    equals(apShopPlace("shop:9"), "Engi Cruiser, sector 2", "the second round is the next ship's")
+    _G.apShopConfig.per = "per_layout"
+    _G.apShopConfig.owners = { "PLAYER_SHIP_HARD", "PLAYER_SHIP_HARD_2" }
+    equals(apShopPlace("shop:8"), "Kestrel Cruiser B, sector 1", "per layout names the layout")
+    _G.apShopConfig.owners, _G.apShopConfig.sectors = nil, nil
+    equals(apShopPlace("shop:8"), nil, "sold everywhere: nothing to add")
+    equals(apShopPlace("sector:2"), nil, "not a shop slot")
+    sim.shipClasses = nil
+end)
+
+test("shop place: a hint on one of our shop slots says where to buy it", function()
+    connectWithShop(14)
+    sim.shipClasses = { PLAYER_SHIP_HARD = "Kestrel Cruiser" }
+    _G.apShopConfig.owners, _G.apShopConfig.per, _G.apShopConfig.sectors = { "PLAYER_SHIP_HARD" }, "per_class", 7
+    local text = apHintText({ item = "Seashell", receiver = "Berserker", finder = "Navigator",
+                              location = "Archipelago Shop 3" })
+    check(text:find("Archipelago Shop 3 (Kestrel Cruiser, sector 3)", 1, true), "the hint says where: " .. text)
+    local theirs = apHintText({ item = "Laser", receiver = "Navigator", finder = "Berserker",
+                                location = "Archipelago Shop 3" })
+    check(not theirs:find("Kestrel", 1, true), "a slot of another world is not ours to place: " .. theirs)
+    sim.shipClasses = nil
+end)
+
 test("network: a received scout fills the shop slot", function()
     connectWithShop(2)
     sim.netEvent("scout", { name = "Archipelago Shop 1", sender = "Berserker",
