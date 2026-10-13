@@ -422,6 +422,55 @@ local function drawLinksCard(x, y, w, h)
     end
 end
 
+-- What the seed's run options mean for the run in progress; empty when the seed uses none of them.
+local function runLines()
+    local lines = {}
+    local option = function(name) return tonumber(_G.apSeedOption and apSeedOption(name) or 0) or 0 end
+    local status = hasSeed() and _G.apCombatStatus and apCombatStatus() or nil
+    if status and status.total > 0 then
+        local key = status.nextSends and "dash.run.fights.next" or "dash.run.fights"
+        lines[#lines + 1] = { key = key, params = { n = status.won, left = status.left },
+                              tone = status.nextSends and "good" or "text" }
+    end
+    if option("run_start_scrap") > 0 and _G.apRunStartScrap then
+        lines[#lines + 1] = { key = "dash.run.scrap", params = { n = apRunStartScrap() }, tone = "text" }
+    end
+    if option("free_upgrades") > 0 then
+        lines[#lines + 1] = { key = "dash.run.free_upgrades", tone = "dim" }
+    end
+    local install = option("system_install")
+    if install == 1 then
+        lines[#lines + 1] = { key = "dash.run.install.start", tone = "dim" }
+    elseif install == 2 then
+        lines[#lines + 1] = { key = "dash.run.install.now", tone = "dim" }
+    end
+    return lines
+end
+
+-- A line too wide for the card wraps onto a second one (translations run longer than English).
+local function runLineHeight(line, w)
+    return width(10, apT(line.key, line.params)) > w - 32 and 34 or 20
+end
+
+local function runCardHeight(lines, w)
+    local h = 40
+    for _, line in ipairs(lines) do
+        h = h + runLineHeight(line, w)
+    end
+    return h
+end
+
+local function drawRunCard(x, y, w, h, lines)
+    card(x, y, w, h)
+    label(x + 16, y + 10, w - 32, "dash.run.title")
+    local lineY = y + 32
+    for _, line in ipairs(lines) do
+        Graphics.CSurface.GL_SetColor(color(line.tone))
+        Graphics.freetype.easy_printAutoNewlines(10, x + 16, lineY, w - 32, apT(line.key, line.params))
+        lineY = lineY + runLineHeight(line, w)
+    end
+end
+
 local function drawRecentCard(x, y, w, h)
     card(x, y, w, h)
     label(x + 16, y + 10, w - 32, "dash.recent.title")
@@ -495,7 +544,13 @@ local function drawOverview(x, y, w, h)
 
     drawLinksCard(rx, y, right, 70)
     local hintH = 110
-    drawRecentCard(rx, y + 70 + GAP, right, h - 70 - GAP - hintH - GAP)
+    local lines = runLines()
+    local runH = #lines > 0 and runCardHeight(lines, right) or 0
+    if runH > 0 then
+        drawRunCard(rx, y + 70 + GAP, right, runH, lines)
+        runH = runH + GAP
+    end
+    drawRecentCard(rx, y + 70 + GAP + runH, right, h - 70 - GAP - runH - hintH - GAP)
     drawHintCard(rx, y + h - hintH, right, hintH)
 end
 

@@ -460,6 +460,20 @@ test("combat checks: the game's float run variable still gives a whole fight num
     sim.enemy = nil
 end)
 
+test("combat checks: the dashboard knows when the next fight sends a check", function()
+    fightSeed(50)
+    local status = apCombatStatus()
+    equals(status.total, 2, "two fight checks in the seed for the Kestrel")
+    check(status.nextSends, "fight 1 is still due")
+    winFight(30)
+    sim.jumpArrive()
+    winFight(30)
+    status = apCombatStatus()
+    equals(status.left, 0, "both sent")
+    check(not status.nextSends, "a third fight sends nothing")
+    sim.enemy = nil
+end)
+
 test("combat checks: a living enemy, like a surrender, is not a won fight", function()
     fightSeed(50)
     sim.enemy = sim.makeShip(1)

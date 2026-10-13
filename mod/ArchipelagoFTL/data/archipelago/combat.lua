@@ -40,6 +40,26 @@ local function currentShip()
     return ok and name and (tostring(name):gsub("_[23]$", "")) or nil
 end
 
+-- For the dashboard: fights won this run and the fight checks this ship still has.
+function apCombatStatus()
+    local ship = currentShip()
+    local total, left, nextSends = 0, 0, false
+    local won = fightsWon()
+    for n = 1, 10 do
+        local key = ship and (ship .. ":fight:" .. n) or nil
+        if key and _G.apLocationNameFor and apLocationNameFor(key) then
+            total = total + 1
+            if not apCheckAlreadySent(key) then
+                left = left + 1
+                if n == won + 1 then
+                    nextSends = true
+                end
+            end
+        end
+    end
+    return { won = won, total = total, left = left, nextSends = nextSends }
+end
+
 function apCombatReward(event)
     if countedHere or not enemyBeaten(Hyperspace.ships.enemy) then
         return false
