@@ -56,6 +56,10 @@ MV_ALWAYS_UNLOCKED_LAYOUTS = ("PLAYER_SHIP_MVKESTREL",)
 
 CROSS_RUN_ACHIEVEMENTS = ("ACH_SCRAP", "ACH_SHIPS", "ACH_UNLOCK_ALL")
 
+# Ship achievements that only one layout makes fair: Ancestry is mostly luck without the Crystal crew
+# member the Rock C starts with. Logic asks for that layout, and the check is left out when it is not in the seed.
+ACHIEVEMENT_LAYOUT: dict[str, str] = {"ACH_ROCK_CRYSTAL": "PLAYER_SHIP_ROCK_3"}
+
 BASE_ID = 0x46544C00
 ITEM_ID_BASE = BASE_ID
 LOCATION_ID_BASE = BASE_ID + 100_000
