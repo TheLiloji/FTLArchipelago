@@ -74,6 +74,133 @@ local function recordStart(name, level)
     pcall(function() Hyperspace.playerVariables["ap_start_" .. name] = level end)
 end
 
+local function inRun()
+    local ok, running = pcall(function()
+        local app = Hyperspace.App
+        return app.world.bStartedGame == true and app.menu.shipBuilder.bOpen ~= true
+    end)
+    return ok and running
+end
+
+-- With Free Upgrades, a level Archipelago gave is installed at once, no store needed.
+local function freeUpgrades()
+    return _G.apSeedOption ~= nil and (apSeedOption("free_upgrades") or 0) ~= 0
+        and not (_G.apSystemCapsActive and not _G.apSystemCapsActive())
+end
+
+local function installFreeLevels(system, name, cap)
+    local before = system.powerState.second
+    while system.powerState.second < cap do
+        if not system:UpgradeSystem(1) then
+            break
+        end
+    end
+    local gained = system.powerState.second - before
+    if gained > 0 then
+        sysLog(string.format("%s: %d free level(s) installed, now %d", name, gained, system.powerState.second))
+        if _G.apNotifyStatus then
+            _G.apNotifyStatus(apT("system.free_levels", { name = apSystemLabel(name), level = system.powerState.second }))
+        end
+    end
+end
+
+-- System Install: a system whose blueprint came in is put aboard for free, when the hull has a place for it.
+local SUBSYSTEMS = { pilot = true, sensors = true, doors = true, battery = true }
+local INSTALL_ORDER = { "shields", "engines", "oxygen", "weapons", "medbay", "pilot", "sensors", "doors",
+                        "drones", "teleporter", "cloaking", "hacking", "mind", "battery", "clonebay", "artillery" }
+local systemIds = nil
+
+local function systemId(name)
+    if systemIds == nil then
+        systemIds = {}
+        for id = 0, 20 do
+            local ok, found = pcall(Hyperspace.ShipSystem.SystemIdToName, id)
+            if ok and found ~= nil and found ~= "" then
+                systemIds[found] = id
+            end
+        end
+    end
+    return systemIds[name]
+end
+
+-- Older inventories (test profiles, a seed loaded before this was kept) have no blueprint list: any item
+-- for the system then counts, as before.
+local function hasBlueprint(name)
+    local inventory = _G.apInventory
+    if inventory == nil or inventory.systemCaps == nil then
+        return false
+    end
+    if inventory.blueprints == nil then
+        return inventory.systemCaps[name] ~= nil
+    end
+    return inventory.blueprints[name] == true
+end
+
+-- What the dashboard and the home screen call unlocked: what a store may sell.
+function apSystemUnlocked(name)
+    if _G.apSystemBlueprintsActive and not _G.apSystemBlueprintsActive() then
+        return true
+    end
+    return hasBlueprint(name)
+end
+
+local function installMode()
+    local mode = _G.apSeedOption ~= nil and apSeedOption("system_install") or 0
+    if _G.apSystemBlueprintsActive and not _G.apSystemBlueprintsActive() then
+        return 0
+    end
+    return tonumber(mode) or 0
+end
+
+local function hullHasPlace(player, id)
+    local ok, found = pcall(function()
+        local info = player.myBlueprint.systemInfo[id]
+        return info ~= nil and info.location:size() > 0
+    end)
+    return ok and found == true
+end
+
+local function installReceivedSystems(reason)
+    local player = Hyperspace.ships.player
+    local caps = (_G.apInventory or {}).systemCaps
+    if player == nil or caps == nil then
+        return 0
+    end
+    local installed = {}
+    for _, name in ipairs(INSTALL_ORDER) do
+        local id = systemId(name)
+        if id ~= nil and caps[name] ~= nil and hasBlueprint(name) and not player:HasSystem(id)
+            and hullHasPlace(player, id) then
+            local replaces = (name == "medbay" and player:HasSystem(systemId("clonebay")))
+                or (name == "clonebay" and player:HasSystem(systemId("medbay")))
+            local fits = SUBSYSTEMS[name] and player:CanFitSubsystem(id) or player:CanFitSystem(id)
+            if fits and not replaces then
+                player:AddSystem(id)
+                if player:HasSystem(id) then
+                    installed[#installed + 1] = apSystemLabel(name)
+                    sysLog(name .. ": installed for free (" .. reason .. ")")
+                end
+            end
+        end
+    end
+    if #installed > 0 and _G.apNotifyStatus then
+        _G.apNotifyStatus(apT("system.installed_free", { list = table.concat(installed, ", ") }))
+    end
+    return #installed
+end
+
+function apInstallReceivedSystems(reason)
+    if installMode() == 0 or not inRun() then
+        return 0
+    end
+    local ok, count = pcall(installReceivedSystems, reason or "check")
+    if not ok then
+        sysLog("system install failed: " .. tostring(count))
+        return 0
+    end
+    return count
+end
+
 local function applyCap(system)
     local name = systemName(system)
     if name == nil then
@@ -124,6 +251,9 @@ local function applyCap(system)
             name, system.maxLevel, cap, originalMaxLevel[name], allowedCap(name)))
     end
     system.maxLevel = cap
+    if freeUpgrades() and inRun() and current < cap then
+        installFreeLevels(system, name, cap)
+    end
 end
 
 function apApplySystemRules()
@@ -241,11 +371,7 @@ local function purchaseAllowed(name)
     if _G.apSystemBlueprintsActive and not _G.apSystemBlueprintsActive() then
         return true
     end
-    local inventory = _G.apInventory
-    if inventory == nil or inventory.systemCaps == nil then
-        return false
-    end
-    return inventory.systemCaps[name] ~= nil
+    return hasBlueprint(name)
 end
 
 local pendingRefusal = {}
@@ -269,14 +395,6 @@ local lastScrap = nil
 -- Stores never sell these, every ship has them: removing one would break the ship.
 local NEVER_SOLD = { pilot = true, oxygen = true, shields = true, engines = true, weapons = true }
 
-local function inRun()
-    local ok, running = pcall(function()
-        local app = Hyperspace.App
-        return app.world.bStartedGame == true and app.menu.shipBuilder.bOpen ~= true
-    end)
-    return ok and running
-end
-
 local function disarm(reason)
     if purchaseGuardArmed then
         sysLog("anti-purchase guard off: " .. reason)
@@ -288,6 +406,51 @@ end
 local function recordScrap()
     local ok, value = pcall(function() return Hyperspace.ships.player.currentScrap end)
     lastScrap = ok and tonumber(value) or nil
+end
+
+-- The medbay and the clone bay exclude each other: buying one makes the game remove the other.
+local EXCLUSIVE = { medbay = "clonebay", clonebay = "medbay" }
+local exclusiveLevels = {}
+
+local function recordExclusive()
+    local player = Hyperspace.ships.player
+    if player == nil then
+        return
+    end
+    for name in pairs(EXCLUSIVE) do
+        local level = nil
+        pcall(function()
+            local id = systemId(name)
+            if id ~= nil and player:HasSystem(id) then
+                local system = player:GetSystem(id)
+                level = (system and system.powerState.second) or 1
+            end
+        end)
+        exclusiveLevels[name] = level
+    end
+end
+
+-- A refused purchase must not cost the system it replaced: put it back, at the level it had.
+local function restoreReplaced(player, refusal)
+    local partner = EXCLUSIVE[refusal.name]
+    local level = partner and refusal.partnerLevel
+    if level == nil then
+        return
+    end
+    local id = systemId(partner)
+    if id == nil or player:HasSystem(id) then
+        return
+    end
+    -- It was aboard before the purchase: the guard must not refuse it as one more.
+    startingSystems[partner] = true
+    player:AddSystem(id)
+    local system = player:GetSystem(id)
+    while system ~= nil and system.powerState.second < level do
+        if not system:UpgradeSystem(1) then
+            break
+        end
+    end
+    sysLog(string.format("%s put back at level %d after the refused %s", partner, level, refusal.name))
 end
 
 script.on_internal_event(Defines.InternalEvents.CONSTRUCT_SHIP_SYSTEM, function(system)
@@ -333,6 +496,7 @@ script.on_internal_event(Defines.InternalEvents.CONSTRUCT_SHIP_SYSTEM, function(
             systemType = system.iSystemType,
             system = system,
             scrapBefore = lastScrap,
+            partnerLevel = EXCLUSIVE[name] and exclusiveLevels[EXCLUSIVE[name]],
         }
     end)
 end)
@@ -372,6 +536,7 @@ local function processRefusals()
         pcall(function()
             player:RemoveSystem(refusal.systemType)
         end)
+        pcall(restoreReplaced, player, refusal)
         if refund > 0 then
             pcall(function()
                 player:ModifyScrapCount(refund, false)
@@ -401,6 +566,12 @@ script.on_init(function(newGame)
     fromSave = newGame == false
     if not fromSave then
         apApplySystemRules()
+        if installMode() > 0 then
+            pcall(installReceivedSystems, "start of the run")
+            -- A system put aboard starts at level 1: recorded now, before the Head Starts raise it, or they
+            -- would count twice in its cap.
+            apApplySystemRules()
+        end
         applyStartingUpgrades()
         apApplySystemRules()
     end
@@ -410,6 +581,7 @@ local capDivider = 0
 script.on_internal_event(Defines.InternalEvents.ON_TICK, function()
     processRefusals()
     recordScrap()
+    recordExclusive()
 
     -- A continued run may reload at a store: its systems are all built by now, so the guard goes on at once
     -- instead of waiting for a jump that would let a purchase through.
@@ -421,8 +593,54 @@ script.on_internal_event(Defines.InternalEvents.ON_TICK, function()
 
     capDivider = (capDivider + 1) % 60
     if capDivider == 0 then
+        if installMode() == 2 and purchaseGuardArmed then
+            apInstallReceivedSystems("received")
+        end
         apApplySystemRules()
     end
+end)
+
+-- An event selling a level ("Trade scrap for upgrades") would take the scrap and give nothing for a system
+-- already at its Archipelago cap: the trade is cancelled before the game applies it, like a refused purchase.
+local function cancelLockedUpgrade(event)
+    local stuff = event and event.stuff
+    if stuff == nil or (stuff.upgradeAmount or 0) <= 0 then
+        return
+    end
+    local id = stuff.upgradeId
+    -- 16 is "every system" and 17 the reactor: the cap is per system, those are left to the game.
+    if id == nil or id < 0 or id >= 16 then
+        return
+    end
+    local player = Hyperspace.ships.player
+    if player == nil or not player:HasSystem(id) then
+        return
+    end
+    local system = player:GetSystem(id)
+    local name = Hyperspace.ShipSystem.SystemIdToName(id)
+    if system == nil or name == nil or system.powerState.second < system.maxLevel then
+        return
+    end
+    local cost = -math.min(0, math.floor(stuff.scrap or 0))
+    stuff.upgradeAmount = 0
+    if cost > 0 then
+        stuff.scrap = 0
+    end
+    sysLog(string.format("event upgrade cancelled: %s already at level %d, %d scrap kept",
+        name, system.powerState.second, cost))
+    if _G.apNotifyStatus then
+        if cost > 0 then
+            _G.apNotifyStatus(apT("system.upgrade_locked.refunded",
+                { name = apSystemLabel(name), level = system.powerState.second, refund = cost }))
+        else
+            _G.apNotifyStatus(apT("system.upgrade_locked",
+                { name = apSystemLabel(name), level = system.powerState.second }))
+        end
+    end
+end
+
+script.on_internal_event(Defines.InternalEvents.PRE_CREATE_CHOICEBOX, function(event)
+    apTry(TAG, function() cancelLockedUpgrade(event) end)
 end)
 
 script.on_internal_event(Defines.InternalEvents.MAIN_MENU, function()

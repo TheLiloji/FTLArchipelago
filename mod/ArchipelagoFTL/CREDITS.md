@@ -7,6 +7,11 @@ project. The original is `mod/art/ftl_archipelago_logo.png` in the repository;
 `mod/tools/gen_logo_art.py` builds the in-game copies from it: `img/ap_logo.png` (main menu and
 start-of-run menu) and `img/systemUI/weapbox_icon_W_ap.png`.
 
+## Spanish translation, by Trapper444
+
+The Spanish texts of the mod (`lang/es.json` and `data/text-es.xml.append`) were translated by
+**Trapper444**, in neutral Spanish.
+
 ## Archipelago logo
 
 The shop crates and packages in `img/weapons/` show a small copy of `data/icon.png` from the

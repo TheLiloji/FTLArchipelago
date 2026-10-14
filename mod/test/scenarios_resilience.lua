@@ -195,6 +195,57 @@ test("shop: a refused system refunds what the player actually paid", function()
         "the shop took 120, not the blueprint's 150: 120 is returned")
 end)
 
+test("shop: a refused clone bay gives back the medbay the purchase replaced", function()
+    sim.startRun(true)
+    _G.apInventory.systemCaps.clonebay = nil
+    sim.player._systemsHeld = { [5] = true }
+    sim.jumpArrive()
+    sim.setStore(true)
+    sim.tick(1)
+
+    -- Like the game, putting a system aboard builds it, which the guard sees.
+    local addSystem = sim.player.AddSystem
+    sim.player.AddSystem = function(self, id)
+        addSystem(self, id)
+        if id == 5 then sim.constructSystem("medbay", 0, 0) end
+    end
+    -- The game swaps them: the medbay goes as the clone bay comes in.
+    sim.player._systemsHeld[5] = nil
+    sim.constructSystem("clonebay", 0, 70)
+    sim.tick(5)
+    sim.player.AddSystem = addSystem
+
+    equals(#sim.player._removed, 1, "only the clone bay is refused, not the medbay put back")
+    check(sim.player:HasSystem(5), "the medbay is back aboard")
+    check(sim.logged("medbay put back"), "and the log says so")
+    sim.player._systemsHeld = nil
+end)
+
+test("event: a level sold for scrap on a system at its Archipelago cap is cancelled, the scrap kept", function()
+    sim.startRun(true)
+    sim.jumpArrive()
+    local shields = { powerState = { first = 2, second = 2 }, maxLevel = 2 }
+    sim.player._systemsHeld = { [0] = true }
+    local getSystem = sim.player.GetSystem
+    sim.player.GetSystem = function(_, id) return id == 0 and shields or nil end
+    sim.clearLog()
+
+    local stuff = { upgradeId = 0, upgradeAmount = 1, scrap = -40 }
+    sim.openChoiceBox("UPGRADE_TRADE", 1, stuff)
+    equals(stuff.upgradeAmount, 0, "no level is given past the cap")
+    equals(stuff.scrap, 0, "and the 40 scrap are not taken")
+    check(shownKey("system.upgrade_locked.refunded",
+        { name = apSystemLabel("shields"), level = 2, refund = 40 }), "the player is told why")
+
+    shields.maxLevel = 4
+    stuff = { upgradeId = 0, upgradeAmount = 1, scrap = -40 }
+    sim.openChoiceBox("UPGRADE_TRADE", 1, stuff)
+    equals(stuff.upgradeAmount, 1, "below the cap, the trade goes through")
+    equals(stuff.scrap, -40, "and costs its price")
+    sim.player._systemsHeld = nil
+    sim.player.GetSystem = getSystem
+end)
+
 test("home screen: TAB in the connection form does not open the dashboard", function()
     sim.started = false
     sim.keyDown(Defines.SDL.KEY_TAB)
@@ -290,6 +341,249 @@ test("cap: a blueprint allows the purchase without consuming an upgrade", functi
     drain()
     equals(_G.apInventory.systemCaps.teleporter, 3,
         "blueprint then two upgrades: exactly the teleporter's maximum, nothing wasted")
+end)
+
+test("free upgrades: a received level is installed at once, no store needed", function()
+    _G.apInventory = { ships = {}, systemCaps = {}, startingUpgrades = {}, shopAvailability = {} }
+    applySeed({ kinds = { "cap" }, options = { free_upgrades = 1 } })
+    sim.startRun(true)
+    apApplySystemRules()
+    local start = oxygen().powerState.second
+    apQueueItem({ kind = "cap", sys = "oxygen", n = 1, display = "Progressive Oxygen" })
+    drain()
+    apApplySystemRules()
+    equals(oxygen().powerState.second, start + 1, "the oxygen level Archipelago gave is already installed")
+    oxygen().powerState.second, oxygen().maxLevel = start, 3 -- a new run comes with a fresh ship
+    sim.startRun(true)
+    apApplySystemRules()
+    equals(oxygen().powerState.second, start + 1, "and again at the start of the next run")
+end)
+
+test("free upgrades: off, a received level only allows the purchase", function()
+    _G.apInventory = { ships = {}, systemCaps = {}, startingUpgrades = {}, shopAvailability = {} }
+    applySeed({ kinds = { "cap" } })
+    sim.startRun(true)
+    apApplySystemRules()
+    local start = oxygen().powerState.second
+    apQueueItem({ kind = "cap", sys = "oxygen", n = 1, display = "Progressive Oxygen" })
+    drain()
+    apApplySystemRules()
+    equals(oxygen().powerState.second, start, "nothing installed by itself")
+    equals(oxygen().maxLevel, start + 1, "but the level can be bought")
+end)
+
+test("free upgrades: with no progressive upgrades in the seed, nothing is given for free", function()
+    _G.apInventory = { ships = {}, systemCaps = {}, startingUpgrades = {}, shopAvailability = {} }
+    applySeed({ system_caps = false, options = { free_upgrades = 1 } })
+    sim.startRun(true)
+    apApplySystemRules()
+    equals(oxygen().powerState.second, 1, "without caps every level would be free: the option does nothing")
+end)
+
+local function withTeleporterPlace()
+    sim.hullPlaces = { [9] = true, [10] = true }
+    _G.apInventory = { ships = {}, systemCaps = {}, blueprints = {}, startingUpgrades = {}, shopAvailability = {} }
+end
+
+test("system install: at the start of a run, a system whose blueprint came in is put aboard", function()
+    withTeleporterPlace()
+    applySeed({ kinds = { "cap" }, options = { system_install = 1 } })
+    apQueueItem({ kind = "cap", sys = "teleporter", n = 0, display = "Teleporter blueprint" })
+    drain()
+    sim.startRun(true)
+    check(sim.player:HasSystem(9), "the teleporter is aboard from the first beacon")
+    check(not sim.player:HasSystem(10), "cloaking, with no blueprint, is not")
+    check(sim.shown("Teleporter"), "the player is told")
+    sim.hullPlaces = nil
+end)
+
+test("system install: a level received without the blueprint puts nothing aboard and allows no purchase", function()
+    withTeleporterPlace()
+    applySeed({ kinds = { "cap" }, options = { system_install = 1 } })
+    apQueueItem({ kind = "cap", sys = "teleporter", n = 1, display = "Progressive Teleporter" })
+    drain()
+    sim.startRun(true)
+    check(not sim.player:HasSystem(9), "no teleporter aboard without its blueprint")
+    sim.jumpArrive()
+    sim.setStore(true)
+    sim.tick(1)
+    sim.constructSystem("teleporter", 0, 90)
+    sim.tick(5)
+    equals(#sim.player._removed, 1, "and a store purchase is still refused")
+    sim.setStore(false)
+    sim.hullPlaces = nil
+end)
+
+test("system install: a head start raises a system put aboard at the run start once, not twice", function()
+    withTeleporterPlace()
+    applySeed({ kinds = { "cap" }, options = { system_install = 1 } })
+    local added
+    local addSystem = sim.player.AddSystem
+    local makeTeleporter = function()
+        local system = { name = "teleporter", _shipObj = { iShipId = 0 }, bpCost = 0,
+            powerState = { first = 1, second = 1 }, maxLevel = 3, healthState = { first = 2, second = 2 },
+            iSystemType = 9, roomId = 0, AddDamage = function() end }
+        system.UpgradeSystem = function(self, amount)
+            local before = self.powerState.second
+            self.powerState.second = math.min(self.maxLevel, before + amount)
+            return self.powerState.second > before
+        end
+        return system
+    end
+    apQueueItem({ kind = "cap", sys = "teleporter", n = 0, display = "Teleporter blueprint" })
+    apQueueItem({ kind = "start", sys = "teleporter", n = 1, display = "Head Start: Teleporter" })
+    drain()
+    sim.player.AddSystem = function(self, id)
+        addSystem(self, id)
+        if id == 9 then
+            added = makeTeleporter()
+            self.vSystemList:push_back(added)
+        end
+        return 1
+    end
+    sim.startRun(true)
+    sim.player.AddSystem = addSystem
+    check(added ~= nil, "the teleporter is put aboard")
+    equals(added.powerState.second, 2, "the head start gives it level 2")
+    equals(added.maxLevel, 2, "and the store can sell no level above: blueprint + head start, counted once")
+    sim.hullPlaces = nil
+end)
+
+test("system install: no place in the hull, nothing is forced aboard", function()
+    withTeleporterPlace()
+    sim.hullPlaces = {}
+    applySeed({ kinds = { "cap" }, options = { system_install = 1 } })
+    apQueueItem({ kind = "cap", sys = "teleporter", n = 0, display = "Teleporter blueprint" })
+    drain()
+    sim.startRun(true)
+    check(not sim.player:HasSystem(9), "a ship without a teleporter room gets no teleporter")
+    sim.hullPlaces = nil
+end)
+
+test("system install: immediately, a blueprint received mid-run is put aboard", function()
+    withTeleporterPlace()
+    applySeed({ kinds = { "cap" }, options = { system_install = 2 } })
+    sim.startRun(true)
+    sim.jumpArrive()
+    apQueueItem({ kind = "cap", sys = "teleporter", n = 0, display = "Teleporter blueprint" })
+    drain()
+    sim.tick(61)
+    check(sim.player:HasSystem(9), "the teleporter comes aboard during the run")
+    sim.hullPlaces = nil
+end)
+
+test("system install: the default keeps the store as the only way", function()
+    withTeleporterPlace()
+    applySeed({ kinds = { "cap" } })
+    sim.startRun(true)
+    sim.jumpArrive()
+    apQueueItem({ kind = "cap", sys = "teleporter", n = 0, display = "Teleporter blueprint" })
+    drain()
+    sim.tick(61)
+    sim.startRun(true)
+    check(not sim.player:HasSystem(9), "nothing put aboard without the option")
+    sim.hullPlaces = nil
+end)
+
+test("run start scrap: a share of every scrap item received comes back at each new run", function()
+    _G.apInventory = { ships = {}, systemCaps = {}, startingUpgrades = {}, shopAvailability = {} }
+    applySeed({ kinds = { "filler" }, options = { run_start_scrap = 25 } })
+    sim.startRun(true)
+    apQueueItem({ kind = "filler", res = "scrap", n = 20, display = "20 Scrap" })
+    apQueueItem({ kind = "filler", res = "scrap", n = 20, display = "20 Scrap", isReplay = true })
+    drain()
+    equals(apRunStartScrap(), 10, "25% of the 40 scrap of the seed, a replayed item counting too")
+    local before = sim.player.currentScrap
+    sim.startRun(true)
+    equals(sim.player.currentScrap - before, 10, "given at the start of the next run")
+    check(sim.shown("+10"), "the player is told")
+    before = sim.player.currentScrap
+    sim.startRun(false)
+    equals(sim.player.currentScrap, before, "not again when a saved run is continued")
+end)
+
+test("run start scrap: off by default", function()
+    _G.apInventory = { ships = {}, systemCaps = {}, startingUpgrades = {}, shopAvailability = {} }
+    applySeed({ kinds = { "filler" } })
+    apQueueItem({ kind = "filler", res = "scrap", n = 50, display = "50 Scrap", isReplay = true })
+    equals(apRunStartScrap(), 0, "nothing without the option")
+end)
+
+local function fightSeed(percent)
+    _G.apInventory = { ships = {}, systemCaps = {}, startingUpgrades = {}, shopAvailability = {} }
+    apContractResetForTesting()
+    apForgetChecksForTesting()
+    applySeed({ loc = { ["PLAYER_SHIP_HARD:fight:1"] = "Kestrel Cruiser: Fight 1 won",
+                        ["PLAYER_SHIP_HARD:fight:2"] = "Kestrel Cruiser: Fight 2 won" },
+                options = { combat_check_scrap = percent } })
+    sim.startRun(true)
+    sim.jumpArrive()
+end
+
+local function winFight(scrap)
+    sim.enemy = sim.makeShip(1)
+    sim.enemy:DamageHull(100)
+    local event = { stuff = { scrap = scrap, fuel = 2, missiles = 1 } }
+    fire("PRE_CREATE_CHOICEBOX", event)
+    return event
+end
+
+test("combat checks: the first fights won in a run send their checks, with less scrap", function()
+    fightSeed(50)
+    local event = winFight(30)
+    check(apCheckAlreadySent("PLAYER_SHIP_HARD:fight:1"), "fight 1 won sends its check")
+    equals(event.stuff.scrap, 15, "half the scrap is kept")
+    equals(event.stuff.fuel, 2, "fuel and missiles stay")
+    winFight(30)
+    check(not apCheckAlreadySent("PLAYER_SHIP_HARD:fight:2"), "a second box at the same beacon is the same fight")
+    sim.jumpArrive()
+    winFight(30)
+    check(apCheckAlreadySent("PLAYER_SHIP_HARD:fight:2"), "the next beacon's fight is fight 2")
+    sim.jumpArrive()
+    local third = winFight(30)
+    equals(third.stuff.scrap, 30, "a fight beyond the seed's checks keeps its full scrap")
+    sim.enemy = nil
+end)
+
+test("combat checks: a new run counts from fight 1 again, and an already sent check costs nothing", function()
+    fightSeed(50)
+    winFight(30)
+    sim.startRun(true)
+    sim.jumpArrive()
+    local event = winFight(30)
+    equals(event.stuff.scrap, 30, "fight 1 was already sent: full scrap")
+    sim.enemy = nil
+end)
+
+test("combat checks: the game's float run variable still gives a whole fight number", function()
+    fightSeed(50)
+    sim.runVariables.ap_fights_won = 1.0
+    winFight(30)
+    check(apCheckAlreadySent("PLAYER_SHIP_HARD:fight:2"), "fight 2, not fight 2.0")
+    sim.enemy = nil
+end)
+
+test("combat checks: the dashboard knows when the next fight sends a check", function()
+    fightSeed(50)
+    local status = apCombatStatus()
+    equals(status.total, 2, "two fight checks in the seed for the Kestrel")
+    check(status.nextSends, "fight 1 is still due")
+    winFight(30)
+    sim.jumpArrive()
+    winFight(30)
+    status = apCombatStatus()
+    equals(status.left, 0, "both sent")
+    check(not status.nextSends, "a third fight sends nothing")
+    sim.enemy = nil
+end)
+
+test("combat checks: a living enemy, like a surrender, is not a won fight", function()
+    fightSeed(50)
+    sim.enemy = sim.makeShip(1)
+    sim.enemy.vCrewList = sim.vector({ sim.makeCrew("Rebel", "human", 1) })
+    fire("PRE_CREATE_CHOICEBOX", { stuff = { scrap = 10 } })
+    check(not apCheckAlreadySent("PLAYER_SHIP_HARD:fight:1"), "nothing sent while the enemy lives")
+    sim.enemy = nil
 end)
 
 test("shop: with no blueprints in the seed, every system can be bought", function()
@@ -406,6 +700,23 @@ local function tryConnect()
     equals(apConnectState().message, apT("connect.trying", { uri = "localhost:38281" }),
         "the panel announces the attempt")
 end
+
+test("network: a local server is reached without the secure attempt, and the panel still shows its address", function()
+    tryConnect()
+    local connect = sim.net.calls[#sim.net.calls]
+    equals(connect.uri, "ws://localhost:38281", "localhost goes straight to a plain connection")
+    sim.net.last = { uri = connect.uri, slot = "Navigator" }
+    apConnectResetForTesting()
+    sim.renderMenu()
+    equals(apConnectState().uri, "localhost", "the remembered address comes back without the scheme")
+
+    apConnectResetForTesting()
+    sim.net.last = { uri = "archipelago.gg:38281", slot = "Navigator" }
+    sim.renderMenu()
+    apConnectNow()
+    equals(sim.net.calls[#sim.net.calls].uri, "archipelago.gg:38281", "a remote server keeps the secure attempt")
+    apNetResetForTesting()
+end)
 
 test("network: the panel says when the connection succeeded", function()
     tryConnect()

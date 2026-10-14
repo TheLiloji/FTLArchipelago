@@ -186,11 +186,17 @@ function apRandomRoomId(shipManager)
 end
 
 local CONSUMABLE_KINDS = { filler = true, trap = true }
+local RUN_START_RESOURCES = { scrap = true }
 
 function apQueueItem(descriptor)
     if type(descriptor) ~= "table" or descriptor.kind == nil then
         fillerLog("invalid descriptor ignored")
         return false
+    end
+    -- Every scrap item of the seed counts toward Run Start Scrap, replayed or not: it is given once, but
+    -- a share of it comes back at the start of every run.
+    if descriptor.kind == "filler" and RUN_START_RESOURCES[descriptor.res] and type(_G.apInventory) == "table" then
+        _G.apInventory.scrapReceived = (_G.apInventory.scrapReceived or 0) + (descriptor.n or 0)
     end
     if descriptor.isReplay and CONSUMABLE_KINDS[descriptor.kind] then
         fillerLog("already consumed in a previous session: "
@@ -542,6 +548,29 @@ function apDeliverPending()
         fillerLog(delivered .. " item(s) delivered, " .. #pending .. " pending")
     end
 end
+
+function apRunStartScrap()
+    local percent = tonumber(_G.apSeedOption and apSeedOption("run_start_scrap") or 0) or 0
+    local received = tonumber((_G.apInventory or {}).scrapReceived or 0) or 0
+    return math.floor(received * percent / 100)
+end
+
+script.on_init(function(newGame)
+    if not newGame then
+        return
+    end
+    local amount = apRunStartScrap()
+    if amount <= 0 then
+        return
+    end
+    local ok = pcall(function() Hyperspace.ships.player:ModifyScrapCount(amount, false) end)
+    if ok then
+        fillerLog("run start scrap: +" .. amount)
+        if _G.apNotifyStatus then
+            _G.apNotifyStatus(apT("filler.run_start_scrap", { n = amount }))
+        end
+    end
+end)
 
 function apFillerForgetSeed()
     local remaining = #pending

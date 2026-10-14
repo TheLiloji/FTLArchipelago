@@ -47,7 +47,23 @@ DURATION_PRESETS = sorted(path.name for path in PRESETS.glob("*.yaml"))
 class TestDurationPresets(TestCase):
 
     def test_short_medium_and_long(self) -> None:
-        self.assertEqual(DURATION_PRESETS, ["long_game.yaml", "medium_game.yaml", "short_game.yaml"])
+        self.assertEqual(DURATION_PRESETS,
+                         ["first_game.yaml", "long_game.yaml", "medium_game.yaml", "short_game.yaml"])
+
+    def test_every_preset_says_which_victories_count(self) -> None:
+        for name in DURATION_PRESETS:
+            with self.subTest(preset=name):
+                self.assertIn("victory_difficulty", load(name))
+
+    def test_the_first_game_is_gentle(self) -> None:
+        options = load("first_game.yaml")
+        self.assertEqual(options["victories_required"], 1)
+        self.assertEqual(options["victory_difficulty"], "any")
+        self.assertEqual(options["ship_layouts"], "type_a_only")
+        multiworld, world = build("first_game.yaml")
+        self.assertFalse([item for item in multiworld.itempool if item.trap], "no traps in a first game")
+        self.assertLessEqual(len(locations_of_group(multiworld, data.GROUP_SHOP_SLOTS)), 40,
+                             "a small Archipelago shop")
 
     def test_each_one_generates_and_can_be_beaten(self) -> None:
         for name in DURATION_PRESETS:

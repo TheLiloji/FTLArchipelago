@@ -147,6 +147,20 @@ def main() -> int:
                     f"{name}, choice {index}: no cost and no risk, "
                     "a dilemma whose two branches are free is just a menu"
                 )
+        loses_something = 0
+        for choice in choices:
+            inner = choice.find("event")
+            if inner is None:
+                continue
+            loss = any(child.tag in COSTS for child in inner) or any(
+                int(item.get("min", "0")) < 0
+                for modify in inner.findall("item_modify") for item in modify.findall("item"))
+            loses_something += loss
+        if choices and loses_something == len(choices):
+            failures.append(
+                f"{name}: every choice costs hull, scrap or crew. A player who wants none of it, or "
+                "cannot afford it, must have a way out"
+            )
         if choices and pay_in_scrap == len(choices):
             failures.append(
                 f"{name}: every choice costs scrap. If short, FTL still opens the "

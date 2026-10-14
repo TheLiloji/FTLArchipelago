@@ -64,8 +64,9 @@ games.
 
 ## How you win
 
-Beat the Flagship with several **different** ships, on Normal or Hard: five by default, the seed decides. You
-also need **Archives**, pieces scattered in the other players' worlds: 10 of the 12 by default.
+Beat the Flagship with several **different** ship layouts (Kestrel A and Kestrel B count as two), on Normal or
+Hard: five by default, the seed decides. You also need **Archives**, pieces scattered in the multiworld: 10 of
+the 12 by default.
 The main menu always shows where you stand.
 
 ## Checks
@@ -80,7 +81,8 @@ The main menu always shows where you stand.
 | Earn a general achievement | Achievement: Technophobia | up to 21 |
 | Buy a package in the Archipelago shop | Archipelago Shop 7 | 20 or more |
 
-Your YAML decides which of these are in the seed. A short seed has around 130 checks, a long one 300 and more.
+Your YAML decides which of these are in the seed: about 75 checks with the `first_game` preset, 150 with the
+defaults, 185 with `long_game`, and 300 or more if you turn everything on.
 
 ## Items
 
@@ -112,20 +114,22 @@ Your YAML decides which of these are in the seed. A short seed has around 130 ch
 
 ![Connection panel](docs/images/connect-panel.jpg)
 
-No server? **Solo mode** plays a real seed alone, one item per check.
+No server? **Solo mode** plays a ready-made seed alone, one item per check. It does not use your YAML.
 
 More in the wiki: [playing](docs/wiki/Playing.md), [options](docs/wiki/Options.md),
+[Multiverse](docs/wiki/Multiverse.md),
 [hosting a seed](docs/wiki/Hosting-a-seed.md), [FAQ](docs/wiki/FAQ.md).
 
 ## Languages
 
 English, French, Spanish, German, Italian and Portuguese, following FTL's own language. The French text was
-written by hand; the other translations were made with AI and may have mistakes, fixes are welcome.
+written by hand and the Spanish was reviewed by Trapper444; the other translations were made with AI and may
+have mistakes, fixes are welcome.
 
 ## Credits
 
 The first design of the items and locations comes from the [FTL Manual by Et0san](https://github.com/Et0san/Manual)
-(MIT). The FTL Archipelago logo was drawn by Trapper444. Built on
+(MIT). The FTL Archipelago logo was drawn by Trapper444, who also translated the mod into Spanish. Built on
 [FTL: Hyperspace](https://github.com/FTL-Hyperspace/FTL-Hyperspace) (CC-BY-SA 4.0). See
 `apworld/ftl/LICENSE.md` and `mod/ArchipelagoFTL/CREDITS.md`.
 

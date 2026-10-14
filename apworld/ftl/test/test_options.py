@@ -171,14 +171,17 @@ class TestEverythingEnabled(FTLTestBase):
         "trap_chance": 50,
         "sector_logic": "strict",
         "victories_required": 3,
+        "combat_checks": 10,
     }
 
     def test_every_location_of_the_table_exists(self) -> None:
         unused_shop_slots = data.MAX_SHOP_SLOTS - self.world.options.shop_checks.value
         per_ship = len(data.LOCATION_NAME_GROUPS[data.GROUP_SHIP_SYSTEMS])
+        mv_ships = {ship.blueprint for ship in data.MV_SHIPS}
         multiverse = sum(1 for location in data.LOCATIONS
                          if location.layout in {layout.blueprint for layout in data.MV_LAYOUTS}
-                         or location.group == data.GROUP_MV_ACHIEVEMENTS)
+                         or location.group == data.GROUP_MV_ACHIEVEMENTS
+                         or (location.group == data.GROUP_FIGHTS and location.ship in mv_ships))
         self.assertEqual(len(self.addressed_locations()),
                          len(data.LOCATIONS) - unused_shop_slots - per_ship - multiverse)
 
@@ -524,18 +527,56 @@ class TestSectorCeilingBelowFloor(FTLTestBase):
 
     options = {"sectorsanity": "full", "sectorsanity_first_sector": 6,
                "sectorsanity_last_sector": 3}
+    auto_construct = False
 
-    def test_no_sector_check_at_all(self) -> None:
-        sectors = [
-            location for location in self.addressed_locations()
-            if (entry := data.LOCATIONS_BY_NAME.get(location.name))
-            and entry.group == data.GROUP_SECTORS
-        ]
-        self.assertEqual(sectors, [])
+    def test_generation_is_refused_with_a_readable_message(self) -> None:
+        with self.assertRaises(OptionError) as raised:
+            self.world_setup()
+        message = str(raised.exception)
+        self.assertIn("sectorsanity_first_sector", message)
+        self.assertIn("sectorsanity_last_sector", message)
 
-    def test_the_seed_still_generates(self) -> None:
-        pool = [item for item in self.multiworld.itempool if item.player == self.player]
-        self.assertEqual(len(pool), len(self.addressed_locations()))
+
+class TestSectorCeilingBelowFloorWithoutSectorChecks(FTLTestBase):
+
+    options = {"sectorsanity": "disabled", "sectorsanity_first_sector": 6,
+               "sectorsanity_last_sector": 3}
+
+    def test_nothing_to_refuse_when_sectors_send_nothing_anyway(self) -> None:
+        self.assertTrue(self.addressed_locations())
+
+
+class TestSlotNamesTheGameCanType(FTLTestBase):
+
+    def test_a_name_the_connection_panel_cannot_type_is_refused(self) -> None:
+        for name in ("Léa", "Zoë", "Player#1", "名前"):
+            self.multiworld.player_name[self.player] = name
+            with self.assertRaises(OptionError, msg=name) as raised:
+                self.world._check_option_combinations()
+            self.assertIn("connection panel", str(raised.exception))
+
+    def test_usual_names_pass(self) -> None:
+        for name in ("Tester", "Lea_2", "Big Ship", "a-b.c"):
+            self.multiworld.player_name[self.player] = name
+            self.world._check_option_combinations()
+
+
+class TestEasyNamesAnyDifficulty(FTLTestBase):
+
+    options = {"victory_difficulty": "easy"}
+
+    def test_easy_is_read_as_any(self) -> None:
+        self.assertEqual(self.world.options.victory_difficulty.value,
+                         self.world.options.victory_difficulty.option_any)
+
+
+class TestLayoutCountFollowsTheVictories(FTLTestBase):
+
+    options = {"victories_required": 9, "layout_count": 4}
+
+    def test_the_option_shows_the_layouts_really_drawn(self) -> None:
+        self.assertEqual(self.world.options.layout_count.value, 9)
+        self.assertGreaterEqual(len(self.world.selected_layouts), 9)
 
 
 class TestSectorCeilingDefaultChangesNothing(FTLTestBase):

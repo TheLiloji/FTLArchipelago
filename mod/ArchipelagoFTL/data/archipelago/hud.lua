@@ -36,15 +36,19 @@ local function snapshot()
     local caps = inventory.systemCaps or {}
     for _, system in ipairs((_G.apGameData and _G.apGameData.systems) or {}) do
         local count = caps[system.id] or 0
+        local unlocked = count > 0
+        if _G.apSystemUnlocked then
+            unlocked = apSystemUnlocked(system.id)
+        end
         info.systems[#info.systems + 1] = {
             name = (_G.apSystemLabel and _G.apSystemLabel(system.id)) or system.id,
             cap = count,
             received = math.max(0, count - 1),
             total = _G.apSystemCapTotal and _G.apSystemCapTotal(system.id) or nil,
             maxLevel = system.maxLevel,
-            locked = count <= 0,
+            locked = not unlocked,
         }
-        if count > 0 then
+        if unlocked then
             info.unlockedCount = (info.unlockedCount or 0) + 1
         end
     end

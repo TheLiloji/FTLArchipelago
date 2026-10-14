@@ -37,6 +37,20 @@ def systems_of(body: str) -> tuple[tuple[str, ...], tuple[str, ...]]:
     return tuple(dict.fromkeys(start)), tuple(s for s in dict.fromkeys(empty) if s not in start and s != "artillery")
 
 
+POWER_SYSTEMS = ("shields", "weapons", "engines")
+
+
+def start_levels(body: str) -> tuple[int, ...]:
+    """The level each power system starts at, 0 when the ship does not start with it."""
+    listing = body[body.find("<systemList>"):body.find("</systemList>")]
+    levels = {}
+    for name, attrs in re.findall(r"<(\w+)\s([^>]*)>", listing):
+        if name in POWER_SYSTEMS and name not in levels and 'start="true"' in attrs:
+            power = re.search(r'power="(\d+)"', attrs)
+            levels[name] = int(power.group(1)) if power else 1
+    return tuple(levels.get(name, 0) for name in POWER_SYSTEMS)
+
+
 FAMILIES = {"weapon": "weapon", "drone": "drone", "aug": "augment"}
 
 
@@ -109,7 +123,7 @@ def main() -> int:
         ships.append((FIRST_SLOT + len(ships), name, display, tuple(variants)))
         for letter, suffix in zip("ABC", ("", "_2", "_3")):
             if letter in variants:
-                layouts.append((name + suffix, *systems_of(bps[name + suffix])))
+                layouts.append((name + suffix, *systems_of(bps[name + suffix]), start_levels(bps[name + suffix])))
 
     lines = [
         f'"""Extracted from FTL: Multiverse {version} by apworld/tools/extract_mv.py, do not edit by hand."""',
@@ -121,11 +135,16 @@ def main() -> int:
         ")",
         "",
         "MV_LAYOUT_SYSTEMS_RAW: tuple[tuple[str, tuple[str, ...]], ...] = (",
-        *(f"    ({bp!r}, {start!r})," for bp, start, _ in layouts),
+        *(f"    ({bp!r}, {start!r})," for bp, start, _, _ in layouts),
         ")",
         "",
         "MV_LAYOUT_EMPTY_SLOTS_RAW: tuple[tuple[str, tuple[str, ...]], ...] = (",
-        *(f"    ({bp!r}, {empty!r})," for bp, _, empty in layouts),
+        *(f"    ({bp!r}, {empty!r})," for bp, _, empty, _ in layouts),
+        ")",
+        "",
+        "# Start level of shields, weapons and engines, 0 when the layout does not start with the system.",
+        "MV_LAYOUT_START_LEVELS_RAW: tuple[tuple[str, int, int, int], ...] = (",
+        *(f"    ({bp!r}, {', '.join(map(str, levels))})," for bp, _, _, levels in layouts),
         ")",
         "",
         "MV_SHOP_ITEMS_RAW: tuple[tuple[int, str, str, str, int, int], ...] = (",

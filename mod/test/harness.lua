@@ -159,6 +159,13 @@ local function makeShip(shipId)
         end
         return before - self.ship.hullIntegrity.first
     end
+    function ship:CountCrew(boarders)
+        local n = 0
+        for i = 0, self.vCrewList:size() - 1 do
+            if not self.vCrewList[i].bDead then n = n + 1 end
+        end
+        return n
+    end
     function ship:StartFire(roomId) self._fires[#self._fires + 1] = roomId end
     function ship:DamageArea(_, damage)
         if damage.breachChance and damage.breachChance > 0 then
@@ -226,6 +233,21 @@ local function makeShip(shipId)
     end
     function ship:GetSystem(_) return nil end
     function ship:HasSystem(id) return (self._systemsHeld or {})[id] == true end
+    -- systemInfo lists the systems the hull has a place for, as the game's blueprint does.
+    ship.myBlueprint.systemInfo = setmetatable({}, { __index = function(_, id)
+        if (sim.hullPlaces or {})[id] then
+            return { location = { size = function() return 1 end } }
+        end
+        return nil
+    end })
+    function ship:CanFitSystem(id) return (sim.systemSlotsFree or 8) > 0 end
+    function ship:CanFitSubsystem(id) return (sim.systemSlotsFree or 8) > 0 end
+    function ship:AddSystem(id)
+        self._systemsHeld = self._systemsHeld or {}
+        self._systemsHeld[id] = true
+        sim.systemsAdded = (sim.systemsAdded or 0) + 1
+        return 1
+    end
 
     return ship
 end
@@ -597,7 +619,13 @@ local function resetWorld()
         }),
 
         ShipSystem = {
-            SystemIdToName = function(id) return tostring(id) end,
+            -- The game's ids; the fake's own systems use their name as type, which comes back unchanged.
+            SystemIdToName = function(id)
+                local names = { [0] = "shields", "engines", "oxygen", "weapons", "drones", "medbay", "pilot",
+                                "sensors", "doors", "teleporter", "cloaking", "artillery", "battery", "clonebay",
+                                "mind", "hacking" }
+                return type(id) == "number" and names[id] or tostring(id)
+            end,
             NameToSystemId = function(name) return name end,
         },
 
@@ -932,7 +960,7 @@ function sim.setStore(hasStore)
     sim.starMap.currentLoc.event = { store = hasStore and true or false }
 end
 
-function sim.openChoiceBox(eventName, choiceCount)
+function sim.openChoiceBox(eventName, choiceCount, stuff)
     local choices = {}
     for index = 1, (choiceCount or 2) do
         choices[index] = { text = { data = "choice " .. index, isLiteral = false } }
@@ -941,6 +969,7 @@ function sim.openChoiceBox(eventName, choiceCount)
         eventName = eventName,
         text = { data = tostring(eventName), isLiteral = false },
         GetChoices = function() return vector(choices) end,
+        stuff = stuff,
     }
     fire("PRE_CREATE_CHOICEBOX", event)
 

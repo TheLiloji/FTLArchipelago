@@ -319,9 +319,10 @@ local function resumeLast()
     if not ok or last == nil then
         return
     end
-    local address, port = tostring(last.uri):match("^(.*):(%d+)$")
+    local uri = tostring(last.uri):gsub("^wss?://", "")
+    local address, port = uri:match("^(.*):(%d+)$")
     if address == nil then
-        address, port = tostring(last.uri), nil
+        address, port = uri, nil
     end
     if address ~= "" then FIELDS[1].value = address end
     if port then FIELDS[2].value = port end
@@ -383,6 +384,13 @@ function apConnectNow()
     if values.port ~= "" and not address:match(":%d+$") then
         address = address .. ":" .. values.port
     end
+    -- A local server has no TLS: without a scheme the secure attempt fails first, slowly enough on some
+    -- machines to warn "not answering" before the plain one connects.
+    local target = address
+    local host = address:lower():match("^([^:/]+)") or ""
+    if not address:find("://", 1, true) and (host == "localhost" or host == "127.0.0.1") then
+        target = "ws://" .. address
+    end
 
     connectLog("attempting to " .. address .. ", slot " .. values.slot)
     if _G.apContractState then
@@ -391,7 +399,7 @@ function apConnectNow()
 
     local ok = false
     if _G.apNetConnect then
-        local succeeded, result = pcall(_G.apNetConnect, address, values.slot, values.password)
+        local succeeded, result = pcall(_G.apNetConnect, target, values.slot, values.password)
         ok = succeeded and result ~= false
     end
 

@@ -213,4 +213,10 @@
             <damage amount="2"/>
         </event>
     </choice>
+    <choice>
+        <text id="ap_evt_another_world_pass"/>
+        <event name="AP_EVT_ANOTHER_WORLD_PASS">
+            <text id="ap_evt_another_world_pass_text"/>
+        </event>
+    </choice>
 </event>

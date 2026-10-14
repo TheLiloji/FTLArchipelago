@@ -6854,11 +6854,16 @@ test("menu: the summary counts UNLOCKED systems, not the game's sixteen", functi
     sim.renderMenu()
     check(not sim.drawnText("16 / 16"), "an empty inventory doesn't announce sixteen systems")
 
-    apInventoryAdd({ kind = "cap", sys = "shields", n = 1 })
-    apInventoryAdd({ kind = "cap", sys = "engines", n = 1 })
+    apInventoryAdd({ kind = "cap", sys = "cloaking", n = 1 })
+    sim.renderMenu()
+    check(sim.drawnText("0 / 16") or sim.drawnText("0/16"),
+        "a level without its blueprint unlocks nothing: " .. table.concat(sim.drawn, " | "))
+
+    apInventoryAdd({ kind = "cap", sys = "shields", n = 0 })
+    apInventoryAdd({ kind = "cap", sys = "engines", n = 0 })
     sim.renderMenu()
     check(sim.drawnText("2 / 16") or sim.drawnText("2/16"),
-        "two unlocked out of sixteen: " .. table.concat(sim.drawn, " | "))
+        "two blueprints, two unlocked out of sixteen: " .. table.concat(sim.drawn, " | "))
 end)
 
 test("seed: changing seed asks the question, and only once", function()
@@ -7111,7 +7116,13 @@ test("goal: a seed that does not list its layouts counts them all", function()
 end)
 
 local function layoutSeed(collect)
-    local loc = { ["PLAYER_SHIP_HARD:victory"] = "Kestrel Cruiser A: Defeat the Flagship" }
+    local loc = { ["PLAYER_SHIP_HARD:victory"] = "Kestrel Cruiser A: Defeat the Flagship",
+                  ["ach:ACH_TOUGH_SHIP"] = "Kestrel Cruiser: Tough Little Ship",
+                  ["PLAYER_SHIP_HARD:sys:teleporter"] = "Kestrel Cruiser: Install Crew Teleporter",
+                  ["PLAYER_SHIP_CIRCLE:sys:teleporter"] = "Engi Cruiser: Install Crew Teleporter",
+                  ["PLAYER_SHIP_HARD:fight:1"] = "Kestrel Cruiser: Fight 1 won",
+                  ["PLAYER_SHIP_HARD:fight:2"] = "Kestrel Cruiser: Fight 2 won",
+                  ["PLAYER_SHIP_CIRCLE:fight:1"] = "Engi Cruiser: Fight 1 won" }
     for sector = 2, 8 do
         loc["PLAYER_SHIP_HARD:sector:" .. sector] = "Kestrel Cruiser A: Reach sector " .. sector
     end
@@ -7134,6 +7145,27 @@ test("victory: the layout's sector checks still due go out with it", function()
     end
     check(apCheckAlreadySent("PLAYER_SHIP_HARD:victory"), "and the victory")
     check(not sim.logged("out of seed"), "sector 1 is not in the seed and is not tried")
+    sim.starMap.worldLevel = 0
+end)
+
+test("victory: with everything, the ship's achievements and system checks go out too", function()
+    layoutSeed(2)
+    apOnRunEnd("victory")
+    check(apCheckAlreadySent("PLAYER_SHIP_HARD:sector:8"), "the sectors as before")
+    check(apCheckAlreadySent("ach:ACH_TOUGH_SHIP"), "the Kestrel's achievement")
+    check(apCheckAlreadySent("PLAYER_SHIP_HARD:sys:teleporter"), "the Kestrel's system check")
+    check(not apCheckAlreadySent("PLAYER_SHIP_CIRCLE:sys:teleporter"), "another ship's stays due")
+    check(apCheckAlreadySent("PLAYER_SHIP_HARD:fight:1") and apCheckAlreadySent("PLAYER_SHIP_HARD:fight:2"),
+        "the Kestrel's fight checks")
+    check(not apCheckAlreadySent("PLAYER_SHIP_CIRCLE:fight:1"), "and not the Engi's")
+    sim.starMap.worldLevel = 0
+end)
+
+test("victory: sectors only leaves the achievements due", function()
+    layoutSeed(1)
+    apOnRunEnd("victory")
+    check(not apCheckAlreadySent("ach:ACH_TOUGH_SHIP"), "the achievement stays due")
+    check(not apCheckAlreadySent("PLAYER_SHIP_HARD:fight:1"), "and so do the fights")
     sim.starMap.worldLevel = 0
 end)
 

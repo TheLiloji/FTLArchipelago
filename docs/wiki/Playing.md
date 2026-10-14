@@ -121,11 +121,11 @@ wheel scrolls, `Esc` closes it.
 ## The goal
 
 Beat the Flagship with a number of **different** ships (or layouts). The main menu and the dashboard say it in
-full, for example "defeat the Flagship 2 times, a different ship for each victory", and list the ships you have
+full, for example "defeat the Flagship 2 times, a different ship layout for each victory", and list the ships you have
 already won with. A second win with the same ship still sends that ship's victory check, it just does not
 count again for the goal.
 
-Some seeds also ask for **Archives**: items spread in the other players' worlds. You need both the victories and
+Some seeds also ask for **Archives**: items spread in the multiworld, in your own world too. You need both the victories and
 enough Archives. The goal is sent on its own as soon as both are there, even if the last Archive arrives while
 you sit in the menu.
 

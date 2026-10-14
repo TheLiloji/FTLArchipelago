@@ -88,6 +88,9 @@ def make_the_goal_reachable(rng: random.Random, options: dict) -> dict:
         options["victory_layouts"] = sorted(
             rng.sample(available, rng.randint(1, min(6, len(available))))
         )
+    # A first sector past the last one is refused (tested on its own): drawn in order, the draw tests the rest.
+    first, last = options["sectorsanity_first_sector"], options["sectorsanity_last_sector"]
+    options["sectorsanity_first_sector"], options["sectorsanity_last_sector"] = min(first, last), max(first, last)
     return options
 
 

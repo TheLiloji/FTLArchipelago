@@ -46,9 +46,11 @@ class Goal(Choice):
 
 
 class VictoriesRequired(Range):
-    """How many times you must beat the Flagship to finish, each time with a different ship.
+    """How many times you must beat the Flagship to finish, each time with a different ship layout
+    (Kestrel A and Kestrel B count as two).
 
-    5 is a good length when you play with friends.
+    This is what decides how long your game is. 5 is a good length when you play with friends, 1 or 2 for a
+    first game. Ignored when Goal is victory_selection.
     """
 
     display_name = "Victories Required"
@@ -66,8 +68,8 @@ _LAYOUT_SHORT_NAMES: dict[str, data.Layout] = {
 class VictoryDifficulty(Choice):
     """The lowest difficulty a victory must be played on to count for your goal.
 
-    any: every victory counts, even on Easy.
-    normal: Normal or Hard. Recommended.
+    any: every victory counts, Easy too. You can also write easy. Pick it if you usually play on Easy.
+    normal: Normal or Hard.
     hard: only Hard.
 
     An easier victory still sends its check, it just does not count for the goal.
@@ -77,14 +79,14 @@ class VictoryDifficulty(Choice):
     option_any = 0
     option_normal = 1
     option_hard = 2
+    alias_easy = option_any
     default = option_normal
 
 
 class Archives(Range):
-    """How many Archives are hidden in the other players' worlds.
+    """How many Archives are hidden in the multiworld, in your own world or in the other players'.
 
-    Archives are items you need on top of your victories to finish. They make the game depend a bit
-    more on the others. 0 plays without them.
+    Archives are items you need on top of your victories to finish. 0 plays without them.
     """
 
     display_name = "Archives"
@@ -96,7 +98,8 @@ class Archives(Range):
 class ArchivesRequired(Range):
     """How many Archives you need to finish.
 
-    Keep it a little lower than Archives, so one Archive in a bad place cannot block you.
+    Keep it a little lower than Archives, so one Archive in a bad place cannot block you. If it is higher
+    than Archives, every Archive is needed.
     """
 
     display_name = "Archives Required"
@@ -190,7 +193,7 @@ class LayoutCount(Range):
     """How many ship layouts are in the seed, drawn at random among those Ship Layouts allows.
 
     Your starting ship and the Kestrel Cruiser A are always in, and a Type B or C only comes with its
-    ship's Type A. The others are left out: no key, no check. Never fewer than Victories Required.
+    ship's Type A. The others are left out: no key, no check. Raised to Victories Required if lower.
     """
 
     display_name = "Layouts in the Seed"
@@ -232,7 +235,7 @@ class Sectorsanity(Choice):
 
 
 class SectorsanityFirstSector(Range):
-    """The shallowest sector that is worth a check.
+    """The shallowest sector that is worth a check. Must not be higher than Sectorsanity Last Sector.
 
     Sectors below this one send nothing, whatever Sectorsanity says. Raising it is the cheapest
     way to trim a seed: with every layout in play, sectors 1 and 2 alone are 56 checks that you
@@ -265,11 +268,44 @@ class SectorsanityLastSector(Range):
     default = data.SECTOR_COUNT
 
 
-class VictoryCollectsLayout(DefaultOnToggle):
-    """Beating the Flagship with a layout also sends every sector check of that layout still due.
+class VictoryCollectsLayout(Choice):
+    """What beating the Flagship with a layout also sends, among its checks still due.
+
+    off: nothing more than the victory.
+    sectors: every sector check of that layout.
+    everything: its sector checks, and its ship's achievements, per-ship system checks and fight checks.
     """
 
     display_name = "Victory Collects the Layout"
+    option_off = 0
+    option_sectors = 1
+    option_everything = 2
+    alias_false = 0
+    alias_true = 1
+    default = option_sectors
+
+
+class CombatChecks(Range):
+    """Winning fights sends checks: with each ship, the first fights you win in a run (by destroying the enemy
+    or killing its crew) send "Fight 1 won", "Fight 2 won"... up to this number. 0 turns them off.
+    A fight that sends a check gives less scrap (see Combat Check Scrap); missiles, fuel and drone parts stay.
+    """
+
+    display_name = "Combat Checks per Ship"
+    range_start = 0
+    range_end = 10
+    default = 0
+
+
+class CombatCheckScrap(Range):
+    """The percentage of a fight's scrap you still get when that fight sends a combat check.
+    Fights that send nothing keep their full reward.
+    """
+
+    display_name = "Combat Check Scrap (%)"
+    range_start = 0
+    range_end = 100
+    default = 50
 
 
 class CrewChecks(DefaultOnToggle):
@@ -395,6 +431,42 @@ class FullSystemUpgrades(Toggle):
     display_name = "Full System Upgrades"
 
 
+class FreeUpgrades(Toggle):
+    """System upgrade levels you receive are installed for free: right away if you are in a run, and again at
+    the start of every run. Off: a received level only lets you buy it at a store.
+    Only matters with Progressive System Upgrades on.
+    """
+
+    display_name = "Free Upgrades"
+
+
+class SystemInstall(Choice):
+    """When a system whose blueprint you received is put aboard, for free, if your ship has a place for it.
+    Only matters with System Blueprints on.
+
+    store: never for free, you buy it at a store (the base game way).
+    run_start: at the start of every run.
+    immediately: at the start of every run, and as soon as the blueprint arrives during a run.
+    """
+
+    display_name = "System Install"
+    option_store = 0
+    option_run_start = 1
+    option_immediately = 2
+    default = option_store
+
+
+class RunStartScrap(Range):
+    """At the start of every run, you get this percentage of all the scrap items you received so far.
+    Scrap items still give their scrap once when they arrive. 0 turns it off; 10 to 25 is a good range.
+    """
+
+    display_name = "Run Start Scrap (%)"
+    range_start = 0
+    range_end = 100
+    default = 0
+
+
 class HeadStarts(DefaultOnToggle):
     """Head Start items give a free system level, or a reactor bar, at the start of every
     future run. They make each new run a little stronger.
@@ -417,22 +489,26 @@ class TrapChance(Range):
 
 
 class SectorLogic(Choice):
-    """How many system blueprints the logic expects before sending you deep into the sectors.
+    """What the logic expects of your ship before sending you deep into the sectors.
 
-    relaxed: none. Every sector and every victory is in logic as soon as the layout is.
-    standard: deep sectors and the Flagship expect a couple of system blueprints first.
-    strict: the logic assumes you want a real ship before sector 3, and a complete one for the
-    Flagship.
+    relaxed: nothing. Every sector and every victory is in logic as soon as the layout is.
+    standard: 2 system blueprints received for sector 4, 4 for sector 6, 5 for the Flagship.
+    strict: 3 blueprints for sector 3, 6 for sector 5, 9 for sector 7, 11 for the Flagship.
+    power: milestones on the ship that does the check, from its real start. Sector 5 needs 2 shield
+    layers, sector 8 also Weapon Control 5, the Flagship 3 layers, Weapon Control 6 and Engines 4. A ship
+    that starts without shields may use Engines 5 for one layer before the Flagship. Lower with Victory
+    Difficulty "any", higher with "hard" (4 layers for the Flagship).
 
-    This never changes what the game allows, only what the generator considers fair. It counts
-    blueprints without caring which, and has no effect if System Blueprints is off. The five
-    options below are the opposite: they care about one system each and ignore how many you own.
+    This never changes what the game allows, only what the generator considers fair. standard and strict
+    count blueprints without caring which, and do nothing if System Blueprints is off. power reads
+    upgrade levels, so it matters most with Progressive System Upgrades on.
     """
 
     display_name = "Sector Logic"
     option_relaxed = 0
     option_standard = 1
     option_strict = 2
+    option_power = 3
     default = option_standard
 
 
@@ -714,9 +790,9 @@ class TrapLink(Toggle):
 class DeathLinkTrigger(Choice):
     """With Death Link on: what sends your death to the other players.
 
-    ship_destroyed: only losing the run.
+    ship_destroyed: only losing the run. Best in a big multiworld or for a first game.
     crew_death: losing any crew member.
-    both: either one. Recommended, but crew members die often.
+    both: either one. Crew members die often, so this sends a lot of deaths.
     """
 
     display_name = "Death Link Trigger"
@@ -832,6 +908,11 @@ class FTLOptions(PerGameCommonOptions):
     system_blueprints: SystemBlueprints
     progressive_systems: ProgressiveSystems
     full_system_upgrades: FullSystemUpgrades
+    free_upgrades: FreeUpgrades
+    system_install: SystemInstall
+    run_start_scrap: RunStartScrap
+    combat_checks: CombatChecks
+    combat_check_scrap: CombatCheckScrap
     progressive_systems_per_ship: ProgressiveSystemsPerShip
     head_starts: HeadStarts
     trap_chance: TrapChance
@@ -858,11 +939,12 @@ class FTLOptions(PerGameCommonOptions):
 
 
 ftl_option_groups = [
+    OptionGroup("Multiverse", [Multiverse, MultiverseAchievementChecks]),
     OptionGroup("Goal", [VictoriesRequired, VictoryDifficulty, Archives, ArchivesRequired]),
     OptionGroup(
         "Game Size",
         [ShipLayouts, LayoutCount, Sectorsanity, Systemsanity, ShipAchievementChecks, GeneralAchievementChecks,
-         CrewChecks, ShopChecks],
+         CrewChecks, CombatChecks, CombatCheckScrap, ShopChecks],
     ),
     OptionGroup(
         "Playing with Others",
@@ -870,8 +952,8 @@ ftl_option_groups = [
     ),
     OptionGroup(
         "Advanced",
-        [Multiverse, MultiverseAchievementChecks, StartShip, HeadStarts, ModLanguage, SectorsanityFirstSector, SectorsanityLastSector, VictoryCollectsLayout, LayoutUnlocks, CrossRunAchievementChecks,
-         SystemBlueprints, ProgressiveSystems, FullSystemUpgrades, CrewMembers, ShopWeapons, ShopDrones, ShopAugments,
+        [StartShip, HeadStarts, ModLanguage, SectorsanityFirstSector, SectorsanityLastSector, VictoryCollectsLayout, LayoutUnlocks, CrossRunAchievementChecks,
+         SystemBlueprints, ProgressiveSystems, FullSystemUpgrades, FreeUpgrades, SystemInstall, RunStartScrap, CrewMembers, ShopWeapons, ShopDrones, ShopAugments,
          WeaponBundleSize, DroneBundleSize, AugmentBundleSize,
          ShopUnlockMode, ShopItemDelivery, ShopBySector, ShopPerShip, SystemsanityPerShip,
          ProgressiveSystemsPerShip, SectorLogic],

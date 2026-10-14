@@ -143,10 +143,12 @@ end)
 test("dashboard: the systems page tells locked, levels and head starts apart", function()
     sim.startRun(true)
     dashboardSeed()
-    _G.apInventory.systemCaps = { shields = 3 }
+    _G.apInventory.systemCaps = { shields = 3, cloaking = 2 }
+    _G.apInventory.blueprints = { shields = true }
     _G.apInventory.startingUpgrades = { shields = 1, reactor = 2 }
     openDashboard("systems")
-    check(sim.drawnText(apT("dash.systems.header", { done = 1, total = 16 })), "one system unlocked out of sixteen")
+    check(sim.drawnText(apT("dash.systems.header", { done = 1, total = 16 })),
+        "one system unlocked out of sixteen: cloaking has a level but no blueprint")
     check(sim.drawnText(apT("dash.system.locked")), "the others are locked")
     check(sim.drawnText(apT("dash.system.start", { n = 1 })), "the head start is shown on its system")
     check(sim.drawnText(apT("dash.systems.reactor", { n = 2 })), "and the reactor bonus in the header")
@@ -256,7 +258,8 @@ end)
 test("dashboard: the systems page counts the upgrades of the ship being flown", function()
     sim.startRun(true)
     dashboardSeed()
-    _G.apInventory.systemCaps = {}
+    _G.apInventory.systemCaps = { shields = 1 }
+    _G.apInventory.blueprints = { shields = true }
     _G.apInventory.shipCaps = { PLAYER_SHIP_HARD = { shields = 2 }, PLAYER_SHIP_ROCK = { shields = 5 } }
     openDashboard("systems")
     check(sim.drawnText(apT("hud.system.received", { n = 2 })), "the Kestrel's two upgrades, not the Rock's")
@@ -289,5 +292,32 @@ test("dashboard: checks of a ship whose name has an underscore are counted on it
         if draw.text == remaining then found = found + 1 end
     end
     equals(found, 2, "one check left on each row, not two on the Auto-Cruiser's")
+    closeDashboard()
+end)
+
+test("dashboard: the This run card only promises what the seed's settings let an option do", function()
+    local function seed(options, extra)
+        local data = { goal = { kind = "victories", count = 3 }, items = {}, loc = { ["shop:1"] = "Archipelago Shop 1" },
+                       options = options }
+        for key, value in pairs(extra or {}) do data[key] = value end
+        applySeed(data)
+    end
+    sim.startRun(true)
+
+    seed({ free_upgrades = 1, system_install = 1 })
+    openDashboard("overview")
+    check(sim.drawnText(apT("dash.run.free_upgrades")), "free upgrades with capped systems: said")
+    check(sim.drawnText(apT("dash.run.install.start")), "systems put aboard with blueprints in the seed: said")
+    closeDashboard()
+
+    seed({ free_upgrades = 1, system_install = 2 }, { system_caps = false, system_blueprints = false })
+    openDashboard("overview")
+    check(not sim.drawnText(apT("dash.run.free_upgrades")), "no progressive upgrades: nothing to give for free")
+    check(not sim.drawnText(apT("dash.run.install.now")), "no blueprints: nothing to put aboard")
+    closeDashboard()
+
+    seed({})
+    openDashboard("overview")
+    check(not sim.drawnText(apT("dash.run.free_upgrades")), "and nothing without the options")
     closeDashboard()
 end)
