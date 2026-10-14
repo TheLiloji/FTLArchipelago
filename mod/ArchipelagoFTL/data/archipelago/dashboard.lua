@@ -441,10 +441,13 @@ local function runLines()
     if option("run_start_scrap") > 0 and _G.apRunStartScrap then
         lines[#lines + 1] = { key = "dash.run.scrap", params = { n = apRunStartScrap() }, tone = "text" }
     end
-    if option("free_upgrades") > 0 then
+    -- Each option only does something with the seed setting it relies on: say nothing rather than promise.
+    local capsActive = not _G.apSystemCapsActive or apSystemCapsActive()
+    local blueprintsActive = not _G.apSystemBlueprintsActive or apSystemBlueprintsActive()
+    if option("free_upgrades") > 0 and capsActive then
         lines[#lines + 1] = { key = "dash.run.free_upgrades", tone = "dim" }
     end
-    local install = option("system_install")
+    local install = blueprintsActive and option("system_install") or 0
     if install == 1 then
         lines[#lines + 1] = { key = "dash.run.install.start", tone = "dim" }
     elseif install == 2 then

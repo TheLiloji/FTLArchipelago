@@ -246,3 +246,30 @@ test("dashboard: the systems page counts the upgrades of the ship being flown", 
     closeDashboard()
     _G.apInventory.shipCaps = {}
 end)
+
+test("dashboard: the This run card only promises what the seed's settings let an option do", function()
+    local function seed(options, extra)
+        local data = { goal = { kind = "victories", count = 3 }, items = {}, loc = { ["shop:1"] = "Archipelago Shop 1" },
+                       options = options }
+        for key, value in pairs(extra or {}) do data[key] = value end
+        applySeed(data)
+    end
+    sim.startRun(true)
+
+    seed({ free_upgrades = 1, system_install = 1 })
+    openDashboard("overview")
+    check(sim.drawnText(apT("dash.run.free_upgrades")), "free upgrades with capped systems: said")
+    check(sim.drawnText(apT("dash.run.install.start")), "systems put aboard with blueprints in the seed: said")
+    closeDashboard()
+
+    seed({ free_upgrades = 1, system_install = 2 }, { system_caps = false, system_blueprints = false })
+    openDashboard("overview")
+    check(not sim.drawnText(apT("dash.run.free_upgrades")), "no progressive upgrades: nothing to give for free")
+    check(not sim.drawnText(apT("dash.run.install.now")), "no blueprints: nothing to put aboard")
+    closeDashboard()
+
+    seed({})
+    openDashboard("overview")
+    check(not sim.drawnText(apT("dash.run.free_upgrades")), "and nothing without the options")
+    closeDashboard()
+end)
