@@ -1,5 +1,6 @@
 
 <event name="AP_STORE_EVENT">
+    <preventQuest/>
     <beaconType load="AP_BEACON"/>
     <loadEventList first="true" default="AP_STORE_EVENT_3">
         <event load="AP_STORE_EVENT_12" req="ap_shop_pages" lvl="4"/>
@@ -9,24 +10,28 @@
 </event>
 
 <event name="AP_STORE_EVENT_3">
+    <preventQuest/>
     <text id="ap_store_text"/>
     <store>AP_STORE</store>
     <beaconType load="AP_BEACON"/>
 </event>
 
 <event name="AP_STORE_EVENT_6">
+    <preventQuest/>
     <text id="ap_store_text"/>
     <store>AP_STORE_6</store>
     <beaconType load="AP_BEACON"/>
 </event>
 
 <event name="AP_STORE_EVENT_9">
+    <preventQuest/>
     <text id="ap_store_text"/>
     <store>AP_STORE_9</store>
     <beaconType load="AP_BEACON"/>
 </event>
 
 <event name="AP_STORE_EVENT_12">
+    <preventQuest/>
     <text id="ap_store_text"/>
     <store>AP_STORE_12</store>
     <beaconType load="AP_BEACON"/>
@@ -34,6 +39,7 @@
 
 
 <event name="AP_EVT_PACKAGE">
+    <preventQuest/>
     <text id="ap_evt_package_text"/>
     <img back="AP_BACKGROUND" planet="AP_PLANET"/>
     <beaconType load="AP_BEACON_SIGNAL"/>
@@ -65,12 +71,14 @@
 
 
 <event name="AP_EVT_ZOLTAN_TITHE">
+    <preventQuest/>
     <beaconType load="AP_BEACON_SIGNAL"/>
     <loadEventList first="true" default="AP_EVT_ZOLTAN_TOLL">
         <event load="AP_EVT_ZOLTAN_TITHE_LINK" req="ap_energylink" lvl="1"/>
     </loadEventList>
 </event>
 <event name="AP_EVT_ZOLTAN_TITHE_LINK">
+    <preventQuest/>
     <text id="ap_evt_zoltan_tithe_text"/>
     <img back="AP_BACKGROUND" planet="AP_PLANET"/>
     <beaconType load="AP_BEACON_SIGNAL"/>
@@ -92,6 +100,7 @@
     </choice>
 </event>
 <event name="AP_EVT_ZOLTAN_TOLL">
+    <preventQuest/>
     <text id="ap_evt_zoltan_tithe_text"/>
     <img back="AP_BACKGROUND" planet="AP_PLANET"/>
     <beaconType load="AP_BEACON_SIGNAL"/>
@@ -127,6 +136,7 @@
 
 
 <event name="AP_EVT_SLUG_WHISPER">
+    <preventQuest/>
     <text id="ap_evt_slug_whisper_text"/>
     <img back="AP_BACKGROUND" planet="AP_PLANET"/>
     <beaconType load="AP_BEACON_SIGNAL"/>
@@ -160,12 +170,14 @@
 
 
 <event name="AP_EVT_ANOTHER_WORLD">
+    <preventQuest/>
     <beaconType load="AP_BEACON_SIGNAL"/>
     <loadEventList first="true" default="AP_EVT_ANOTHER_WORLD_PLAIN">
         <event load="AP_EVT_ANOTHER_WORLD_LINK" req="ap_traplink" lvl="1"/>
     </loadEventList>
 </event>
 <event name="AP_EVT_ANOTHER_WORLD_LINK">
+    <preventQuest/>
     <text id="ap_evt_another_world_text"/>
     <img back="AP_BACKGROUND" planet="AP_PLANET"/>
     <beaconType load="AP_BEACON_SIGNAL"/>
@@ -190,6 +202,7 @@
     </choice>
 </event>
 <event name="AP_EVT_ANOTHER_WORLD_PLAIN">
+    <preventQuest/>
     <text id="ap_evt_another_world_text"/>
     <img back="AP_BACKGROUND" planet="AP_PLANET"/>
     <beaconType load="AP_BEACON_SIGNAL"/>
