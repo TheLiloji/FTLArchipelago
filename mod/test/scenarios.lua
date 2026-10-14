@@ -7101,7 +7101,10 @@ local function layoutSeed(collect)
     local loc = { ["PLAYER_SHIP_HARD:victory"] = "Kestrel Cruiser A: Defeat the Flagship",
                   ["ach:ACH_TOUGH_SHIP"] = "Kestrel Cruiser: Tough Little Ship",
                   ["PLAYER_SHIP_HARD:sys:teleporter"] = "Kestrel Cruiser: Install Crew Teleporter",
-                  ["PLAYER_SHIP_CIRCLE:sys:teleporter"] = "Engi Cruiser: Install Crew Teleporter" }
+                  ["PLAYER_SHIP_CIRCLE:sys:teleporter"] = "Engi Cruiser: Install Crew Teleporter",
+                  ["PLAYER_SHIP_HARD:fight:1"] = "Kestrel Cruiser: Fight 1 won",
+                  ["PLAYER_SHIP_HARD:fight:2"] = "Kestrel Cruiser: Fight 2 won",
+                  ["PLAYER_SHIP_CIRCLE:fight:1"] = "Engi Cruiser: Fight 1 won" }
     for sector = 2, 8 do
         loc["PLAYER_SHIP_HARD:sector:" .. sector] = "Kestrel Cruiser A: Reach sector " .. sector
     end
@@ -7134,6 +7137,9 @@ test("victory: with everything, the ship's achievements and system checks go out
     check(apCheckAlreadySent("ach:ACH_TOUGH_SHIP"), "the Kestrel's achievement")
     check(apCheckAlreadySent("PLAYER_SHIP_HARD:sys:teleporter"), "the Kestrel's system check")
     check(not apCheckAlreadySent("PLAYER_SHIP_CIRCLE:sys:teleporter"), "another ship's stays due")
+    check(apCheckAlreadySent("PLAYER_SHIP_HARD:fight:1") and apCheckAlreadySent("PLAYER_SHIP_HARD:fight:2"),
+        "the Kestrel's fight checks")
+    check(not apCheckAlreadySent("PLAYER_SHIP_CIRCLE:fight:1"), "and not the Engi's")
     sim.starMap.worldLevel = 0
 end)
 
@@ -7141,6 +7147,7 @@ test("victory: sectors only leaves the achievements due", function()
     layoutSeed(1)
     apOnRunEnd("victory")
     check(not apCheckAlreadySent("ach:ACH_TOUGH_SHIP"), "the achievement stays due")
+    check(not apCheckAlreadySent("PLAYER_SHIP_HARD:fight:1"), "and so do the fights")
     sim.starMap.worldLevel = 0
 end)
 

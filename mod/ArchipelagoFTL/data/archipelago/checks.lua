@@ -563,7 +563,8 @@ end)
 
 local previousOnRunEnd = apOnRunEnd
 
--- Victory Collects the Layout set to everything: the ship's own achievements and per-ship system checks.
+-- Victory Collects the Layout set to everything: the ship's own achievements, per-ship system checks and
+-- fight checks.
 local function collectShipChecks(layout)
     local ship = tostring(layout):gsub("_[23]$", "")
     local data = _G.apGameData or {}
@@ -574,10 +575,12 @@ local function collectShipChecks(layout)
                 name = (_G.apAchievementLabel and apAchievementLabel(achievement)) or achievement }))
         end
     end
-    local prefix = ship .. ":sys:"
-    for key, name in pairs(((_G.apContractState or {}).locNames) or {}) do
-        if tostring(key):sub(1, #prefix) == prefix then
-            apSendCheck(key, tostring(name))
+    for _, kind in ipairs({ ":sys:", ":fight:" }) do
+        local prefix = ship .. kind
+        for key, name in pairs(((_G.apContractState or {}).locNames) or {}) do
+            if tostring(key):sub(1, #prefix) == prefix then
+                apSendCheck(key, tostring(name))
+            end
         end
     end
 end

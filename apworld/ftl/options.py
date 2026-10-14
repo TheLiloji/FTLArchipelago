@@ -250,7 +250,7 @@ class VictoryCollectsLayout(Choice):
 
     off: nothing more than the victory.
     sectors: every sector check of that layout.
-    everything: its sector checks, and its ship's achievements and per-ship system checks.
+    everything: its sector checks, and its ship's achievements, per-ship system checks and fight checks.
     """
 
     display_name = "Victory Collects the Layout"
