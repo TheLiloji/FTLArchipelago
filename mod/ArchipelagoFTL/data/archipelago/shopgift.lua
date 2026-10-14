@@ -207,6 +207,63 @@ local function giftPrice(gift)
 end
 
 
+local EMPTY_TEXTS = {
+    noseed = { "shop.slot.noseed.title", "shop.slot.noseed.short", "shop.slot.noseed.body" },
+    waiting = { "shop.slot.waiting.title", "shop.slot.waiting.short", "shop.slot.waiting.body" },
+    sector = { "shop.slot.sector.title", "shop.slot.sector.short", "shop.slot.sector.body" },
+    ship = { "shop.slot.ship.title", "shop.slot.ship.short", "shop.slot.ship.body" },
+    later = { "shop.slot.later.title", "shop.slot.later.short", "shop.slot.later.body" },
+    empty = { "shop.slot.empty.title", "shop.slot.empty.short", "shop.slot.empty.body" },
+}
+
+-- Why a shop slot is empty, from what the player can act on: wait, go to a sector, fly another ship, or nothing.
+local function emptyReason()
+    local gifts = _G.apShopGifts or {}
+    local linked = _G.apContractState ~= nil and _G.apContractState.connected == true
+    if #gifts == 0 and not linked then
+        return "noseed", {}
+    end
+    if _G.apShopWaiting and apShopWaiting() then
+        return "waiting", {}
+    end
+    local here = currentSector() or 1
+    local nextSector, otherShips, earlier = nil, {}, false
+    for _, gift in ipairs(gifts) do
+        if not alreadyGone(gift.location or gift.item) then
+            local sector = giftSector(gift)
+            if not ownerAboard(gift) then
+                local owner = giftOwner(gift)
+                if owner and not otherShips[owner] then
+                    otherShips[owner] = true
+                    otherShips[#otherShips + 1] = owner
+                end
+            elseif sector ~= nil and sector > here then
+                nextSector = math.min(nextSector or sector, sector)
+            elseif sector ~= nil and sector < here then
+                earlier = true
+            end
+        end
+    end
+    if nextSector then
+        return "sector", { n = nextSector }
+    end
+    if #otherShips > 0 then
+        local names = {}
+        for index = 1, math.min(2, #otherShips) do
+            names[#names + 1] = shipClassOf(tostring(otherShips[index]):gsub("_[23]$", ""))
+        end
+        return "ship", { ship = table.concat(names, ", ") }
+    end
+    if earlier then
+        return "later", {}
+    end
+    return "empty", {}
+end
+
+function apShopEmptyReason()
+    return emptyReason()
+end
+
 local function writeGift(blueprintName, gift)
     local desc = giftDesc(blueprintName)
     if desc == nil then
@@ -217,17 +274,11 @@ local function writeGift(blueprintName, gift)
 
     if gift == nil then
         setGiftArt(blueprintName, nil)
-        local noGifts = #(_G.apShopGifts or {}) == 0
-        local linked = _G.apContractState ~= nil and _G.apContractState.connected == true
-        if noGifts and not linked then
-            desc.title.data = apT("shop.slot.noseed.title")
-            desc.shortTitle.data = apT("shop.slot.noseed.short")
-            desc.description.data = apT("shop.slot.noseed.body")
-        else
-            desc.title.data = apT("shop.slot.empty.title")
-            desc.shortTitle.data = apT("shop.slot.empty.short")
-            desc.description.data = apT("shop.slot.empty.body")
-        end
+        local reason, params = emptyReason()
+        local keys = EMPTY_TEXTS[reason]
+        desc.title.data = apT(keys[1], params)
+        desc.shortTitle.data = apT(keys[2], params)
+        desc.description.data = apT(keys[3], params)
         desc.title.isLiteral = true
         desc.shortTitle.isLiteral = true
         desc.description.isLiteral = true
