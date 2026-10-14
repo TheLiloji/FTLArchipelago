@@ -478,6 +478,30 @@ local function crewKey(member)
     return "name:" .. tostring(member.name) .. ":" .. tostring(member.species)
 end
 
+-- Multiverse splits species into kinds (engi_separatist, human_soldier, zoltan_monk...): each counts as its race.
+local RACE_FAMILY = {
+    human = "human", engi = "engi", energy = "energy", zoltan = "energy", mantis = "mantis",
+    rock = "rock", slug = "slug", anaerobic = "anaerobic", lanius = "anaerobic", crystal = "crystal",
+}
+
+function apRaceFamily(species)
+    species = tostring(species or "")
+    return RACE_FAMILY[species] or RACE_FAMILY[species:match("^(%a+)_") or ""] or species
+end
+
+-- A Multiverse unique crew member (unique_turzil...) has its own species but draws on its race's sprites:
+-- it counts as that race. Multiverse's own races stay themselves.
+local function raceSpecies(member, species)
+    if not species:match("^unique_") then
+        return species
+    end
+    local ok, base = pcall(function() return member.extend:GetDefinition().animBase end)
+    if ok and base ~= nil and RACE_FAMILY[apRaceFamily(base)] ~= nil then
+        return tostring(base)
+    end
+    return species
+end
+
 -- Our living crew, not counting drones or boarders: who -> species.
 local function crewAboard()
     local crew = {}
@@ -496,22 +520,11 @@ local function crewAboard()
         if member.iShipId == 0 and not member.bDead and not drone then
             local species = tostring(member.species or "")
             if species ~= "" then
-                crew[crewKey(member)] = species
+                crew[crewKey(member)] = raceSpecies(member, species)
             end
         end
     end
     return crew
-end
-
--- Multiverse splits species into kinds (engi_separatist, human_soldier, zoltan_monk...): each counts as its race.
-local RACE_FAMILY = {
-    human = "human", engi = "engi", energy = "energy", zoltan = "energy", mantis = "mantis",
-    rock = "rock", slug = "slug", anaerobic = "anaerobic", lanius = "anaerobic", crystal = "crystal",
-}
-
-function apRaceFamily(species)
-    species = tostring(species or "")
-    return RACE_FAMILY[species] or RACE_FAMILY[species:match("^(%a+)_") or ""] or species
 end
 
 local function pollCrew()

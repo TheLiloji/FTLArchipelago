@@ -44,5 +44,6 @@ presets.
 
 - Los finales de Multiverse cuentan como victorias, no solo la nave insignia.
 - Las variantes de una raza en Multiverse (Zoltan Monk, Separatist Engi, Lanius Welder...) cuentan para el check
-  de esa raza. La tripulación única y las razas propias de Multiverse no cuentan.
+  de esa raza, igual que los tripulantes únicos de esa raza, como Turzil el Engi. Las razas propias de
+  Multiverse no cuentan.
 - El objetivo, el panel (TAB) y la tienda de Archipelago funcionan igual.

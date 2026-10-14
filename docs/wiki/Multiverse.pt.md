@@ -43,5 +43,6 @@ As partidas do Multiverse são mais longas do que as do jogo base: conta com mai
 
 - Os finais do Multiverse contam como vitórias, não só a nave-almirante.
 - As variantes de uma raça no Multiverse (Zoltan Monk, Separatist Engi, Lanius Welder...) contam para o check
-  dessa raça. A tripulação única e as raças próprias do Multiverse não contam.
+  dessa raça, assim como os tripulantes únicos dessa raça, como Turzil, o Engi. As raças próprias do
+  Multiverse não contam.
 - O objetivo, o painel (TAB) e a loja Archipelago funcionam da mesma forma.

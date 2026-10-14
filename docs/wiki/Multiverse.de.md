@@ -43,5 +43,6 @@ Multiverse-Runs dauern länger als im Grundspiel: Rechne mit mehr Zeit, als die 
 
 - Die Enden von Multiverse zählen als Siege, nicht nur das Flaggschiff.
 - Multiverse-Varianten einer Rasse (Zoltan Monk, Separatist Engi, Lanius Welder...) zählen für den Check dieser
-  Rasse. Einzigartige Crewmitglieder und Multiverse-eigene Rassen zählen nicht.
+  Rasse, ebenso einzigartige Crewmitglieder dieser Rasse, wie Turzil der Engi. Multiverse-eigene Rassen zählen
+  nicht.
 - Das Ziel, das Dashboard (TAB) und der Archipelago-Laden funktionieren gleich.

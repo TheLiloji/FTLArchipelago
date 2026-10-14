@@ -208,3 +208,22 @@ test("crew: a species of no race stays itself", function()
     equals(apRaceFamily("technolanius"), "technolanius", "a name that only contains a race is not that race")
     equals(apRaceFamily("orchid_vampweed"), "orchid_vampweed", "a species with no race of the seed stays as is")
 end)
+
+test("crew: a Multiverse unique crew member counts as its race", function()
+    apContractResetForTesting()
+    apForgetChecksForTesting()
+    applySeed({ loc = {
+        ["crew:human"] = "First Human aboard",
+        ["crew:engi"] = "First Engi aboard",
+    } })
+    sim.startRun(true)
+    sim.tick(1)
+    sim.player:AddCrewMemberFromString("Turzil", "unique_turzil", false, 0)
+    sim.player:AddCrewMemberFromString("Jerry", "unique_jerry_pony", false, 0)
+    sim.jumpArrive()
+    check(apCheckAlreadySent("crew:engi"), "Turzil, an Engi, sends First Engi aboard")
+    check(not apCheckAlreadySent("crew:pony"), "a unique crew member of no race of the seed sends nothing")
+    sim.player:AddCrewMemberFromString("Tully", "unique_tully", false, 0)
+    sim.jumpArrive()
+    check(apCheckAlreadySent("crew:human"), "Tully, a Human, sends First Human aboard")
+end)

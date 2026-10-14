@@ -44,5 +44,6 @@ presets.
 
 - Les fins de Multiverse comptent comme des victoires, pas seulement le vaisseau amiral.
 - Les variantes d'une race dans Multiverse (Zoltan Monk, Separatist Engi, Lanius Welder...) comptent pour le
-  check de cette race. L'équipage unique et les races propres à Multiverse ne comptent pas.
+  check de cette race, tout comme les équipiers uniques de cette race, comme Turzil l'Engi. Les races propres
+  à Multiverse ne comptent pas.
 - Le but, le tableau de bord (TAB) et la boutique Archipelago marchent de la même façon.
