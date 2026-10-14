@@ -598,6 +598,23 @@ local function tryConnect()
         "the panel announces the attempt")
 end
 
+test("network: a local server is reached without the secure attempt, and the panel still shows its address", function()
+    tryConnect()
+    local connect = sim.net.calls[#sim.net.calls]
+    equals(connect.uri, "ws://localhost:38281", "localhost goes straight to a plain connection")
+    sim.net.last = { uri = connect.uri, slot = "Navigator" }
+    apConnectResetForTesting()
+    sim.renderMenu()
+    equals(apConnectState().uri, "localhost", "the remembered address comes back without the scheme")
+
+    apConnectResetForTesting()
+    sim.net.last = { uri = "archipelago.gg:38281", slot = "Navigator" }
+    sim.renderMenu()
+    apConnectNow()
+    equals(sim.net.calls[#sim.net.calls].uri, "archipelago.gg:38281", "a remote server keeps the secure attempt")
+    apNetResetForTesting()
+end)
+
 test("network: the panel says when the connection succeeded", function()
     tryConnect()
     sim.netEvent("connected", { name = "Navigator", extra = slotData({ seed_hash = "OK" }) })
