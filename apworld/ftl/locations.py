@@ -3,7 +3,7 @@ from __future__ import annotations
 from BaseClasses import Location
 
 from . import data
-from .options import apply_sector_floor
+from .options import apply_sector_floor, excluded_layouts
 
 
 class FTLLocation(Location):
@@ -50,7 +50,9 @@ def allowed_layouts(options) -> tuple[data.Layout, ...]:
     else:
         highest_variant = 2
     pool = data.MV_LAYOUTS if multiverse(options) else data.LAYOUTS
-    return tuple(layout for layout in pool if layout.variant <= highest_variant)
+    excluded = excluded_layouts(options)
+    return tuple(layout for layout in pool
+                 if layout.variant <= highest_variant and layout.blueprint not in excluded)
 
 
 def selected_layouts(options) -> tuple[data.Layout, ...]:

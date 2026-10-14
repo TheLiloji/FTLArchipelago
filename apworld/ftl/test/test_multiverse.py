@@ -133,3 +133,23 @@ class TestMultiverseAchievementsNeedMultiverse(FTLTestBase):
     def test_the_base_game_ignores_them(self) -> None:
         names = [location.name for location in self.multiworld.get_locations(self.player)]
         self.assertFalse(any(name.startswith("MV Achievement: ") for name in names))
+
+
+class TestMultiverseExcludedShips(FTLTestBase):
+    options = {"multiverse": True, "layout_count": 28, "excluded_layouts": ["Union Cruiser", "MV Union Cruiser A"]}
+
+    def test_multiverse_ships_can_be_left_out(self) -> None:
+        drawn = {layout.display for layout in self.world.selected_layouts}
+        self.assertFalse([name for name in drawn if name.startswith("Union Cruiser")], drawn)
+        self.assertNotIn("MV Union Cruiser A", drawn)
+
+
+class TestMultiverseKestrelCannotBeLeftOut(FTLTestBase):
+    options = {"multiverse": True, "excluded_layouts": ["MV Kestrel Cruiser"]}
+    auto_construct = False
+
+    def test_generation_is_refused_with_a_readable_message(self) -> None:
+        from Options import OptionError
+        with self.assertRaises(OptionError) as raised:
+            self.world_setup()
+        self.assertIn("MV Kestrel Cruiser", str(raised.exception))

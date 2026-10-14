@@ -403,6 +403,8 @@ def _fits(
     margin = _bootstrap_cost(world, start_items)
     demands: dict[int, int] = {}
     for location in world.created_locations:
+        if location.group in data.FILLER_ONLY_GROUPS:
+            continue
         demand = _logic_demand(level, location, bool(world.options.shop_by_sector))
         demands[demand] = demands.get(demand, 0) + 1
     for demand in sorted(demands):

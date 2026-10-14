@@ -74,6 +74,7 @@ The Options Creator shows them in groups:
   multiworld, in your own world too.
 - **Game Size**: which ship layouts are in the game and how many, and what sends checks: sectors, systems,
   achievements, crew, fights won, the Archipelago shop.
+  **Excluded Ships and Layouts** leaves out the ships or layouts you never want to fly.
 - **Playing with Others**: Death Link, Energy Link (a shared fuel reserve), Trap Link, and how many traps.
 - **Advanced** (closed at first): you do not need to touch these. Your first ship, the Head Start items, the
   language of the mod (it follows FTL by itself), the range of sectors that count, how Type B and C unlock,

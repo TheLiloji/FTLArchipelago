@@ -74,6 +74,7 @@ Le créateur d'options les range en groupes :
   n'importe où dans le multiworld, chez toi aussi.
 - **Game Size** : quels layouts sont dans la partie et combien, et ce qui envoie des checks : secteurs,
   systèmes, succès, équipage, combats gagnés, boutique Archipelago.
+  **Excluded Ships and Layouts** retire les vaisseaux ou les layouts que tu ne veux jamais piloter.
 - **Playing with Others** : Death Link, Energy Link (une réserve de carburant partagée), Trap Link, et combien
   de pièges.
 - **Advanced** (fermé au départ) : tu n'as pas besoin d'y toucher. Ton premier vaisseau, les Head Starts, la

@@ -132,6 +132,44 @@ class VictoryLayouts(OptionSet):
     default = frozenset()
 
 
+_SHIP_BY_DISPLAY: dict[str, data.Ship] = {ship.display: ship for ship in data.ALL_SHIPS}
+
+
+class ExcludedLayouts(OptionSet):
+    __doc__ = (
+        "Ships or layouts you never want in the seed: no key, no check, no victory with them.\n"
+        "\n"
+        "    Name a whole ship (\"Engi Cruiser\") or one layout (\"Engi Cruiser B\", or \"Engi B\"). Leaving out "
+        "a Type A leaves out its whole ship, since the hangar opens a ship by its Type A.\n"
+        "\n"
+        f"    Your starting ship and the {data.LAYOUTS_BY_BLUEPRINT[data.ALWAYS_UNLOCKED_LAYOUTS[0]].display} are always "
+        "in the seed and cannot be left out, nor can a layout listed in Victory Layouts.\n"
+        "\n"
+        "    Valid keys: "
+        + ", ".join(f'"{ship.display}"' for ship in data.SHIPS)
+        + ", and any layout name, like those of Victory Layouts. With Multiverse, its ship and layout names too."
+    )
+
+    display_name = "Excluded Ships and Layouts"
+    valid_keys = sorted({*_SHIP_BY_DISPLAY, *_LAYOUT_BY_DISPLAY, *_LAYOUT_SHORT_NAMES})
+    default = frozenset()
+
+
+def excluded_layouts(options: "FTLOptions") -> frozenset[str]:
+    """The blueprints of the layouts the player left out, a Type A taking its whole ship with it."""
+    out: set[str] = set()
+    for key in getattr(options, "excluded_layouts", ExcludedLayouts(frozenset())).value:
+        ship = _SHIP_BY_DISPLAY.get(key)
+        layout = _LAYOUT_BY_DISPLAY.get(key) or _LAYOUT_SHORT_NAMES.get(key)
+        if layout is not None and layout.variant == 0:
+            ship = data.SHIPS_BY_BLUEPRINT[layout.ship]
+        if ship is not None:
+            out.update(other.blueprint for other in data.ALL_LAYOUTS if other.ship == ship.blueprint)
+        elif layout is not None:
+            out.add(layout.blueprint)
+    return frozenset(out)
+
+
 _START_SHIP_DEFAULT = data.SHIPS_BY_BLUEPRINT[
     data.LAYOUTS_BY_BLUEPRINT[data.ALWAYS_UNLOCKED_LAYOUTS[0]].ship
 ]
@@ -885,6 +923,7 @@ class FTLOptions(PerGameCommonOptions):
     archives: Archives
     archives_required: ArchivesRequired
     victory_layouts: VictoryLayouts
+    excluded_layouts: ExcludedLayouts
     start_ship: StartShip
 
     multiverse: Multiverse
@@ -943,7 +982,7 @@ ftl_option_groups = [
     OptionGroup("Goal", [VictoriesRequired, VictoryDifficulty, Archives, ArchivesRequired]),
     OptionGroup(
         "Game Size",
-        [ShipLayouts, LayoutCount, Sectorsanity, Systemsanity, ShipAchievementChecks, GeneralAchievementChecks,
+        [ShipLayouts, LayoutCount, ExcludedLayouts, Sectorsanity, Systemsanity, ShipAchievementChecks, GeneralAchievementChecks,
          CrewChecks, CombatChecks, CombatCheckScrap, ShopChecks],
     ),
     OptionGroup(
