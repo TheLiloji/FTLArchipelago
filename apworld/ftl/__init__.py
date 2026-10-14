@@ -119,6 +119,14 @@ class FTLWorld(World):
     def _draw_layouts(self) -> None:
         forced = [self.start_ship.blueprint, *data.ALWAYS_UNLOCKED_LAYOUTS]
         forced.extend(options.goal_layouts(self.options) or ())
+        refused = sorted(data.LAYOUTS_BY_BLUEPRINT[blueprint].display
+                         for blueprint in dict.fromkeys(forced) if blueprint in options.excluded_layouts(self.options))
+        if refused:
+            raise OptionError(
+                f"FTL: excluded_layouts leaves out {', '.join(refused)}, which must be in the seed: your starting "
+                f"ship, the {data.LAYOUTS_BY_BLUEPRINT[data.ALWAYS_UNLOCKED_LAYOUTS[0]].display} and the layouts of "
+                "victory_layouts are always in. Remove them from excluded_layouts."
+            )
         wanted = max(self.options.layout_count.value, options.goal_victory_count(self.options))
         if wanted > self.options.layout_count.value:
             logging.getLogger("FTL").warning(
@@ -128,6 +136,10 @@ class FTLWorld(World):
             self.options.layout_count.value = min(wanted, self.options.layout_count.range_end)
         self.options.drawn_layouts = locations.draw_layouts(
             self.options, self.random, tuple(dict.fromkeys(forced)), wanted)
+        # Fewer layouts allowed than asked (Ship Layouts, Excluded Ships and Layouts): the spoiler shows the real count.
+        allowed = len(locations.allowed_layouts(self.options))
+        if self.options.layout_count.value > allowed:
+            self.options.layout_count.value = allowed
 
     def _starting_keys(self) -> tuple[str, ...]:
         always = {

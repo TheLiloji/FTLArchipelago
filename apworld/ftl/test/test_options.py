@@ -822,3 +822,36 @@ class TestFullSystemUpgrades(FTLTestBase):
         self.assertTrue(location.can_reach(state))
         state.remove(self.world.create_item("Progressive Shields"))
         self.assertFalse(location.can_reach(state))
+
+
+class TestExcludedShipsAndLayouts(FTLTestBase):
+
+    options = {"layout_count": 28, "excluded_layouts": ["Engi Cruiser", "Kestrel Cruiser B", "Zoltan A"]}
+
+    def test_they_are_not_in_the_seed(self) -> None:
+        drawn = {layout.blueprint for layout in self.world.selected_layouts}
+        for blueprint in ("PLAYER_SHIP_CIRCLE", "PLAYER_SHIP_CIRCLE_2", "PLAYER_SHIP_CIRCLE_3",
+                          "PLAYER_SHIP_HARD_2", "PLAYER_SHIP_ENERGY", "PLAYER_SHIP_ENERGY_2", "PLAYER_SHIP_ENERGY_3"):
+            self.assertNotIn(blueprint, drawn)
+        self.assertIn("PLAYER_SHIP_HARD", drawn, "the Kestrel A stays")
+        self.assertIn("PLAYER_SHIP_HARD_3", drawn, "only the Kestrel B was named")
+        self.assertEqual(self.world.options.layout_count.value, len(drawn), "the spoiler shows the real count")
+
+    def test_no_key_and_no_check_of_theirs(self) -> None:
+        names = {location.name for location in self.addressed_locations()}
+        self.assertFalse([name for name in names if name.startswith(("Engi Cruiser", "Zoltan Cruiser"))])
+        self.assertFalse([name for name in names if name.startswith("Kestrel Cruiser B")])
+        pool = {item.name for item in self.multiworld.itempool}
+        self.assertNotIn(data.SHIP_KEY_NAMES["PLAYER_SHIP_CIRCLE"], pool)
+
+
+class TestExcludingAShipThatMustBeIn(FTLTestBase):
+
+    options = {"excluded_layouts": ["Kestrel Cruiser"]}
+    auto_construct = False
+
+    def test_generation_is_refused_with_a_readable_message(self) -> None:
+        with self.assertRaises(OptionError) as raised:
+            self.world_setup()
+        self.assertIn("Kestrel Cruiser A", str(raised.exception))
+        self.assertIn("excluded_layouts", str(raised.exception))

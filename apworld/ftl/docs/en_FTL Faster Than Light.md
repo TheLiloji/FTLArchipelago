@@ -33,6 +33,9 @@ Three things are taken away from you at the start and handed back as items.
 Kestrel, see below) and the hangar fills up as ship keys arrive. Type B and Type C layouts are items of their
 own by default, so you no longer have to earn two achievements with a ship before you may fly its Type B.
 
+**Excluded Ships and Layouts** leaves out the ships or layouts you never want: name a ship ("Engi Cruiser") or
+a layout ("Engi Cruiser B"). Your first ship and the Kestrel A cannot be left out.
+
 **Layouts in the Seed** keeps 7 layouts by default, drawn at random among those Ship Layouts allows. Your first
 ship and the Kestrel A are always in, and a Type B or C only comes with its ship's Type A. The others have no key
 and no check.

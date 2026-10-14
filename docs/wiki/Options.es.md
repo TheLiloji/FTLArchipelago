@@ -72,6 +72,7 @@ El Options Creator las muestra por grupos:
   parte del multiworld, también en tu propio mundo.
 - **Game Size**: qué layouts hay en la partida y cuántos, y qué envía checks: sectores, sistemas, logros,
   tripulación, combates ganados, la tienda de Archipelago.
+  **Excluded Ships and Layouts** quita las naves o los layouts que nunca quieres pilotar.
 - **Playing with Others**: Death Link, Energy Link (una reserva de combustible compartida), Trap Link, y cuántas
   trampas.
 - **Advanced** (cerrado al principio): no hace falta tocarlo. Tu primera nave, los Head Starts, el idioma del mod

@@ -72,6 +72,7 @@ Der Options Creator zeigt sie in Gruppen:
   der Multiworld liegen, auch in deiner eigenen Welt.
 - **Game Size**: welche Layouts im Spiel sind und wie viele, und was Checks verschickt: Sektoren, Systeme,
   Errungenschaften, Crew, gewonnene Kämpfe, der Archipelago-Laden.
+  **Excluded Ships and Layouts** lässt Schiffe oder Layouts weg, die du nie fliegen willst.
 - **Playing with Others**: Death Link, Energy Link (ein geteilter Treibstoffvorrat), Trap Link und wie viele
   Fallen.
 - **Advanced** (anfangs zugeklappt): Du musst hier nichts ändern. Dein erstes Schiff, die Head-Start-Items, die
