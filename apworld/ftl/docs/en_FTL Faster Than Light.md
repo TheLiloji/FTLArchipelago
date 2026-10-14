@@ -195,6 +195,14 @@ Two families of options decide how much ship the generator assumes you have befo
 **Sector Logic** counts blueprints without caring which: `relaxed` puts every sector in logic as soon as the
 layout is, `standard` expects a couple of blueprints before the deep sectors, `strict` expects a real ship.
 
+`power` looks at the ship instead: each check is judged on the ship that does it, from its real start. Sector 5
+needs 2 shield layers, sector 8 also Weapon Control 5, the Flagship 3 layers, Weapon Control 6 and Engines 4.
+So a Mantis B, which starts with 2 layers, meets sector 5 right away. A ship that starts without shields (the
+Stealth Cruiser) may use Engines 5 in place of one layer, except for the Flagship. Victory Difficulty moves the
+bar: `any` asks 2 layers for the Flagship, `hard` asks 4. It reads upgrade levels, so it matters most with
+Progressive System Upgrades on; without them, levels are bought with scrap and only the Stealth's Shields
+blueprint is waited for.
+
 **The five per-system sliders** (Shields, Sensors, Medbay, Engines, Weapons) are the opposite: they name one
 system each. Set to `required`, a ship whose starting layout includes that system is only in logic once you
 hold its blueprint, which can leave several cruisers sitting in the hangar early on. A ship built without the

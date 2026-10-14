@@ -465,22 +465,27 @@ class TrapChance(Range):
 
 
 class SectorLogic(Choice):
-    """How many system blueprints the logic expects before sending you deep into the sectors.
+    """What the logic expects of your ship before sending you deep into the sectors.
 
-    relaxed: none. Every sector and every victory is in logic as soon as the layout is.
+    relaxed: nothing. Every sector and every victory is in logic as soon as the layout is.
     standard: deep sectors and the Flagship expect a couple of system blueprints first.
     strict: the logic assumes you want a real ship before sector 3, and a complete one for the
     Flagship.
+    power: milestones on the ship that does the check, from its real start. Sector 5 needs 2 shield
+    layers, sector 8 also Weapon Control 5, the Flagship 3 layers, Weapon Control 6 and Engines 4. A ship
+    that starts without shields may use Engines 5 for one layer before the Flagship. Lower with Victory
+    Difficulty "any", higher with "hard" (4 layers for the Flagship).
 
-    This never changes what the game allows, only what the generator considers fair. It counts
-    blueprints without caring which, and has no effect if System Blueprints is off. The five
-    options below are the opposite: they care about one system each and ignore how many you own.
+    This never changes what the game allows, only what the generator considers fair. standard and strict
+    count blueprints without caring which, and do nothing if System Blueprints is off. power reads
+    upgrade levels, so it matters most with Progressive System Upgrades on.
     """
 
     display_name = "Sector Logic"
     option_relaxed = 0
     option_standard = 1
     option_strict = 2
+    option_power = 3
     default = option_standard
 
 

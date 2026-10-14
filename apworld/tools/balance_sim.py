@@ -3,7 +3,7 @@
 
 usage: balance_sim.py [seeds per proposal] [proposal name filter]
 
-Built in: "current standard" and "current strict" (the apworld as it is). Every other proposal is a plugin
+Built in: "current standard", "current strict" and "current power" (the apworld as it is). Every other proposal is a plugin
 file in apworld/tools/sim_proposals/ (see _template.py). For each one, seeds are generated with its rule,
 then replayed item by item. It reports, for sector 5, sector 8 and the Flagship, when they come into logic
 (share of the seed's checks already done) and how strong the player is then: shield layers, weapon level,
@@ -52,7 +52,11 @@ class Helpers:
 
     def level(self, state, system: str, layout: str | None = None) -> int:
         """The highest level of a system the player may have on that layout (or a typical ship): its start
-        level plus the Progressive items received, or 1 + Progressive once its blueprint came in."""
+        level plus the Progressive items received, or 1 + Progressive once its blueprint came in. The
+        systems the power logic reads use its own count, which honours every upgrade option."""
+        if layout in self.data.LAYOUTS_BY_BLUEPRINT and system in self.data.POWER_SYSTEMS:
+            return self.rules.system_level(self.world.options, state, self.player, system,
+                                           self.data.LAYOUTS_BY_BLUEPRINT[layout])
         spec = self.data.SYSTEMS_BY_ID[system]
         progressive = state.count(f"Progressive {spec.display}", self.player)
         base = self.start_level(system, layout)
@@ -123,6 +127,7 @@ def run(name: str, plugin, seeds: int):
 
     world_type = AutoWorldRegister.world_types[data.GAME_NAME]
     original_set_rules = world_type.set_rules
+    original_generate_early = world_type.generate_early
     original_create_item = ftl_items.create_item
     wanted = plugin.progression_items(data) if plugin else set()
 
@@ -133,11 +138,14 @@ def run(name: str, plugin, seeds: int):
             item.classification = ItemClassification.progression
         return item
 
-    def set_rules(self):
-        level = {"current standard": "option_standard", "current strict": "option_strict"}.get(name,
-                                                                                             "option_relaxed")
+    # The option is set before generate_early: the plan and the item classifications read it.
+    def generate_early(self):
+        level = {"current standard": "option_standard", "current strict": "option_strict",
+                 "current power": "option_power"}.get(name, "option_relaxed")
         self.options.sector_logic.value = getattr(self.options.sector_logic, level)
-        self.sector_logic_level = self.options.sector_logic.value
+        original_generate_early(self)
+
+    def set_rules(self):
         original_set_rules(self)
         if not plugin:
             return
@@ -157,6 +165,7 @@ def run(name: str, plugin, seeds: int):
             self.multiworld.completion_condition[self.player] = lambda state: old_win(state) and win(state)
 
     world_type.set_rules = set_rules
+    world_type.generate_early = generate_early
     ftl_items.create_item = create_item
     options = preset_options()
     results, failures = [], 0
@@ -179,6 +188,7 @@ def run(name: str, plugin, seeds: int):
             results.append(replay(multiworld, data, rules, helpers))
     finally:
         world_type.set_rules = original_set_rules
+        world_type.generate_early = original_generate_early
         ftl_items.create_item = original_create_item
     return results, failures
 
@@ -246,7 +256,7 @@ def main() -> int:
     seeds = int(sys.argv[1]) if len(sys.argv) > 1 else 30
     only = sys.argv[2] if len(sys.argv) > 2 else os.environ.get("SIM_ONLY")
     plugins = load_plugins()
-    proposals = {"current standard": None, "current strict": None, **plugins}
+    proposals = {"current standard": None, "current strict": None, "current power": None, **plugins}
     print(f"{seeds} seeds per proposal, options: {os.environ.get('SIM_PRESET') or 'defaults'}.")
     print("'open' = share of the seed's checks done when it comes into logic, then shield layers / weapon "
           "level / engine level of the strongest flyable layout. 'early' = checks reachable at the start.")

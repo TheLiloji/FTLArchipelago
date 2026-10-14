@@ -267,6 +267,38 @@ LAYOUT_EMPTY_SLOTS_RAW: tuple[tuple[str, tuple[str, ...]], ...] = (
      ("sensors", "shields", "medbay", "teleporter", "cloaking", "hacking", "battery", "mind")),
 )
 
+# (layout, shields, weapons, engines): start levels from ftl.dat, the systems the power sector logic reads.
+LAYOUT_START_LEVELS_RAW: tuple[tuple[str, int, int, int], ...] = (
+    ("PLAYER_SHIP_ANAEROBIC", 2, 3, 1),
+    ("PLAYER_SHIP_ANAEROBIC_2", 2, 1, 1),
+    ("PLAYER_SHIP_CIRCLE", 2, 3, 2),
+    ("PLAYER_SHIP_CIRCLE_2", 2, 3, 1),
+    ("PLAYER_SHIP_CIRCLE_3", 2, 1, 2),
+    ("PLAYER_SHIP_CRYSTAL", 2, 3, 2),
+    ("PLAYER_SHIP_CRYSTAL_2", 2, 1, 2),
+    ("PLAYER_SHIP_ENERGY", 2, 3, 1),
+    ("PLAYER_SHIP_ENERGY_2", 1, 4, 2),
+    ("PLAYER_SHIP_ENERGY_3", 2, 2, 2),
+    ("PLAYER_SHIP_FED", 2, 2, 2),
+    ("PLAYER_SHIP_FED_2", 2, 2, 2),
+    ("PLAYER_SHIP_FED_3", 2, 1, 2),
+    ("PLAYER_SHIP_HARD", 2, 3, 2),
+    ("PLAYER_SHIP_HARD_2", 2, 4, 2),
+    ("PLAYER_SHIP_HARD_3", 2, 2, 2),
+    ("PLAYER_SHIP_JELLY", 2, 3, 2),
+    ("PLAYER_SHIP_JELLY_2", 2, 2, 2),
+    ("PLAYER_SHIP_JELLY_3", 2, 2, 2),
+    ("PLAYER_SHIP_MANTIS", 2, 1, 2),
+    ("PLAYER_SHIP_MANTIS_2", 4, 1, 1),
+    ("PLAYER_SHIP_MANTIS_3", 2, 2, 2),
+    ("PLAYER_SHIP_ROCK", 2, 3, 2),
+    ("PLAYER_SHIP_ROCK_2", 2, 3, 2),
+    ("PLAYER_SHIP_ROCK_3", 2, 3, 2),
+    ("PLAYER_SHIP_STEALTH", 0, 2, 4),
+    ("PLAYER_SHIP_STEALTH_2", 0, 4, 2),
+    ("PLAYER_SHIP_STEALTH_3", 0, 2, 3),
+)
+
 SYSTEMS_RAW: tuple[tuple[int, str, str, int], ...] = (
     (0, "artillery", "Artillery Beam", 4),
     (1, "battery", "Backup Battery", 2),
@@ -683,6 +715,10 @@ SHIPS_BY_BLUEPRINT: dict[str, Ship] = {ship.blueprint: ship for ship in SHIPS}
 
 LAYOUT_SYSTEMS: dict[str, tuple[str, ...]] = dict(LAYOUT_SYSTEMS_RAW)
 LAYOUT_EMPTY_SLOTS: dict[str, tuple[str, ...]] = dict(LAYOUT_EMPTY_SLOTS_RAW)
+POWER_SYSTEMS: tuple[str, ...] = ("shields", "weapons", "engines")
+LAYOUT_START_LEVELS: dict[str, dict[str, int]] = {
+    blueprint: dict(zip(POWER_SYSTEMS, levels)) for blueprint, *levels in LAYOUT_START_LEVELS_RAW
+}
 ACHIEVEMENT_DESCRIPTIONS: dict[str, str] = dict(ACHIEVEMENT_DESCRIPTIONS_RAW)
 
 
@@ -1122,6 +1158,16 @@ def _check() -> None:
             "LAYOUT_EMPTY_SLOTS_RAW and the layout list do not match: "
             "regenerate the block from ftl.dat."
         )
+    if set(LAYOUT_START_LEVELS) != {layout.blueprint for layout in LAYOUTS}:
+        raise ValueError(
+            "LAYOUT_START_LEVELS_RAW and the layout list do not match: "
+            "regenerate the block from ftl.dat."
+        )
+    for layout in LAYOUTS:
+        for system, level in LAYOUT_START_LEVELS[layout.blueprint].items():
+            if (level > 0) != (system in layout.start_systems):
+                raise ValueError(f"{layout.blueprint} starts with {system} at level {level}, "
+                                 "which disagrees with its start systems")
     if set(LAYOUT_SYSTEMS) != {layout.blueprint for layout in LAYOUTS}:
         raise ValueError(
             "LAYOUT_SYSTEMS_RAW and the layout list do not match: "
