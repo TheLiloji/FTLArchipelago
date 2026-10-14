@@ -82,6 +82,18 @@ On top of that, "Head Start" items give you one free level of a system, or one e
 the beginning of *every future run*. This is what makes a roguelike work in an Archipelago: an item that
 arrives during a run you are about to lose is not wasted, because it makes the next run start stronger.
 
+Four options make received items count right away, all off by default:
+
+- **Free Upgrades**: system levels you receive are installed for free, at once and at the start of every run,
+  instead of only being for sale. Needs Progressive System Upgrades.
+- **System Install**: a system whose blueprint you received comes aboard for free, at the start of every run
+  (`run_start`) or also as soon as it arrives (`immediately`), if the ship has a room for it. Needs System
+  Blueprints.
+- **Run Start Scrap**: each new run starts with a percentage of all the scrap items you received.
+- **Combat Checks per Ship**: with each ship, the first fights you win in a run send checks ("Kestrel
+  Cruiser: Fight 1 won"). Those fights give less scrap (Combat Check Scrap, 50 % by default); missiles, fuel
+  and drone parts stay.
+
 ## What is considered a check?
 
 - **Sectors.** Reaching sector 1 to 8 with a given layout. Each layout has its own eight checks, so flying the
@@ -98,7 +110,8 @@ arrives during a run you are about to lose is not wasted, because it makes the n
   event, a store or a rescue. The crew you start a run with does not count. Seven checks, on by default
   (Crew Checks).
 - **Victories.** Destroying the Flagship with a given layout. One check per layout, always enabled.
-  The victory also sends that layout's sector checks still due (Victory Collects the Layout, on by default).
+  The victory also sends that layout's sector checks still due (Victory Collects the Layout, `sectors` by
+  default; `everything` also sends its ship's achievements, system checks and fight checks).
 - **Ship achievements.** The three achievements of each ship. FTL awards them to the ship and not to the
   layout, so earning one with Type A, B or C sends the same check.
 - **General achievements.** Up to twenty-one of them, in widening tiers: the straightforward ones, then the
@@ -106,8 +119,8 @@ arrives during a run you are about to lose is not wasted, because it makes the n
 - **The Archipelago shop.** One beacon per sector, marked ARCHIPELAGO on the map, sells goods for other players.
   Buying one sends it to its owner. The seed balances itself: at least twenty slots by default (Archipelago Shop Checks), and more when your options create more items than checks, so no item is ever left out; the other way round, filler makes up the difference (at least twenty, Minimum Filler). The bigger the shop, the more packages each ARCHIPELAGO beacon offers: 3, 6, 9 or 12. A package marked
   **FOR YOU** holds one of your own items. A package that was already sent never comes back on the shelf.
-  By default each package belongs to one sector, 1 to 7, and only that sector's beacon sells it: the logic
-  counts it as deep as its sector (Archipelago Shop by Sector).
+  With **Archipelago Shop by Sector** (off by default) each package belongs to one sector, 1 to 7, and only
+  that sector's beacon sells it: the logic counts it as deep as its sector.
   **Archipelago Shop per Ship** (off by default) also gives each package to one ship, or one layout: it is only
   sold while you fly that ship.
   Prices follow importance first, then depth: filler costs 10 to 25 scrap, useful items 30 to 65, and
@@ -115,7 +128,7 @@ arrives during a run you are about to lose is not wasted, because it makes the n
 
 ## Archives
 
-A second currency: by default 12 Archipelago Archives are scattered through the other players' worlds, and
+A second currency: by default 12 Archipelago Archives are scattered through the multiworld, yours included, and
 10 of them are needed (**Archives** and **Archives Required**, 0 turns them off). The two spare ones are slack you
 never have to chase. Beating the
 boss five times is no longer enough on its own - you also have to wait for, and trade for, the

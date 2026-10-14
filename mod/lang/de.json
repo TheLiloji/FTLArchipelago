@@ -207,7 +207,7 @@
     "hud.goal.done.one": "Ziel erreicht: Flaggschiff besiegt",
     "hud.goal.one": "Ziel: das Flaggschiff besiegen",
     "hud.goal.progress": "Flaggschiff besiegt: {done} von {total}",
-    "hud.goal.rule": "Für jeden Sieg ein anderes Schiff",
+    "hud.goal.rule": "Für jeden Sieg ein anderes Layout",
     "hud.goal.rule.layouts": "Je ein Sieg mit diesen Schiffen: {ships}",
     "hud.goal.won": "Schon gewonnen mit: {ships}",
     "hud.hint.mine": "{item}: {location} ({finder})",

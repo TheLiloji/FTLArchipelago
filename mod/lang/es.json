@@ -207,7 +207,7 @@
     "hud.goal.done.one": "Objetivo alcanzado: nave insignia derrotada",
     "hud.goal.one": "Objetivo: derrotar a la nave insignia",
     "hud.goal.progress": "Nave insignia derrotada: {done} de {total}",
-    "hud.goal.rule": "Una nave diferente en cada victoria",
+    "hud.goal.rule": "Un layout diferente en cada victoria",
     "hud.goal.rule.layouts": "Una victoria con cada una de estas naves: {ships}",
     "hud.goal.won": "Ya ganado con: {ships}",
     "hud.hint.mine": "{item}: {location} ({finder})",

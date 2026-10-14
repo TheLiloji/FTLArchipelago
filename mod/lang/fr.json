@@ -206,7 +206,7 @@
     "hud.goal.done.one": "Objectif atteint : vaisseau amiral battu",
     "hud.goal.one": "Objectif : battre le vaisseau amiral",
     "hud.goal.progress": "Vaisseau amiral battu : {done} sur {total}",
-    "hud.goal.rule": "Un vaisseau différent à chaque victoire",
+    "hud.goal.rule": "Une disposition différente à chaque victoire",
     "hud.goal.rule.layouts": "Une victoire avec chacun de ces vaisseaux : {ships}",
     "hud.goal.won": "Déjà gagné avec : {ships}",
     "hud.hint.mine": "{item} : {location} ({finder})",

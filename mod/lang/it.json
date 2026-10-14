@@ -207,7 +207,7 @@
     "hud.goal.done.one": "Obiettivo raggiunto: ammiraglia sconfitta",
     "hud.goal.one": "Obiettivo: sconfiggere l'ammiraglia",
     "hud.goal.progress": "Ammiraglia sconfitta: {done} su {total}",
-    "hud.goal.rule": "Una nave diversa per ogni vittoria",
+    "hud.goal.rule": "Una configurazione diversa per ogni vittoria",
     "hud.goal.rule.layouts": "Una vittoria con ciascuna di queste navi: {ships}",
     "hud.goal.won": "Già vinto con: {ships}",
     "hud.hint.mine": "{item}: {location} ({finder})",

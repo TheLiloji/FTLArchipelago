@@ -207,7 +207,7 @@
     "hud.goal.done.one": "Objetivo alcançado: nave-almirante derrotada",
     "hud.goal.one": "Objetivo: derrotar a nave-almirante",
     "hud.goal.progress": "Nave-almirante derrotada: {done} de {total}",
-    "hud.goal.rule": "Uma nave diferente em cada vitória",
+    "hud.goal.rule": "Uma configuração diferente em cada vitória",
     "hud.goal.rule.layouts": "Uma vitória com cada uma destas naves: {ships}",
     "hud.goal.won": "Já venceu com: {ships}",
     "hud.hint.mine": "{item}: {location} ({finder})",

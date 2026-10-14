@@ -280,7 +280,7 @@ test("the goal says in plain words that each victory needs another ship", functi
     apLangResolve("fr")
     local goal = apGoalText()
     equals(goal.headline, "Objectif : battre le vaisseau amiral 2 fois", "the headline says what to do")
-    equals(goal.lines[1].text, "Un vaisseau différent à chaque victoire", "then the rule")
+    equals(goal.lines[1].text, "Une disposition différente à chaque victoire", "then the rule")
     equals(goal.lines[2].text, "Difficulté : au choix", "then the difficulty")
 
     local restoreGoal = stub("apNetSendGoal", function() return true end)

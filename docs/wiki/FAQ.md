@@ -57,7 +57,8 @@ Archipelago one, and a dated copy is kept next to it.
 - Did Archipelago give you that ship? FTL can unlock a ship by itself, and a run with it does not count. The
   hangar marks it NOT RECEIVED and the mod says so when the run starts.
 - Does the seed ask for Normal or Hard wins? An easier win does not count for the goal.
-- Did you already win with that ship? Each victory must use a different ship.
+- Did you already win with that layout? Each victory must use a different ship layout (Kestrel A and Kestrel B
+  count as two).
 - Does the seed need Archives? The goal waits until you have enough of them.
 
 ## Steam put FTL back to 1.6.14 (Windows)

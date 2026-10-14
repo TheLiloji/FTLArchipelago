@@ -22,6 +22,6 @@ players' games. You get them from your friends, and you send them theirs by play
 3. Start a new run. Reaching sectors, installing systems, recruiting crew, earning achievements, beating the
    Flagship and buying packages in the Archipelago shop all send checks.
 4. What you receive arrives on its own: new ships in the hangar, systems you can now buy, weapons on board.
-5. Win with enough different ships to finish your goal.
+5. Win with enough different ship layouts to finish your goal.
 
 The mod is in beta. If something looks wrong, open an issue with your `FTL_HS.log`: see [FAQ](FAQ.md).

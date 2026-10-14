@@ -207,7 +207,7 @@
     "hud.goal.done.one": "Goal reached: Flagship defeated",
     "hud.goal.one": "Goal: defeat the Flagship",
     "hud.goal.progress": "Flagship defeated: {done} of {total}",
-    "hud.goal.rule": "A different ship for each victory",
+    "hud.goal.rule": "A different ship layout for each victory",
     "hud.goal.rule.layouts": "One victory with each of these ships: {ships}",
     "hud.goal.won": "Already won with: {ships}",
     "hud.hint.mine": "{item}: {location} ({finder})",
