@@ -390,6 +390,51 @@ local function recordScrap()
     lastScrap = ok and tonumber(value) or nil
 end
 
+-- The medbay and the clone bay exclude each other: buying one makes the game remove the other.
+local EXCLUSIVE = { medbay = "clonebay", clonebay = "medbay" }
+local exclusiveLevels = {}
+
+local function recordExclusive()
+    local player = Hyperspace.ships.player
+    if player == nil then
+        return
+    end
+    for name in pairs(EXCLUSIVE) do
+        local level = nil
+        pcall(function()
+            local id = systemId(name)
+            if id ~= nil and player:HasSystem(id) then
+                local system = player:GetSystem(id)
+                level = (system and system.powerState.second) or 1
+            end
+        end)
+        exclusiveLevels[name] = level
+    end
+end
+
+-- A refused purchase must not cost the system it replaced: put it back, at the level it had.
+local function restoreReplaced(player, refusal)
+    local partner = EXCLUSIVE[refusal.name]
+    local level = partner and refusal.partnerLevel
+    if level == nil then
+        return
+    end
+    local id = systemId(partner)
+    if id == nil or player:HasSystem(id) then
+        return
+    end
+    -- It was aboard before the purchase: the guard must not refuse it as one more.
+    startingSystems[partner] = true
+    player:AddSystem(id)
+    local system = player:GetSystem(id)
+    while system ~= nil and system.powerState.second < level do
+        if not system:UpgradeSystem(1) then
+            break
+        end
+    end
+    sysLog(string.format("%s put back at level %d after the refused %s", partner, level, refusal.name))
+end
+
 script.on_internal_event(Defines.InternalEvents.CONSTRUCT_SHIP_SYSTEM, function(system)
     apTry(TAG, function()
         local name = systemName(system)
@@ -433,6 +478,7 @@ script.on_internal_event(Defines.InternalEvents.CONSTRUCT_SHIP_SYSTEM, function(
             systemType = system.iSystemType,
             system = system,
             scrapBefore = lastScrap,
+            partnerLevel = EXCLUSIVE[name] and exclusiveLevels[EXCLUSIVE[name]],
         }
     end)
 end)
@@ -472,6 +518,7 @@ local function processRefusals()
         pcall(function()
             player:RemoveSystem(refusal.systemType)
         end)
+        pcall(restoreReplaced, player, refusal)
         if refund > 0 then
             pcall(function()
                 player:ModifyScrapCount(refund, false)
@@ -513,6 +560,7 @@ local capDivider = 0
 script.on_internal_event(Defines.InternalEvents.ON_TICK, function()
     processRefusals()
     recordScrap()
+    recordExclusive()
 
     -- A continued run may reload at a store: its systems are all built by now, so the guard goes on at once
     -- instead of waiting for a jump that would let a purchase through.

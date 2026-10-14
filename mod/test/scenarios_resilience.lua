@@ -195,6 +195,32 @@ test("shop: a refused system refunds what the player actually paid", function()
         "the shop took 120, not the blueprint's 150: 120 is returned")
 end)
 
+test("shop: a refused clone bay gives back the medbay the purchase replaced", function()
+    sim.startRun(true)
+    _G.apInventory.systemCaps.clonebay = nil
+    sim.player._systemsHeld = { [5] = true }
+    sim.jumpArrive()
+    sim.setStore(true)
+    sim.tick(1)
+
+    -- Like the game, putting a system aboard builds it, which the guard sees.
+    local addSystem = sim.player.AddSystem
+    sim.player.AddSystem = function(self, id)
+        addSystem(self, id)
+        if id == 5 then sim.constructSystem("medbay", 0, 0) end
+    end
+    -- The game swaps them: the medbay goes as the clone bay comes in.
+    sim.player._systemsHeld[5] = nil
+    sim.constructSystem("clonebay", 0, 70)
+    sim.tick(5)
+    sim.player.AddSystem = addSystem
+
+    equals(#sim.player._removed, 1, "only the clone bay is refused, not the medbay put back")
+    check(sim.player:HasSystem(5), "the medbay is back aboard")
+    check(sim.logged("medbay put back"), "and the log says so")
+    sim.player._systemsHeld = nil
+end)
+
 test("home screen: TAB in the connection form does not open the dashboard", function()
     sim.started = false
     sim.keyDown(Defines.SDL.KEY_TAB)
