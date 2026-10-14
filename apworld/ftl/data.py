@@ -581,6 +581,8 @@ GROUP_SHIP_ACHIEVEMENTS = "Ship achievements"
 GROUP_GENERAL_ACHIEVEMENTS = "General achievements"
 GROUP_SHOP_SLOTS = "Archipelago shop"
 GROUP_FIGHTS = "Fights won"
+# Location groups that only ever hold filler: the logic does not count them as room for the items it needs.
+FILLER_ONLY_GROUPS: frozenset[str] = frozenset()
 
 TIER_GENERAL = "general"
 TIER_DISTANCE = "distance"
