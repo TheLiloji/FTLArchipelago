@@ -44,4 +44,6 @@
 <text name="ap_evt_zoltan_toll_c3_text" language="pt">O oficial regista a tua recusa sem comentários e deixa-te passar. Os Zoltan registam tudo.</text>
 <text name="ap_evt_another_world_void" language="pt">Descarregá-la no vazio.</text>
 <text name="ap_evt_another_world_void_text" language="pt">Desmontas o relé e deixas a sobretensão perder-se no vazio. Ao sair, faz um arco sobre o teu casco. A recuperação vale boa sucata.</text>
+<text name="ap_evt_another_world_pass" language="pt">Deixá-la passar, e seguir caminho.</text>
+<text name="ap_evt_another_world_pass_text" language="pt">Manténs o relé fechado e deixas a sobretensão passar. Apaga-se antes do salto seguinte. Nada ganho, nada perdido.</text>
 <text name="ap_evt_zoltan_toll_c2_text" language="pt">O oficial confirma que é o teu direito e deixa-te tirar duas células da reserva do Anel. A escolta analisa-te à saída, de perto demais: algo cede no casco.</text>

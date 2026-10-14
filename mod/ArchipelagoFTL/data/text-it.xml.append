@@ -44,4 +44,6 @@
 <text name="ap_evt_zoltan_toll_c3_text" language="it">L'ufficiale annota il tuo rifiuto senza commenti e ti fa passare. Gli Zoltan annotano tutto.</text>
 <text name="ap_evt_another_world_void" language="it">Scaricarla nel vuoto.</text>
 <text name="ap_evt_another_world_void_text" language="it">Smonti il relè e lasci che la sovratensione si disperda nel vuoto. Uscendo, forma un arco sul tuo scafo. Il recupero vale buoni rottami.</text>
+<text name="ap_evt_another_world_pass" language="it">Lasciarla passare, e andarsene.</text>
+<text name="ap_evt_another_world_pass_text" language="it">Tieni il relè chiuso e lasci passare la sovratensione. Si spegne prima del salto successivo. Niente guadagnato, niente perso.</text>
 <text name="ap_evt_zoltan_toll_c2_text" language="it">L'ufficiale conferma che è un tuo diritto e ti lascia prendere due celle dalla riserva dell'Anello. La scorta ti scansiona all'uscita, un po' troppo da vicino: qualcosa nello scafo cede.</text>

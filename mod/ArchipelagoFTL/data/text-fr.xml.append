@@ -44,4 +44,6 @@
 <text name="ap_evt_zoltan_toll_c3_text" language="fr">L'officier note votre refus sans commentaire et vous laisse passer. Les Zoltan notent tout.</text>
 <text name="ap_evt_another_world_void" language="fr">La décharger dans le vide.</text>
 <text name="ap_evt_another_world_void_text" language="fr">Vous démontez le relais et laissez la surtension se perdre dans le vide. En sortant, elle arque sur votre coque. La récupération vaut de la bonne ferraille.</text>
+<text name="ap_evt_another_world_pass" language="fr">La laisser passer, et partir.</text>
+<text name="ap_evt_another_world_pass_text" language="fr">Vous gardez le relais fermé et laissez passer la surtension. Elle s'éteint avant le saut suivant. Rien de gagné, rien de perdu.</text>
 <text name="ap_evt_zoltan_toll_c2_text" language="fr">L'officier confirme que c'est votre droit et vous laisse puiser deux cellules dans la réserve de l'Anneau. L'escorte vous scanne en repartant, d'un peu trop près : quelque chose cède dans la coque.</text>

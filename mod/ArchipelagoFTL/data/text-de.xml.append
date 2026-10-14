@@ -44,4 +44,6 @@
 <text name="ap_evt_zoltan_toll_c3_text" language="de">Der Offizier notiert deine Weigerung kommentarlos und winkt dich durch. Die Zoltan notieren alles.</text>
 <text name="ap_evt_another_world_void" language="de">Sie ins Leere entladen.</text>
 <text name="ap_evt_another_world_void_text" language="de">Du baust das Relais aus und lässt die Überspannung ins Leere abfließen. Auf dem Weg nach draußen schlägt sie über deine Hülle. Die Bergung bringt guten Schrott.</text>
+<text name="ap_evt_another_world_pass" language="de">Sie vorbeiziehen lassen und weiterfliegen.</text>
+<text name="ap_evt_another_world_pass_text" language="de">Du hältst das Relais geschlossen und lässt die Überspannung vorbeiziehen. Vor dem nächsten Sprung ist sie verklungen. Nichts gewonnen, nichts verloren.</text>
 <text name="ap_evt_zoltan_toll_c2_text" language="de">Der Offizier bestätigt dein Recht und lässt dich zwei Zellen aus dem Vorrat des Rings nehmen. Die Eskorte scannt dich beim Abflug etwas zu genau: irgendwo in der Hülle gibt etwas nach.</text>

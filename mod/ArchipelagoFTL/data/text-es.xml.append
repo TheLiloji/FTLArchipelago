@@ -42,4 +42,6 @@
 <text name="ap_evt_zoltan_toll_c3_text" language="es">El oficial registra tu negativa sin hacer comentarios y te deja pasar. Los zoltan lo registran todo.</text>
 <text name="ap_evt_another_world_void" language="es">Descargarla en el vacío.</text>
 <text name="ap_evt_another_world_void_text" language="es">Desmantelas el relé y dejas que la descarga se disipe en el vacío. Al salir, un arco eléctrico alcanza tu casco. Los materiales recuperados valen una buena cantidad de chatarra.</text>
+<text name="ap_evt_another_world_pass" language="es">Dejarla pasar y seguir tu camino.</text>
+<text name="ap_evt_another_world_pass_text" language="es">Mantienes el relé cerrado y dejas pasar la sobretensión. Se apaga antes del siguiente salto. Nada ganado, nada perdido.</text>
 <text name="ap_evt_zoltan_toll_c2_text" language="es">El oficial confirma que es tu derecho y te permite tomar dos celdas de combustible de la reserva del Anillo. La escolta escanea tu nave al salir, acercándose demasiado: una parte del casco cede.</text>
