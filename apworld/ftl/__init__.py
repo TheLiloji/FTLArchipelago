@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import re
 import zlib
 from typing import Any, ClassVar, Iterator, Mapping
 
@@ -13,6 +14,12 @@ from .items import FTLItem
 from .locations import FTLLocation
 from .options import FTLOptions
 from .web_world import FTLWeb
+
+# Past this many packages the Archipelago shop alone is hours of scrap to collect.
+LARGE_SHOP = 80
+
+# What the mod's connection panel can type (mod/ArchipelagoFTL/data/archipelago/connect.lua, character()).
+SLOT_NAME_TYPABLE = re.compile(r"[A-Za-z0-9 :./;_?>-]+")
 
 
 class FTLWorld(World):
@@ -50,6 +57,7 @@ class FTLWorld(World):
     goal_location_name = locations.GOAL_LOCATION
 
     def generate_early(self) -> None:
+        self._check_option_combinations()
         self.start_ship = self._resolve_start_ship()
         self._draw_layouts()
         self.selected_layouts = locations.selected_layouts(self.options)
@@ -77,6 +85,30 @@ class FTLWorld(World):
         for name in self.logic.early_blueprints:
             self.multiworld.local_early_items[self.player][name] = 1
 
+    def _check_option_combinations(self) -> None:
+        """Refuses what would leave a slot unplayable, and says when an option is corrected or does nothing."""
+        if not SLOT_NAME_TYPABLE.fullmatch(self.player_name):
+            raise OptionError(
+                f"FTL: the slot name {self.player_name!r} cannot be typed in the game's connection panel, which "
+                "only knows letters a-z and A-Z, digits, spaces and : . - / ; _ ? >. Choose a name without "
+                "accents or other symbols."
+            )
+        first = self.options.sectorsanity_first_sector.value
+        last = self.options.sectorsanity_last_sector.value
+        if self.options.sectorsanity != self.options.sectorsanity.option_disabled and first > last:
+            raise OptionError(
+                f"FTL: sectorsanity_first_sector ({first}) is higher than sectorsanity_last_sector ({last}), "
+                "which leaves no sector check at all. Swap them, or set sectorsanity to disabled."
+            )
+        warn = logging.getLogger("FTL").warning
+        if self.options.archives_required.value > self.options.archives.value:
+            warn("FTL (%s): archives_required (%d) is higher than archives (%d): every Archive is needed.",
+                 self.player_name, self.options.archives_required.value, self.options.archives.value)
+        if self.options.free_upgrades and not self.options.progressive_systems:
+            warn("FTL (%s): free_upgrades does nothing without progressive_systems.", self.player_name)
+        if self.options.system_install.value and not self.options.system_blueprints:
+            warn("FTL (%s): system_install does nothing without system_blueprints.", self.player_name)
+
     def _resolve_start_ship(self) -> data.Ship:
         by_slot = {ship.slot: ship for ship in data.SHIPS}
         slot = self.options.start_ship.value
@@ -88,6 +120,12 @@ class FTLWorld(World):
         forced = [self.start_ship.blueprint, *data.ALWAYS_UNLOCKED_LAYOUTS]
         forced.extend(options.goal_layouts(self.options) or ())
         wanted = max(self.options.layout_count.value, options.goal_victory_count(self.options))
+        if wanted > self.options.layout_count.value:
+            logging.getLogger("FTL").warning(
+                "FTL (%s): layout_count raised from %d to %d, one layout per victory needed.",
+                self.player_name, self.options.layout_count.value, wanted)
+            # The spoiler prints the option: it then shows the layouts really in the seed.
+            self.options.layout_count.value = min(wanted, self.options.layout_count.range_end)
         self.options.drawn_layouts = locations.draw_layouts(
             self.options, self.random, tuple(dict.fromkeys(forced)), wanted)
 
@@ -210,6 +248,12 @@ class FTLWorld(World):
                 f"{data.MAX_SHOP_SLOTS} the world can hold. Lower Shop Weapons, Shop Drones or "
                 "Shop Augments, or turn on more sectors."
             )
+        if wanted_slots > LARGE_SHOP:
+            logging.getLogger("FTL").warning(
+                "FTL (%s): the Archipelago shop holds %d packages, all bought with scrap: a long game. Checks "
+                "removed from sectors or achievements move their items there. To shorten the game, lower "
+                "victories_required, layout_count or the shop_weapons/drones/augments options instead.",
+                self.player_name, wanted_slots)
         if wanted_slots != self.options.shop_checks.value:
             logging.getLogger("FTL").info(
                 "FTL (%s): %d items for %d checks outside the shop, the Archipelago shop grows from %d "
@@ -258,6 +302,12 @@ class FTLWorld(World):
                 "kind": kind,
             }
         return offers
+
+    def write_spoiler_header(self, spoiler_handle) -> None:
+        offers = self._shop_offers()
+        spoiler_handle.write(
+            f"Archipelago Shop:                {len(offers)} packages, "
+            f"{sum(offer['price'] for offer in offers.values())} scrap in all\n")
 
     def _links_for_the_mod(self) -> dict[str, Any]:
         return {

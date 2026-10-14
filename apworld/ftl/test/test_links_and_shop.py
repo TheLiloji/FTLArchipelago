@@ -419,3 +419,45 @@ class TestNoBundles(FTLTestBase):
         self.assertNotIn(data.GROUP_BUNDLES, groups)
         self.assertIn(data.GROUP_SHOP_WEAPONS, groups)
 
+
+
+class TestTheSpoilerStatesTheShopSize(FTLTestBase):
+
+    def test_packages_and_their_total_price_are_written(self) -> None:
+        import io
+        from Fill import distribute_items_restrictive
+        distribute_items_restrictive(self.multiworld)
+        handle = io.StringIO()
+        self.world.write_spoiler_header(handle)
+        offers = self.world._shop_offers()
+        self.assertIn(f"{len(offers)} packages", handle.getvalue())
+        self.assertIn(f"{sum(offer['price'] for offer in offers.values())} scrap in all", handle.getvalue())
+        self.assertGreater(len(offers), 0)
+
+
+class TestALargeShopIsAnnounced(FTLTestBase):
+
+    options = {"sectorsanity": "disabled", "ship_achievements": False, "general_achievements": "disabled"}
+    auto_construct = False
+
+    def test_the_host_is_told_the_game_moved_into_the_shop(self) -> None:
+        # The test runner disables warnings: the call itself is watched.
+        import logging
+        from unittest import mock
+        with mock.patch.object(logging.getLogger("FTL"), "warning") as warning:
+            self.world_setup()
+        said = [call.args[0] for call in warning.call_args_list]
+        self.assertTrue(any("Archipelago shop holds" in line for line in said), said)
+
+
+class TestAnUsualShopIsNotAnnounced(FTLTestBase):
+
+    auto_construct = False
+
+    def test_the_default_options_say_nothing_about_the_shop(self) -> None:
+        import logging
+        from unittest import mock
+        with mock.patch.object(logging.getLogger("FTL"), "warning") as warning:
+            self.world_setup()
+        said = [call.args[0] for call in warning.call_args_list]
+        self.assertFalse(any("Archipelago shop holds" in line for line in said), said)

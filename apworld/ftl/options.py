@@ -46,9 +46,11 @@ class Goal(Choice):
 
 
 class VictoriesRequired(Range):
-    """How many times you must beat the Flagship to finish, each time with a different ship.
+    """How many times you must beat the Flagship to finish, each time with a different ship layout
+    (Kestrel A and Kestrel B count as two).
 
-    5 is a good length when you play with friends.
+    This is what decides how long your game is. 5 is a good length when you play with friends, 1 or 2 for a
+    first game. Ignored when Goal is victory_selection.
     """
 
     display_name = "Victories Required"
@@ -66,8 +68,8 @@ _LAYOUT_SHORT_NAMES: dict[str, data.Layout] = {
 class VictoryDifficulty(Choice):
     """The lowest difficulty a victory must be played on to count for your goal.
 
-    any: every victory counts, even on Easy.
-    normal: Normal or Hard. Recommended.
+    any: every victory counts, Easy too. You can also write easy. Pick it if you usually play on Easy.
+    normal: Normal or Hard.
     hard: only Hard.
 
     An easier victory still sends its check, it just does not count for the goal.
@@ -77,14 +79,14 @@ class VictoryDifficulty(Choice):
     option_any = 0
     option_normal = 1
     option_hard = 2
+    alias_easy = option_any
     default = option_normal
 
 
 class Archives(Range):
-    """How many Archives are hidden in the other players' worlds.
+    """How many Archives are hidden in the multiworld, in your own world or in the other players'.
 
-    Archives are items you need on top of your victories to finish. They make the game depend a bit
-    more on the others. 0 plays without them.
+    Archives are items you need on top of your victories to finish. 0 plays without them.
     """
 
     display_name = "Archives"
@@ -96,7 +98,8 @@ class Archives(Range):
 class ArchivesRequired(Range):
     """How many Archives you need to finish.
 
-    Keep it a little lower than Archives, so one Archive in a bad place cannot block you.
+    Keep it a little lower than Archives, so one Archive in a bad place cannot block you. If it is higher
+    than Archives, every Archive is needed.
     """
 
     display_name = "Archives Required"
@@ -170,7 +173,7 @@ class LayoutCount(Range):
     """How many ship layouts are in the seed, drawn at random among those Ship Layouts allows.
 
     Your starting ship and the Kestrel Cruiser A are always in, and a Type B or C only comes with its
-    ship's Type A. The others are left out: no key, no check. Never fewer than Victories Required.
+    ship's Type A. The others are left out: no key, no check. Raised to Victories Required if lower.
     """
 
     display_name = "Layouts in the Seed"
@@ -212,7 +215,7 @@ class Sectorsanity(Choice):
 
 
 class SectorsanityFirstSector(Range):
-    """The shallowest sector that is worth a check.
+    """The shallowest sector that is worth a check. Must not be higher than Sectorsanity Last Sector.
 
     Sectors below this one send nothing, whatever Sectorsanity says. Raising it is the cheapest
     way to trim a seed: with every layout in play, sectors 1 and 2 alone are 56 checks that you
@@ -411,6 +414,7 @@ class FullSystemUpgrades(Toggle):
 class FreeUpgrades(Toggle):
     """System upgrade levels you receive are installed for free: right away if you are in a run, and again at
     the start of every run. Off: a received level only lets you buy it at a store.
+    Only matters with Progressive System Upgrades on.
     """
 
     display_name = "Free Upgrades"
@@ -468,9 +472,8 @@ class SectorLogic(Choice):
     """What the logic expects of your ship before sending you deep into the sectors.
 
     relaxed: nothing. Every sector and every victory is in logic as soon as the layout is.
-    standard: deep sectors and the Flagship expect a couple of system blueprints first.
-    strict: the logic assumes you want a real ship before sector 3, and a complete one for the
-    Flagship.
+    standard: 2 system blueprints received for sector 4, 4 for sector 6, 5 for the Flagship.
+    strict: 3 blueprints for sector 3, 6 for sector 5, 9 for sector 7, 11 for the Flagship.
     power: milestones on the ship that does the check, from its real start. Sector 5 needs 2 shield
     layers, sector 8 also Weapon Control 5, the Flagship 3 layers, Weapon Control 6 and Engines 4. A ship
     that starts without shields may use Engines 5 for one layer before the Flagship. Lower with Victory
@@ -767,9 +770,9 @@ class TrapLink(Toggle):
 class DeathLinkTrigger(Choice):
     """With Death Link on: what sends your death to the other players.
 
-    ship_destroyed: only losing the run.
+    ship_destroyed: only losing the run. Best in a big multiworld or for a first game.
     crew_death: losing any crew member.
-    both: either one. Recommended, but crew members die often.
+    both: either one. Crew members die often, so this sends a lot of deaths.
     """
 
     display_name = "Death Link Trigger"
