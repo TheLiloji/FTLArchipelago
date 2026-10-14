@@ -328,6 +328,8 @@
     "system.installed_free": "Installato gratis: {list}.",
     "system.locked": "{name}: nessun progetto a bordo.",
     "system.locked.refunded": "{name}: nessun progetto a bordo. {refund} rottami restituiti.",
+    "system.upgrade_locked": "{name}: limite di Archipelago raggiunto (livello {level}), nessun potenziamento.",
+    "system.upgrade_locked.refunded": "{name}: limite di Archipelago raggiunto (livello {level}), nessun potenziamento, {refund} rottami tenuti.",
     "system.reactor": "Reattore",
     "test.event.refused": "Tasto di prova ignorato: qui non si può aprire un evento.",
     "test.keys.off": "Tasti di prova disattivati",

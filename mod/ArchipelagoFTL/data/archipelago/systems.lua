@@ -579,6 +579,49 @@ script.on_internal_event(Defines.InternalEvents.ON_TICK, function()
     end
 end)
 
+-- An event selling a level ("Trade scrap for upgrades") would take the scrap and give nothing for a system
+-- already at its Archipelago cap: the trade is cancelled before the game applies it, like a refused purchase.
+local function cancelLockedUpgrade(event)
+    local stuff = event and event.stuff
+    if stuff == nil or (stuff.upgradeAmount or 0) <= 0 then
+        return
+    end
+    local id = stuff.upgradeId
+    -- 16 is "every system" and 17 the reactor: the cap is per system, those are left to the game.
+    if id == nil or id < 0 or id >= 16 then
+        return
+    end
+    local player = Hyperspace.ships.player
+    if player == nil or not player:HasSystem(id) then
+        return
+    end
+    local system = player:GetSystem(id)
+    local name = Hyperspace.ShipSystem.SystemIdToName(id)
+    if system == nil or name == nil or system.powerState.second < system.maxLevel then
+        return
+    end
+    local cost = -math.min(0, math.floor(stuff.scrap or 0))
+    stuff.upgradeAmount = 0
+    if cost > 0 then
+        stuff.scrap = 0
+    end
+    sysLog(string.format("event upgrade cancelled: %s already at level %d, %d scrap kept",
+        name, system.powerState.second, cost))
+    if _G.apNotifyStatus then
+        if cost > 0 then
+            _G.apNotifyStatus(apT("system.upgrade_locked.refunded",
+                { name = apSystemLabel(name), level = system.powerState.second, refund = cost }))
+        else
+            _G.apNotifyStatus(apT("system.upgrade_locked",
+                { name = apSystemLabel(name), level = system.powerState.second }))
+        end
+    end
+end
+
+script.on_internal_event(Defines.InternalEvents.PRE_CREATE_CHOICEBOX, function(event)
+    apTry(TAG, function() cancelLockedUpgrade(event) end)
+end)
+
 script.on_internal_event(Defines.InternalEvents.MAIN_MENU, function()
     disarm("main menu")
 end)

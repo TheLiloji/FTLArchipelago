@@ -328,6 +328,8 @@
     "system.installed_free": "Kostenlos eingebaut: {list}.",
     "system.locked": "{name}: kein Bauplan an Bord.",
     "system.locked.refunded": "{name}: kein Bauplan an Bord. {refund} Schrott zurück.",
+    "system.upgrade_locked": "{name}: Archipelago-Grenze erreicht (Stufe {level}), keine Verbesserung.",
+    "system.upgrade_locked.refunded": "{name}: Archipelago-Grenze erreicht (Stufe {level}), keine Verbesserung, {refund} Schrott behalten.",
     "system.reactor": "Reaktor",
     "test.event.refused": "Testtaste ignoriert: Hier kann kein Ereignis geöffnet werden.",
     "test.keys.off": "Testtasten aus",

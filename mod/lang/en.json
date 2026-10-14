@@ -328,6 +328,8 @@
     "system.installed_free": "Installed for free: {list}.",
     "system.locked": "{name}: no blueprint aboard.",
     "system.locked.refunded": "{name}: no blueprint aboard. {refund} scrap back.",
+    "system.upgrade_locked": "{name} is at its Archipelago limit (level {level}): no upgrade.",
+    "system.upgrade_locked.refunded": "{name} is at its Archipelago limit (level {level}): no upgrade, {refund} scrap kept.",
     "system.reactor": "Reactor",
     "test.event.refused": "Test key ignored: an event cannot be opened here.",
     "test.keys.off": "Test keys off",

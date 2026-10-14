@@ -221,6 +221,31 @@ test("shop: a refused clone bay gives back the medbay the purchase replaced", fu
     sim.player._systemsHeld = nil
 end)
 
+test("event: a level sold for scrap on a system at its Archipelago cap is cancelled, the scrap kept", function()
+    sim.startRun(true)
+    sim.jumpArrive()
+    local shields = { powerState = { first = 2, second = 2 }, maxLevel = 2 }
+    sim.player._systemsHeld = { [0] = true }
+    local getSystem = sim.player.GetSystem
+    sim.player.GetSystem = function(_, id) return id == 0 and shields or nil end
+    sim.clearLog()
+
+    local stuff = { upgradeId = 0, upgradeAmount = 1, scrap = -40 }
+    sim.openChoiceBox("UPGRADE_TRADE", 1, stuff)
+    equals(stuff.upgradeAmount, 0, "no level is given past the cap")
+    equals(stuff.scrap, 0, "and the 40 scrap are not taken")
+    check(shownKey("system.upgrade_locked.refunded",
+        { name = apSystemLabel("shields"), level = 2, refund = 40 }), "the player is told why")
+
+    shields.maxLevel = 4
+    stuff = { upgradeId = 0, upgradeAmount = 1, scrap = -40 }
+    sim.openChoiceBox("UPGRADE_TRADE", 1, stuff)
+    equals(stuff.upgradeAmount, 1, "below the cap, the trade goes through")
+    equals(stuff.scrap, -40, "and costs its price")
+    sim.player._systemsHeld = nil
+    sim.player.GetSystem = getSystem
+end)
+
 test("home screen: TAB in the connection form does not open the dashboard", function()
     sim.started = false
     sim.keyDown(Defines.SDL.KEY_TAB)

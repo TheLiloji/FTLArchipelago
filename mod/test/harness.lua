@@ -959,7 +959,7 @@ function sim.setStore(hasStore)
     sim.starMap.currentLoc.event = { store = hasStore and true or false }
 end
 
-function sim.openChoiceBox(eventName, choiceCount)
+function sim.openChoiceBox(eventName, choiceCount, stuff)
     local choices = {}
     for index = 1, (choiceCount or 2) do
         choices[index] = { text = { data = "choice " .. index, isLiteral = false } }
@@ -968,6 +968,7 @@ function sim.openChoiceBox(eventName, choiceCount)
         eventName = eventName,
         text = { data = tostring(eventName), isLiteral = false },
         GetChoices = function() return vector(choices) end,
+        stuff = stuff,
     }
     fire("PRE_CREATE_CHOICEBOX", event)
 

@@ -328,6 +328,8 @@
     "system.installed_free": "Instalado gratis: {list}.",
     "system.locked": "{name}: no hay un plano a bordo.",
     "system.locked.refunded": "{name}: no hay un plano a bordo. Recuperas {refund} de chatarra.",
+    "system.upgrade_locked": "{name}: límite de Archipelago alcanzado (nivel {level}), sin mejora.",
+    "system.upgrade_locked.refunded": "{name}: límite de Archipelago alcanzado (nivel {level}), sin mejora. Conservas {refund} de chatarra.",
     "system.reactor": "Reactor",
     "test.event.refused": "Tecla de prueba ignorada: aquí no se puede activar un evento.",
     "test.keys.off": "Teclas de prueba desactivadas",

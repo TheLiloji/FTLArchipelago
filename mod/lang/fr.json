@@ -327,6 +327,8 @@
     "system.installed_free": "Installé gratuitement : {list}.",
     "system.locked": "{name} : aucun plan à bord.",
     "system.locked.refunded": "{name} : aucun plan à bord. {refund} de ferraille rendus.",
+    "system.upgrade_locked": "{name} : limite Archipelago atteinte (niveau {level}), pas d'amélioration.",
+    "system.upgrade_locked.refunded": "{name} : limite Archipelago atteinte (niveau {level}), pas d'amélioration, {refund} de ferraille gardés.",
     "system.reactor": "Réacteur",
     "test.event.refused": "Touche de test ignorée : impossible d'ouvrir un évènement ici.",
     "test.keys.off": "Touches de test désactivées",

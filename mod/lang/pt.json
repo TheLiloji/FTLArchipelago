@@ -328,6 +328,8 @@
     "system.installed_free": "Instalado de graça: {list}.",
     "system.locked": "{name}: nenhum projeto a bordo.",
     "system.locked.refunded": "{name}: nenhum projeto a bordo. {refund} de sucata de volta.",
+    "system.upgrade_locked": "{name}: limite do Archipelago atingido (nível {level}), sem melhoria.",
+    "system.upgrade_locked.refunded": "{name}: limite do Archipelago atingido (nível {level}), sem melhoria, {refund} de sucata mantidos.",
     "system.reactor": "Reator",
     "test.event.refused": "Tecla de teste ignorada: não é possível abrir um evento aqui.",
     "test.keys.off": "Teclas de teste desativadas",
