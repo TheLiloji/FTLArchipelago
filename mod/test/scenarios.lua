@@ -3173,6 +3173,33 @@ test("network: a shop the module cannot scout yet (first connection to a seed) i
     equals(sim.netCalls("ScoutLocations"), 3, "nothing more is asked once it worked")
 end)
 
+test("network: a slow data package never leaves the shop empty for good, and the slot says it waits", function()
+    local scout = sim.net.client.ScoutLocations
+    local refusing = true
+    sim.net.client.ScoutLocations = function(self, names)
+        if refusing then
+            sim.net.calls[#sim.net.calls + 1] = { "ScoutLocations", count = 0 }
+            return false
+        end
+        return scout(self, names)
+    end
+    connectWithShop(1)
+    sim.tick(200 * 25)
+    local asked = sim.netCalls("ScoutLocations")
+    check(asked > 20, "past the quick retries (" .. asked .. " asks)")
+    check(apShopWaiting(), "the shop is still waiting")
+    equals(apShopEmptyReason(), "waiting", "and its slots say so, not that all is sold")
+    sim.tick(30 * 60 + 10)
+    check(sim.netCalls("ScoutLocations") > asked, "it keeps asking, slowly")
+    refusing = false
+    sim.tick(30 * 60 + 10)
+    sim.netEvent("scout", { name = "Archipelago Shop 1", sender = "Berserker", extra = "Seashell", value = 1 })
+    sim.tick(1)
+    equals(_G.apShopGifts[1] and _G.apShopGifts[1].location, "shop:1", "and fills once the server knows")
+    check(not apShopWaiting(), "then it no longer waits")
+    sim.net.client.ScoutLocations = scout
+end)
+
 test("network: a shop that fails to configure doesn't cut the tick", function()
     connectWithShop(1)
     _G.apShopGiftsScouted = function() error("shop broken") end
@@ -7204,6 +7231,62 @@ test("shop by sector: an event only hands out a package from a sector already re
     equals(table.concat(offered, ","), "Item 1,Item 2,Item 8,Item 9", "sectors 1 and 2 only")
     check(apShopGiftGiveAt("shop:6") == nil, "a sector 6 package waits")
     sim.starMap.worldLevel = 0
+end)
+
+local function shopOf(slots, config)
+    local gifts = {}
+    for _, slot in ipairs(slots) do
+        gifts[#gifts + 1] = { location = "shop:" .. slot, slot = "Nina", item = "Item " .. slot,
+                              kind = "useful", cost = 30 }
+    end
+    apShopConfigure({ mode = "rarity_boost", deliver = true, baseline = {}, sectors = config.sectors })
+    _G.apShopConfig.owners = config.owners
+    _G.apShopConfig.per = config.per
+    _G.apShopSlotCount = 14
+    apShopGiftsResetForTesting()
+    apShopGiftsConfigure(gifts)
+end
+
+local function firstSlotText()
+    return sim.rarityFor("AP_GIFT_1", 0).description.data
+end
+
+test("shop: an empty slot says the next packages are sold in a later sector", function()
+    sim.startRun(true)
+    sim.starMap.worldLevel = 0
+    shopOf({ 3, 10 }, { sectors = 7 })
+    local reason, params = apShopEmptyReason()
+    equals(reason, "sector", "nothing for sector 1")
+    equals(params.n, 3, "the next ones are in sector 3")
+    equals(firstSlotText(), apT("shop.slot.sector.body", { n = 3 }), "and the slot says so")
+end)
+
+test("shop: an empty slot says the packages left belong to sectors already passed", function()
+    sim.startRun(true)
+    sim.starMap.worldLevel = 4
+    shopOf({ 3, 10 }, { sectors = 7 })
+    equals(apShopEmptyReason(), "later", "sector 3 is behind: next run")
+    equals(firstSlotText(), apT("shop.slot.later.body"), "and the slot says so")
+    sim.starMap.worldLevel = 0
+end)
+
+test("shop: an empty slot names the ship that sells the packages left", function()
+    sim.startRun(true)
+    sim.player.myBlueprint.blueprintName = "PLAYER_SHIP_HARD"
+    shopOf({ 2 }, { owners = { "PLAYER_SHIP_HARD", "PLAYER_SHIP_CIRCLE" }, per = "per_class" })
+    local reason, params = apShopEmptyReason()
+    equals(reason, "ship", "slot 2 belongs to the second ship")
+    check(params.ship ~= nil and params.ship ~= "", "a ship is named: " .. tostring(params.ship))
+end)
+
+test("shop: an empty slot says the server has not answered yet, and only then that all is sold", function()
+    sim.startRun(true)
+    shopOf({ 1 }, {})
+    apSendCheck("shop:1", "test")
+    local restore = stub("apShopWaiting", function() return true end)
+    equals(apShopEmptyReason(), "waiting", "while the scout is pending")
+    restore()
+    equals(apShopEmptyReason(), "empty", "every package gone: really empty")
 end)
 
 test("shop without sectors: every beacon sells from the whole shop", function()

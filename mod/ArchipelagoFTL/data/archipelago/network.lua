@@ -414,13 +414,25 @@ end
 
 local SCOUT_RETRY_TICKS = 3 * 60
 local SCOUT_RETRIES = 20
+-- A big multiworld can take minutes to send its data package: past the quick retries, ask again slowly, never
+-- leaving the shop empty for good.
+local SCOUT_SLOW_RETRY_TICKS = 30 * 60
 
 local function scheduleRescout(message)
-    if state.scoutRetryAt == nil and (state.scoutRetries or 0) < SCOUT_RETRIES then
-        state.scoutRetries = (state.scoutRetries or 0) + 1
-        state.scoutRetryAt = state.ticks + SCOUT_RETRY_TICKS
+    if state.scoutRetryAt ~= nil then
+        return
+    end
+    state.scoutRetries = (state.scoutRetries or 0) + 1
+    local slow = state.scoutRetries > SCOUT_RETRIES
+    state.scoutRetryAt = state.ticks + (slow and SCOUT_SLOW_RETRY_TICKS or SCOUT_RETRY_TICKS)
+    if not slow or state.scoutRetries % 10 == 0 then
         netLog(message)
     end
+end
+
+-- The shop is still waiting for the server to say what it sells.
+function apShopWaiting()
+    return state.connected == true and (state.scoutsPending == true or state.scoutRetryAt ~= nil)
 end
 
 local function requestShopScouts()
