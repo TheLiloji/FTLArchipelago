@@ -178,22 +178,28 @@ local function systemRows()
     local inventory = _G.apInventory or {}
     local caps = inventory.systemCaps or {}
     local starts = inventory.startingUpgrades or {}
-    local rows, unlocked = {}, 0
+    local rows, unlockedCount = {}, 0
     for _, system in ipairs(((_G.apGameData or {}).systems) or {}) do
         local cap = caps[system.id] or 0
         local bonus = _G.apShipCapBonus and apShipCapBonus(system.id) or 0
         local total = _G.apSystemCapTotal and apSystemCapTotal(system.id) or nil
+        local unlocked
+        if _G.apSystemUnlocked then
+            unlocked = apSystemUnlocked(system.id)
+        else
+            unlocked = cap > 0 or bonus > 0
+        end
         rows[#rows + 1] = {
             name = _G.apSystemLabel and apSystemLabel(system.id) or system.id,
-            locked = cap <= 0 and bonus <= 0,
+            locked = not unlocked,
             aboard = aboard[system.id] == true,
             received = math.max(0, cap - 1) + bonus,
             total = total,
             start = starts[system.id] or 0,
         }
-        if cap > 0 or bonus > 0 then unlocked = unlocked + 1 end
+        if unlocked then unlockedCount = unlockedCount + 1 end
     end
-    return rows, unlocked, starts.reactor or 0
+    return rows, unlockedCount, starts.reactor or 0
 end
 
 local function startLevels()

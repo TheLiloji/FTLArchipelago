@@ -382,7 +382,7 @@ end)
 
 local function withTeleporterPlace()
     sim.hullPlaces = { [9] = true, [10] = true }
-    _G.apInventory = { ships = {}, systemCaps = {}, startingUpgrades = {}, shopAvailability = {} }
+    _G.apInventory = { ships = {}, systemCaps = {}, blueprints = {}, startingUpgrades = {}, shopAvailability = {} }
 end
 
 test("system install: at the start of a run, a system whose blueprint came in is put aboard", function()
@@ -394,6 +394,58 @@ test("system install: at the start of a run, a system whose blueprint came in is
     check(sim.player:HasSystem(9), "the teleporter is aboard from the first beacon")
     check(not sim.player:HasSystem(10), "cloaking, with no blueprint, is not")
     check(sim.shown("Teleporter"), "the player is told")
+    sim.hullPlaces = nil
+end)
+
+test("system install: a level received without the blueprint puts nothing aboard and allows no purchase", function()
+    withTeleporterPlace()
+    applySeed({ kinds = { "cap" }, options = { system_install = 1 } })
+    apQueueItem({ kind = "cap", sys = "teleporter", n = 1, display = "Progressive Teleporter" })
+    drain()
+    sim.startRun(true)
+    check(not sim.player:HasSystem(9), "no teleporter aboard without its blueprint")
+    sim.jumpArrive()
+    sim.setStore(true)
+    sim.tick(1)
+    sim.constructSystem("teleporter", 0, 90)
+    sim.tick(5)
+    equals(#sim.player._removed, 1, "and a store purchase is still refused")
+    sim.setStore(false)
+    sim.hullPlaces = nil
+end)
+
+test("system install: a head start raises a system put aboard at the run start once, not twice", function()
+    withTeleporterPlace()
+    applySeed({ kinds = { "cap" }, options = { system_install = 1 } })
+    local added
+    local addSystem = sim.player.AddSystem
+    local makeTeleporter = function()
+        local system = { name = "teleporter", _shipObj = { iShipId = 0 }, bpCost = 0,
+            powerState = { first = 1, second = 1 }, maxLevel = 3, healthState = { first = 2, second = 2 },
+            iSystemType = 9, roomId = 0, AddDamage = function() end }
+        system.UpgradeSystem = function(self, amount)
+            local before = self.powerState.second
+            self.powerState.second = math.min(self.maxLevel, before + amount)
+            return self.powerState.second > before
+        end
+        return system
+    end
+    apQueueItem({ kind = "cap", sys = "teleporter", n = 0, display = "Teleporter blueprint" })
+    apQueueItem({ kind = "start", sys = "teleporter", n = 1, display = "Head Start: Teleporter" })
+    drain()
+    sim.player.AddSystem = function(self, id)
+        addSystem(self, id)
+        if id == 9 then
+            added = makeTeleporter()
+            self.vSystemList:push_back(added)
+        end
+        return 1
+    end
+    sim.startRun(true)
+    sim.player.AddSystem = addSystem
+    check(added ~= nil, "the teleporter is put aboard")
+    equals(added.powerState.second, 2, "the head start gives it level 2")
+    equals(added.maxLevel, 2, "and the store can sell no level above: blueprint + head start, counted once")
     sim.hullPlaces = nil
 end)
 

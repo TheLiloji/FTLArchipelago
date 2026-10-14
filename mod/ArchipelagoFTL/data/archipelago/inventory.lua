@@ -10,6 +10,7 @@ local PROFILES = {
     empty = {
         ships = {},
         systemCaps = {},
+        blueprints = {},
         shipCaps = {},
         startingUpgrades = {},
         shopAvailability = {},
@@ -285,6 +286,12 @@ function apInventoryAdd(descriptor)
             local caps = _G.apInventory.systemCaps
             caps[system] = (caps[system] or 1) + (descriptor.n or 1)
             invLog(string.format("%s cap raised to %d", system, caps[system]))
+            -- A blueprint raises no level (n = 0): kept apart, since a level alone does not make the system
+            -- purchasable nor installable.
+            if (descriptor.n or 1) == 0 then
+                _G.apInventory.blueprints = _G.apInventory.blueprints or {}
+                _G.apInventory.blueprints[system] = true
+            end
         end
         if _G.apApplySystemRules then
             apTry(TAG, _G.apApplySystemRules)

@@ -123,6 +123,27 @@ local function systemId(name)
     return systemIds[name]
 end
 
+-- Older inventories (test profiles, a seed loaded before this was kept) have no blueprint list: any item
+-- for the system then counts, as before.
+local function hasBlueprint(name)
+    local inventory = _G.apInventory
+    if inventory == nil or inventory.systemCaps == nil then
+        return false
+    end
+    if inventory.blueprints == nil then
+        return inventory.systemCaps[name] ~= nil
+    end
+    return inventory.blueprints[name] == true
+end
+
+-- What the dashboard and the home screen call unlocked: what a store may sell.
+function apSystemUnlocked(name)
+    if _G.apSystemBlueprintsActive and not _G.apSystemBlueprintsActive() then
+        return true
+    end
+    return hasBlueprint(name)
+end
+
 local function installMode()
     local mode = _G.apSeedOption ~= nil and apSeedOption("system_install") or 0
     if _G.apSystemBlueprintsActive and not _G.apSystemBlueprintsActive() then
@@ -148,7 +169,8 @@ local function installReceivedSystems(reason)
     local installed = {}
     for _, name in ipairs(INSTALL_ORDER) do
         local id = systemId(name)
-        if id ~= nil and caps[name] ~= nil and not player:HasSystem(id) and hullHasPlace(player, id) then
+        if id ~= nil and caps[name] ~= nil and hasBlueprint(name) and not player:HasSystem(id)
+            and hullHasPlace(player, id) then
             local replaces = (name == "medbay" and player:HasSystem(systemId("clonebay")))
                 or (name == "clonebay" and player:HasSystem(systemId("medbay")))
             local fits = SUBSYSTEMS[name] and player:CanFitSubsystem(id) or player:CanFitSystem(id)
@@ -349,11 +371,7 @@ local function purchaseAllowed(name)
     if _G.apSystemBlueprintsActive and not _G.apSystemBlueprintsActive() then
         return true
     end
-    local inventory = _G.apInventory
-    if inventory == nil or inventory.systemCaps == nil then
-        return false
-    end
-    return inventory.systemCaps[name] ~= nil
+    return hasBlueprint(name)
 end
 
 local pendingRefusal = {}
@@ -550,6 +568,9 @@ script.on_init(function(newGame)
         apApplySystemRules()
         if installMode() > 0 then
             pcall(installReceivedSystems, "start of the run")
+            -- A system put aboard starts at level 1: recorded now, before the Head Starts raise it, or they
+            -- would count twice in its cap.
+            apApplySystemRules()
         end
         applyStartingUpgrades()
         apApplySystemRules()

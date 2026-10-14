@@ -6836,11 +6836,16 @@ test("menu: the summary counts UNLOCKED systems, not the game's sixteen", functi
     sim.renderMenu()
     check(not sim.drawnText("16 / 16"), "an empty inventory doesn't announce sixteen systems")
 
-    apInventoryAdd({ kind = "cap", sys = "shields", n = 1 })
-    apInventoryAdd({ kind = "cap", sys = "engines", n = 1 })
+    apInventoryAdd({ kind = "cap", sys = "cloaking", n = 1 })
+    sim.renderMenu()
+    check(sim.drawnText("0 / 16") or sim.drawnText("0/16"),
+        "a level without its blueprint unlocks nothing: " .. table.concat(sim.drawn, " | "))
+
+    apInventoryAdd({ kind = "cap", sys = "shields", n = 0 })
+    apInventoryAdd({ kind = "cap", sys = "engines", n = 0 })
     sim.renderMenu()
     check(sim.drawnText("2 / 16") or sim.drawnText("2/16"),
-        "two unlocked out of sixteen: " .. table.concat(sim.drawn, " | "))
+        "two blueprints, two unlocked out of sixteen: " .. table.concat(sim.drawn, " | "))
 end)
 
 test("seed: changing seed asks the question, and only once", function()
