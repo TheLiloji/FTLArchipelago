@@ -27,6 +27,11 @@ def _load_data_copy():
 
 class TestIdentifiersAreWellFormed(unittest.TestCase):
 
+    def test_each_location_block_has_its_own_offset(self) -> None:
+        offsets = {name: value for name, value in vars(data).items() if name.startswith("LOCATION_OFFSET_")}
+        self.assertEqual(len(set(offsets.values())), len(offsets), offsets)
+        self.assertNotEqual(data.LOCATION_OFFSET_FIGHT, 80_000, "80 000 is the Multiverse achievements' block")
+
     def test_item_names_and_ids_are_unique(self) -> None:
         names = [item.name for item in data.ITEMS]
         codes = [item.code for item in data.ITEMS]

@@ -78,7 +78,9 @@ LOCATION_OFFSET_SHOP = 40_000
 LOCATION_OFFSET_SYSTEM = 50_000
 LOCATION_OFFSET_CREW = 60_000
 LOCATION_OFFSET_SHIP_SYSTEM = 70_000
-LOCATION_OFFSET_FIGHT = 80_000
+# Taken by the Multiverse achievements on the Multiverse branch, already released there: never reuse it.
+LOCATION_OFFSET_MV_ACH = 80_000
+LOCATION_OFFSET_FIGHT = 90_000
 
 # Combat checks: the first fights a ship wins in a run, at most this many per ship.
 MAX_FIGHTS_PER_SHIP = 10
