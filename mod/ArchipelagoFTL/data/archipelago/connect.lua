@@ -31,6 +31,9 @@ local message = nil
 local attempt = nil
 local messageTone = "dim"
 local shiftHeld = false
+local ctrlHeld = false
+-- Fields the last refusal blames, drawn in red until they are edited.
+local blamed = {}
 
 local onMenu = false
 
@@ -257,9 +260,10 @@ local function drawForm()
     for index, field in ipairs(FIELDS) do
         local box = g.fields[index]
         local focused = index == focus
-        ui.text(9, p.x + PAD, box.y + 5, LABEL_W - 8, focused and "text" or "dim", apT(field.label))
+        local wrong = blamed[index] == true
+        ui.text(9, p.x + PAD, box.y + 5, LABEL_W - 8, wrong and "bad" or (focused and "text" or "dim"), apT(field.label))
         ui.rect(box.x, box.y, box.w, box.h, focused and "hover" or "card")
-        ui.outline(box.x, box.y, box.w, box.h, focused and "border" or "faint", 1)
+        ui.outline(box.x, box.y, box.w, box.h, wrong and "bad" or (focused and "border" or "faint"), 1)
         local value = displayValue(field)
         if focused then
             value = value .. "_"
@@ -268,11 +272,13 @@ local function drawForm()
     end
 
     ui.checkbox(g.auto.x, g.auto.y, autoActive(), apT("connect.auto"), g.auto.w)
-    ui.button(g.button, apT("connect.button"), "primary")
+    ui.button(g.button, apT(attempt ~= nil and "connect.button.busy" or "connect.button"), "primary", attempt ~= nil)
     ui.button(g.solo, apT("connect.solo"), "secondary")
 
     if message ~= nil then
         ui.wrapped(9, g.message.x, g.message.y, g.message.w, messageTone, message)
+    else
+        ui.wrapped(9, g.message.x, g.message.y, g.message.w, "dim", apT("connect.paste_hint"))
     end
     ui.wrapped(9, p.x + PAD, g.shortcuts, p.w - PAD * 2, "dim", apT("connect.keys"))
 end
@@ -360,9 +366,13 @@ local function followAttempt()
         attempt = nil
     elseif _G.apNetState ~= nil and _G.apNetState.refusal ~= nil then
         message, messageTone = _G.apNetState.refusal, "warn"
+        local reasons = tostring(_G.apNetState.refusalReasons or "")
+        blamed = { [3] = reasons:find("InvalidSlot", 1, true) ~= nil or nil,
+                   [4] = reasons:find("InvalidPassword", 1, true) ~= nil or nil }
         attempt = nil
     elseif _G.apNetState ~= nil and _G.apNetState.unreachableShown then
         message, messageTone = apT("net.error.unreachable"), "warn"
+        blamed = { [1] = true, [2] = true }
         attempt = nil
     end
 end
@@ -393,6 +403,7 @@ function apConnectNow()
     end
 
     connectLog("attempting to " .. address .. ", slot " .. values.slot)
+    blamed = {}
     if _G.apContractState then
         _G.apContractState.refusal = nil
     end
@@ -418,7 +429,7 @@ function apConnectResetForTesting()
     for index, field in ipairs(FIELDS) do
         field.value = DEFAULTS[index]
     end
-    focus, message, messageTone, shiftHeld = FOCUS_INITIAL, nil, "dim", false
+    focus, message, messageTone, shiftHeld, ctrlHeld, blamed = FOCUS_INITIAL, nil, "dim", false, false, {}
     onMenu = false
     autoTried = false
     soloTried = false
@@ -465,9 +476,37 @@ local function character(key)
     return keyMap[key]
 end
 
+-- Ctrl+V puts the clipboard in the field. An address copied with its port, or the room page's whole
+-- "/connect archipelago.gg:54321", fills both fields.
+local function paste()
+    local text = (_G.apNetClipboard and apNetClipboard() or ""):match("^%s*(.-)%s*$")
+    text = text:gsub("^/connect%s+", "")
+    if text == "" then
+        message, messageTone = apT("connect.paste_empty"), "warn"
+        return
+    end
+    local field = FIELDS[focus]
+    if field.key == "uri" or field.key == "port" then
+        local bare = text:gsub("^wss?://", ""):gsub("/+$", "")
+        local host, port = bare:match("^(.-):(%d+)$")
+        if host ~= nil and host ~= "" then
+            FIELDS[1].value, FIELDS[2].value = host:sub(1, FIELDS[1].max), port:sub(1, FIELDS[2].max)
+            blamed[1], blamed[2] = nil, nil
+            return
+        end
+        if field.key == "uri" then text = bare end
+    end
+    if field.digitsOnly then text = text:gsub("%D", "") end
+    field.value = text:sub(1, field.max)
+    blamed[focus] = nil
+end
+
 script.on_internal_event(Defines.InternalEvents.ON_KEY_UP, function(key)
     if key == Defines.SDL.KEY_LSHIFT or key == Defines.SDL.KEY_RSHIFT then
         shiftHeld = false
+    end
+    if key == Defines.SDL.KEY_LCTRL or key == Defines.SDL.KEY_RCTRL then
+        ctrlHeld = false
     end
     return Defines.Chain.CONTINUE
 end)
@@ -479,6 +518,14 @@ script.on_internal_event(Defines.InternalEvents.ON_KEY_DOWN, function(key)
     if key == Defines.SDL.KEY_LSHIFT or key == Defines.SDL.KEY_RSHIFT then
         shiftHeld = true
         return Defines.Chain.CONTINUE
+    end
+    if key == Defines.SDL.KEY_LCTRL or key == Defines.SDL.KEY_RCTRL then
+        ctrlHeld = true
+        return Defines.Chain.CONTINUE
+    end
+    if ctrlHeld and key == Defines.SDL.KEY_v then
+        paste()
+        return Defines.Chain.PREEMPT
     end
 
     if key == Defines.SDL.KEY_TAB or key == Defines.SDL.KEY_DOWN then
@@ -494,6 +541,7 @@ script.on_internal_event(Defines.InternalEvents.ON_KEY_DOWN, function(key)
         return Defines.Chain.PREEMPT
     end
     if key == Defines.SDL.KEY_BACKSPACE then
+        blamed[focus] = nil
         local field = FIELDS[focus]
         field.value = field.value:sub(1, -2)
         return Defines.Chain.PREEMPT
@@ -513,6 +561,7 @@ script.on_internal_event(Defines.InternalEvents.ON_KEY_DOWN, function(key)
         if #field.value < field.max then
             field.value = field.value .. c
         end
+        blamed[focus] = nil
         return Defines.Chain.PREEMPT
     end
     return Defines.Chain.CONTINUE

@@ -31,6 +31,8 @@ public:
 
     std::string LastUri() const;
     std::string LastSlot() const;
+    // The system clipboard's text (first line only, at most 200 bytes), or "" when there is none.
+    std::string Clipboard() const;
 
     bool RequestProfileReset();
     bool RelaunchWhenClosed();
