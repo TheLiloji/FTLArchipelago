@@ -116,6 +116,7 @@
     "dash.ships.header": "Layouts desbloqueados: {done} de {total}",
     "dash.ships.remaining": "Quedan {n} checks",
     "dash.ships.remaining.one": "Queda {n} check",
+    "dash.ships.species": "{ship} ({species})",
     "dash.ships.type": "Tipo {letter}",
     "dash.status.noseed": "No hay ninguna seed cargada",
     "dash.status.offline": "Sin conexión; seed conservada",

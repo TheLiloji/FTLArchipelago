@@ -45,4 +45,4 @@ As partidas do Multiverse são mais longas do que as do jogo base: conta com mai
 - As variantes de uma raça no Multiverse (Zoltan Monk, Separatist Engi, Lanius Welder...) contam para o check
   dessa raça, assim como os tripulantes únicos dessa raça, como Turzil, o Engi. As raças próprias do
   Multiverse não contam.
-- O objetivo, o painel (TAB) e a loja Archipelago funcionam da mesma forma.
+- O objetivo, o painel (TAB) e a loja Archipelago funcionam da mesma forma. A página de naves do painel mostra sob cada nave a raça da maior parte da sua tripulação.

@@ -116,6 +116,7 @@
     "dash.ships.header": "Ship layouts unlocked: {done} of {total}",
     "dash.ships.remaining": "{n} checks left",
     "dash.ships.remaining.one": "{n} check left",
+    "dash.ships.species": "{ship} ({species})",
     "dash.ships.type": "Type {letter}",
     "dash.status.noseed": "No seed loaded",
     "dash.status.offline": "Offline, seed kept",

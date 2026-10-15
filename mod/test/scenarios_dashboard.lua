@@ -354,6 +354,29 @@ test("dashboard: Multiverse ships come from the seed, not from the base game's l
     closeDashboard()
 end)
 
+test("dashboard: a Multiverse ship shows the race of most of its crew, a base game seed does not", function()
+    sim.startRun(true)
+    applySeed({
+        goal = { kind = "victories", count = 1 },
+        multiverse = true,
+        layouts = { "PLAYER_SHIP_ZOLTAN", "PLAYER_SHIP_UNION" },
+    })
+    sim.shipNames.PLAYER_SHIP_ZOLTAN, sim.shipClasses.PLAYER_SHIP_ZOLTAN = "Paragon", "Ministry Cruiser"
+    sim.shipNames.PLAYER_SHIP_UNION, sim.shipClasses.PLAYER_SHIP_UNION = "Chrysippus", "Union Cruiser"
+    sim.shipCrews = { PLAYER_SHIP_ZOLTAN = { "human", "zoltan", "zoltan" }, PLAYER_SHIP_UNION = {} }
+    sim.crewTitles = { zoltan = "Zoltan", human = "Human" }
+    openDashboard("ships")
+    check(sim.drawnText("Zoltan"), "the Ministry Cruiser is flown by Zoltans")
+    check(not sim.drawnText("Human"), "the race of most of the crew, not the first one")
+    closeDashboard()
+    equals(apShipSpecies("PLAYER_SHIP_UNION"), nil, "a ship without a crew list shows no race")
+
+    applySeed({ goal = { kind = "victories", count = 1 }, layouts = { "PLAYER_SHIP_HARD" } })
+    sim.shipCrews = { PLAYER_SHIP_HARD = { "human" } }
+    equals(apShipSpecies("PLAYER_SHIP_HARD"), nil, "base game names already say the race")
+    sim.shipCrews, sim.crewTitles = nil, nil
+end)
+
 test("dashboard: the systems page counts the upgrades of the ship being flown", function()
     sim.startRun(true)
     dashboardSeed()

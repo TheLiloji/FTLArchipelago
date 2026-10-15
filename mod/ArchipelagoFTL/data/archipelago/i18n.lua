@@ -203,6 +203,35 @@ function apShipLabel(name)
     return tostring(name)
 end
 
+-- Multiverse ships go by a faction ("Ministry Cruiser"): the race of most of its starting crew says who flies it.
+function apShipSpecies(name)
+    if not (_G.apSeedIsMultiverse and apSeedIsMultiverse()) or name == nil or name == "" then
+        return nil
+    end
+    local ok, text = pcall(function()
+        local blueprints = Hyperspace.Global.GetInstance():GetBlueprints()
+        local bp = blueprints:GetShipBlueprint(name, -1)
+        if bp == nil then
+            return nil
+        end
+        local counts, best = {}, nil
+        for i = 0, bp.defaultCrew:size() - 1 do
+            local race = tostring(bp.defaultCrew[i])
+            counts[race] = (counts[race] or 0) + 1
+            if best == nil or counts[race] > counts[best] then
+                best = race
+            end
+        end
+        if best == nil then
+            return nil
+        end
+        local crew = blueprints:GetCrewBlueprint(best)
+        local title = crew and crew.desc.title:GetText() or ""
+        return title ~= "" and title or nil
+    end)
+    return ok and text or nil
+end
+
 function apAchievementLabel(id)
     if id == nil or id == "" then
         return "?"

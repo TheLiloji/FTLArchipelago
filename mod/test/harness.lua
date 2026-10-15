@@ -582,7 +582,13 @@ local function resetWorld()
                                     blueprintName = name,
                                     name = { GetText = function() return displayName end },
                                     shipClass = { GetText = function() return (sim.shipClasses or {})[name] or "" end },
+                                    defaultCrew = vector((sim.shipCrews or {})[name] or {}),
                                 }
+                            end,
+                            GetCrewBlueprint = function(_, race)
+                                local title = (sim.crewTitles or {})[race]
+                                if title == nil then return nil end
+                                return { desc = { title = { GetText = function() return title end } } }
                             end,
                         }
                     end,

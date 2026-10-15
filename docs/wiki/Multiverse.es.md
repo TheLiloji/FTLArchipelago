@@ -46,4 +46,4 @@ presets.
 - Las variantes de una raza en Multiverse (Zoltan Monk, Separatist Engi, Lanius Welder...) cuentan para el check
   de esa raza, igual que los tripulantes únicos de esa raza, como Turzil el Engi. Las razas propias de
   Multiverse no cuentan.
-- El objetivo, el panel (TAB) y la tienda de Archipelago funcionan igual.
+- El objetivo, el panel (TAB) y la tienda de Archipelago funcionan igual. La página de naves del panel muestra bajo cada nave la raza de la mayoría de su tripulación.

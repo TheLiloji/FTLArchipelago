@@ -45,4 +45,4 @@ Multiverse-Runs dauern länger als im Grundspiel: Rechne mit mehr Zeit, als die 
 - Multiverse-Varianten einer Rasse (Zoltan Monk, Separatist Engi, Lanius Welder...) zählen für den Check dieser
   Rasse, ebenso einzigartige Crewmitglieder dieser Rasse, wie Turzil der Engi. Multiverse-eigene Rassen zählen
   nicht.
-- Das Ziel, das Dashboard (TAB) und der Archipelago-Laden funktionieren gleich.
+- Das Ziel, das Dashboard (TAB) und der Archipelago-Laden funktionieren gleich. Die Schiffe-Seite des Dashboards zeigt unter jedem Schiff die Rasse des Großteils seiner Crew.

@@ -115,6 +115,7 @@
     "dash.ships.header": "Dispositions débloquées : {done} sur {total}",
     "dash.ships.remaining": "{n} checks restants",
     "dash.ships.remaining.one": "{n} check restant",
+    "dash.ships.species": "{ship} ({species})",
     "dash.ships.type": "Type {letter}",
     "dash.status.noseed": "Aucune seed chargée",
     "dash.status.offline": "Hors ligne, seed gardée",

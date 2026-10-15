@@ -46,4 +46,4 @@ presets.
 - Les variantes d'une race dans Multiverse (Zoltan Monk, Separatist Engi, Lanius Welder...) comptent pour le
   check de cette race, tout comme les équipiers uniques de cette race, comme Turzil l'Engi. Les races propres
   à Multiverse ne comptent pas.
-- Le but, le tableau de bord (TAB) et la boutique Archipelago marchent de la même façon.
+- Le but, le tableau de bord (TAB) et la boutique Archipelago marchent de la même façon. La page Vaisseaux du tableau de bord montre sous chaque vaisseau la race de la plupart de son équipage.

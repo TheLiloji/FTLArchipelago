@@ -142,6 +142,7 @@ local function shipRows()
     for _, ship in ipairs(apSeedShips()) do
         local row = { base = ship.name, layouts = {}, remaining = 0 }
         row.label = _G.apShipLabel and apShipLabel(ship.name) or ship.name
+        row.species = _G.apShipSpecies and apShipSpecies(ship.name) or nil
         for index = 0, (ship.layouts or 1) - 1 do
             local name = layoutName(ship.name, index)
             if not _G.apLayoutInSeed or apLayoutInSeed(name) then
@@ -611,7 +612,14 @@ local function drawShips(x, y, w, h)
         rect(cx, cy, 3, cardH, any and "good" or "faint")
         local chipW, chipH = 64, 22
         local chipsW = #row.layouts * chipW + (#row.layouts - 1) * 6
-        text(12, cx + 16, cy + 10, cardW - chipsW - 44, any and "text" or "dim", row.label)
+        -- The race goes under the name, or after it when the cards are too short for one more line.
+        local roomy = cardH >= 64
+        local label = (row.species and not roomy) and apT("dash.ships.species", { ship = row.label, species = row.species })
+            or row.label
+        text(12, cx + 16, cy + 10, cardW - chipsW - 44, any and "text" or "dim", label)
+        if row.species and roomy then
+            text(9, cx + 16, cy + 28, cardW - chipsW - 44, "dim", row.species)
+        end
         local remaining = row.remaining > 0 and apT("dash.ships.remaining", { n = row.remaining })
             or apT("dash.ships.clear")
         text(9, cx + 16, cy + cardH - 22, cardW - chipsW - 44, "dim", remaining)
