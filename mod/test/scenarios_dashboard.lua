@@ -185,7 +185,7 @@ test("dashboard: the checks page lists what is left in the chosen category, and 
     apSendCheck("shop:1", "test")
     openDashboard("checks")
     check(sim.drawnText(apT("dash.checks.remaining", { n = 59 })), "59 shop slots left")
-    check(not sim.drawnText("Archipelago Shop 01"), "the one already bought is not listed")
+    check(not sim.drawnText("Archipelago Shop 01"), "the one already bought waits at the end of the list")
     check(sim.drawnText("Archipelago Shop 02"), "the next one is")
     check(not sim.drawnText("Archipelago Shop 60"), "the end of the list waits below")
 
@@ -280,6 +280,29 @@ test("journal: an item's class survives a restart, and a journal saved before cl
     check(sameColor(drawnColor("Breach Trap"), "bad"), "the trap is still red after the restart")
     check(drawnColor("Glaive Beam") ~= nil, "an entry from an older journal is still listed")
     equals(_G.apReceivedHistory[2].sender, "Axel", "with its sender")
+    closeDashboard()
+end)
+
+test("dashboard: a check done stays in its list, in green, below what is left", function()
+    sim.startRun(true)
+    applySeed({ items = {}, loc = { ["sys:shields"] = "Install Shields", ["sys:cloaking"] = "Install Cloaking" } })
+    apSendCheck("sys:cloaking", "test")
+    openDashboard("checks")
+    local shields, cloaking
+    for _, draw in ipairs(sim.draws) do
+        if draw.text == "Install Shields" then shields = draw end
+        if draw.text == "Install Cloaking" then cloaking = draw end
+    end
+    check(cloaking ~= nil, "the check done is still listed")
+    check(shields ~= nil and cloaking ~= nil and shields.y < cloaking.y, "below the one left")
+    check(sameColor(cloaking and cloaking.color, "good"), "in green")
+    check(sameColor(shields and shields.color, "text"), "the one left keeps the normal colour")
+    closeDashboard()
+
+    apSendCheck("sys:shields", "test")
+    openDashboard("checks")
+    check(sim.drawnText(apT("dash.checks.all_done")), "all done: the page says so")
+    check(sim.drawnText("Install Shields") and sim.drawnText("Install Cloaking"), "and still lists them")
     closeDashboard()
 end)
 
