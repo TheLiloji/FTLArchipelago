@@ -813,14 +813,17 @@ local function placeOf(key, name, category)
         local owner = shipOfAchievement(achievement)
         local label = _G.apAchievementLabel and apAchievementLabel(achievement) or achievement
         if owner then
-            return { row = owner, ship = owner, label = shipLabel(owner), box = label, text = label, named = true }
+            return { row = owner, ship = owner, label = shipLabel(owner), box = label, text = label, named = true,
+                     translated = true }
         end
-        return { row = "~general", label = apT("dash.checks.general"), box = label, text = label, named = true }
+        return { row = "~general", label = apT("dash.checks.general"), box = label, text = label, named = true,
+                 translated = true }
     end
     local race = key:match("^crew:(.+)$")
     if race then
         local label = _G.apRaceLabel and apRaceLabel(race) or race
-        return { row = "~crew", label = apT(CATEGORY_TITLE.crew), box = label, text = label, named = true }
+        return { row = "~crew", label = apT(CATEGORY_TITLE.crew), box = label, text = label, named = true,
+                 translated = true }
     end
     return { row = "~" .. category, label = apT(CATEGORY_TITLE[category]), box = tostring(name),
              text = tostring(name), named = true }
@@ -848,8 +851,10 @@ local function checkRows(entry, category)
             row.byBox[place.box] = box
             row.boxes[#row.boxes + 1] = box
         end
-        -- The grid already shows the ship and the sector: the name alone says the rest.
-        box.checks[#box.checks + 1] = { key = check.key, name = check.raw or check.name, done = done }
+        -- The grid already shows the ship and the sector: the name alone says the rest. A named box (an
+        -- achievement, a race) speaks the game's language, not the seed's English location name.
+        local name = place.translated and place.text or check.raw or check.name
+        box.checks[#box.checks + 1] = { key = check.key, name = name, done = done }
         box.total, row.total = box.total + 1, row.total + 1
         if done then
             box.done, row.done = box.done + 1, row.done + 1
@@ -1019,7 +1024,8 @@ local function drawCrewCards(x, y, w, bottom, rows)
     -- Multiverse's eighteen races fit on one screen in six narrower columns.
     local columns = #cards > 8 and 6 or 4
     local cardW = math.floor((w - GAP * (columns - 1)) / columns)
-    local cardH = columns == 6 and 110 or 128
+    local narrow = columns == 6
+    local cardH = narrow and 110 or 128
     local lines = {}
     for index, box in ipairs(cards) do
         local line = lines[math.floor((index - 1) / columns) + 1] or {}
@@ -1037,18 +1043,21 @@ local function drawCrewCards(x, y, w, bottom, rows)
                 if hovered(area) then state.pointed = box end
                 local race = tostring(box.checks[1].key):match("^crew:(.+)$")
                 local texture = race and crewTexture(race)
-                -- Three times its size; the frame's empty border lets it overflow the card's top a little.
-                local size = FRAME * 3
+                -- Three times its size (twice in narrow cards, where big races would cover the name); the
+                -- frame's empty border lets it overflow the card's top a little.
+                local size = FRAME * (narrow and 2 or 3)
                 local sx = cx + math.floor((cardW - size) / 2)
                 if texture then
-                    Graphics.CSurface.GL_BlitImagePartial(texture, sx, ry - 12, size, size,
+                    Graphics.CSurface.GL_BlitImagePartial(texture, sx, narrow and ry - 6 or ry - 12, size, size,
                         0, FRAME / texture.width, 0, FRAME / texture.height,
                         done and 1 or 0.45, Graphics.GL_Color(1, 1, 1, 1), false)
                 end
-                textCenter(10, cx + cardW / 2, ry + cardH - 46, cardW - 12, done and "good" or "text", box.text)
+                ui.textCenterTwoLines(10, cx + cardW / 2, ry + cardH - 46, cardW - 12, 13,
+                    done and "good" or "text", box.text)
                 local status = done and (contentOf(box.checks[1].key) or apT("dash.crew.done"))
                     or apT("dash.crew.waiting")
-                textCenter(9, cx + cardW / 2, ry + cardH - 28, cardW - 12, done and "good" or "dim", status)
+                ui.textCenterTwoLines(9, cx + cardW / 2, ry + cardH - (narrow and 18 or 28), cardW - 12, 11,
+                    done and "good" or "dim", status)
             end
         end)
 end

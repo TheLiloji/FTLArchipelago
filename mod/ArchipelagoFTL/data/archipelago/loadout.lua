@@ -255,7 +255,7 @@ local function draw()
                 else
                     ui.raceSprite(entry.race, iconX + (ICON_W - 70) / 2, area.y + (area.h - 70) / 2, 70, alpha)
                 end
-                ui.text(10, area.x + ICON_W + 16, area.y + 17, area.w - ICON_W - 24,
+                ui.textTwoLines(10, area.x + ICON_W + 16, area.y + 17, area.w - ICON_W - 24, 14,
                     isChosen and "good" or (available and "text" or "dim"), entry.label)
             end
             if total > 1 then

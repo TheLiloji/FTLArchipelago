@@ -74,6 +74,34 @@ function ui.textCenter(font, center, y, maxWidth, tone, value, alpha)
     ui.text(font, math.floor(center - w / 2), y, w, tone, value, alpha)
 end
 
+-- Splits a text at its spaces into at most maxLines lines of maxWidth; only the last one may be cut.
+function ui.lines(font, value, maxWidth, maxLines)
+    local lines, current = {}, nil
+    for word in tostring(value):gmatch("%S+") do
+        local candidate = current and (current .. " " .. word) or word
+        if current ~= nil and ui.width(font, candidate) > maxWidth and #lines < maxLines - 1 then
+            lines[#lines + 1] = current
+            current = word
+        else
+            current = candidate
+        end
+    end
+    lines[#lines + 1] = current or ""
+    return lines
+end
+
+-- A short label on one line, or on two when it does not fit: y is where a single line would sit.
+local function twoLines(draw, font, at, y, maxWidth, lineH, tone, value, alpha)
+    local lines = ui.width(font, value) <= maxWidth and { tostring(value) } or ui.lines(font, value, maxWidth, 2)
+    local top = y - math.floor((#lines - 1) * lineH / 2)
+    for index, line in ipairs(lines) do
+        draw(font, at, top + (index - 1) * lineH, maxWidth, tone, line, alpha)
+    end
+end
+
+function ui.textTwoLines(...) twoLines(ui.text, ...) end
+function ui.textCenterTwoLines(...) twoLines(ui.textCenter, ...) end
+
 function ui.wrapped(font, x, y, maxWidth, tone, value, alpha)
     Graphics.CSurface.GL_SetColor(ui.color(tone, alpha))
     Graphics.freetype.easy_printAutoNewlines(font, x, y, math.max(8, maxWidth), tostring(value))

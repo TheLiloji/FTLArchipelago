@@ -683,6 +683,17 @@ test("connection panel: Ctrl+V pastes, and an address with its port fills both f
     ctrlV()
     equals(apConnectState().message, apT("connect.paste_empty"), "an empty clipboard says so")
     equals(apConnectState().port, "38281", "and changes nothing")
+    sim.keyDown(Defines.SDL.KEY_UP)
+    sim.clipboard = "/connect archipelago.gg:51234 and the rest of the room message"
+    ctrlV()
+    equals(apConnectState().message, nil, "a paste that works clears the empty-clipboard message")
+    equals(apConnectState().uri, "archipelago.gg", "text after host:port stays out of the address")
+    equals(apConnectState().port, "51234", "and the port is still read")
+    sim.clipboard = "wss://archipelago.gg:38281/some/path"
+    ctrlV()
+    equals(apConnectState().uri, "archipelago.gg", "a wss:// address with a path gives the host")
+    equals(apConnectState().port, "38281", "and its port")
+    sim.keyDown(Defines.SDL.KEY_DOWN)
     sim.keyDown(Defines.SDL.KEY_v)
     equals(apConnectState().port, "38281", "v alone is still a letter, not a paste (and the port refuses it)")
     sim.clipboard = nil
@@ -717,4 +728,16 @@ test("connection panel: the field a refusal blames turns red until it is edited,
     sim.renderMenu()
     check(not isTone(labelColor("connect.field.slot"), "bad"), "typing in it clears the red")
     apNetResetForTesting()
+end)
+
+test("a label too long for one line goes on two instead of being cut", function()
+    local ui = _G.apUi
+    sim.draws = {}
+    ui.textTwoLines(10, 0, 20, ui.width(10, "Rocky, repair") + 2, 14, "text", "Rocky, repair expert")
+    local drawn = {}
+    for _, draw in ipairs(sim.draws) do if draw.text then drawn[#drawn + 1] = draw.text end end
+    equals(table.concat(drawn, "|"), "Rocky, repair|expert", "split at a space, nothing cut")
+    sim.draws = {}
+    ui.textTwoLines(10, 0, 20, 400, 14, "text", "Rocky")
+    equals(#sim.draws, 1, "a label that fits stays on one line")
 end)

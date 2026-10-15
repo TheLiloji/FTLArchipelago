@@ -1583,6 +1583,18 @@ test("a shop object is announced once when it unlocks, and its copy once when it
     equals(sim.delivered(), 1, "the copy is delivered anyway")
 end)
 
+test("a shop object unlocked is announced with the game's name, in the game's language", function()
+    _G.apInventory = { ships = {}, shopAvailability = {} }
+    apShopConfigure({ mode = "rarity_boost", deliver = false, baseline = {} })
+    sim.startRun(true)
+    sim.resetBlueprints()
+    sim.rarityFor("MISSILES_2", 1).title = sim.textString("Missiles Artemis")
+    apQueueItem({ kind = "shop", bp = "MISSILES_2", display = "Artemis Missiles" })
+    drain()
+    check(shownKey("shop.unlocked", { item = "Missiles Artemis" }), "the banner uses the game's name")
+    sim.resetBlueprints()
+end)
+
 test("an augment received as a shop item is installed, not put in cargo", function()
     _G.apInventory = { ships = {}, shopAvailability = {} }
     apShopConfigure({ mode = "rarity_boost", deliver = true, baseline = {} })
