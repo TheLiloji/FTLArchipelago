@@ -135,6 +135,49 @@ class TestMultiverseAchievementsNeedMultiverse(FTLTestBase):
         self.assertFalse(any(name.startswith("MV Achievement: ") for name in names))
 
 
+class TestMultiverseRaces(FTLTestBase):
+    options = {"multiverse": True}
+
+    def test_each_multiverse_race_has_its_first_crew_check(self) -> None:
+        names = {location.name for location in self.multiworld.get_locations(self.player)}
+        for _, _, label, _ in data.MV_CREW_RACES:
+            self.assertIn(f"First {label} aboard", names)
+        self.assertEqual(self.world.fill_slot_data()["loc"].get("crew:orchid"), "First Orchid aboard",
+                         "the mod sends crew:<race>, variants included")
+
+    def test_the_rare_races_only_ever_hold_filler(self) -> None:
+        from BaseClasses import LocationProgressType
+        from Fill import distribute_items_restrictive
+        distribute_items_restrictive(self.multiworld)
+        rare = {f"First {label} aboard" for _, _, label, hard in data.MV_CREW_RACES if hard}
+        common = {f"First {label} aboard" for _, _, label, hard in data.MV_CREW_RACES if not hard}
+        self.assertTrue(rare and common)
+        for location in self.multiworld.get_locations(self.player):
+            if location.name in rare:
+                self.assertEqual(location.progress_type, LocationProgressType.EXCLUDED, location.name)
+                self.assertFalse(location.item.advancement, f"{location.name} holds {location.item.name}")
+            elif location.name in common:
+                self.assertNotEqual(location.progress_type, LocationProgressType.EXCLUDED, location.name)
+
+
+class TestMultiverseRacesNeedMultiverse(FTLTestBase):
+    options = {"crew_checks": True}
+
+    def test_the_base_game_keeps_its_seven_races(self) -> None:
+        names = {location.name for location in self.multiworld.get_locations(self.player)}
+        self.assertNotIn("First Orchid aboard", names)
+        self.assertIn("First Engi aboard", names)
+
+
+class TestMultiverseRacesFollowCrewChecks(FTLTestBase):
+    options = {"multiverse": True, "crew_checks": False}
+
+    def test_no_race_check_without_crew_checks(self) -> None:
+        names = {location.name for location in self.multiworld.get_locations(self.player)}
+        self.assertNotIn("First Orchid aboard", names)
+        self.assertNotIn("First Siren aboard", names)
+
+
 class TestMultiverseExcludedShips(FTLTestBase):
     options = {"multiverse": True, "layout_count": 28, "excluded_layouts": ["Union Cruiser", "MV Union Cruiser A"]}
 

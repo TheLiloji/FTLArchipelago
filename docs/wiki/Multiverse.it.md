@@ -44,6 +44,7 @@ Le partite Multiverse sono più lunghe di quelle del gioco base: conta più temp
 - I finali di Multiverse contano come vittorie, non solo la nave ammiraglia.
 - Le varianti di una razza in Multiverse (Zoltan Monk, Separatist Engi, Lanius Welder...) contano per il check di
   quella razza, come anche i membri unici di quella razza, come Turzil l'Engi. Le razze proprie di Multiverse
-  non contano.
+  hanno anche il loro check (Crystal, Orchid, Shell, Leech, Phantom, Spider, Lizard). Quelle rare (Cognitive, Siren,
+  Pony, Obelisk) contengono solo riempitivo: lì non ti aspetta niente di necessario.
 - L'obiettivo, il pannello (TAB) e il negozio Archipelago funzionano allo stesso modo. La pagina Navi del pannello mostra sotto ogni nave la razza della maggior parte del suo equipaggio.
 - Ogni personaggio di Multiverse che si unisce al tuo equipaggio (Turzil, Tully...) dà un indizio gratis, una volta per seed.

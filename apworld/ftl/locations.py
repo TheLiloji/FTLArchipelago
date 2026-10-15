@@ -144,6 +144,9 @@ def selected_locations(options) -> tuple[data.Location, ...]:
         elif location.group == data.GROUP_CREW:
             if options.crew_checks:
                 kept.append(location)
+        elif location.group in (data.GROUP_MV_CREW, data.GROUP_MV_CREW_RARE):
+            if multiverse(options) and options.crew_checks:
+                kept.append(location)
         elif location.group == data.GROUP_FIGHTS:
             if location.ship in ships and (location.fight or 0) <= options.combat_checks.value:
                 kept.append(location)

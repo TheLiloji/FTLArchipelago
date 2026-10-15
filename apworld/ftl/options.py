@@ -349,6 +349,9 @@ class CombatCheckScrap(Range):
 class CrewChecks(DefaultOnToggle):
     """The first crew member of each race to join you sends a check: Human, Engi, Zoltan,
     Mantis, Rock, Slug and Lanius. 7 checks.
+
+    With Multiverse, its own races are added: Crystal, Orchid, Shell, Leech, Phantom, Spider and Lizard,
+    plus Cognitive, Siren, Pony and Obelisk, which are rare and only ever hold filler. 11 more checks.
     """
 
     display_name = "Crew Checks"

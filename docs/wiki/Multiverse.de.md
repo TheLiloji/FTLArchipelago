@@ -43,7 +43,8 @@ Multiverse-Runs dauern länger als im Grundspiel: Rechne mit mehr Zeit, als die 
 
 - Die Enden von Multiverse zählen als Siege, nicht nur das Flaggschiff.
 - Multiverse-Varianten einer Rasse (Zoltan Monk, Separatist Engi, Lanius Welder...) zählen für den Check dieser
-  Rasse, ebenso einzigartige Crewmitglieder dieser Rasse, wie Turzil der Engi. Multiverse-eigene Rassen zählen
-  nicht.
+  Rasse, ebenso einzigartige Crewmitglieder dieser Rasse, wie Turzil der Engi. Multiverse-eigene Rassen haben
+  auch ihren Check (Crystal, Orchid, Shell, Leech, Phantom, Spider, Lizard). Die seltenen (Cognitive, Siren, Pony,
+  Obelisk) enthalten nur Füllmaterial: Dort wartet nichts, was du brauchst.
 - Das Ziel, das Dashboard (TAB) und der Archipelago-Laden funktionieren gleich. Die Schiffe-Seite des Dashboards zeigt unter jedem Schiff die Rasse des Großteils seiner Crew.
 - Jede Multiverse-Figur, die sich deiner Crew anschließt (Turzil, Tully...), gibt einmal pro Seed einen kostenlosen Hinweis.

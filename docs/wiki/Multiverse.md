@@ -43,6 +43,8 @@ Multiverse runs are longer than base game runs: count more time than the presets
 
 - Multiverse endings count as victories, not only the Flagship.
 - Multiverse kinds of a race (Zoltan Monk, Separatist Engi, Lanius Welder...) count for that race's crew check.
-  So do unique crew members of that race, like Turzil the Engi. Multiverse's own races do not.
+  So do unique crew members of that race, like Turzil the Engi. Multiverse's own races have
+  their check too (Crystal, Orchid, Shell, Leech, Phantom, Spider, Lizard). The rare ones (Cognitive, Siren, Pony,
+  Obelisk) only ever hold filler: nothing you need waits there.
 - The goal, the dashboard (TAB) and the Archipelago shop work the same way. The Ships page of the dashboard shows under each ship the race of most of its crew.
 - Each Multiverse character who joins your crew (Turzil, Tully...) gives one free hint, once per seed.

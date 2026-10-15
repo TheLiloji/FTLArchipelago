@@ -81,7 +81,7 @@ class TestIdentifiersAreWellFormed(unittest.TestCase):
                     )
             elif location.group == data.GROUP_SHIP_SYSTEMS:
                 expected = data.SHIP_SYSTEM_CHECK_FORMAT.format(ship=location.ship, system=location.system)
-            elif location.group == data.GROUP_CREW:
+            elif location.group in (data.GROUP_CREW, data.GROUP_MV_CREW, data.GROUP_MV_CREW_RARE):
                 expected = data.CREW_CHECK_FORMAT.format(race=location.race)
             elif location.group == data.GROUP_FIGHTS:
                 expected = data.FIGHT_CHECK_FORMAT.format(ship=location.ship, n=location.fight)

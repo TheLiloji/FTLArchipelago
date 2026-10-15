@@ -45,6 +45,7 @@ presets.
 - Les fins de Multiverse comptent comme des victoires, pas seulement le vaisseau amiral.
 - Les variantes d'une race dans Multiverse (Zoltan Monk, Separatist Engi, Lanius Welder...) comptent pour le
   check de cette race, tout comme les équipiers uniques de cette race, comme Turzil l'Engi. Les races propres
-  à Multiverse ne comptent pas.
+  à Multiverse ont aussi leur check (Crystal, Orchid, Shell, Leech, Phantom, Spider, Lizard). Les plus rares
+  (Cognitive, Siren, Pony, Obelisk) ne contiennent que du remplissage : rien d'utile ne t'y attend.
 - Le but, le tableau de bord (TAB) et la boutique Archipelago marchent de la même façon. La page Vaisseaux du tableau de bord montre sous chaque vaisseau la race de la plupart de son équipage.
 - Chaque personnage de Multiverse qui rejoint ton équipage (Turzil, Tully...) donne un indice gratuit, une fois par seed.

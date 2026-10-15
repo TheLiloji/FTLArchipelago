@@ -61,7 +61,7 @@ end
 local nextCrewId = 0
 
 -- Multiverse unique crew draw on a base race's sprites: species -> animBase, as Hyperspace reads it.
-local ANIM_BASES = { unique_turzil = "engi", unique_tully = "human", unique_jerry_pony = "pony" }
+local ANIM_BASES = { unique_turzil = "engi", unique_tully = "human", unique_jerry_pony = "pony", unique_gnome = "gnome" }
 
 local function makeCrew(name, species, shipId)
     nextCrewId = nextCrewId + 1

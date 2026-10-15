@@ -248,14 +248,17 @@ test("crew: a Multiverse unique crew member counts as its race", function()
     applySeed({ loc = {
         ["crew:human"] = "First Human aboard",
         ["crew:engi"] = "First Engi aboard",
+        ["crew:pony"] = "First Pony aboard",
     } })
     sim.startRun(true)
     sim.tick(1)
     sim.player:AddCrewMemberFromString("Turzil", "unique_turzil", false, 0)
     sim.player:AddCrewMemberFromString("Jerry", "unique_jerry_pony", false, 0)
+    sim.player:AddCrewMemberFromString("Gnome", "unique_gnome", false, 0)
     sim.jumpArrive()
     check(apCheckAlreadySent("crew:engi"), "Turzil, an Engi, sends First Engi aboard")
-    check(not apCheckAlreadySent("crew:pony"), "a unique crew member of no race of the seed sends nothing")
+    check(apCheckAlreadySent("crew:pony"), "Jerry, a Pony, sends First Pony aboard: a Multiverse race")
+    check(not apCheckAlreadySent("crew:gnome"), "a unique crew member of no race of the seed sends nothing")
     sim.player:AddCrewMemberFromString("Tully", "unique_tully", false, 0)
     sim.jumpArrive()
     check(apCheckAlreadySent("crew:human"), "Tully, a Human, sends First Human aboard")

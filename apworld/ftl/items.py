@@ -172,7 +172,7 @@ def items_wanting_a_place(world: "FTLWorld") -> int:
 
 # Excluded checks only take filler: there must be at least one filler item for each.
 def reserved_filler(world: "FTLWorld") -> int:
-    excluded = sum(1 for location in world.created_locations if location.group == data.GROUP_MV_ACHIEVEMENTS)
+    excluded = sum(1 for location in world.created_locations if location.group in data.FILLER_ONLY_GROUPS)
     return max(world.options.minimum_filler.value, excluded)
 
 

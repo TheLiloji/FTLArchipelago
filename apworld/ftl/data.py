@@ -152,6 +152,22 @@ CREW_RACES: tuple[tuple[int, str, str], ...] = (
     (6, "anaerobic", "Lanius"),
 )
 
+# Multiverse's own races: each variant (Orchid Caretaker, Phantom Goul...) counts for its race. The rare ones
+# only come through a few events or secrets: their checks hold filler, so nothing depends on finding them.
+MV_CREW_RACES: tuple[tuple[int, str, str, bool], ...] = (
+    (10, "crystal", "Crystal", False),
+    (11, "orchid", "Orchid", False),
+    (12, "shell", "Shell", False),
+    (13, "leech", "Leech", False),
+    (14, "phantom", "Phantom", False),
+    (15, "spider", "Spider", False),
+    (16, "lizard", "Lizard", False),
+    (17, "cognitive", "Cognitive", True),
+    (18, "siren", "Siren", True),
+    (19, "pony", "Pony", True),
+    (20, "obelisk", "Obelisk", True),
+)
+
 # --- BEGIN GENERATED BLOCK, extracted from ftl.dat, do not edit by hand ---
 
 SHIPS_RAW: tuple[tuple[int, str, str, int], ...] = (
@@ -596,6 +612,8 @@ MV_SHOP_FAMILY_OFFSETS: dict[str, int] = {
 GROUP_SYSTEMS = "Systems"
 GROUP_SHIP_SYSTEMS = "Ship systems"
 GROUP_CREW = "Crew"
+GROUP_MV_CREW = "Multiverse crew"
+GROUP_MV_CREW_RARE = "Multiverse rare crew"
 GROUP_CREW_MEMBERS = "Crew members"
 GROUP_SECTORS = "Sectors"
 GROUP_VICTORIES = "Ship victories"
@@ -605,7 +623,7 @@ GROUP_MV_ACHIEVEMENTS = "Multiverse achievements"
 GROUP_SHOP_SLOTS = "Archipelago shop"
 GROUP_FIGHTS = "Fights won"
 # Location groups that only ever hold filler: the logic does not count them as room for the items it needs.
-FILLER_ONLY_GROUPS: frozenset[str] = frozenset({GROUP_MV_ACHIEVEMENTS})
+FILLER_ONLY_GROUPS: frozenset[str] = frozenset({GROUP_MV_ACHIEVEMENTS, GROUP_MV_CREW_RARE})
 
 TIER_GENERAL = "general"
 TIER_DISTANCE = "distance"
@@ -1107,6 +1125,15 @@ def _build_locations() -> tuple[Location, ...]:
             race=race,
         ))
 
+    for slot, race, label, rare in MV_CREW_RACES:
+        locations.append(Location(
+            name=f"First {label} aboard",
+            code=LOCATION_ID_BASE + LOCATION_OFFSET_CREW + slot,
+            check_id=CREW_CHECK_FORMAT.format(race=race),
+            group=GROUP_MV_CREW_RARE if rare else GROUP_MV_CREW,
+            race=race,
+        ))
+
     for slot, achievement, label, tier in GENERAL_ACHIEVEMENTS_RAW:
         locations.append(Location(
             name=f"Achievement: {label}",
@@ -1299,7 +1326,7 @@ def _check_vanilla_totals() -> None:
         "general achievements": (len(GENERAL_ACHIEVEMENTS_RAW), 21),
         "sellable items": (len(SHOP_ITEMS), 74),
         "locations": (len(LOCATIONS), 28 * SECTOR_COUNT + 28 + 30 + 21 + MAX_SHOP_SLOTS
-                      + sum(system.max_level for system in SYSTEMS) + len(CREW_RACES)
+                      + sum(system.max_level for system in SYSTEMS) + len(CREW_RACES) + len(MV_CREW_RACES)
                       + 10 * 16 + len(MV_LAYOUTS) * (SECTOR_COUNT + 1) + len(MV_SHIPS) * 16
                       + len(MV_ACHIEVEMENTS_RAW) + len(ALL_SHIPS) * MAX_FIGHTS_PER_SHIP),
     }

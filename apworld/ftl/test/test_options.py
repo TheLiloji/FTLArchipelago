@@ -180,7 +180,7 @@ class TestEverythingEnabled(FTLTestBase):
         mv_ships = {ship.blueprint for ship in data.MV_SHIPS}
         multiverse = sum(1 for location in data.LOCATIONS
                          if location.layout in {layout.blueprint for layout in data.MV_LAYOUTS}
-                         or location.group == data.GROUP_MV_ACHIEVEMENTS
+                         or location.group in (data.GROUP_MV_ACHIEVEMENTS, data.GROUP_MV_CREW, data.GROUP_MV_CREW_RARE)
                          or (location.group == data.GROUP_FIGHTS and location.ship in mv_ships))
         self.assertEqual(len(self.addressed_locations()),
                          len(data.LOCATIONS) - unused_shop_slots - per_ship - multiverse)

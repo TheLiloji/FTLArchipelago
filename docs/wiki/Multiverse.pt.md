@@ -44,6 +44,7 @@ As partidas do Multiverse são mais longas do que as do jogo base: conta com mai
 - Os finais do Multiverse contam como vitórias, não só a nave-almirante.
 - As variantes de uma raça no Multiverse (Zoltan Monk, Separatist Engi, Lanius Welder...) contam para o check
   dessa raça, assim como os tripulantes únicos dessa raça, como Turzil, o Engi. As raças próprias do
-  Multiverse não contam.
+  Multiverse também têm o seu check (Crystal, Orchid, Shell, Leech, Phantom, Spider, Lizard). As raras (Cognitive,
+  Siren, Pony, Obelisk) só têm enchimento: ali não te espera nada necessário.
 - O objetivo, o painel (TAB) e a loja Archipelago funcionam da mesma forma. A página de naves do painel mostra sob cada nave a raça da maior parte da sua tripulação.
 - Cada personagem do Multiverse que se junta à tua tripulação (Turzil, Tully...) dá uma dica grátis, uma vez por seed.
