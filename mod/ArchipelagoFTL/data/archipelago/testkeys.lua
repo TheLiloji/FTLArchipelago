@@ -224,6 +224,10 @@ local function selfCheck()
         local future = fakeSlotData()
         future.contract = 99
         verify("a seed from a too-recent contract is refused", _G.apApplySlotData(future) == false)
+        -- The refusal was the test's own: its banner and its state must not outlive it.
+        local contract = _G.apContractState or {}
+        if contract.refusalToast and _G.apNotifyWithdraw then _G.apNotifyWithdraw(contract.refusalToast) end
+        contract.refusal, contract.refusalToast = nil, nil
     end
 
     local giftOk = true

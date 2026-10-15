@@ -481,15 +481,18 @@ end
 local function paste()
     local text = (_G.apNetClipboard and apNetClipboard() or ""):match("^%s*(.-)%s*$")
     text = text:gsub("^/connect%s+", "")
+    local empty = apT("connect.paste_empty")
     if text == "" then
-        message, messageTone = apT("connect.paste_empty"), "warn"
+        message, messageTone = empty, "warn"
         return
     end
+    if message == empty then message, messageTone = nil, "dim" end
     local field = FIELDS[focus]
     if field.key == "uri" or field.key == "port" then
         local bare = text:gsub("^wss?://", ""):gsub("/+$", "")
-        local host, port = bare:match("^(.-):(%d+)$")
-        if host ~= nil and host ~= "" then
+        -- Whatever follows the port (a path, a password, a sentence) stays out of both fields.
+        local host, port = bare:match("^([^%s:/]+):(%d+)")
+        if host ~= nil then
             FIELDS[1].value, FIELDS[2].value = host:sub(1, FIELDS[1].max), port:sub(1, FIELDS[2].max)
             blamed[1], blamed[2] = nil, nil
             return

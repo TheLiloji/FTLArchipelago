@@ -314,6 +314,11 @@ test("dashboard: achievements show their game icon, faded until done", function(
     check(icon("ACH_TOUGH_SHIP").alpha > icon("ACH_FULL_ARSENAL").alpha, "the one done is in full colour")
     check(sim.drawnText(apT("dash.checks.general")), "general achievements have their own card")
     check(#overflowing() == 0, "nothing leaves the window")
+    sim.gameTexts.ACH_BURNING_name = "Pyromane"
+    pointAt(icon("ACH_BURNING"))
+    check(sim.drawnText("Pyromane"), "pointing at an achievement names it in the game's language")
+    check(not sim.drawnText("Achievement: Burning"), "not with the seed's English location name")
+    sim.gameTexts.ACH_BURNING_name = nil
     closeDashboard()
 end)
 
