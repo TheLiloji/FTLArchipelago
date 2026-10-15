@@ -408,6 +408,31 @@ local function recordScrap()
     lastScrap = ok and tonumber(value) or nil
 end
 
+-- What the cargo holds, by name: Drone Control comes with a free drone, which a refusal must take back.
+local function cargoCounts()
+    local counts = {}
+    pcall(function()
+        local hold = Hyperspace.App.gui.equipScreen:GetCargoHold()
+        for i = 0, hold:size() - 1 do
+            local name = tostring(hold[i])
+            counts[name] = (counts[name] or 0) + 1
+        end
+    end)
+    return counts
+end
+
+local lastCargo = {}
+
+local function takeBackFreeDrone(player, refusal)
+    local now = cargoCounts()
+    for name, count in pairs(now) do
+        for _ = 1, count - (refusal.cargoBefore[name] or 0) do
+            player:RemoveItem(name, true)
+            sysLog(name .. " that came with the refused " .. refusal.name .. " taken back")
+        end
+    end
+end
+
 -- The medbay and the clone bay exclude each other: buying one makes the game remove the other.
 local EXCLUSIVE = { medbay = "clonebay", clonebay = "medbay" }
 local exclusiveLevels = {}
@@ -496,6 +521,7 @@ script.on_internal_event(Defines.InternalEvents.CONSTRUCT_SHIP_SYSTEM, function(
             systemType = system.iSystemType,
             system = system,
             scrapBefore = lastScrap,
+            cargoBefore = lastCargo,
             partnerLevel = EXCLUSIVE[name] and exclusiveLevels[EXCLUSIVE[name]],
         }
     end)
@@ -536,6 +562,9 @@ local function processRefusals()
         pcall(function()
             player:RemoveSystem(refusal.systemType)
         end)
+        if refusal.name == "drones" then
+            pcall(takeBackFreeDrone, player, refusal)
+        end
         pcall(restoreReplaced, player, refusal)
         if refund > 0 then
             pcall(function()
@@ -581,6 +610,9 @@ local capDivider = 0
 script.on_internal_event(Defines.InternalEvents.ON_TICK, function()
     processRefusals()
     recordScrap()
+    if purchaseGuardArmed and atAStore() then
+        lastCargo = cargoCounts()
+    end
     recordExclusive()
 
     -- A continued run may reload at a store: its systems are all built by now, so the guard goes on at once

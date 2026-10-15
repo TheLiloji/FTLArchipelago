@@ -195,6 +195,29 @@ test("shop: a refused system refunds what the player actually paid", function()
         "the shop took 120, not the blueprint's 150: 120 is returned")
 end)
 
+test("shop: a refused Drone Control takes back its free drone and leaves the player's own", function()
+    sim.startRun(true)
+    _G.apInventory.systemCaps.drones = nil
+    sim.droneBlueprints.DEFENSE_1 = true
+    sim.droneBlueprints.COMBAT_1 = true
+    sim.cargo = { "DEFENSE_1", "COMBAT_1" }
+    sim.jumpArrive()
+    sim.setStore(true)
+    sim.player.currentScrap = 200
+    sim.tick(1)
+
+    -- The game sells Drone Control with a free drone, here one more Defense I.
+    sim.player.currentScrap = 125
+    sim.cargo[#sim.cargo + 1] = "DEFENSE_1"
+    sim.constructSystem("drones", 0, 50)
+    sim.tick(5)
+
+    equals(#sim.player._removed, 1, "Drone Control is refused")
+    equals(table.concat(sim.cargo, ","), "COMBAT_1,DEFENSE_1", "the free drone is gone, the two held before stay")
+    equals(sim.player.currentScrap, 200, "the whole price comes back")
+    check(sim.logged("DEFENSE_1 that came with the refused drones taken back"), "and the log says so")
+end)
+
 test("shop: a refused clone bay gives back the medbay the purchase replaced", function()
     sim.startRun(true)
     _G.apInventory.systemCaps.clonebay = nil
