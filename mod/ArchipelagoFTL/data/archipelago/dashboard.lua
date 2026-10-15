@@ -113,7 +113,7 @@ local function checkBook()
             entry.sent[#entry.sent + 1] = { key = key, name = tostring(name), sent = true }
         else
             local place = categoryOf(key) == "shop" and _G.apShopPlace and apShopPlace(key) or nil
-            entry.remaining[#entry.remaining + 1] = { key = key,
+            entry.remaining[#entry.remaining + 1] = { key = key, raw = tostring(name),
                 name = place and (tostring(name) .. " (" .. place .. ")") or tostring(name) }
         end
     end
@@ -827,7 +827,8 @@ local function checkRows(entry, category)
             row.byBox[place.box] = box
             row.boxes[#row.boxes + 1] = box
         end
-        box.checks[#box.checks + 1] = { key = check.key, name = check.name, done = done }
+        -- The grid already shows the ship and the sector: the name alone says the rest.
+        box.checks[#box.checks + 1] = { key = check.key, name = check.raw or check.name, done = done }
         box.total, row.total = box.total + 1, row.total + 1
         if done then
             box.done, row.done = box.done + 1, row.done + 1
@@ -905,8 +906,13 @@ local function drawBox(box, row, bx, by, bw)
     else
         rect(bx, by, bw, BOX_H, row.current and "faint" or "card")
         outline(bx, by, bw, BOX_H, row.current and "border" or "faint", 1)
-        if box.done > 0 then
-            rect(bx + 2, by + BOX_H - 4, math.floor((bw - 4) * box.done / box.total), 2, "good")
+    end
+    -- Several checks in one box (shop packages of a sector): one dot each, green once done.
+    if box.total > 1 and box.total <= 6 and not complete then
+        local dotsW = box.total * 3 + (box.total - 1) * 2
+        for dot = 1, box.total do
+            rect(bx + math.floor((bw - dotsW) / 2) + (dot - 1) * 5, by + BOX_H - 5, 3, 3,
+                dot <= box.done and "good" or (row.current and "border" or "faint"))
         end
     end
     if box.here and row.current then
@@ -917,7 +923,8 @@ local function drawBox(box, row, bx, by, bw)
         outline(bx, by, bw, BOX_H, "title", 1)
         state.pointed = box
     end
-    textCenter(9, bx + bw / 2, by + 5, bw - 4, complete and "window" or (row.current and "text" or "dim"), box.text)
+    local tone = complete and "window" or (row.current and "text" or "dim")
+    textCenter(9, bx + bw / 2, by + (box.total > 1 and not complete and 3 or 5), bw - 4, tone, box.text)
 end
 
 local function drawShipBanner(x, y, w, rows, flying, category)
@@ -1050,8 +1057,25 @@ local function drawJournal(x, y, w, h)
         Graphics.CSurface.GL_SetColor(color("dim"))
         Graphics.freetype.easy_printAutoNewlines(10, x + 16, y + 44, colW - 32, apT("dash.recent.none"))
     else
-        scrollList("journal:items", { x = x + 16, y = y + 44, w = colW - 32, h = h - 56 }, history, 20,
+        -- A bundle lists what it brought, one line each, under its own name.
+        local rows = {}
+        local descriptors = (_G.apContractState or {}).itemDescriptors or {}
+        for _, entry in ipairs(history) do
+            rows[#rows + 1] = entry
+            local descriptor = descriptors[entry.item]
+            if descriptor and descriptor.k == "bundle" then
+                for _, name in ipairs(descriptor.names or descriptor.bps or {}) do
+                    rows[#rows + 1] = { member = tostring(name) }
+                end
+            end
+        end
+        scrollList("journal:items", { x = x + 16, y = y + 44, w = colW - 32, h = h - 56 }, rows, 20,
             function(entry, rx, ry, rw)
+                if entry.member then
+                    rect(rx + 6, ry + 7, 4, 4, "faint")
+                    text(9, rx + 18, ry + 2, rw - 18, "dim", entry.member)
+                    return
+                end
                 local senderW = 0
                 if entry.sender and entry.sender ~= "" then
                     local sender = apT("dash.recent.from", { sender = entry.sender })
