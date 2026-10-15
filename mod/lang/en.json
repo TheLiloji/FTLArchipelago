@@ -370,6 +370,13 @@
     "trap.sprung": "Trap: {what}",
     "trap.system_damage": "{system} took {n} damage. Nothing hit it.",
     "tutorial.blocked": "TUTORIAL UNAVAILABLE IN AN ARCHIPELAGO GAME",
-    "unlock.relocked": "{n} ship(s) locked again: FTL had unlocked them, not Archipelago."
+    "unlock.relocked": "{n} ship(s) locked again: FTL had unlocked them, not Archipelago.",
+    "dash.checks.any_ship": "Any ship",
+    "dash.checks.general": "General",
+    "dash.checks.ship": "THIS SHIP: {ship}",
+    "dash.checks.ship_clear": "Nothing left here for this ship",
+    "dash.checks.ship_sector": "{n} in this sector",
+    "dash.checks.hover": "Point at a box to see what it is, and what it gave once done.",
+    "dash.checks.gave": "{item} for {slot}"
   }
 }

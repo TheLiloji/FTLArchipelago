@@ -70,6 +70,11 @@ local function hovered(area)
 end
 
 
+local function inRun()
+    local ok, running = pcall(function() return Hyperspace.App.world.bStartedGame == true end)
+    return ok and running
+end
+
 local function hasSeed()
     local contract = _G.apContractState
     return contract ~= nil and contract.connected == true
@@ -710,13 +715,264 @@ local function drawSystems(x, y, w, h)
     end
 end
 
+-- The Checks page draws a category as a grid: one row per ship (or system), one box per sector,
+-- fight, level or achievement, green once done. Pointing at a box tells what it is and what it gave.
+local function baseOf(ship)
+    return (tostring(ship):gsub("_[23]$", ""))
+end
+
+local function flyingShip()
+    if not inRun() then return nil end
+    local ok, name = pcall(function() return Hyperspace.ships.player.myBlueprint.blueprintName end)
+    return ok and name ~= nil and tostring(name) or nil
+end
+
+local function currentSector()
+    local ok, level = pcall(function() return Hyperspace.App.world.starMap.worldLevel end)
+    return ok and tonumber(level) and math.floor(level) + 1 or nil
+end
+
+local function shipLabel(ship, layout)
+    local base = baseOf(ship)
+    local label = _G.apShipLabel and apShipLabel(base) or base
+    if not layout then return label end
+    local variant = tostring(ship):match("_([23])$")
+    return label .. " " .. (variant == "2" and "B" or variant == "3" and "C" or "A")
+end
+
+local achievementShip = nil
+local function shipOfAchievement(id)
+    if achievementShip == nil then
+        achievementShip = {}
+        for ship, list in pairs(((_G.apGameData or {}).shipAchievements) or {}) do
+            for _, achievement in ipairs(list) do achievementShip[achievement] = ship end
+        end
+    end
+    return achievementShip[id]
+end
+
+-- Where a check sits: its row (a ship, a system, or one row for the rest) and its box in that row.
+local function placeOf(key, name, category)
+    key = tostring(key)
+    if category == "shop" then
+        local owner, sector
+        if _G.apShopSlotWhere then owner, sector = apShopSlotWhere(key) end
+        local slot = tonumber(key:match("^shop:(%d+)$")) or 0
+        local layout = owner ~= nil and (_G.apShopConfig or {}).per == "per_layout"
+        return { row = owner or "any", ship = owner, layout = layout,
+                 label = owner and shipLabel(owner, layout) or apT("dash.checks.any_ship"),
+                 box = sector or slot, text = tostring(sector or slot), sector = sector }
+    end
+    local layout, sector = key:match("^([%u_%d]+):sector:(%d+)$")
+    if layout then
+        return { row = layout, ship = layout, layout = true, label = shipLabel(layout, true),
+                 box = tonumber(sector), text = sector }
+    end
+    layout = key:match("^([%u_%d]+):victory$")
+    if layout then
+        local index = ({ ["2"] = 2, ["3"] = 3 })[layout:match("_([23])$") or ""] or 1
+        local base = baseOf(layout)
+        return { row = base, ship = base, label = shipLabel(base), box = index,
+                 text = apT("dash.ships.type", { letter = string.char(64 + index) }), named = true }
+    end
+    local ship, fight = key:match("^([%u_%d]+):fight:(%d+)$")
+    if ship then
+        return { row = ship, ship = ship, label = shipLabel(ship), box = tonumber(fight), text = fight }
+    end
+    local system
+    ship, system = key:match("^([%u_%d]+):sys:(%a+)$")
+    if ship then
+        return { row = ship, ship = ship, label = shipLabel(ship), box = system, named = true,
+                 text = _G.apSystemLabel and apSystemLabel(system) or system }
+    end
+    local level
+    system, level = key:match("^sys:(%a+):?(%d*)$")
+    if system then
+        level = tonumber(level) or 1
+        return { row = "sys:" .. system, label = _G.apSystemLabel and apSystemLabel(system) or system,
+                 box = level, text = tostring(level) }
+    end
+    local achievement = key:match("^ach:(.+)$")
+    if achievement then
+        local owner = shipOfAchievement(achievement)
+        local label = _G.apAchievementLabel and apAchievementLabel(achievement) or achievement
+        if owner then
+            return { row = owner, ship = owner, label = shipLabel(owner), box = label, text = label, named = true }
+        end
+        return { row = "~general", label = apT("dash.checks.general"), box = label, text = label, named = true }
+    end
+    return { row = "~" .. category, label = apT(CATEGORY_TITLE[category]), box = tostring(name),
+             text = tostring(name), named = true }
+end
+
+local function checkRows(entry, category)
+    local flying = flyingShip()
+    local sector = currentSector()
+    local rows, byId = {}, {}
+    local function add(check, done)
+        local place = placeOf(check.key, check.name, category)
+        local row = byId[place.row]
+        if row == nil then
+            local current = flying ~= nil and (place.row == "any"
+                or place.ship ~= nil and (place.ship == flying or (not place.layout and place.ship == baseOf(flying))))
+            row = { id = place.row, label = place.label, ship = place.ship, current = current,
+                    boxes = {}, byBox = {}, done = 0, total = 0, here = 0 }
+            byId[place.row] = row
+            rows[#rows + 1] = row
+        end
+        local box = row.byBox[place.box]
+        if box == nil then
+            box = { id = place.box, text = place.text, named = place.named, checks = {}, done = 0, total = 0,
+                    here = place.sector ~= nil and place.sector == sector }
+            row.byBox[place.box] = box
+            row.boxes[#row.boxes + 1] = box
+        end
+        box.checks[#box.checks + 1] = { key = check.key, name = check.name, done = done }
+        box.total, row.total = box.total + 1, row.total + 1
+        if done then
+            box.done, row.done = box.done + 1, row.done + 1
+        elseif box.here and row.current then
+            row.here = row.here + 1
+        end
+    end
+    for _, check in ipairs(entry.remaining) do add(check, false) end
+    for _, check in ipairs(entry.sent) do add(check, true) end
+    for _, row in ipairs(rows) do
+        table.sort(row.boxes, function(a, b)
+            if type(a.id) == type(b.id) then return a.id < b.id end
+            return type(a.id) == "number"
+        end)
+    end
+    table.sort(rows, function(a, b)
+        if a.current ~= b.current then return a.current end
+        local aLeft, bLeft = a.done < a.total, b.done < b.total
+        if aLeft ~= bLeft then return aLeft end
+        return a.label < b.label
+    end)
+    return rows, flying
+end
+
+-- What a check done gave, as the server answered the scout: "Glaive Beam for Axel".
+local function contentOf(key)
+    local found
+    if tostring(key):sub(1, 5) == "shop:" then
+        found = _G.apShopSlotContent and apShopSlotContent(key)
+    else
+        found = _G.apNetScoutedItem and apNetScoutedItem(key)
+    end
+    if found == nil or found.item == nil then return nil end
+    local own = _G.apOwnSlotName and apOwnSlotName() or nil
+    local receiver = found.slot ~= nil and tostring(found.slot) or nil
+    if found.mine or receiver == nil or receiver == "" or (own ~= nil and receiver == tostring(own)) then
+        return tostring(found.item)
+    end
+    return apT("dash.checks.gave", { item = tostring(found.item), slot = receiver })
+end
+
+local BOX_W, BOX_H, BOX_GAP = 26, 22, 4
+local LINE_H = BOX_H + 8
+
+local function boxWidth(box)
+    if not box.named then return BOX_W end
+    return math.min(170, width(9, box.text) + 16)
+end
+
+-- A row too long for the panel goes on as many lines as it needs, its name on the first one.
+local function gridLines(rows, boxesW)
+    local lines = {}
+    for _, row in ipairs(rows) do
+        local line = { row = row, first = true, boxes = {} }
+        local used = 0
+        for _, box in ipairs(row.boxes) do
+            local bw = boxWidth(box)
+            if #line.boxes > 0 and used + bw > boxesW then
+                lines[#lines + 1] = line
+                line = { row = row, first = false, boxes = {} }
+                used = 0
+            end
+            line.boxes[#line.boxes + 1] = box
+            used = used + bw + BOX_GAP
+        end
+        lines[#lines + 1] = line
+    end
+    return lines
+end
+
+local function drawBox(box, row, bx, by, bw)
+    local complete = box.done >= box.total
+    if complete then
+        rect(bx, by, bw, BOX_H, "good")
+    else
+        rect(bx, by, bw, BOX_H, row.current and "faint" or "card")
+        outline(bx, by, bw, BOX_H, row.current and "border" or "faint", 1)
+        if box.done > 0 then
+            rect(bx + 2, by + BOX_H - 4, math.floor((bw - 4) * box.done / box.total), 2, "good")
+        end
+    end
+    if box.here and row.current then
+        outline(bx - 2, by - 2, bw + 4, BOX_H + 4, "warn", 2)
+    end
+    local area = { x = bx, y = by, w = bw, h = BOX_H }
+    if hovered(area) then
+        outline(bx, by, bw, BOX_H, "title", 1)
+        state.pointed = box
+    end
+    textCenter(9, bx + bw / 2, by + 5, bw - 4, complete and "window" or (row.current and "text" or "dim"), box.text)
+end
+
+local function drawShipBanner(x, y, w, rows, flying, category)
+    local left, here, any = 0, 0, false
+    for _, row in ipairs(rows) do
+        if row.current then
+            any = true
+            left = left + row.total - row.done
+            here = here + row.here
+        end
+    end
+    local tone = left == 0 and "good" or "border"
+    rect(x, y, w, 50, "faint")
+    rect(x, y, 3, 50, tone)
+    local layout = category == "sector" or (category == "shop" and (_G.apShopConfig or {}).per == "per_layout")
+    text(9, x + 14, y + 7, w - 200, "dim", apT("dash.checks.ship", { ship = shipLabel(flying, layout) }))
+    if not any or left == 0 then
+        text(12, x + 14, y + 24, w - 28, "good", apT("dash.checks.ship_clear"))
+        return
+    end
+    local count = apT("dash.checks.remaining", { n = left })
+    text(18, x + 14, y + 22, w - 28, "text", count)
+    if category == "shop" and here > 0 then
+        text(10, x + 24 + width(18, count), y + 28, w - 60 - width(18, count), "warn",
+            apT("dash.checks.ship_sector", { n = here }))
+    end
+end
+
+local function drawPointed(x, y, w, complete)
+    local box = state.pointed
+    if box == nil then
+        if complete then text(10, x, y, w, "good", apT("dash.checks.all_done")) end
+        text(9, x, y + (complete and 18 or 0), w, "dim", apT("dash.checks.hover"))
+        return
+    end
+    for index, check in ipairs(box.checks) do
+        if index > 3 then
+            text(9, x, y + 3 * 15, w, "dim", apT("dash.plus", { n = #box.checks - 3 }))
+            break
+        end
+        local line = check.name
+        local gave = check.done and contentOf(check.key) or nil
+        if gave then line = line .. "  >  " .. gave end
+        text(9, x, y + (index - 1) * 15, w, check.done and "good" or "text", line)
+    end
+end
+
 local function drawChecks(x, y, w, h)
     local book = checkBook()
+    state.pointed = nil
     if book.total == 0 then
         text(12, x, y, w, "dim", apT("dash.checks.none"))
         return
     end
-    local listW = 300
+    local listW = 236
     local rowH = 46
     local shown = {}
     for _, name in ipairs(CATEGORIES) do
@@ -740,26 +996,48 @@ local function drawChecks(x, y, w, h)
             complete and "good" or "border")
     end
 
+    local category = shown[state.category]
     local px = x + listW + PAD
     local pw = w - listW - PAD
-    local current = book.byCategory[shown[state.category]]
+    local current = book.byCategory[category]
     card(px, y, pw, h)
-    text(12, px + 16, y + 12, pw - 180, "title", apT(CATEGORY_TITLE[shown[state.category]]))
-    textRight(10, px + pw - 16, y + 15, 170, "dim", apT("dash.checks.remaining", { n = #current.remaining }))
-    -- What is left comes first; what is done stays below it, in green.
-    local listY = y + 44
-    if #current.remaining == 0 then
-        text(10, px + 16, listY, pw - 32, "good", apT("dash.checks.all_done"))
-        listY = listY + 26
+    text(12, px + 16, y + 12, pw - 180, "title", apT(CATEGORY_TITLE[category]))
+    textRight(10, px + pw - 16, y + 15, 170, current.done >= current.total and "good" or "dim",
+        apT("dash.checks.remaining", { n = #current.remaining }))
+
+    local rows, flying = checkRows(current, category)
+    local top = y + 42
+    local shipBound = false
+    for _, row in ipairs(rows) do shipBound = shipBound or row.ship ~= nil end
+    if flying and shipBound then
+        drawShipBanner(px + 16, top, pw - 32, rows, flying, category)
+        top = top + 62
     end
-    local rows = {}
-    for _, row in ipairs(current.remaining) do rows[#rows + 1] = row end
-    for _, row in ipairs(current.sent) do rows[#rows + 1] = row end
-    scrollList("checks:" .. shown[state.category], { x = px + 16, y = listY, w = pw - 32, h = y + h - 12 - listY },
-        rows, 20, function(row, rx, ry, rw)
-            rect(rx, ry + 6, 5, 5, row.sent and "good" or "faint")
-            text(10, rx + 14, ry, rw - 14, row.sent and "good" or "text", row.name)
+    local detailH = 52
+    local labelW = 180
+    local fractionW = 56
+    local boxesW = pw - 32 - labelW - fractionW
+    local lines = gridLines(rows, boxesW)
+    rect(px + 16, y + h - detailH - 6, pw - 32, 1, "faint")
+    scrollList("checks:" .. category, { x = px + 16, y = top, w = pw - 32, h = y + h - detailH - 12 - top },
+        lines, LINE_H, function(line, rx, ry, rw)
+            local row = line.row
+            local complete = row.done >= row.total
+            if line.first then
+                if row.current then rect(rx, ry, 3, BOX_H, "border") end
+                text(10, rx + 10, ry + 4, labelW - 16, row.current and "title" or (complete and "good" or "text"),
+                    row.label)
+                textRight(9, rx + rw, ry + 5, fractionW - 6, complete and "good" or "dim",
+                    apT("dash.fraction", { done = row.done, total = row.total }))
+            end
+            local bx = rx + labelW
+            for _, box in ipairs(line.boxes) do
+                local bw = boxWidth(box)
+                drawBox(box, row, bx, ry, bw)
+                bx = bx + bw + BOX_GAP
+            end
         end)
+    drawPointed(px + 16, y + h - detailH, pw - 32, current.done >= current.total)
 end
 
 local function drawJournal(x, y, w, h)
@@ -858,11 +1136,6 @@ local function drawWindow()
     text(9, x + 16, y + h - FOOTER_H + 9, w - 32, "dim", apT("dash.footer"))
 end
 
-
-local function inRun()
-    local ok, running = pcall(function() return Hyperspace.App.world.bStartedGame == true end)
-    return ok and running
-end
 
 local function setOpen(value)
     if state.open == value then return end

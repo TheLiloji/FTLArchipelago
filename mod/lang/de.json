@@ -370,6 +370,13 @@
     "trap.sprung": "Falle: {what}",
     "trap.system_damage": "{system}: {n} Schaden. Kein Treffer registriert.",
     "tutorial.blocked": "TUTORIAL IN EINEM ARCHIPELAGO-SPIEL NICHT VERFÜGBAR",
-    "unlock.relocked": "{n} Schiff(e) wieder gesperrt: FTL hatte sie freigeschaltet, nicht Archipelago."
+    "unlock.relocked": "{n} Schiff(e) wieder gesperrt: FTL hatte sie freigeschaltet, nicht Archipelago.",
+    "dash.checks.any_ship": "Jedes Schiff",
+    "dash.checks.general": "Allgemein",
+    "dash.checks.ship": "DIESES SCHIFF: {ship}",
+    "dash.checks.ship_clear": "Hier nichts mehr für dieses Schiff",
+    "dash.checks.ship_sector": "davon {n} in diesem Sektor",
+    "dash.checks.hover": "Zeig auf ein Feld, um zu sehen, was es ist und was es nach dem Erledigen gab.",
+    "dash.checks.gave": "{item} für {slot}"
   }
 }

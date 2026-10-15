@@ -140,7 +140,7 @@
     "deal.backfired": "+{scrap} di rottami. Nessuno là fuori per incassare: il patto si ritorce su di te.",
     "deal.blood.risk": "E il {chance}% delle volte, un membro dell'equipaggio muore per sempre.\nNessuna baia di clonazione lo riporta indietro. Mai l'ultimo.",
     "deal.blood.taken": "Il patto di sangue si prende {name}. Nessun clone lo riporterà indietro.",
-    "deal.blood.title": "Patto di sangue: +{scrap} rottami",
+    "deal.blood.title": "Patto di sangue: +{scrap}",
     "deal.body": "Ricevi {scrap} rottami nel momento in cui firmi.\nIn cambio, scatta una di queste:\nincendio, falla, perdita di carburante, avaria,\ndanno allo scafo, o la flotta ribelle avanza.\n\nDue volte su tre tocca a un altro giocatore.\nUna volta su tre tocca a te.\nLo scoprirai solo dopo aver firmato.",
     "deal.closed": "Questo patto è già firmato",
     "deal.closed.body": "Già firmato. Non c'è più niente da ricavarne.",
@@ -370,6 +370,13 @@
     "trap.sprung": "Trappola: {what}",
     "trap.system_damage": "{system}: {n} di danno. Nessun colpo registrato.",
     "tutorial.blocked": "TUTORIAL NON DISPONIBILE IN UNA PARTITA ARCHIPELAGO",
-    "unlock.relocked": "{n} nave/i bloccata/e di nuovo: le aveva sbloccate FTL, non Archipelago."
+    "unlock.relocked": "{n} nave/i bloccata/e di nuovo: le aveva sbloccate FTL, non Archipelago.",
+    "dash.checks.any_ship": "Qualsiasi nave",
+    "dash.checks.general": "Generali",
+    "dash.checks.ship": "QUESTA NAVE: {ship}",
+    "dash.checks.ship_clear": "Niente più qui per questa nave",
+    "dash.checks.ship_sector": "{n} in questo settore",
+    "dash.checks.hover": "Punta una casella per vedere cos'è e cosa ha dato una volta fatta.",
+    "dash.checks.gave": "{item} per {slot}"
   }
 }

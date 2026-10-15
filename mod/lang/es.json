@@ -140,7 +140,7 @@
     "deal.backfired": "+{scrap} de chatarra. No hay nadie más que pague el precio: el pacto se vuelve en tu contra.",
     "deal.blood.risk": "Y el {chance} % de las veces, un tripulante muere para siempre.\nNinguna bahía de clonación lo trae de vuelta. Nunca el último.",
     "deal.blood.taken": "El pacto de sangre se lleva a {name}. Ningún clon lo traerá de vuelta.",
-    "deal.blood.title": "Pacto de sangre: +{scrap} de chatarra",
+    "deal.blood.title": "Pacto de sangre: +{scrap}",
     "deal.body": "Recibes {scrap} de chatarra al firmar.\nA cambio, ocurre una de estas cosas:\nincendio, brecha, fuga de combustible, avería,\ndaño al casco o avance de la flota rebelde.\n\nDos de cada tres veces le ocurre a otro jugador.\nUna de cada tres, te ocurre a ti.\nSolo lo sabrás después de firmar.",
     "deal.closed": "Este pacto ya está firmado",
     "deal.closed.body": "Ya está firmado. No queda nada más que obtener aquí.",
@@ -370,6 +370,13 @@
     "trap.sprung": "Trampa: {what}",
     "trap.system_damage": "{system}: {n} de daño. No se registró ningún impacto.",
     "tutorial.blocked": "TUTORIAL NO DISPONIBLE EN UNA PARTIDA DE ARCHIPELAGO",
-    "unlock.relocked": "{n} naves bloqueadas nuevamente: las desbloqueó FTL, no Archipelago."
+    "unlock.relocked": "{n} naves bloqueadas nuevamente: las desbloqueó FTL, no Archipelago.",
+    "dash.checks.any_ship": "Cualquier nave",
+    "dash.checks.general": "Generales",
+    "dash.checks.ship": "ESTA NAVE: {ship}",
+    "dash.checks.ship_clear": "Nada más aquí para esta nave",
+    "dash.checks.ship_sector": "{n} en este sector",
+    "dash.checks.hover": "Señala una casilla para ver qué es y qué dio una vez hecha.",
+    "dash.checks.gave": "{item} para {slot}"
   }
 }

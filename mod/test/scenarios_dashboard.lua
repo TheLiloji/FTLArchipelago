@@ -176,27 +176,111 @@ test("dashboard: each system card shows FTL's icon, green once usable, grey whil
     closeDashboard()
 end)
 
-test("dashboard: the checks page lists what is left in the chosen category, and scrolls", function()
+local function sameColorTone(drawn, tone)
+    local c = (_G.apUi or {}).COLOR and apUi.COLOR[tone]
+    return drawn ~= nil and c ~= nil and drawn.r == c[1] and drawn.g == c[2] and drawn.b == c[3]
+end
+
+local function boxDraw(value, color)
+    for _, draw in ipairs(sim.draws) do
+        if draw.text == value and draw.size == 9 and (color == nil or sameColorTone(draw.color, color)) then
+            return draw
+        end
+    end
+end
+
+-- Points the mouse at a box of the checks grid and draws the page again.
+local function pointAt(draw)
+    Hyperspace.Mouse = { position = { x = draw.x + 2, y = draw.y + 3 } }
+    sim.renderGui()
+    Hyperspace.Mouse = nil
+end
+
+test("dashboard: the checks page draws a box per check, and pointing at one names it", function()
     sim.startRun(true)
     local loc = {}
     for i = 1, 60 do loc["shop:" .. i] = string.format("Archipelago Shop %02d", i) end
     loc["sys:shields"] = "Install Shields"
+    loc["sys:shields:2"] = "Shields Level 2"
     applySeed({ items = {}, loc = loc })
+    _G.apShopConfig.owners, _G.apShopConfig.sectors = nil, nil
     apSendCheck("shop:1", "test")
     openDashboard("checks")
     check(sim.drawnText(apT("dash.checks.remaining", { n = 59 })), "59 shop slots left")
-    check(not sim.drawnText("Archipelago Shop 01"), "the one already bought waits at the end of the list")
-    check(sim.drawnText("Archipelago Shop 02"), "the next one is")
-    check(not sim.drawnText("Archipelago Shop 60"), "the end of the list waits below")
-
-    sim.scroll(1)
-    sim.renderGui()
-    check(sim.drawnText("Archipelago Shop 02"), "the wheel only scrolls where the mouse is")
+    check(sim.drawnText(apT("dash.checks.any_ship")), "a shop sold anywhere has one row for any ship")
+    check(boxDraw("2") ~= nil and boxDraw("60") ~= nil, "a box per slot, all of them on screen")
+    check(not sim.drawnText("Archipelago Shop 02"), "names wait for the mouse")
+    check(sim.drawnText(apT("dash.checks.hover")), "and the page says so")
+    pointAt(boxDraw("2"))
+    check(sim.drawnText("Archipelago Shop 02"), "pointing at a box names its check")
 
     local rowH = 46
     sim.click(DASH.x + 20 + 40, DASH.y + 96 + (rowH + 6) + 10)
     sim.renderGui()
-    check(sim.drawnText("Install Shields"), "clicking the systems category lists its checks")
+    check(sim.drawnText(apSystemLabel("shields")), "the systems category has a row per system")
+    check(boxDraw("1") ~= nil and boxDraw("2") ~= nil, "with a box per level, the install first")
+    closeDashboard()
+end)
+
+test("dashboard: a check done turns its box green and tells what it gave", function()
+    sim.startRun(true)
+    applySeed({ items = {}, loc = { ["shop:1"] = "Archipelago Shop 1", ["shop:2"] = "Archipelago Shop 2",
+                                    ["PLAYER_SHIP_HARD:sector:2"] = "Kestrel Cruiser A: Reach sector 2" } })
+    _G.apShopConfig.owners, _G.apShopConfig.sectors = nil, nil
+    apShopGiftsConfigure({ { location = "shop:1", slot = "Axel", item = "Glaive Beam", kind = "useful" },
+                           { location = "shop:2", slot = "Axel", item = "Hull Repair", kind = "filler" } })
+    apSendCheck("shop:1", "test")
+    openDashboard("checks")
+    local done = boxDraw("1")
+    check(done ~= nil and sameColorTone(done.color, "window"), "the box done is drawn on green")
+    check(sameColorTone(boxDraw("2") and boxDraw("2").color, "text"), "the one left is not")
+    pointAt(done)
+    check(sim.drawnText(apT("dash.checks.gave", { item = "Glaive Beam", slot = "Axel" })),
+        "a shop slot bought still says what it held and for whom")
+    pointAt(boxDraw("2"))
+    check(not sim.drawnText("Hull Repair"), "one not bought yet keeps its secret")
+    closeDashboard()
+
+    apSendCheck("shop:2", "test")
+    openDashboard("checks")
+    check(sim.drawnText(apT("dash.checks.all_done")), "a category all done says so")
+    closeDashboard()
+end)
+
+test("dashboard: the ship flown comes first, with what is left for it and in this sector", function()
+    sim.startRun(true)
+    applySeed({ items = {}, loc = {
+        ["PLAYER_SHIP_CIRCLE:sector:2"] = "Engi Cruiser A: Reach sector 2",
+        ["PLAYER_SHIP_HARD:sector:2"] = "Kestrel Cruiser A: Reach sector 2",
+        ["PLAYER_SHIP_HARD:sector:3"] = "Kestrel Cruiser A: Reach sector 3",
+        ["PLAYER_SHIP_HARD_2:sector:2"] = "Kestrel Cruiser B: Reach sector 2",
+        ["shop:1"] = "Archipelago Shop 1", ["shop:2"] = "Archipelago Shop 2", ["shop:3"] = "Archipelago Shop 3",
+        ["shop:4"] = "Archipelago Shop 4",
+    } })
+    _G.apShopConfig.owners = { "PLAYER_SHIP_HARD", "PLAYER_SHIP_CIRCLE" }
+    _G.apShopConfig.sectors = 2
+    openDashboard("checks")
+    local kestrel = apShipLabel("PLAYER_SHIP_HARD")
+    check(sim.drawnText(apT("dash.checks.ship", { ship = kestrel })), "the banner names the ship flown")
+    check(sim.drawnText(apT("dash.checks.remaining", { n = 2 })), "the Kestrel has two shop slots left")
+    check(sim.drawnText(apT("dash.checks.ship_sector", { n = 1 })), "one of them sold in this sector")
+    local kestrelY, engiY
+    for _, draw in ipairs(sim.draws) do
+        if draw.text == kestrel then kestrelY = kestrelY or draw.y end
+        if draw.text == apShipLabel("PLAYER_SHIP_CIRCLE") then engiY = engiY or draw.y end
+    end
+    check(kestrelY ~= nil and engiY ~= nil and kestrelY < engiY, "the ship flown is the first row")
+
+    sim.click(DASH.x + 20 + 40, DASH.y + 96 + 46 + 6 + 10)
+    sim.renderGui()
+    check(sim.drawnText(apT("dash.checks.ship", { ship = kestrel .. " A" })), "sectors are counted per layout")
+    check(sim.drawnText(apT("dash.checks.remaining", { n = 2 })), "the layout A has two sectors left")
+    check(sim.drawnText(kestrel .. " B"), "the layout B has its own row")
+    apSendCheck("PLAYER_SHIP_HARD:sector:2", "test")
+    apSendCheck("PLAYER_SHIP_HARD:sector:3", "test")
+    sim.renderGui()
+    check(sim.drawnText(apT("dash.checks.ship_clear")), "nothing left for this ship: the banner says so")
+    _G.apShopConfig.owners, _G.apShopConfig.sectors = nil, nil
     closeDashboard()
 end)
 
@@ -280,29 +364,6 @@ test("journal: an item's class survives a restart, and a journal saved before cl
     check(sameColor(drawnColor("Breach Trap"), "bad"), "the trap is still red after the restart")
     check(drawnColor("Glaive Beam") ~= nil, "an entry from an older journal is still listed")
     equals(_G.apReceivedHistory[2].sender, "Axel", "with its sender")
-    closeDashboard()
-end)
-
-test("dashboard: a check done stays in its list, in green, below what is left", function()
-    sim.startRun(true)
-    applySeed({ items = {}, loc = { ["sys:shields"] = "Install Shields", ["sys:cloaking"] = "Install Cloaking" } })
-    apSendCheck("sys:cloaking", "test")
-    openDashboard("checks")
-    local shields, cloaking
-    for _, draw in ipairs(sim.draws) do
-        if draw.text == "Install Shields" then shields = draw end
-        if draw.text == "Install Cloaking" then cloaking = draw end
-    end
-    check(cloaking ~= nil, "the check done is still listed")
-    check(shields ~= nil and cloaking ~= nil and shields.y < cloaking.y, "below the one left")
-    check(sameColor(cloaking and cloaking.color, "good"), "in green")
-    check(sameColor(shields and shields.color, "text"), "the one left keeps the normal colour")
-    closeDashboard()
-
-    apSendCheck("sys:shields", "test")
-    openDashboard("checks")
-    check(sim.drawnText(apT("dash.checks.all_done")), "all done: the page says so")
-    check(sim.drawnText("Install Shields") and sim.drawnText("Install Cloaking"), "and still lists them")
     closeDashboard()
 end)
 
