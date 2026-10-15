@@ -62,7 +62,7 @@ def strip_comments(text: str) -> str:
 def mod_calls() -> list[tuple[str, str, int, int]]:
     found: list[tuple[str, str, int, int]] = []
     for path in sorted((ROOT / "ArchipelagoFTL" / "data" / "archipelago").glob("*.lua")):
-        if path.name in ("lang.lua", "gamedata.lua", "solo_order.lua", "gifts_demo.lua"):
+        if path.name in ("lang.lua", "gamedata.lua", "gamedata_mv.lua", "solo_order.lua", "gifts_demo.lua"):
             continue
         text = path.read_text(encoding="utf-8")
         text = strip_comments(text)

@@ -13,6 +13,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 OUT = ROOT / "apworld" / "ftl" / "data_mv.py"
+MOD_OUT = ROOT / "mod" / "ArchipelagoFTL" / "data" / "archipelago" / "gamedata_mv.lua"
 SYSTEMS = ("pilot", "doors", "sensors", "oxygen", "engines", "shields", "weapons", "drones", "medbay",
            "clonebay", "teleporter", "cloaking", "artillery", "battery", "mind", "hacking")
 FIRST_SLOT = 10
@@ -157,6 +158,19 @@ def main() -> int:
         "",
     ]
     OUT.write_text("\n".join(lines), encoding="utf-8", newline="\n")
+
+    # The dashboard draws each Multiverse achievement with the icon Hyperspace gives it.
+    icons = dict(re.findall(r'<achievement name="([A-Z_0-9]+)">.*?<icon>([^<]+)</icon>', hs, re.S))
+    mod_lines = [
+        f"-- Extracted from FTL: Multiverse {version} by apworld/tools/extract_mv.py, do not edit by hand.",
+        "local images = (_G.apGameData or {}).achievementImages",
+        "if images then",
+        *(f'    images.{name} = "achievements/{icons[name].strip()}.png"'
+          for _, name, _ in feats if name in icons),
+        "end",
+        "",
+    ]
+    MOD_OUT.write_text("\n".join(mod_lines), encoding="utf-8", newline="\n")
     print(f"{OUT.name}: {len(ships)} ships, {len(layouts)} layouts, {len(sold)} items for sale "
           f"{len(feats)} achievements (Multiverse {version})")
     return 0

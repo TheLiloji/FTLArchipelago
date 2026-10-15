@@ -360,6 +360,7 @@
 
 <scripts>
     <script>data/archipelago/gamedata.lua</script>
+    <script>data/archipelago/gamedata_mv.lua</script>
     <script>data/archipelago/lang.lua</script>
     <script>data/archipelago/i18n.lua</script>
     <script>data/archipelago/ui.lua</script>

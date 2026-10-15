@@ -619,3 +619,10 @@ test("ships: Multiverse's Kestrel counts without its item and is never locked ag
     check(sim.unlocked["PLAYER_SHIP_MVKESTREL"], "and stays unlocked at the menu")
     shipDone()
 end)
+
+test("dashboard: a Multiverse achievement shows the icon Hyperspace gives it", function()
+    equals(apGameData.achievementImages.ACH_ACC_DATABASE, "achievements/ach_acc_database.png", "named like its icon")
+    equals(apGameData.achievementImages.ACH_ACC_DETERGENT, "achievements/ach_detergent.png",
+        "even when the icon's name differs from the achievement's")
+    equals(apGameData.achievementImages.ACH_SECTOR_5, "achievements/0.png", "the base game's stay as they were")
+end)
