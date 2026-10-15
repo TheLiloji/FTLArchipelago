@@ -155,6 +155,27 @@ test("dashboard: the systems page tells locked, levels and head starts apart", f
     closeDashboard()
 end)
 
+test("dashboard: each system card shows FTL's icon, green once usable, grey while locked", function()
+    sim.startRun(true)
+    dashboardSeed()
+    _G.apInventory.systemCaps = { shields = 3, cloaking = 2 }
+    _G.apInventory.blueprints = { shields = true }
+    sim.images = {}
+    openDashboard("systems")
+    local drawn = {}
+    for _, image in ipairs(sim.images) do
+        if type(image.texture) == "table" then drawn[image.texture.name] = (drawn[image.texture.name] or 0) + 1 end
+    end
+    check(drawn["icons/s_shields_green1.png"], "shields, blueprint received: green")
+    check(drawn["icons/s_cloaking_grey1.png"], "cloaking, a level but no blueprint: grey")
+    local icons = 0
+    for name in pairs(drawn) do
+        if name:find("^icons/s_") then icons = icons + 1 end
+    end
+    equals(icons, 16, "one icon per system")
+    closeDashboard()
+end)
+
 test("dashboard: the checks page lists what is left in the chosen category, and scrolls", function()
     sim.startRun(true)
     local loc = {}

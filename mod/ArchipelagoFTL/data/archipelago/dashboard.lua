@@ -190,6 +190,7 @@ local function systemRows()
             unlocked = cap > 0 or bonus > 0
         end
         rows[#rows + 1] = {
+            id = system.id,
             name = _G.apSystemLabel and apSystemLabel(system.id) or system.id,
             locked = not unlocked,
             aboard = aboard[system.id] == true,
@@ -628,6 +629,28 @@ local function drawShips(x, y, w, h)
     end
 end
 
+-- FTL's own system icons, green when the system can be used, grey when it is still locked.
+local VANILLA_ICONS = {
+    artillery = true, battery = true, cloaking = true, clonebay = true, doors = true, drones = true,
+    engines = true, hacking = true, medbay = true, mind = true, oxygen = true, pilot = true,
+    sensors = true, shields = true, teleporter = true, weapons = true,
+}
+-- The images are 64 pixels with a wide transparent margin: drawn at their own size, crisp.
+local ICON_SIZE = 64
+local iconTextures = {}
+
+local function systemIcon(id, lit)
+    if not VANILLA_ICONS[id] then
+        return nil
+    end
+    local path = "icons/s_" .. id .. (lit and "_green1.png" or "_grey1.png")
+    if iconTextures[path] == nil then
+        local ok, texture = pcall(function() return Hyperspace.Resources:GetImageId(path) end)
+        iconTextures[path] = (ok and texture) or false
+    end
+    return iconTextures[path] or nil
+end
+
 local function drawSystems(x, y, w, h)
     local rows, unlocked, reactor = systemRows()
     text(12, x, y, w - 260, "title", apT("dash.systems.header", { done = unlocked, total = #rows }))
@@ -648,7 +671,13 @@ local function drawSystems(x, y, w, h)
         local known = row.total ~= nil and row.total > 0
         local full = known and row.received >= row.total
         rect(cx, cy, 3, cardH, row.locked and "faint" or (full and "good" or "border"))
-        text(10, cx + 14, cy + 10, cardW - 26, row.locked and "dim" or "text", row.name)
+        local icon = systemIcon(row.id, not row.locked or row.aboard)
+        local innerW = icon and cardW - 18 - ICON_SIZE or cardW - 26
+        if icon then
+            Graphics.CSurface.GL_BlitPixelImage(icon, cx + cardW - ICON_SIZE - 2,
+                cy + math.floor((cardH - ICON_SIZE) / 2), ICON_SIZE, ICON_SIZE, 0, Graphics.GL_Color(1, 1, 1, 1), false)
+        end
+        text(10, cx + 14, cy + 10, innerW, row.locked and "dim" or "text", row.name)
         local status
         -- A system the ship starts with counts its upgrades like the others, its blueprint still missing.
         if row.locked and row.aboard and known then
@@ -664,17 +693,17 @@ local function drawSystems(x, y, w, h)
         else
             status = apT("hud.system.received", { n = row.received })
         end
-        text(9, cx + 14, cy + 28, cardW - 26, row.locked and "dim" or (full and "good" or "dim"), status)
+        text(9, cx + 14, cy + 28, innerW, row.locked and "dim" or (full and "good" or "dim"), status)
         if known and (not row.locked or row.aboard) then
             local pipGap = 3
-            local pipW = math.max(4, math.min(18, math.floor((cardW - 28 - pipGap * (row.total - 1)) / row.total)))
+            local pipW = math.max(4, math.min(18, math.floor((innerW - 2 - pipGap * (row.total - 1)) / row.total)))
             for pip = 1, row.total do
                 rect(cx + 14 + (pip - 1) * (pipW + pipGap), cy + 48, pipW, 8,
                     pip <= row.received and (full and "good" or "border") or "faint")
             end
         end
         if row.start > 0 then
-            text(9, cx + 14, cy + cardH - 20, cardW - 26, "good", apT("dash.system.start", { n = row.start }))
+            text(9, cx + 14, cy + cardH - 20, innerW, "good", apT("dash.system.start", { n = row.start }))
         end
     end
 end
