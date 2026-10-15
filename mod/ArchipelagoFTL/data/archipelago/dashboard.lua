@@ -95,7 +95,7 @@ end
 local function checkBook()
     local book = { total = 0, done = 0, byCategory = {} }
     for _, name in ipairs(CATEGORIES) do
-        book.byCategory[name] = { total = 0, done = 0, remaining = {} }
+        book.byCategory[name] = { total = 0, done = 0, remaining = {}, sent = {} }
     end
     local names = ((_G.apContractState or {}).locNames) or {}
     for key, name in pairs(names) do
@@ -105,6 +105,7 @@ local function checkBook()
         if sentCheck(key) then
             entry.done = entry.done + 1
             book.done = book.done + 1
+            entry.sent[#entry.sent + 1] = { key = key, name = tostring(name), sent = true }
         else
             local place = categoryOf(key) == "shop" and _G.apShopPlace and apShopPlace(key) or nil
             entry.remaining[#entry.remaining + 1] = { key = key,
@@ -116,6 +117,7 @@ local function checkBook()
     end
     for _, entry in pairs(book.byCategory) do
         table.sort(entry.remaining, function(a, b) return natural(a.name) < natural(b.name) end)
+        table.sort(entry.sent, function(a, b) return natural(a.name) < natural(b.name) end)
     end
     return book
 end
@@ -744,14 +746,19 @@ local function drawChecks(x, y, w, h)
     card(px, y, pw, h)
     text(12, px + 16, y + 12, pw - 180, "title", apT(CATEGORY_TITLE[shown[state.category]]))
     textRight(10, px + pw - 16, y + 15, 170, "dim", apT("dash.checks.remaining", { n = #current.remaining }))
+    -- What is left comes first; what is done stays below it, in green.
+    local listY = y + 44
     if #current.remaining == 0 then
-        text(10, px + 16, y + 48, pw - 32, "good", apT("dash.checks.all_done"))
-        return
+        text(10, px + 16, listY, pw - 32, "good", apT("dash.checks.all_done"))
+        listY = listY + 26
     end
-    scrollList("checks:" .. shown[state.category], { x = px + 16, y = y + 44, w = pw - 32, h = h - 56 },
-        current.remaining, 20, function(row, rx, ry, rw)
-            rect(rx, ry + 6, 5, 5, "faint")
-            text(10, rx + 14, ry, rw - 14, "text", row.name)
+    local rows = {}
+    for _, row in ipairs(current.remaining) do rows[#rows + 1] = row end
+    for _, row in ipairs(current.sent) do rows[#rows + 1] = row end
+    scrollList("checks:" .. shown[state.category], { x = px + 16, y = listY, w = pw - 32, h = y + h - 12 - listY },
+        rows, 20, function(row, rx, ry, rw)
+            rect(rx, ry + 6, 5, 5, row.sent and "good" or "faint")
+            text(10, rx + 14, ry, rw - 14, row.sent and "good" or "text", row.name)
         end)
 end
 

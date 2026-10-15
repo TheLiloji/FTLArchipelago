@@ -114,7 +114,7 @@ wheel scrolls, `Esc` closes it.
 | ![Overview](../images/dashboard.png) | ![Ships](../images/dashboard-ships.png) |
 | **Overview**: goal, checks per category, links, last items, hints. | **Ships**: which layouts you own, checks left per ship. |
 | ![Systems](../images/dashboard-systems.png) | ![Checks](../images/dashboard-checks.png) |
-| **Systems**: blueprints and upgrade levels received. | **Checks**: everything still to do, by category. |
+| **Systems**: blueprints and upgrade levels received. | **Checks**: everything still to do by category, then what is done, in green. |
 
 ![Journal](../images/dashboard-journal.png)
 
