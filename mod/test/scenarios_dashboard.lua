@@ -207,6 +207,61 @@ test("dashboard: a delivered item goes into the journal, a replayed one does not
     equals(_G.apReceivedHistory[1].sender, "Axel", "with its sender")
 end)
 
+local function drawnColor(value)
+    for _, draw in ipairs(sim.draws) do
+        if draw.text == value then return draw.color end
+    end
+end
+
+local function sameColor(drawn, tone)
+    local c = (_G.apUi or {}).COLOR and apUi.COLOR[tone]
+    return drawn ~= nil and c ~= nil and drawn.r == c[1] and drawn.g == c[2] and drawn.b == c[3]
+end
+
+test("dashboard: the journal colours each item by its Archipelago class, guessed for an older seed", function()
+    sim.startRun(true)
+    applySeed({ items = {
+        ["Kestrel Key"] = { k = "ship", ship = "PLAYER_SHIP_HARD", c = "p" },
+        ["Glaive Beam"] = { k = "weapon", bp = "BEAM_3", c = "u" },
+        ["Breach Trap"] = { k = "trap", eff = "breach", c = "t" },
+        ["50 Scrap"] = { k = "filler", res = "scrap", n = 50, c = "f" },
+        ["Old Archive"] = { k = "archive" },
+        ["Old Trap"] = { k = "trap", eff = "fire" },
+    } })
+    _G.apReceivedHistory = {}
+    for _, name in ipairs({ "Kestrel Key", "Glaive Beam", "Breach Trap", "50 Scrap", "Old Archive", "Old Trap" }) do
+        apReceiveItem(name, "Axel")
+    end
+    openDashboard("journal")
+    check(sameColor(drawnColor("Kestrel Key"), "good"), "progression is green")
+    check(sameColor(drawnColor("Glaive Beam"), "useful"), "useful is blue")
+    check(sameColor(drawnColor("Breach Trap"), "bad"), "a trap is red")
+    check(sameColor(drawnColor("50 Scrap"), "dim"), "filler is grey")
+    check(sameColor(drawnColor("Old Archive"), "good"), "a seed without classes: an archive reads as progression")
+    check(sameColor(drawnColor("Old Trap"), "bad"), "and a trap as a trap")
+    check(sim.drawnText(apT("dash.class.t")), "the colours are explained on the page")
+    closeDashboard()
+end)
+
+test("journal: an item's class survives a restart, and a journal saved before classes still loads", function()
+    sim.startRun(true)
+    sim.durable = {}
+    applySeed({ seed_hash = "journal-class", items = { ["Breach Trap"] = { k = "trap", eff = "breach", c = "t" } } })
+    _G.apReceivedHistory = {}
+    apReceiveItem("Breach Trap", "Axel")
+    local key = "ap_journal_" .. tostring(apSeedFingerprint())
+    sim.durable[key] = sim.durable[key] .. "\30Glaive Beam\31Axel"
+
+    _G.apReceivedHistory = {}
+    apContractResetForTesting()
+    applySeed({ seed_hash = "journal-class", items = { ["Breach Trap"] = { k = "trap", eff = "breach", c = "t" } } })
+    openDashboard("journal")
+    check(sameColor(drawnColor("Breach Trap"), "bad"), "the trap is still red after the restart")
+    check(drawnColor("Glaive Beam") ~= nil, "an entry from an older journal is still listed")
+    equals(_G.apReceivedHistory[2].sender, "Axel", "with its sender")
+    closeDashboard()
+end)
+
 test("dashboard: a system already on the ship counts its upgrades, its blueprint missing", function()
     applySeed({ caps = { shields = 7 } })
     _G.apInventory = { ships = {}, systemCaps = {}, startingUpgrades = {}, shopAvailability = {} }

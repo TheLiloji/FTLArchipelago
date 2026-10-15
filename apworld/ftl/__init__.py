@@ -15,6 +15,8 @@ from .locations import FTLLocation
 from .options import FTLOptions
 from .web_world import FTLWeb
 
+CLASS_CODES = {"progression": "p", "progression_skip_balancing": "p", "useful": "u", "trap": "t", "filler": "f"}
+
 # Past this many packages the Archipelago shop alone is hours of scrap to collect.
 LARGE_SHOP = 80
 
@@ -199,6 +201,8 @@ class FTLWorld(World):
         shop_names = {item.blueprint: item.name for item in data.ITEMS if item.kind == data.KIND_SHOP}
         for name, descriptor in descriptors.items():
             item = data.ITEMS_BY_NAME[name]
+            # The mod colours its journal by it.
+            descriptor["c"] = CLASS_CODES[items.effective_classification(self, item)]
             if item.group == data.GROUP_SYSTEM_LEVELS and self.options.full_system_upgrades:
                 descriptor["n"] = item.count
             if item.kind == data.KIND_BUNDLE:

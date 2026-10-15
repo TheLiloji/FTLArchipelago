@@ -118,7 +118,8 @@ wheel scrolls, `Esc` closes it.
 
 ![Journal](../images/dashboard-journal.png)
 
-**Journal**: every item received, who sent it, and the hints about your world.
+**Journal**: every item received, who sent it, and the hints about your world. Items are coloured by their
+Archipelago class: progression green, useful blue, trap red, filler grey.
 
 ## The goal
 
