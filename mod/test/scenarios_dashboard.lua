@@ -269,6 +269,25 @@ test("dashboard: first crew members get a card each, with the race's sprite", fu
     closeDashboard()
 end)
 
+test("dashboard: Multiverse's eighteen races all fit on the crew page", function()
+    sim.startRun(true)
+    local loc = {}
+    for _, race in ipairs({ "human", "engi", "energy", "mantis", "rock", "slug", "anaerobic", "crystal", "orchid",
+                            "shell", "leech", "phantom", "spider", "lizard", "cognitive", "siren", "pony", "obelisk" }) do
+        loc["crew:" .. race] = "First " .. race .. " aboard"
+    end
+    applySeed({ items = {}, loc = loc })
+    sim.images = {}
+    openDashboard("checks")
+    local sprites = 0
+    for _, image in ipairs(sim.images) do
+        if tostring(image.texture.name):match("^people/") then sprites = sprites + 1 end
+    end
+    equals(sprites, 18, "every race on screen, no scrolling needed")
+    check(#overflowing() == 0, "and nothing leaves the window")
+    closeDashboard()
+end)
+
 test("dashboard: the ship flown comes first, with what is left for it and in this sector", function()
     sim.startRun(true)
     applySeed({ items = {}, loc = {

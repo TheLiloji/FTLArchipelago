@@ -1004,9 +1004,10 @@ local function drawCrewCards(x, y, w, bottom, rows)
     for _, row in ipairs(rows) do
         for _, box in ipairs(row.boxes) do cards[#cards + 1] = box end
     end
-    local columns = 4
+    -- Multiverse's eighteen races fit on one screen in six narrower columns.
+    local columns = #cards > 8 and 6 or 4
     local cardW = math.floor((w - GAP * (columns - 1)) / columns)
-    local cardH = 128
+    local cardH = columns == 6 and 110 or 128
     local lines = {}
     for index, box in ipairs(cards) do
         local line = lines[math.floor((index - 1) / columns) + 1] or {}
@@ -1032,10 +1033,10 @@ local function drawCrewCards(x, y, w, bottom, rows)
                         0, FRAME / texture.width, 0, FRAME / texture.height,
                         done and 1 or 0.45, Graphics.GL_Color(1, 1, 1, 1), false)
                 end
-                textCenter(10, cx + cardW / 2, ry + 82, cardW - 12, done and "good" or "text", box.text)
+                textCenter(10, cx + cardW / 2, ry + cardH - 46, cardW - 12, done and "good" or "text", box.text)
                 local status = done and (contentOf(box.checks[1].key) or apT("dash.crew.done"))
                     or apT("dash.crew.waiting")
-                textCenter(9, cx + cardW / 2, ry + 100, cardW - 12, done and "good" or "dim", status)
+                textCenter(9, cx + cardW / 2, ry + cardH - 28, cardW - 12, done and "good" or "dim", status)
             end
         end)
 end
