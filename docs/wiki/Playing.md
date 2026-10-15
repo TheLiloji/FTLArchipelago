@@ -93,6 +93,11 @@ Filler costs 10 to 25 scrap, useful items 30 to 65, and important ones 70 to 150
 comes back. Each sector sells its own packages: the shop of sector 5 has other packages than the one of sector 2,
 and they cost more.
 
+The shop also sells **pacts**: scrap right away, and a trap sprung in exchange, two times out of three on another
+player (with Trap Link on), one time out of three on you. The **blood pacts** on the second page pay more, and
+add a chance (5, 10 or 20 %) that one of your crew dies for good, Clone Bay or not. They never take your last
+crew member.
+
 ### The five events
 
 - **A relay** carrying packages for other players. Pay 15 scrap to forward one.

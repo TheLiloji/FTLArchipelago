@@ -119,9 +119,13 @@ local function announceSize()
     end)
 end
 
-local DEAL_BLUEPRINTS = { "AP_DEAL_1", "AP_DEAL_2", "AP_DEAL_3" }
+local DEAL_BLUEPRINTS = { "AP_DEAL_1", "AP_DEAL_2", "AP_DEAL_3", "AP_DEAL_4", "AP_DEAL_5", "AP_DEAL_6" }
 
-local DEAL_REWARD = { 35, 55, 80 }
+local DEAL_REWARD = { 35, 55, 80, 60, 90, 130 }
+
+-- The blood pacts, on the shop's second page: more scrap, and a chance in a hundred to lose a crew member for
+-- good, Clone Bay or not.
+local DEAL_BLOOD = { [4] = 5, [5] = 10, [6] = 20 }
 
 local DEAL_SELF_CHANCE = 34
 
@@ -378,11 +382,13 @@ function apApplyShopGifts()
         local desc = dealDesc(blueprintName)
         if desc ~= nil and not dealsSigned[blueprintName] then
             local reward = tostring(DEAL_REWARD[index] or 30)
-            desc.title.data = apT("deal.title", { scrap = reward })
+            local blood = DEAL_BLOOD[index]
+            desc.title.data = apT(blood and "deal.blood.title" or "deal.title", { scrap = reward })
             desc.title.isLiteral = true
             desc.shortTitle.data = apT("deal.short", { scrap = reward })
             desc.shortTitle.isLiteral = true
             desc.description.data = apT("deal.body", { scrap = reward })
+                .. (blood and ("\n\n" .. apT("deal.blood.risk", { chance = blood })) or "")
             desc.description.isLiteral = true
             desc.tooltip.data = desc.description.data
             desc.tooltip.isLiteral = true
@@ -548,6 +554,35 @@ local function collect(index, blueprintName)
     apApplyShopGifts()
 end
 
+-- Never the last one: the pact costs a crew member, not the run.
+local function bloodPrice(index)
+    local chance = DEAL_BLOOD[index]
+    if chance == nil or math.random(1, 100) > chance then
+        return
+    end
+    local player = Hyperspace.ships.player
+    local alive = {}
+    local crew = player.vCrewList
+    for i = 0, crew:size() - 1 do
+        local member = crew[i]
+        local okDrone, drone = pcall(function() return member:IsDrone() end)
+        if member ~= nil and member.iShipId == 0 and not member.bDead and not (okDrone and drone) then
+            alive[#alive + 1] = member
+        end
+    end
+    if #alive < 2 then
+        giftLog(string.format("deal %d: the blood price falls, but only one crew member is left: spared", index))
+        return
+    end
+    local victim = alive[math.random(1, #alive)]
+    local name = tostring(victim:GetName())
+    victim:Kill(true)
+    giftLog(string.format("deal %d: the blood price is paid by %s", index, name))
+    if _G.apNotifyWarning then
+        _G.apNotifyWarning(apT("deal.blood.taken", { name = name }))
+    end
+end
+
 local function signDeal(index, blueprintName)
     dealsSigned[blueprintName] = true
 
@@ -602,6 +637,8 @@ local function signDeal(index, blueprintName)
             end
         end
     end
+
+    pcall(bloodPrice, index)
 
     local desc = dealDesc(blueprintName)
     if desc ~= nil then

@@ -721,7 +721,7 @@ end
 sim.droneBlueprints = { DEFENSE_1 = 3, COMBAT_1 = 2 }
 sim.augBlueprints = {
     ENERGY_SHIELD = 5, SCRAP_COLLECTOR = 3,
-    AP_DEAL_1 = 0, AP_DEAL_2 = 0, AP_DEAL_3 = 0,
+    AP_DEAL_1 = 0, AP_DEAL_2 = 0, AP_DEAL_3 = 0, AP_DEAL_4 = 0, AP_DEAL_5 = 0, AP_DEAL_6 = 0,
 }
 
 function sim.delivered()

@@ -129,6 +129,14 @@
             <item><blueprint>AP_DEAL_3</blueprint></item>
         </category>
 
+        <category type="AUGMENTS">
+            <chance>100</chance>
+            <allowDuplicates/>
+            <item><blueprint>AP_DEAL_4</blueprint></item>
+            <item><blueprint>AP_DEAL_5</blueprint></item>
+            <item><blueprint>AP_DEAL_6</blueprint></item>
+        </category>
+
         <resource>
             <type>fuel</type>
             <count min="3" max="9"/>
@@ -178,6 +186,14 @@
             <item><blueprint>AP_GIFT_6</blueprint></item>
         </category>
 
+        <category type="AUGMENTS">
+            <chance>100</chance>
+            <allowDuplicates/>
+            <item><blueprint>AP_DEAL_4</blueprint></item>
+            <item><blueprint>AP_DEAL_5</blueprint></item>
+            <item><blueprint>AP_DEAL_6</blueprint></item>
+        </category>
+
         <resource>
             <type>fuel</type>
             <count min="3" max="9"/>
@@ -225,6 +241,14 @@
             <item><blueprint>AP_GIFT_4</blueprint></item>
             <item><blueprint>AP_GIFT_5</blueprint></item>
             <item><blueprint>AP_GIFT_6</blueprint></item>
+        </category>
+
+        <category type="AUGMENTS">
+            <chance>100</chance>
+            <allowDuplicates/>
+            <item><blueprint>AP_DEAL_4</blueprint></item>
+            <item><blueprint>AP_DEAL_5</blueprint></item>
+            <item><blueprint>AP_DEAL_6</blueprint></item>
         </category>
 
         <category type="WEAPONS">
@@ -283,6 +307,14 @@
             <item><blueprint>AP_GIFT_4</blueprint></item>
             <item><blueprint>AP_GIFT_5</blueprint></item>
             <item><blueprint>AP_GIFT_6</blueprint></item>
+        </category>
+
+        <category type="AUGMENTS">
+            <chance>100</chance>
+            <allowDuplicates/>
+            <item><blueprint>AP_DEAL_4</blueprint></item>
+            <item><blueprint>AP_DEAL_5</blueprint></item>
+            <item><blueprint>AP_DEAL_6</blueprint></item>
         </category>
 
         <category type="WEAPONS">
