@@ -166,6 +166,8 @@
     "energylink.sent": "{what} in die gemeinsame Reserve.",
     "event.gift.nothing": "Kein Paket in der Warteschlange: nichts wurde verschickt, eure {scrap} Schrott sind zurückerstattet.",
     "event.gift.sent": "Paket unterwegs: {item}, adressiert an {slot}",
+    "event.hijack.self": "Ein Piratenschiff hat sich an ein Archipelago-Relais gehängt. Es hat dein eigenes Paket abgefangen ({item}) und will 20 Schrott, um es freizugeben.",
+    "event.hijack.text": "Ein Piratenschiff hat sich an ein Archipelago-Relais gehängt. Es hat das Paket von {slot} abgefangen ({item}) und will 20 Schrott, um es freizugeben.",
     "event.hint.asked": "Der Slug flüstert. Der Hinweis geht an den Server und erscheint, sobald er antwortet.",
     "event.hint.nothing": "Der Slug hat nichts zu verkaufen: kein Server, oder nichts mehr zu finden. Eure {scrap} Schrott sind zurückerstattet.",
     "event.link.empty": "Die gemeinsame Reserve ist leer",

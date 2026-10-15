@@ -293,10 +293,12 @@ on, so if you enable the general achievements and only ever win on Hard, check t
 
 ## Custom events and hints
 
-Four encounters of the mod's own appear at beacons marked ARCHIPELAGO, each a choice with no way back:
+Five encounters of the mod's own appear at beacons marked ARCHIPELAGO, each a choice with no way back:
 
 - **A relay** carrying two packages for other worlds. Route one: its check is sent, for 15 scrap. If there is no
   package to route, the scrap is refunded.
+- **Pirates holding a package**, preferably one for another player. Pay them 20 scrap, or fight them: win, and the
+  package goes out for free on top of the usual loot.
 - **A Zoltan checkpoint** asks for a tithe to the shared Energy Link reserve, or lets you draw fuel from it.
 - **A Slug** sells a hint for 20 scrap: a real Archipelago hint about one of your unvisited locations, recorded on
   the server like any other. Without a server, or with nothing left to find, the scrap is refunded.

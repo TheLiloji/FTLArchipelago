@@ -47,3 +47,16 @@
 <text name="ap_evt_another_world_pass">Let it pass, and move on.</text>
 <text name="ap_evt_another_world_pass_text">You keep the relay shut and let the surge roll past. It fades out before the next jump. Nothing gained, nothing lost.</text>
 <text name="ap_evt_zoltan_toll_c2_text">The officer confirms it is your right and lets you draw two cells from the Ring's stock. The escort scans you on the way out, a little too closely: something in the hull gives.</text>
+<text name="ap_evt_hijack_text">A pirate ship sits on an Archipelago relay. It has grabbed a package bound for another world and wants 20 scrap to let it go.</text>
+<text name="ap_evt_hijack_c1">Attack them and take the package.</text>
+<text name="ap_evt_hijack_c1_text">The pirates power up their weapons. The package is in their hold.</text>
+<text name="ap_evt_hijack_c2">Pay the 20 scrap.</text>
+<text name="ap_evt_hijack_c2_text">The pirates take your scrap and release the package. It goes out, exactly as if you had bought it in the Archipelago shop.</text>
+<text name="ap_evt_hijack_c3">Leave them alone.</text>
+<text name="ap_evt_hijack_c3_text">You leave the relay behind. The package will wait for someone else.</text>
+<text name="ap_evt_hijack_surrender_text">The pirates hail you. They give up and offer to hand over the package if you stop firing.</text>
+<text name="ap_evt_hijack_surrender_c1">Accept and take the package.</text>
+<text name="ap_evt_hijack_surrender_c2">Keep firing.</text>
+<text name="ap_evt_hijack_yield_text">They push the package out of an airlock. You pick it up and send it on its way.</text>
+<text name="ap_evt_hijack_destroyed_text">The pirate ship breaks apart. You pull the package from the wreck and send it on its way.</text>
+<text name="ap_evt_hijack_deadcrew_text">The pirate crew is dead. You send the package on its way, then strip their ship.</text>

@@ -57,7 +57,7 @@ end
 
 
 local offeredPackages = { a = nil, b = nil }
-local PRICE = { ["AP_EVT_PACKAGE"] = 15, ["AP_EVT_SLUG_WHISPER"] = 20 }
+local PRICE = { ["AP_EVT_PACKAGE"] = 15, ["AP_EVT_SLUG_WHISPER"] = 20, ["AP_EVT_HIJACK"] = 20 }
 local scrapBefore = {}
 
 local function scrap()
@@ -94,7 +94,7 @@ local function buyHint(eventName)
     end
 end
 
-function routePackage(eventName, package)
+local function givePackage(package)
     local sent = nil
     if package ~= nil and _G.apShopGiftGiveAt ~= nil then
         sent = _G.apShopGiftGiveAt(package.location)
@@ -102,21 +102,65 @@ function routePackage(eventName, package)
     if sent == nil and _G.apShopGiftGiveNext ~= nil then
         sent = _G.apShopGiftGiveNext()
     end
-    if sent == nil then
-        local refunded = refund("AP_EVT_PACKAGE")
-        record(eventName, "nothing to send, " .. refunded .. " scrap refunded")
-        if _G.apNotifyStatus then
-            _G.apNotifyStatus(apT("event.gift.nothing", { scrap = refunded }))
-        end
-        return
-    end
-    scrapBefore["AP_EVT_PACKAGE"] = nil
+    return sent
+end
+
+local function announceSent(eventName, sent)
     record(eventName, "package routed: " .. tostring(sent.item) .. " -> "
         .. (sent.mine and "the player" or tostring(sent.slot)))
     if _G.apNotifyStatus and not sent.mine then
         _G.apNotifyStatus(apT("event.gift.sent",
             { item = tostring(sent.item), slot = tostring(sent.slot) }))
     end
+end
+
+function routePackage(eventName, package, priceEvent)
+    priceEvent = priceEvent or "AP_EVT_PACKAGE"
+    local sent = givePackage(package)
+    if sent == nil then
+        local refunded = refund(priceEvent)
+        record(eventName, "nothing to send, " .. refunded .. " scrap refunded")
+        if _G.apNotifyStatus then
+            _G.apNotifyStatus(apT("event.gift.nothing", { scrap = refunded }))
+        end
+        return
+    end
+    scrapBefore[priceEvent] = nil
+    announceSent(eventName, sent)
+end
+
+-- The pirates' package: preferably one for another player, since freeing it is the point. Won in a fight, it
+-- goes out for free; with no package left, the fight only gives its usual reward.
+local hijacked = nil
+
+local function pickHijacked()
+    local packages = (_G.apShopGiftPeekMany and _G.apShopGiftPeekMany(3)) or {}
+    for _, package in ipairs(packages) do
+        if not package.mine then
+            return package
+        end
+    end
+    return packages[1]
+end
+
+local function writeHijackText(event)
+    hijacked = pickHijacked()
+    if hijacked == nil then
+        return
+    end
+    local key = hijacked.mine and "event.hijack.self" or "event.hijack.text"
+    event.text.data = apT(key, { slot = tostring(hijacked.slot), item = tostring(hijacked.item) })
+    event.text.isLiteral = true
+end
+
+local function freeHijacked(eventName)
+    local sent = givePackage(hijacked)
+    hijacked = nil
+    if sent == nil then
+        record(eventName, "fight won, no package left to free")
+        return
+    end
+    announceSent(eventName, sent)
 end
 
 local function writePackageChoices(event)
@@ -158,6 +202,14 @@ local BRANCH_EFFECTS = {
     AP_EVT_PACKAGE_B = function(name) routePackage(name, offeredPackages.b) end,
     AP_EVT_SLUG_WHISPER_A = function(name) buyHint(name) end,
     AP_EVT_ANOTHER_WORLD_B = function(name) sendTrapOutward(name) end,
+    AP_EVT_HIJACK_B = function(name)
+        local package = hijacked
+        hijacked = nil
+        routePackage(name, package, "AP_EVT_HIJACK")
+    end,
+    AP_HIJACK_WON = function(name) freeHijacked(name) end,
+    AP_HIJACK_DEADCREW = function(name) freeHijacked(name) end,
+    AP_HIJACK_YIELD = function(name) freeHijacked(name) end,
 }
 
 _G.apEventBranchEffects = BRANCH_EFFECTS
@@ -246,6 +298,12 @@ script.on_internal_event(Defines.InternalEvents.PRE_CREATE_CHOICEBOX, function(e
             local okPackages, errPackages = pcall(writePackageChoices, event)
             if not okPackages then
                 eventLog("packages not named: " .. tostring(errPackages))
+            end
+        end
+        if tostring(event.eventName) == "AP_EVT_HIJACK" then
+            local okText, errText = pcall(writeHijackText, event)
+            if not okText then
+                eventLog("hijacked package not named: " .. tostring(errText))
             end
         end
         setDecor()

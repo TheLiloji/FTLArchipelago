@@ -42,8 +42,8 @@ one weapon, one drone and one crew member from everything you have collected.
 ![The start-of-run menu](docs/images/start-menu.jpg)
 
 **ARCHIPELAGO beacons** appear on every sector map. They hold a shop full of packages for the other players
-(and some FOR YOU), or one of four small events: a relay, a Zoltan checkpoint, a Slug selling hints, a surge
-from another world.
+(and some FOR YOU), or one of five small events: a relay, pirates holding a package, a Zoltan checkpoint, a Slug
+selling hints, a surge from another world.
 
 | | |
 |---|---|
