@@ -337,6 +337,40 @@ test("dashboard: victories show each layout's ship, in colour once won", functio
     closeDashboard()
 end)
 
+test("dashboard: a seed with one ship keeps its card a normal height", function()
+    sim.startRun(true)
+    applySeed({ items = {}, loc = { ["PLAYER_SHIP_HARD:victory"] = "Kestrel Cruiser A: Defeat the Flagship" } })
+    local saved = _G.apGameData.ships
+    _G.apGameData.ships = { { name = "PLAYER_SHIP_HARD", layouts = 1 } }
+    sim.rects = {}
+    openDashboard("ships")
+    local tallest = 0
+    for _, r in ipairs(sim.rects) do
+        if r.w < DASH.w - 100 then tallest = math.max(tallest, r.h) end
+    end
+    _G.apGameData.ships = saved
+    check(tallest <= 100, "no card stretched over the whole page (" .. tallest .. ")")
+    closeDashboard()
+end)
+
+test("dashboard: rows go ship flown, then what counts on any ship, then the other ships", function()
+    sim.startRun(true)
+    applySeed({ items = {}, loc = { ["sys:shields"] = "Install Shields",
+                                    ["PLAYER_SHIP_CIRCLE:sys:cloaking"] = "Engi Cruiser: Install Cloaking",
+                                    ["PLAYER_SHIP_HARD:sys:cloaking"] = "Kestrel Cruiser: Install Cloaking" } })
+    openDashboard("checks")
+    local y = {}
+    for _, draw in ipairs(sim.draws) do
+        for _, name in ipairs({ apShipLabel("PLAYER_SHIP_HARD"), apSystemLabel("shields"), apShipLabel("PLAYER_SHIP_CIRCLE") }) do
+            if draw.text == name and draw.size == 10 and draw.x > DASH.x + 300 then y[name] = y[name] or draw.y end
+        end
+    end
+    local kestrel, shields, engi = y[apShipLabel("PLAYER_SHIP_HARD")], y[apSystemLabel("shields")], y[apShipLabel("PLAYER_SHIP_CIRCLE")]
+    check(kestrel and shields and engi and kestrel < shields and shields < engi,
+        "Kestrel, then Shields, then the Engi Cruiser, whatever the names")
+    closeDashboard()
+end)
+
 test("dashboard: the ship flown comes first, with what is left for it and in this sector", function()
     sim.startRun(true)
     applySeed({ items = {}, loc = {
