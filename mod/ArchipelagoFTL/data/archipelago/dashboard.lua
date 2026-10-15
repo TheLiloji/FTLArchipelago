@@ -1041,6 +1041,144 @@ local function drawCrewCards(x, y, w, bottom, rows)
         end)
 end
 
+-- Any image of the game, loaded once; false when missing, so a lookup is not retried every frame.
+local images = {}
+local function gameImage(path)
+    if path == nil then return nil end
+    if images[path] == nil then
+        local ok, texture = pcall(function() return Hyperspace.Resources:GetImageId(path) end)
+        images[path] = (ok and texture and (texture.width or 0) > 0) and texture or false
+    end
+    return images[path] or nil
+end
+
+local function blit(texture, x, y, w, h, alpha)
+    Graphics.CSurface.GL_BlitImagePartial(texture, x, y, w, h, 0, 1, 0, 1, alpha, Graphics.GL_Color(1, 1, 1, 1), false)
+end
+
+local function pointable(box, area)
+    if hovered(area) then
+        state.pointed = box
+        outline(area.x - 1, area.y - 1, area.w + 2, area.h + 2, "title", 1)
+    end
+end
+
+-- Achievements as the game shows them: their icons, faded until done. One card per ship, the general ones
+-- spread over as many full-width lines as they need.
+local ICON = 48
+local function achievementIcon(box)
+    local id = tostring(box.checks[1].key):match("^ach:(.+)$")
+    local path = id and (((_G.apGameData or {}).achievementImages or {})[id])
+    return gameImage(path)
+end
+
+local function drawIcons(boxes, x, y)
+    for index, box in ipairs(boxes) do
+        local bx = x + (index - 1) * (ICON + 8)
+        local done = box.done >= box.total
+        local icon = achievementIcon(box)
+        rect(bx, y, ICON, ICON, "card")
+        if icon then
+            blit(icon, bx, y, ICON, ICON, done and 1 or 0.3)
+        else
+            textCenter(12, bx + ICON / 2, y + 14, ICON - 4, done and "good" or "dim", "?")
+        end
+        rect(bx, y + ICON + 2, ICON, 3, done and "good" or "faint")
+        pointable(box, { x = bx, y = y, w = ICON, h = ICON })
+    end
+end
+
+local function drawAchievementCards(x, y, w, bottom, rows)
+    local lineH = ICON + 44
+    local perLine = math.max(1, math.floor((w - 24 + 8) / (ICON + 8)))
+    local lines, pending = {}, {}
+    local function flush()
+        if #pending > 0 then lines[#lines + 1] = { cards = pending } end
+        pending = {}
+    end
+    for _, row in ipairs(rows) do
+        if row.ship == nil then
+            flush()
+            for start = 1, #row.boxes, perLine do
+                local chunk = {}
+                for index = start, math.min(#row.boxes, start + perLine - 1) do chunk[#chunk + 1] = row.boxes[index] end
+                lines[#lines + 1] = { wide = { row = row, boxes = chunk, first = start == 1 } }
+            end
+        else
+            pending[#pending + 1] = row
+            if #pending == 3 then flush() end
+        end
+    end
+    flush()
+    local cardW = math.floor((w - GAP * 2) / 3)
+    local function card(row, cx, ry, cw, boxes, first)
+        rect(cx, ry, cw, lineH - GAP, row.current and "hover" or "faint")
+        if row.current then rect(cx, ry, 3, lineH - GAP, "border") end
+        local complete = row.done >= row.total
+        if first then
+            text(10, cx + 12, ry + 6, cw - 70, row.current and "title" or (complete and "good" or "text"), row.label)
+            textRight(9, cx + cw - 10, ry + 7, 56, complete and "good" or "dim",
+                apT("dash.fraction", { done = row.done, total = row.total }))
+        end
+        drawIcons(boxes, cx + 12, ry + 26)
+    end
+    scrollList("checks:achievement", { x = x, y = y, w = w, h = bottom - y }, lines, lineH, function(line, rx, ry, rw)
+        if line.wide then
+            card(line.wide.row, rx, ry, rw, line.wide.boxes, line.wide.first)
+            return
+        end
+        for column, row in ipairs(line.cards) do
+            card(row, rx + (column - 1) * (cardW + GAP), ry, cardW, row.boxes, true)
+        end
+    end)
+end
+
+-- Victories: one card per ship, each layout drawn as the ship list shows it, in colour once won.
+local function layoutMini(layout)
+    local ok, file = pcall(function()
+        return Hyperspace.Global.GetInstance():GetBlueprints():GetShipBlueprint(layout, -1).imgFile
+    end)
+    return ok and file and gameImage("customizeUI/miniship_" .. tostring(file) .. ".png") or nil
+end
+
+local function drawVictoryCards(x, y, w, bottom, rows)
+    local columns = 2
+    local cardW = math.floor((w - GAP * (columns - 1)) / columns)
+    local miniW = math.floor((cardW - 24 - 8 * 2) / 3)
+    local miniH = math.floor(miniW * 121 / 191)
+    local lineH = miniH + 58
+    local lines = {}
+    for index, row in ipairs(rows) do
+        local line = lines[math.floor((index - 1) / columns) + 1] or {}
+        line[#line + 1] = row
+        lines[math.floor((index - 1) / columns) + 1] = line
+    end
+    local suffix = (_G.apGameData or {}).variantSuffix or { [0] = "", [1] = "_2", [2] = "_3" }
+    scrollList("checks:victory", { x = x, y = y, w = w, h = bottom - y }, lines, lineH, function(line, rx, ry)
+        for column, row in ipairs(line) do
+            local cx = rx + (column - 1) * (cardW + GAP)
+            local complete = row.done >= row.total
+            rect(cx, ry, cardW, lineH - GAP, row.current and "hover" or "faint")
+            if row.current then rect(cx, ry, 3, lineH - GAP, "border") end
+            text(10, cx + 12, ry + 6, cardW - 24, row.current and "title" or (complete and "good" or "text"), row.label)
+            for index, box in ipairs(row.boxes) do
+                local mx = cx + 12 + (index - 1) * (miniW + 8)
+                local my = ry + 26
+                local done = box.done >= box.total
+                local mini = layoutMini(tostring(row.ship) .. (suffix[(box.id or 1) - 1] or ""))
+                if mini then
+                    blit(mini, mx, my, miniW, miniH, done and 1 or 0.45)
+                else
+                    rect(mx, my, miniW, miniH, "card")
+                end
+                rect(mx, my + miniH + 2, miniW, 3, done and "good" or "faint")
+                textCenter(9, mx + miniW / 2, my + miniH + 8, miniW, done and "good" or "dim", box.text)
+                pointable(box, { x = mx, y = my, w = miniW, h = miniH })
+            end
+        end
+    end)
+end
+
 local function drawChecks(x, y, w, h)
     local book = checkBook()
     state.pointed = nil
@@ -1090,9 +1228,10 @@ local function drawChecks(x, y, w, h)
         top = top + 62
     end
     local detailH = 52
-    if category == "crew" then
+    local CARDS = { crew = drawCrewCards, achievement = drawAchievementCards, victory = drawVictoryCards }
+    if CARDS[category] then
         rect(px + 16, y + h - detailH - 6, pw - 32, 1, "faint")
-        drawCrewCards(px + 16, top, pw - 32, y + h - detailH - 12, rows)
+        CARDS[category](px + 16, top, pw - 32, y + h - detailH - 12, rows)
         drawPointed(px + 16, y + h - detailH, pw - 32, current.done >= current.total)
         return
     end
