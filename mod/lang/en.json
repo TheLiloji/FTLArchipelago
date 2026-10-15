@@ -166,6 +166,8 @@
     "energylink.sent": "{what} into the shared reserve.",
     "event.gift.nothing": "No package queued: nothing was sent, your {scrap} scrap is refunded.",
     "event.gift.sent": "Parcel away: {item}, addressed to {slot}",
+    "event.hijack.self": "A pirate ship sits on an Archipelago relay. It has grabbed your own package ({item}) and wants 20 scrap to let it go.",
+    "event.hijack.text": "A pirate ship sits on an Archipelago relay. It has grabbed {slot}'s package ({item}) and wants 20 scrap to let it go.",
     "event.hint.asked": "The Slug whispers. The hint goes to the server and shows up as soon as it answers.",
     "event.hint.nothing": "The Slug has nothing to sell: no server, or nothing left to find. Your {scrap} scrap is refunded.",
     "event.link.empty": "The shared reserve is empty",

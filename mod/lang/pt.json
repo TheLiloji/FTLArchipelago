@@ -166,6 +166,8 @@
     "energylink.sent": "{what} despejado na reserva comum.",
     "event.gift.nothing": "Nenhum pacote em fila: nada foi enviado, recebem de volta {scrap} de sucata.",
     "event.gift.sent": "Pacote enviado: {item}, endereçado a {slot}",
+    "event.hijack.self": "Uma nave pirata agarrou-se a um repetidor Archipelago. Apanhou o teu próprio pacote ({item}) e pede 20 de sucata para o largar.",
+    "event.hijack.text": "Uma nave pirata agarrou-se a um repetidor Archipelago. Apanhou o pacote de {slot} ({item}) e pede 20 de sucata para o largar.",
     "event.hint.asked": "O slug sussurra. A pista vai para o servidor e aparece assim que ele responder.",
     "event.hint.nothing": "O slug não tem nada para vender: sem servidor, ou nada mais a encontrar. Recebem de volta {scrap} de sucata.",
     "event.link.empty": "A reserva comum está vazia",

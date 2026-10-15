@@ -45,3 +45,16 @@
 <text name="ap_evt_another_world_pass" language="es">Dejarla pasar y seguir tu camino.</text>
 <text name="ap_evt_another_world_pass_text" language="es">Mantienes el relé cerrado y dejas pasar la sobretensión. Se apaga antes del siguiente salto. Nada ganado, nada perdido.</text>
 <text name="ap_evt_zoltan_toll_c2_text" language="es">El oficial confirma que es tu derecho y te permite tomar dos celdas de combustible de la reserva del Anillo. La escolta escanea tu nave al salir, acercándose demasiado: una parte del casco cede.</text>
+<text name="ap_evt_hijack_text" language="es">Una nave pirata se ha enganchado a un relé de Archipelago. Ha capturado un paquete destinado a otro mundo y pide 20 de chatarra para soltarlo.</text>
+<text name="ap_evt_hijack_c1" language="es">Atacarlos y recuperar el paquete.</text>
+<text name="ap_evt_hijack_c1_text" language="es">Los piratas cargan sus armas. El paquete está en su bodega.</text>
+<text name="ap_evt_hijack_c2" language="es">Pagar los 20 de chatarra.</text>
+<text name="ap_evt_hijack_c2_text" language="es">Los piratas toman tu chatarra y sueltan el paquete. Se envía, igual que si lo hubieras comprado en la tienda de Archipelago.</text>
+<text name="ap_evt_hijack_c3" language="es">Dejarlos en paz.</text>
+<text name="ap_evt_hijack_c3_text" language="es">Dejas el relé atrás. El paquete esperará a otra persona.</text>
+<text name="ap_evt_hijack_surrender_text" language="es">Los piratas te llaman. Se rinden y ofrecen entregarte el paquete si dejas de disparar.</text>
+<text name="ap_evt_hijack_surrender_c1" language="es">Aceptar y tomar el paquete.</text>
+<text name="ap_evt_hijack_surrender_c2" language="es">Seguir disparando.</text>
+<text name="ap_evt_hijack_yield_text" language="es">Expulsan el paquete por una esclusa. Lo recoges y lo envías a su destino.</text>
+<text name="ap_evt_hijack_destroyed_text" language="es">La nave pirata se rompe en pedazos. Sacas el paquete de los restos y lo envías a su destino.</text>
+<text name="ap_evt_hijack_deadcrew_text" language="es">La tripulación pirata ha muerto. Envías el paquete a su destino y luego desmantelas su nave.</text>

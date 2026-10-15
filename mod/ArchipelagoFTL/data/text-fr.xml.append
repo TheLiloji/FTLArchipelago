@@ -47,3 +47,16 @@
 <text name="ap_evt_another_world_pass" language="fr">La laisser passer, et partir.</text>
 <text name="ap_evt_another_world_pass_text" language="fr">Vous gardez le relais fermé et laissez passer la surtension. Elle s'éteint avant le saut suivant. Rien de gagné, rien de perdu.</text>
 <text name="ap_evt_zoltan_toll_c2_text" language="fr">L'officier confirme que c'est votre droit et vous laisse puiser deux cellules dans la réserve de l'Anneau. L'escorte vous scanne en repartant, d'un peu trop près : quelque chose cède dans la coque.</text>
+<text name="ap_evt_hijack_text" language="fr">Un vaisseau pirate s'est posé sur un relais Archipelago. Il a saisi un colis destiné à un autre monde et demande 20 ferraille pour le relâcher.</text>
+<text name="ap_evt_hijack_c1" language="fr">Les attaquer et reprendre le colis.</text>
+<text name="ap_evt_hijack_c1_text" language="fr">Les pirates chargent leurs armes. Le colis est dans leur soute.</text>
+<text name="ap_evt_hijack_c2" language="fr">Payer les 20 ferraille.</text>
+<text name="ap_evt_hijack_c2_text" language="fr">Les pirates prennent votre ferraille et relâchent le colis. Il part, exactement comme si vous l'aviez acheté dans la boutique Archipelago.</text>
+<text name="ap_evt_hijack_c3" language="fr">Les laisser tranquilles.</text>
+<text name="ap_evt_hijack_c3_text" language="fr">Vous laissez le relais derrière vous. Le colis attendra quelqu'un d'autre.</text>
+<text name="ap_evt_hijack_surrender_text" language="fr">Les pirates vous hèlent. Ils se rendent et proposent de vous remettre le colis si vous cessez le feu.</text>
+<text name="ap_evt_hijack_surrender_c1" language="fr">Accepter et prendre le colis.</text>
+<text name="ap_evt_hijack_surrender_c2" language="fr">Continuer à tirer.</text>
+<text name="ap_evt_hijack_yield_text" language="fr">Ils éjectent le colis par un sas. Vous le récupérez et l'envoyez à son destinataire.</text>
+<text name="ap_evt_hijack_destroyed_text" language="fr">Le vaisseau pirate se disloque. Vous tirez le colis de l'épave et l'envoyez à son destinataire.</text>
+<text name="ap_evt_hijack_deadcrew_text" language="fr">L'équipage pirate est mort. Vous envoyez le colis à son destinataire, puis vous dépouillez leur vaisseau.</text>

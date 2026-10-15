@@ -4691,6 +4691,70 @@ test("event: absorbing the power surge doesn't touch the multiworld at all", fun
         "the branch has no Lua effect at all anymore: everything happens on the XML side")
 end)
 
+test("event: the pirates hold another player's package and say whose", function()
+    sim.startRun(true)
+    _G.apShopSlotCount = 2
+    apShopGiftsConfigure({
+        { location = "shop:1", slot = "Tester", item = "Progressive Shields",
+          sphere = 1, kind = "progression", cost = 40, mine = true },
+        { location = "shop:2", slot = "Axel", item = "20 Scrap",
+          sphere = 2, kind = "filler", cost = 25 },
+    })
+    local box = sim.openChoiceBox("AP_EVT_HIJACK", 3)
+    check(box.text:find("Axel", 1, true) ~= nil, "a friend's package before the player's own: " .. box.text)
+    check(box.text:find("20 Scrap", 1, true) ~= nil, "and what's inside")
+end)
+
+test("event: winning the fight frees the pirates' package for free", function()
+    for _, ending in ipairs({ "AP_HIJACK_WON", "AP_HIJACK_DEADCREW", "AP_HIJACK_YIELD" }) do
+        sim.startRun(true)
+        _G.apShopSlotCount = 2
+        twoGifts()
+        sim.openChoiceBox("AP_EVT_HIJACK", 3)
+        apEventsResetForTesting()
+        local scrapBefore = sim.player.currentScrap
+        local sent = {}
+        local restore = stub("apSendCheck", function(key) sent[#sent + 1] = key; return true end)
+        playBranch(ending)
+        restore()
+        equals(#sent, 1, ending .. ": the package goes out")
+        equals(sent[1], "shop:1", ending .. ": the one the pirates held")
+        equals(sim.player.currentScrap, scrapBefore, ending .. ": nothing to pay")
+        check(sim.shown("Nina"), ending .. ": the player sees who got it")
+    end
+end)
+
+test("event: paying the pirates sends their package, an empty shop refunds", function()
+    sim.startRun(true)
+    _G.apShopSlotCount = 2
+    twoGifts()
+    sim.openChoiceBox("AP_EVT_HIJACK", 3)
+    local sent = {}
+    local restore = stub("apSendCheck", function(key) sent[#sent + 1] = key; return true end)
+    playBranch("AP_EVT_HIJACK_B")
+    restore()
+    equals(sent[1], "shop:1", "paid: the package goes out")
+
+    sim.startRun(true)
+    apShopGiftsConfigure({})
+    sim.player.currentScrap = 50
+    sim.openChoiceBox("AP_EVT_HIJACK", 3)
+    sim.player.currentScrap = 30
+    playBranch("AP_EVT_HIJACK_B")
+    equals(sim.player.currentScrap, 50, "nothing to free: the 20 scrap come back")
+end)
+
+test("event: a fight won with no package left gives only the usual reward", function()
+    sim.startRun(true)
+    apShopGiftsConfigure({})
+    local box = sim.openChoiceBox("AP_EVT_HIJACK", 3)
+    equals(box.text, "AP_EVT_HIJACK", "no package: the XML text stays")
+    apEventsResetForTesting()
+    playBranch("AP_HIJACK_WON")
+    equals(sim.errors, 0, "and no error")
+    check(not shownKey("event.gift.nothing"), "no refund message: nothing was paid")
+end)
+
 test("event: the relay names both packages in its two responses", function()
     sim.startRun(true)
     _G.apShopSlotCount = 2
@@ -4779,8 +4843,8 @@ test("event: every wired branch carries a branch name from the XML", function()
     local count = 0
     for branch, effect in pairs(_G.apEventBranchEffects) do
         check(type(effect) == "function", branch .. " has an effect")
-        check(branch:match("^AP_EVT_[A-Z_]+_[AB]$") ~= nil,
-              branch .. " follows the form AP_EVT_<name>_<A|B>")
+        check(branch:match("^AP_EVT_[A-Z_]+_[AB]$") ~= nil or branch:match("^AP_HIJACK_[A-Z]+$") ~= nil,
+              branch .. " follows the form AP_EVT_<name>_<A|B>, or ends the pirates' fight")
         count = count + 1
     end
     check(count >= 6, "at least six branches have an Archipelago effect (" .. count .. ")")

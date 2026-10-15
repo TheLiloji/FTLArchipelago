@@ -168,7 +168,10 @@ def main() -> int:
             )
 
     lua = EVENTS_LUA.read_text(encoding="utf-8")
-    for branch in sorted(set(re.findall(r"\b(AP_EVT_[A-Z_]+)\s*=", lua))):
+    # The endings of a fight are loaded by its ship, not picked in a choice.
+    branches_in_xml |= {node.get("name") for node in events_tree.iter("event")
+                        if (node.get("name") or "").startswith("AP_HIJACK_")}
+    for branch in sorted(set(re.findall(r"\b(AP_(?:EVT|HIJACK)_[A-Z_]+)\s*=", lua))):
         if branch not in branches_in_xml:
             failures.append(
                 f"Lua effect on \"{branch}\", which exists in no XML choice: "
@@ -203,7 +206,7 @@ def main() -> int:
         path.read_text(encoding="utf-8")
         for path in sorted((ROOT / "test").glob("scenarios*.lua"))
     )
-    for branch in sorted(set(re.findall(r"\b(AP_EVT_[A-Z_]+)\s*=", lua))):
+    for branch in sorted(set(re.findall(r"\b(AP_(?:EVT|HIJACK)_[A-Z_]+)\s*=", lua))):
         if f'"{branch}"' not in scenarios:
             failures.append(
                 f"branch \"{branch}\" has a Lua effect that no test names explicitly"

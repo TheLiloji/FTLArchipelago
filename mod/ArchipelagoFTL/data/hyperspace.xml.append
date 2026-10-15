@@ -105,6 +105,9 @@
     <event name="AP_EVT_ANOTHER_WORLD_PLAIN">
         <changeBackground>AP_BACKGROUND</changeBackground>
     </event>
+    <event name="AP_EVT_HIJACK">
+        <changeBackground>AP_BACKGROUND</changeBackground>
+    </event>
 </events>
 
 <store>

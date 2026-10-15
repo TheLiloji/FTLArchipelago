@@ -4,6 +4,7 @@
         <mod-before:event name="AP_STORE_EVENT" min="1" max="1"/>
         <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
         <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
+        <mod-before:event name="AP_EVT_HIJACK" min="0" max="1"/>
     </mod:insertByFind>
 </mod:findName>
 
@@ -13,6 +14,7 @@
         <mod-before:event name="AP_STORE_EVENT" min="1" max="1"/>
         <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
         <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
+        <mod-before:event name="AP_EVT_HIJACK" min="0" max="1"/>
     </mod:insertByFind>
 </mod:findName>
 
@@ -34,6 +36,7 @@
     <mod:insertByFind>
         <mod:findLike type="event" limit="1" panic="true"/>
         <mod-before:event name="AP_STORE_EVENT" min="1" max="1"/>
+        <mod-before:event name="AP_EVT_HIJACK" min="0" max="1"/>
     </mod:insertByFind>
 </mod:findName>
 

@@ -166,6 +166,8 @@
     "energylink.sent": "{what} depositado en la reserva común.",
     "event.gift.nothing": "No hay paquetes en espera: no se envió nada y recuperas {scrap} de chatarra.",
     "event.gift.sent": "Paquete enviado: {item}, para {slot}",
+    "event.hijack.self": "Una nave pirata se ha enganchado a un relé de Archipelago. Ha capturado tu propio paquete ({item}) y pide 20 de chatarra para soltarlo.",
+    "event.hijack.text": "Una nave pirata se ha enganchado a un relé de Archipelago. Ha capturado el paquete de {slot} ({item}) y pide 20 de chatarra para soltarlo.",
     "event.hint.asked": "El slug susurra. La pista se envía al servidor y aparecerá en cuanto responda.",
     "event.hint.nothing": "El slug no tiene nada que vender: no hay servidor o ya no queda nada por encontrar. Recuperas {scrap} de chatarra.",
     "event.link.empty": "La reserva común está vacía",

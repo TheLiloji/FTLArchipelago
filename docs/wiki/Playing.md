@@ -77,7 +77,7 @@ is kept in the dashboard.
 
 ![ARCHIPELAGO beacons on the map](../images/map.jpg)
 
-Each sector has beacons marked **ARCHIPELAGO**. They hold either the Archipelago shop or one of four events.
+Each sector has beacons marked **ARCHIPELAGO**. They hold either the Archipelago shop or one of five events.
 
 ### The Archipelago shop
 
@@ -92,9 +92,10 @@ Filler costs 10 to 25 scrap, useful items 30 to 65, and important ones 70 to 150
 comes back. Each sector sells its own packages: the shop of sector 5 has other packages than the one of sector 2,
 and they cost more.
 
-### The four events
+### The five events
 
 - **A relay** carrying packages for other players. Pay 15 scrap to forward one.
+- **Pirates holding a package**, often a friend's. Pay them 20 scrap, or fight them and send it for free if you win.
 - **A Zoltan checkpoint**, which asks for fuel for the shared Energy Link reserve, or a toll if Energy Link is off.
 - **A Slug** who sells a real Archipelago hint for 20 scrap. If there is nothing left to hint, you get the scrap
   back.

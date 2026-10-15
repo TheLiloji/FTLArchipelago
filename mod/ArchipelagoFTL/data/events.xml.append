@@ -233,3 +233,66 @@
         </event>
     </choice>
 </event>
+
+<ship name="AP_SHIP_HIJACKER" auto_blueprint="SHIPS_PIRATE">
+    <surrender chance="0.5" min="3" max="4">
+        <text id="ap_evt_hijack_surrender_text"/>
+        <choice>
+            <text id="ap_evt_hijack_surrender_c1"/>
+            <event load="AP_HIJACK_YIELD"/>
+        </choice>
+        <choice>
+            <text id="ap_evt_hijack_surrender_c2"/>
+            <event/>
+        </choice>
+    </surrender>
+    <destroyed load="AP_HIJACK_WON"/>
+    <deadCrew load="AP_HIJACK_DEADCREW"/>
+</ship>
+
+<event name="AP_HIJACK_YIELD">
+    <beaconType load="AP_BEACON_SIGNAL"/>
+    <text id="ap_evt_hijack_yield_text"/>
+    <ship hostile="false"/>
+</event>
+
+<event name="AP_HIJACK_WON">
+    <beaconType load="AP_BEACON_SIGNAL"/>
+    <text id="ap_evt_hijack_destroyed_text"/>
+    <autoReward level="MED">standard</autoReward>
+</event>
+
+<event name="AP_HIJACK_DEADCREW">
+    <beaconType load="AP_BEACON_SIGNAL"/>
+    <text id="ap_evt_hijack_deadcrew_text"/>
+    <autoReward level="HIGH">standard</autoReward>
+</event>
+
+<event name="AP_EVT_HIJACK">
+    <preventQuest/>
+    <text id="ap_evt_hijack_text"/>
+    <img back="AP_BACKGROUND" planet="AP_PLANET"/>
+    <beaconType load="AP_BEACON_SIGNAL"/>
+    <choice>
+        <text id="ap_evt_hijack_c1"/>
+        <event name="AP_EVT_HIJACK_A">
+            <text id="ap_evt_hijack_c1_text"/>
+            <ship load="AP_SHIP_HIJACKER" hostile="true"/>
+        </event>
+    </choice>
+    <choice>
+        <text id="ap_evt_hijack_c2"/>
+        <event name="AP_EVT_HIJACK_B">
+            <text id="ap_evt_hijack_c2_text"/>
+            <item_modify>
+                <item type="scrap" min="-20" max="-20"/>
+            </item_modify>
+        </event>
+    </choice>
+    <choice>
+        <text id="ap_evt_hijack_c3"/>
+        <event name="AP_EVT_HIJACK_C">
+            <text id="ap_evt_hijack_c3_text"/>
+        </event>
+    </choice>
+</event>
