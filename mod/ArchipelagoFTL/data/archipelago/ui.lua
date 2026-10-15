@@ -130,9 +130,83 @@ function ui.shade()
     ui.rect(0, 0, 1280, 720, "shade")
 end
 
+-- Under a full-screen panel the mouse still hovers the ship: FTL's own tooltip must not draw over the panel.
+function ui.hideGameTooltip()
+    pcall(function()
+        local mouse = Hyperspace.Mouse
+        mouse.tooltip = ""
+        mouse.tooltipTimer = 0
+    end)
+end
+
 function ui.window(x, y, w, h, accent)
     ui.rect(x, y, w, h, "window")
     ui.outline(x, y, w, h, accent or "border", 2)
+end
+
+-- The game's own pictures. Each is looked up once; a missing one is remembered as false, not retried every frame.
+local images = {}
+function ui.image(path)
+    if path == nil then return nil end
+    if images[path] == nil then
+        local ok, texture = pcall(function() return Hyperspace.Resources:GetImageId(path) end)
+        images[path] = (ok and texture and (texture.width or 0) > 0) and texture or false
+    end
+    return images[path] or nil
+end
+
+-- Draws part of a texture (u and v from 0 to 1) in a box.
+function ui.blit(texture, x, y, w, h, alpha, u1, u2, v1, v2)
+    Graphics.CSurface.GL_BlitImagePartial(texture, x, y, w, h, u1 or 0, u2 or 1, v1 or 0, v2 or 1,
+        alpha or 1, Graphics.GL_Color(1, 1, 1, 1), false)
+end
+
+-- A race as the ship shows it: the first frame of its sprite sheet, facing down. Works for Multiverse races too.
+local CREW_FRAME = 35
+function ui.raceSprite(race, x, y, size, alpha)
+    local texture = race and ui.image("people/" .. tostring(race) .. "_base.png")
+    if texture == nil or (texture.width or 0) < CREW_FRAME then return false end
+    ui.blit(texture, x, y, size, size, alpha, 0, CREW_FRAME / texture.width, 0, CREW_FRAME / texture.height)
+    return true
+end
+
+-- A weapon lying flat, as stores show it: the first frame of its art, turned a quarter, centred in the box.
+-- Lua cannot load a weapon animation, so the frame comes from the game data (and Multiverse's).
+local function weaponFrame(blueprint)
+    local art = (((_G.apGameData or {}).weaponArt) or {})[tostring(blueprint)]
+    local texture = art and ui.image(art[1])
+    if texture == nil or not texture then return nil end
+    local w, h, fw, fh, column, row = art[2], art[3], art[4], art[5], art[6] or 0, art[7] or 0
+    -- Rows count from the bottom of the sheet.
+    local top = (math.floor(h / fh) - 1 - row) * fh
+    return { texture = texture, w = fw, h = fh, u = column * fw / w, v = top / h, du = fw / w, dv = fh / h }
+end
+
+function ui.weaponArt(blueprint, x, y, w, h, alpha)
+    local frame = weaponFrame(blueprint)
+    if frame == nil then return false end
+    -- Turned, the frame's height lies across the box: shrink only when it would not fit.
+    local scale = math.min(1, w / frame.h, h / frame.w)
+    local fw, fh = frame.w * scale, frame.h * scale
+    Graphics.CSurface.GL_PushMatrix()
+    -- A quarter turn clockwise: the barrel points right, as in a store.
+    Graphics.CSurface.GL_Translate(x + (w + fh) / 2, y + (h - fw) / 2, 0)
+    Graphics.CSurface.GL_Rotate(90, 0, 0, 1)
+    ui.blit(frame.texture, 0, 0, fw, fh, alpha, frame.u, frame.u + frame.du, frame.v, frame.v + frame.dv)
+    Graphics.CSurface.GL_PopMatrix()
+    return true
+end
+
+-- A drone as it flies: its base picture at its own size (the picture has a wide empty border), narrowed only
+-- when wider than the box.
+function ui.droneArt(blueprint, x, y, w, h, alpha)
+    local ok, name = pcall(function() return Hyperspace.Blueprints:GetDroneBlueprint(blueprint).droneImage end)
+    local texture = ok and name and ui.image("ship/drones/" .. tostring(name) .. "_base.png")
+    if texture == nil or not texture then return false end
+    local scale = math.min(1, w / texture.width)
+    local dw, dh = texture.width * scale, texture.height * scale
+    ui.blit(texture, x + (w - dw) / 2, y + (h - dh) / 2, dw, dh, alpha)
+    return true
 end
 
 _G.apUi = ui

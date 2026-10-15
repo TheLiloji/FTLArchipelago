@@ -1338,6 +1338,7 @@ local function drawWindow()
     state.areas = {}
     loadJournal()
     local x, y, w, h = WINDOW.x, WINDOW.y, WINDOW.w, WINDOW.h
+    ui.hideGameTooltip()
     rect(0, 0, 1280, 720, "shade")
     rect(x, y, w, h, "window")
     outline(x, y, w, h, "border", 2)

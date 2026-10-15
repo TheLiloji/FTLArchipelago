@@ -737,7 +737,7 @@ function sim.blueprintOrEmpty(name, family)
     if family[name] == nil then
         return { name = "", type = -1, desc = { rarity = 0, baseRarity = 0, locked = false, title = "" } }
     end
-    return { name = name, type = 0, desc = sim.rarityFor(name, family[name]) }
+    return { name = name, type = 0, desc = sim.rarityFor(name, family[name]), droneImage = name:lower() }
 end
 
 local function textString(value, literal)
@@ -855,6 +855,10 @@ _G.Graphics = {
             return true
         end,
         GL_DrawRectOutline = function() return true end,
+        GL_PushMatrix = function() return 0 end,
+        GL_PopMatrix = function() return 0 end,
+        GL_Translate = function() return true end,
+        GL_Rotate = function() end,
         GL_SetColor = function(color) sim.lastColor = color; return true end,
     },
 }
