@@ -45,3 +45,4 @@ Multiverse runs are longer than base game runs: count more time than the presets
 - Multiverse kinds of a race (Zoltan Monk, Separatist Engi, Lanius Welder...) count for that race's crew check.
   So do unique crew members of that race, like Turzil the Engi. Multiverse's own races do not.
 - The goal, the dashboard (TAB) and the Archipelago shop work the same way. The Ships page of the dashboard shows under each ship the race of most of its crew.
+- Each Multiverse character who joins your crew (Turzil, Tully...) gives one free hint, once per seed.

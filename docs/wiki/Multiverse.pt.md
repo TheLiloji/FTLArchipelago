@@ -46,3 +46,4 @@ As partidas do Multiverse são mais longas do que as do jogo base: conta com mai
   dessa raça, assim como os tripulantes únicos dessa raça, como Turzil, o Engi. As raças próprias do
   Multiverse não contam.
 - O objetivo, o painel (TAB) e a loja Archipelago funcionam da mesma forma. A página de naves do painel mostra sob cada nave a raça da maior parte da sua tripulação.
+- Cada personagem do Multiverse que se junta à tua tripulação (Turzil, Tully...) dá uma dica grátis, uma vez por seed.

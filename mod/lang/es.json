@@ -59,6 +59,7 @@
     "contract.reason.toonew": "la seed utiliza el contrato {seed}, pero este mod solo admite hasta {mod}: actualiza el mod",
     "contract.reason.tooold": "la seed utiliza el contrato {seed}, pero este mod admite a partir de {mod}: vuelve a generar la seed",
     "contract.refused": "No se puede jugar con esta seed: {reason}",
+    "crew.character.hint": "{name} se une a tu tripulación y sabe dónde está algo: una pista gratis.",
     "crew.progress.aboard": "{name}: un tripulante se une a esta partida. El siguiente ejemplar lo desbloqueará en el menú de inicio.",
     "crew.progress.expert": "{name}: el experto reemplaza al tripulante normal en el menú de inicio.",
     "crew.progress.later": "{name}: recibiste el primer ejemplar. El siguiente lo desbloqueará en el menú de inicio.",

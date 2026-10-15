@@ -58,6 +58,7 @@
     "contract.reason.toonew": "la seed emploie le contrat {seed}, ce mod s'arrête au {mod} : mettez le mod à jour",
     "contract.reason.tooold": "la seed emploie le contrat {seed}, ce mod part du {mod} : régénérez la seed",
     "contract.refused": "Cette seed ne peut pas être jouée : {reason}",
+    "crew.character.hint": "{name} rejoint votre équipage, et sait où se trouve quelque chose : un indice gratuit.",
     "crew.progress.aboard": "{name} : un équipier rejoint cette run. Le prochain exemplaire le mettra au menu de début de run.",
     "crew.progress.expert": "{name} : l'expert remplace l'équipier normal au menu de début de run.",
     "crew.progress.later": "{name} : premier exemplaire reçu. Le prochain le mettra au menu de début de run.",

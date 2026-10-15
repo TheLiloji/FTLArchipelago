@@ -46,3 +46,4 @@ Multiverse-Runs dauern länger als im Grundspiel: Rechne mit mehr Zeit, als die 
   Rasse, ebenso einzigartige Crewmitglieder dieser Rasse, wie Turzil der Engi. Multiverse-eigene Rassen zählen
   nicht.
 - Das Ziel, das Dashboard (TAB) und der Archipelago-Laden funktionieren gleich. Die Schiffe-Seite des Dashboards zeigt unter jedem Schiff die Rasse des Großteils seiner Crew.
+- Jede Multiverse-Figur, die sich deiner Crew anschließt (Turzil, Tully...), gibt einmal pro Seed einen kostenlosen Hinweis.

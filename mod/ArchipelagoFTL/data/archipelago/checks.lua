@@ -502,9 +502,9 @@ local function raceSpecies(member, species)
     return species
 end
 
--- Our living crew, not counting drones or boarders: who -> species.
+-- Our living crew, not counting drones or boarders: who -> species, and who -> the game's own species.
 local function crewAboard()
-    local crew = {}
+    local crew, raw = {}, {}
     local player = Hyperspace.ships.player
     if player == nil then
         return nil
@@ -521,14 +521,30 @@ local function crewAboard()
             local species = tostring(member.species or "")
             if species ~= "" then
                 crew[crewKey(member)] = raceSpecies(member, species)
+                raw[crewKey(member)] = { species = species, name = tostring(member:GetName()) }
             end
         end
     end
-    return crew
+    return crew, raw
+end
+
+-- Eto's idea, after Outer Wilds: each Multiverse character met on the way (a unique crew member) knows where one
+-- thing is. One free hint per character and per seed, so a new run does not bring it again.
+local function characterJoined(member)
+    local key = "ap_character_" .. tostring(_G.apSeedFingerprint and apSeedFingerprint() or 0) .. "_" .. member.species
+    if not _G.apNetRecall or apNetRecall(key) > 0 then
+        return
+    end
+    apNetRemember(key, 1)
+    local given = _G.apHintPurchase and apHintPurchase()
+    checkLog(member.species .. " joined: " .. (given and "free hint asked" or "no hint left to give"))
+    if given and _G.apNotifyStatus then
+        _G.apNotifyStatus(apT("crew.character.hint", { name = member.name }))
+    end
 end
 
 local function pollCrew()
-    local present = crewAboard()
+    local present, raw = crewAboard()
     if present == nil then
         return
     end
@@ -541,6 +557,9 @@ local function pollCrew()
             local race = apRaceFamily(species)
             local label = (_G.apRaceLabel and _G.apRaceLabel(race)) or race
             apSendCheck("crew:" .. race, apT("check.label.crew", { name = label }))
+            if raw[key].species:match("^unique_") then
+                characterJoined(raw[key])
+            end
         end
     end
 end

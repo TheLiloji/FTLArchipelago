@@ -59,6 +59,7 @@
     "contract.reason.toonew": "der Seed nutzt Vertrag {seed}, dieser Mod endet bei {mod}: Mod aktualisieren",
     "contract.reason.tooold": "der Seed nutzt Vertrag {seed}, dieser Mod beginnt bei {mod}: Seed neu erzeugen",
     "contract.refused": "Diese Seed lässt sich nicht spielen: {reason}",
+    "crew.character.hint": "{name} schließt sich deiner Crew an und weiß, wo etwas liegt: ein kostenloser Hinweis.",
     "crew.progress.aboard": "{name}: ein Besatzungsmitglied schließt sich diesem Lauf an. Das nächste Exemplar bringt es ins Startmenü.",
     "crew.progress.expert": "{name}: der Experte ersetzt das normale Besatzungsmitglied im Startmenü.",
     "crew.progress.later": "{name}: erstes Exemplar erhalten. Das nächste bringt es ins Startmenü.",

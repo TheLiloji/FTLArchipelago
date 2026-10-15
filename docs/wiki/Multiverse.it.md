@@ -46,3 +46,4 @@ Le partite Multiverse sono più lunghe di quelle del gioco base: conta più temp
   quella razza, come anche i membri unici di quella razza, come Turzil l'Engi. Le razze proprie di Multiverse
   non contano.
 - L'obiettivo, il pannello (TAB) e il negozio Archipelago funzionano allo stesso modo. La pagina Navi del pannello mostra sotto ogni nave la razza della maggior parte del suo equipaggio.
+- Ogni personaggio di Multiverse che si unisce al tuo equipaggio (Turzil, Tully...) dà un indizio gratis, una volta per seed.

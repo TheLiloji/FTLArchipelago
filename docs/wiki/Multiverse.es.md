@@ -47,3 +47,4 @@ presets.
   de esa raza, igual que los tripulantes únicos de esa raza, como Turzil el Engi. Las razas propias de
   Multiverse no cuentan.
 - El objetivo, el panel (TAB) y la tienda de Archipelago funcionan igual. La página de naves del panel muestra bajo cada nave la raza de la mayoría de su tripulación.
+- Cada personaje de Multiverse que se une a tu tripulación (Turzil, Tully...) da una pista gratis, una vez por seed.

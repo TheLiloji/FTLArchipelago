@@ -47,3 +47,4 @@ presets.
   check de cette race, tout comme les équipiers uniques de cette race, comme Turzil l'Engi. Les races propres
   à Multiverse ne comptent pas.
 - Le but, le tableau de bord (TAB) et la boutique Archipelago marchent de la même façon. La page Vaisseaux du tableau de bord montre sous chaque vaisseau la race de la plupart de son équipage.
+- Chaque personnage de Multiverse qui rejoint ton équipage (Turzil, Tully...) donne un indice gratuit, une fois par seed.
