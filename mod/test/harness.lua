@@ -809,6 +809,7 @@ local function noteDraw(size, x, y, text)
         x = tonumber(x) or 0,
         y = tonumber(y) or 0,
         text = tostring(text),
+        color = sim.lastColor,
     }
     return { x = #tostring(text) * 6, y = 12 }
 end
@@ -852,7 +853,7 @@ _G.Graphics = {
             return true
         end,
         GL_DrawRectOutline = function() return true end,
-        GL_SetColor = function() return true end,
+        GL_SetColor = function(color) sim.lastColor = color; return true end,
     },
 }
 

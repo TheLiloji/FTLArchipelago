@@ -243,9 +243,10 @@ local function loadJournal()
     local stored = _G.apNetRecallText and apNetRecallText(key) or ""
     local history = {}
     for entry in stored:gmatch("[^\30]+") do
-        local item, sender = entry:match("^([^\31]*)\31?(.*)$")
+        local item, sender, class = entry:match("^([^\31]*)\31?([^\31]*)\31?(.*)$")
         if item and item ~= "" then
-            history[#history + 1] = { item = item, sender = sender ~= "" and sender or nil }
+            history[#history + 1] = { item = item, sender = sender ~= "" and sender or nil,
+                                      class = class ~= "" and class or nil }
         end
     end
     _G.apReceivedHistory = history
@@ -256,7 +257,7 @@ local function saveJournal()
     local parts = {}
     for index = 1, math.min(JOURNAL_SAVED, #_G.apReceivedHistory) do
         local entry = _G.apReceivedHistory[index]
-        parts[#parts + 1] = entry.item .. "\31" .. (entry.sender or "")
+        parts[#parts + 1] = entry.item .. "\31" .. (entry.sender or "") .. "\31" .. (entry.class or "")
     end
     apNetRememberText(journalKey(), table.concat(parts, "\30"))
 end
@@ -274,7 +275,7 @@ local function alreadyInJournal(index)
     return false
 end
 
-function apRecordReceived(itemName, sender, index)
+function apRecordReceived(itemName, sender, index, class)
     loadJournal()
     if alreadyInJournal(index) then
         return
@@ -284,7 +285,7 @@ function apRecordReceived(itemName, sender, index)
         sender = nil
     end
     local history = _G.apReceivedHistory
-    table.insert(history, 1, { item = tostring(itemName), sender = sender })
+    table.insert(history, 1, { item = tostring(itemName), sender = sender, class = class })
     while #history > HISTORY_MAX do
         table.remove(history)
     end
@@ -480,6 +481,31 @@ local function drawRunCard(x, y, w, h, lines)
     end
 end
 
+-- Archipelago's item classes: progression green, useful blue, trap red, filler grey.
+local CLASS_TONE = { p = "good", u = "useful", t = "bad", f = "dim" }
+local function classTone(entry)
+    return CLASS_TONE[entry.class] or "text"
+end
+
+-- What the colours mean, right of the journal's title when it fits.
+local function drawClassLegend(right, y, room)
+    local words, total = {}, 0
+    for _, pair in ipairs({ { "p", "dash.class.p" }, { "u", "dash.class.u" }, { "t", "dash.class.t" },
+                            { "f", "dash.class.f" } }) do
+        local word = apT(pair[2])
+        words[#words + 1] = { code = pair[1], word = word, w = width(9, word) }
+        total = total + words[#words].w + (#words > 1 and 10 or 0)
+    end
+    if total > room then
+        return
+    end
+    for index = #words, 1, -1 do
+        local entry = words[index]
+        textRight(9, right, y, entry.w, CLASS_TONE[entry.code], entry.word)
+        right = right - entry.w - 10
+    end
+end
+
 local function drawRecentCard(x, y, w, h)
     card(x, y, w, h)
     label(x + 16, y + 10, w - 32, "dash.recent.title")
@@ -499,7 +525,7 @@ local function drawRecentCard(x, y, w, h)
             senderW = math.min(width(9, sender), math.floor((w - 32) * 0.4))
             textRight(9, x + w - 16, lineY + 2, senderW, "dim", sender)
         end
-        text(10, x + 16, lineY, w - 40 - senderW, i == 1 and "good" or "text", entry.item)
+        text(10, x + 16, lineY, w - 40 - senderW, classTone(entry), entry.item)
         lineY = lineY + 20
     end
 end
@@ -704,6 +730,7 @@ local function drawJournal(x, y, w, h)
     local colW = math.floor((w - PAD) / 2)
     card(x, y, colW, h)
     text(12, x + 16, y + 12, colW - 32, "title", apT("dash.journal.items"))
+    drawClassLegend(x + colW - 16, y + 15, colW - 48 - width(12, apT("dash.journal.items")))
     local history = _G.apReceivedHistory or {}
     if #history == 0 then
         Graphics.CSurface.GL_SetColor(color("dim"))
@@ -717,7 +744,7 @@ local function drawJournal(x, y, w, h)
                     senderW = math.min(width(9, sender), math.floor(rw * 0.4))
                     textRight(9, rx + rw, ry + 2, senderW, "dim", sender)
                 end
-                text(10, rx, ry, rw - senderW - 8, "text", entry.item)
+                text(10, rx, ry, rw - senderW - 8, classTone(entry), entry.item)
             end)
     end
 

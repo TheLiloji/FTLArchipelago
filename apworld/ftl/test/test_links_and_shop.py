@@ -5,6 +5,8 @@ import random
 import subprocess
 import sys
 
+from BaseClasses import ItemClassification
+
 from .. import data, items, pricing
 from .bases import FTLTestBase
 
@@ -461,3 +463,23 @@ class TestAnUsualShopIsNotAnnounced(FTLTestBase):
             self.world_setup()
         said = [call.args[0] for call in warning.call_args_list]
         self.assertFalse(any("Archipelago shop holds" in line for line in said), said)
+
+
+class TestItemClassesForTheJournal(FTLTestBase):
+    options = {"trap_chance": 30}
+
+    def test_each_item_tells_the_mod_its_class_in_this_seed(self) -> None:
+        descriptors = self.world.fill_slot_data()["items"]
+        expected = {"p": ItemClassification.progression, "u": ItemClassification.useful,
+                    "t": ItemClassification.trap}
+        seen = set()
+        for item in self.multiworld.get_items():
+            if item.player != self.player or item.name not in descriptors:
+                continue
+            code = descriptors[item.name]["c"]
+            seen.add(code)
+            if code == "f":
+                self.assertEqual(item.classification, ItemClassification.filler, item.name)
+            else:
+                self.assertTrue(item.classification & expected[code], item.name)
+        self.assertTrue({"p", "u", "t", "f"} <= seen, seen)

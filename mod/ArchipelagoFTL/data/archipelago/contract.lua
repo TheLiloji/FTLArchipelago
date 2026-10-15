@@ -242,6 +242,15 @@ function apApplySlotData(slotData, slotName, solo)
     return true
 end
 
+-- Its Archipelago class, for the journal's colours. A seed made before 0.5 does not say: guessed from the kind.
+local GUESSED_CLASS = { trap = "t", filler = "f", ship = "p", cap = "p", archive = "p" }
+local function itemClass(descriptor)
+    if descriptor.c == "p" or descriptor.c == "u" or descriptor.c == "t" or descriptor.c == "f" then
+        return descriptor.c
+    end
+    return GUESSED_CLASS[descriptor.k] or "u"
+end
+
 local function announceLostItem(itemName)
     if _G.apNotifyStatus then
         _G.apNotifyStatus(apT("item.unknown", { name = tostring(itemName) }))
@@ -276,7 +285,7 @@ function apReceiveItem(itemName, sender, isReplay, index)
     end
 
     if not isReplay and _G.apRecordReceived then
-        apRecordReceived(itemName, sender, index)
+        apRecordReceived(itemName, sender, index, itemClass(descriptor))
     end
 
     -- A bundle is several shop items at once; it counts as received once its last one is through.
