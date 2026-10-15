@@ -383,6 +383,7 @@
     "dash.crew.waiting": "Pas encore rencontré",
     "connect.button.busy": "Connexion...",
     "connect.paste_hint": "Copiez l'adresse depuis la page de votre room, puis Ctrl+V dans un champ pour la coller.",
-    "connect.paste_empty": "Rien à coller. Copiez d'abord l'adresse (sous Linux : installez wl-clipboard ou xclip)."
+    "connect.paste_empty": "Rien à coller : le presse-papiers est vide.",
+    "connect.paste_empty.linux": "Presse-papiers vide ou illisible : sous Linux, installez wl-clipboard ou xclip."
   }
 }

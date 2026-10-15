@@ -379,6 +379,15 @@ std::string Client::Clipboard() const
     return text;
 }
 
+std::string Client::Platform() const
+{
+#ifdef _WIN32
+    return "windows";
+#else
+    return "linux";
+#endif
+}
+
 bool Client::Connect(const std::string& uri, const std::string& slot, const std::string& password)
 {
     Disconnect();
