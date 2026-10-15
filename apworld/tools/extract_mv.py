@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Writes apworld/ftl/data_mv.py from the Data zip of FTL: Multiverse.
 
-usage: extract_mv.py "Multiverse 5.5.1 - Data.zip"
+usage: extract_mv.py "Multiverse 5.5.1 - Data.zip" ["Multiverse 5.5 - Assets.zip" (for the drone pictures)]
 """
 
 from __future__ import annotations
@@ -162,8 +162,12 @@ def main() -> int:
     # The dashboard draws each Multiverse achievement with the icon Hyperspace gives it.
     icons = dict(re.findall(r'<achievement name="([A-Z_0-9]+)">.*?<icon>([^<]+)</icon>', hs, re.S))
     # And each weapon with its art's first frame, as the start-of-run menu draws it.
-    animations = "".join(read(name) for name in ("data/animations.xml.append", "data/dlcAnimations.xml.append")
-                         if name in archive.namelist())
+    # Multiverse weapons may reuse a base game animation: read the base game's too, Multiverse's last.
+    vanilla = Path.home() / ".local/share/ftl-extract/vanilla"
+    animations = "".join((vanilla / "data" / name).read_text(encoding="utf-8", errors="replace")
+                         for name in ("animations.xml", "dlcAnimations.xml") if (vanilla / "data" / name).exists())
+    animations += "".join(read(name) for name in ("data/animations.xml.append", "data/dlcAnimations.xml.append")
+                          if name in archive.namelist())
     sheets = {m.group(1): (m.group(6).strip(), *map(int, m.group(2, 3, 4, 5))) for m in re.finditer(
         r'<animSheet name="([^"]+)" w="(\d+)" h="(\d+)" fw="(\d+)" fh="(\d+)">([^<]+)</animSheet>', animations)}
     weapon_anims = {}
@@ -179,12 +183,33 @@ def main() -> int:
         anim = weapon_anims.get(art.group(1).strip()) if art else None
         if anim and anim[0] in sheets and name in sold_names:
             weapon_art[name] = (*sheets[anim[0]], anim[1], anim[2])
+    # And each drone sold, with the same choice as the base game's generator: drone, crew drone sprite, or icon.
+    assets = set()
+    if len(sys.argv) > 2:
+        assets = {name[len("img/"):] for name in zipfile.ZipFile(sys.argv[2]).namelist() if name.startswith("img/")}
+    exists = lambda rel: rel in assets or (vanilla / "img" / rel).exists()
+    drone_art = {}
+    for name, body in re.findall(r'<droneBlueprint name="([A-Z_0-9]+)"[^>]*>(.*?)</droneBlueprint>', catalogue, re.S):
+        if name not in sold_names:
+            continue
+        image = re.search(r"<droneImage>([^<]+)</droneImage>", body)
+        icon = re.search(r"<iconImage>([^<]+)</iconImage>", body)
+        image, icon = (image.group(1).strip() if image else ""), (icon.group(1).strip() if icon else "")
+        for path in (f"ship/drones/{image}_base.png" if image else None, f"people/{icon}_base.png" if icon else None,
+                     f"systemUI/weapbox_icon_D_{icon}.png" if icon else None):
+            if path and exists(path):
+                drone_art[name] = path
+                break
     mod_lines = [
         f"-- Extracted from FTL: Multiverse {version} by apworld/tools/extract_mv.py, do not edit by hand.",
         "local images = (_G.apGameData or {}).achievementImages",
         "if images then",
         *(f'    images.{name} = "achievements/{icons[name].strip()}.png"'
           for _, name, _ in feats if name in icons),
+        "end",
+        "local drones = (_G.apGameData or {}).droneArt",
+        "if drones then",
+        *(f'    drones.{name} = "{path}"' for name, path in sorted(drone_art.items())),
         "end",
         "local weapons = (_G.apGameData or {}).weaponArt",
         "if weapons then",
