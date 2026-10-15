@@ -732,7 +732,8 @@ class TestCrewMembers(FTLTestBase):
         self.assertNotIn("Zoltan Shield Expert", names, "the old items stay out of the pool")
 
     def test_the_mod_is_told_the_race_the_expert_skill_and_the_tiers(self) -> None:
-        descriptor = self.world.fill_slot_data()["items"]["Progressive Zoltan Crew"]
+        descriptor = dict(self.world.fill_slot_data()["items"]["Progressive Zoltan Crew"])
+        self.assertIn(descriptor.pop("c"), ("p", "u"), "its class colors the dashboard log")
         self.assertEqual(descriptor, {"k": "crew", "race": "energy", "skill": "shields", "tiers": 3})
 
 
