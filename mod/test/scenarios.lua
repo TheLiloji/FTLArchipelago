@@ -3360,6 +3360,69 @@ test("a deal always produces a trap, here or elsewhere", function()
     _G.apNetSendTrap = nil
 end)
 
+local function deadCrew()
+    local dead = {}
+    for i = 0, sim.player.vCrewList:size() - 1 do
+        local member = sim.player.vCrewList[i]
+        if member.bDead then dead[#dead + 1] = member:GetName() end
+    end
+    return dead
+end
+
+local function signWithLuck(blueprintName, luck)
+    local random = math.random
+    math.random = function(low, high) return luck == "worst" and (low or 1) or (high or low or 1) end
+    sim.sign(blueprintName)
+    sim.tick(60)
+    math.random = random
+end
+
+test("blood pacts, on the second page, pay more and say what they can cost", function()
+    sim.startRun(true)
+    apShopGiftsConfigure(DEMO)
+    local desc = sim.rarityFor("AP_DEAL_6", 0)
+    equals(desc.title.data, apT("deal.blood.title", { scrap = 130 }), "the title says blood pact and its scrap")
+    check(desc.description.data:find(apT("deal.blood.risk", { chance = 20 }), 1, true),
+        "the risk to the crew and its odds are written")
+    check(not sim.rarityFor("AP_DEAL_1", 0).description.data:find(apT("deal.blood.risk", { chance = 5 }), 1, true),
+        "an ordinary deal says nothing of the sort")
+end)
+
+test("a blood pact can take a crew member for good, never the last one, and an ordinary deal never does", function()
+    sim.startRun(true)
+    apShopGiftsConfigure(DEMO)
+    apNotifyResetForTesting()
+    signWithLuck("AP_DEAL_4", "worst")
+    local dead = deadCrew()
+    equals(#dead, 1, "the blood price is paid by one crew member")
+    check(sim.logged("the blood price is paid by"), "the log names it")
+    local warned = false
+    for _, toast in ipairs(apToastsForTesting()) do
+        warned = warned or toast.text == apT("deal.blood.taken", { name = dead[1] })
+    end
+    check(warned, "and the player is told who")
+
+    sim.reset()
+    sim.startRun(true)
+    apShopGiftsConfigure(DEMO)
+    signWithLuck("AP_DEAL_6", "best")
+    equals(#deadCrew(), 0, "with luck, nobody dies")
+
+    sim.reset()
+    sim.startRun(true)
+    apShopGiftsConfigure(DEMO)
+    signWithLuck("AP_DEAL_3", "worst")
+    equals(#deadCrew(), 0, "an ordinary deal never kills, whatever the luck")
+
+    sim.reset()
+    sim.startRun(true)
+    apShopGiftsConfigure(DEMO)
+    sim.player.vCrewList[0].bDead = true
+    sim.player.vCrewList[1].bDead = true
+    signWithLuck("AP_DEAL_5", "worst")
+    equals(#deadCrew(), 2, "the last crew member is spared: the pact does not end the run")
+end)
+
 test("an unknown blueprint is announced by its Archipelago name, not its id", function()
     sim.startRun(true)
     apLangResolve("fr")

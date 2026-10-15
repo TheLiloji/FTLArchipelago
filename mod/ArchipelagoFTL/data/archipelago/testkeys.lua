@@ -240,7 +240,7 @@ local function selfCheck()
         end
     end
 
-    for _, name in ipairs({ "AP_DEAL_1", "AP_DEAL_2", "AP_DEAL_3" }) do
+    for _, name in ipairs({ "AP_DEAL_1", "AP_DEAL_2", "AP_DEAL_3", "AP_DEAL_4", "AP_DEAL_5", "AP_DEAL_6" }) do
         local found = false
         local gotOk, bp = pcall(function()
             return blueprints:GetAugmentBlueprint(name)
