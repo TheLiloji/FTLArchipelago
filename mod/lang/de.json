@@ -41,7 +41,7 @@
     "connect.field.password": "Passwort",
     "connect.field.port": "Port",
     "connect.field.slot": "Slot-Name",
-    "connect.keys": "TAB nächstes Feld, ENTER verbinden. Im Spiel: TAB Übersicht.",
+    "connect.keys": "TAB nächstes Feld, ENTER verbinden, Strg+V einfügen. Im Spiel: TAB Übersicht.",
     "connect.keys.run": "Im Spiel: TAB Übersicht.",
     "connect.need_slot": "Gib deinen Slot-Namen ein.",
     "connect.no_module": "Das Netzwerkmodul fehlt: dieses Hyperspace kann sich nicht verbinden. Der Knopf Solomodus spielt offline.",
@@ -379,6 +379,9 @@
     "dash.checks.hover": "Zeig auf ein Feld, um zu sehen, was es ist und was es nach dem Erledigen gab.",
     "dash.checks.gave": "{item} für {slot}",
     "dash.crew.done": "An Bord",
-    "dash.crew.waiting": "Noch nicht getroffen"
+    "dash.crew.waiting": "Noch nicht getroffen",
+    "connect.button.busy": "Verbinde...",
+    "connect.paste_hint": "Kopiere die Adresse von deiner Raumseite und drücke Strg+V in einem Feld, um sie einzufügen.",
+    "connect.paste_empty": "Nichts zum Einfügen. Kopiere zuerst die Adresse (unter Linux: installiere wl-clipboard oder xclip)."
   }
 }

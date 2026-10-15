@@ -41,7 +41,7 @@
     "connect.field.password": "Password",
     "connect.field.port": "Porta",
     "connect.field.slot": "Nome dello slot",
-    "connect.keys": "TAB campo successivo, INVIO connettersi. In partita: TAB pannello.",
+    "connect.keys": "TAB campo successivo, INVIO connettersi, Ctrl+V incollare. In partita: TAB pannello.",
     "connect.keys.run": "In partita: TAB pannello.",
     "connect.need_slot": "Inserisci il nome del tuo slot.",
     "connect.no_module": "Manca il modulo di rete: questo Hyperspace non può connettersi. Il pulsante Modalità solo gioca offline.",
@@ -379,6 +379,9 @@
     "dash.checks.hover": "Punta una casella per vedere cos'è e cosa ha dato una volta fatta.",
     "dash.checks.gave": "{item} per {slot}",
     "dash.crew.done": "A bordo",
-    "dash.crew.waiting": "Non ancora incontrato"
+    "dash.crew.waiting": "Non ancora incontrato",
+    "connect.button.busy": "Connessione...",
+    "connect.paste_hint": "Copia l'indirizzo dalla pagina della tua stanza, poi premi Ctrl+V in un campo per incollarlo.",
+    "connect.paste_empty": "Niente da incollare. Copia prima l'indirizzo (su Linux: installa wl-clipboard o xclip)."
   }
 }

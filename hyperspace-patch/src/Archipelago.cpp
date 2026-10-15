@@ -341,6 +341,44 @@ std::string Client::LastSlot() const
     return slot;
 }
 
+// FTL reads its own keyboard and Hyperspace's SDL never opens a window, so neither offers the clipboard:
+// Windows is asked directly, Linux through the usual clipboard tools when one is installed.
+std::string Client::Clipboard() const
+{
+    std::string text;
+#ifdef _WIN32
+    if (OpenClipboard(nullptr)) {
+        HANDLE data = GetClipboardData(CF_UNICODETEXT);
+        const wchar_t* wide = data ? static_cast<const wchar_t*>(GlobalLock(data)) : nullptr;
+        if (wide != nullptr) {
+            int size = WideCharToMultiByte(CP_UTF8, 0, wide, -1, nullptr, 0, nullptr, nullptr);
+            if (size > 1) {
+                text.resize(size - 1);
+                WideCharToMultiByte(CP_UTF8, 0, wide, -1, &text[0], size, nullptr, nullptr);
+            }
+            GlobalUnlock(data);
+        }
+        CloseClipboard();
+    }
+#else
+    // Wayland's tool only when the session is Wayland: elsewhere it would fall back on another session's clipboard.
+    const char* command = getenv("WAYLAND_DISPLAY") != nullptr
+        ? "(wl-paste --no-newline || xclip -o -selection clipboard || xsel -ob) 2>/dev/null"
+        : "(xclip -o -selection clipboard || xsel -ob) 2>/dev/null";
+    FILE* pipe = popen(command, "r");
+    if (pipe != nullptr) {
+        char buffer[256];
+        size_t read = fread(buffer, 1, sizeof(buffer) - 1, pipe);
+        pclose(pipe);
+        text.assign(buffer, read);
+    }
+#endif
+    size_t end = text.find_first_of("\r\n");
+    if (end != std::string::npos) text.resize(end);
+    if (text.size() > 200) text.resize(200);
+    return text;
+}
+
 bool Client::Connect(const std::string& uri, const std::string& slot, const std::string& password)
 {
     Disconnect();

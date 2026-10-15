@@ -640,3 +640,66 @@ test("hangar: the ship list marks the layouts the seed leaves out", function()
     equals(count(), 0, "an older seed without its layouts marks nothing")
     sim.shipList = { open = false, page = 0, variant = 0 }
 end)
+
+local function ctrlV()
+    sim.keyDown(Defines.SDL.KEY_LCTRL)
+    sim.keyDown(Defines.SDL.KEY_v)
+    sim.keyUp(Defines.SDL.KEY_LCTRL)
+end
+
+test("connection panel: Ctrl+V pastes, and an address with its port fills both fields", function()
+    apConnectResetForTesting()
+    apNetResetForTesting()
+    sim.renderMenu()
+    sim.clipboard = "Tester Two"
+    ctrlV()
+    equals(apConnectState().slot, "Tester Two", "the slot field takes the clipboard")
+    sim.keyDown(Defines.SDL.KEY_UP)
+    sim.keyDown(Defines.SDL.KEY_UP)
+    sim.clipboard = "/connect archipelago.gg:54321"
+    ctrlV()
+    equals(apConnectState().uri, "archipelago.gg", "the room page's /connect line gives the address")
+    equals(apConnectState().port, "54321", "and its port")
+    sim.keyDown(Defines.SDL.KEY_DOWN)
+    sim.clipboard = "port 38 281"
+    ctrlV()
+    equals(apConnectState().port, "38281", "the port keeps only digits")
+    sim.clipboard = ""
+    ctrlV()
+    equals(apConnectState().message, apT("connect.paste_empty"), "an empty clipboard says so")
+    equals(apConnectState().port, "38281", "and changes nothing")
+    sim.keyDown(Defines.SDL.KEY_v)
+    equals(apConnectState().port, "38281", "v alone is still a letter, not a paste (and the port refuses it)")
+    sim.clipboard = nil
+end)
+
+local function labelColor(key)
+    for _, draw in ipairs(sim.draws) do
+        if draw.text == apT(key) then return draw.color end
+    end
+end
+
+local function isTone(color, tone)
+    local c = apUi.COLOR[tone]
+    return color ~= nil and color.r == c[1] and color.g == c[2] and color.b == c[3]
+end
+
+test("connection panel: the field a refusal blames turns red until it is edited, and the button waits", function()
+    apConnectResetForTesting()
+    apNetResetForTesting()
+    sim.renderMenu()
+    sim.type("Nobody")
+    apConnectNow()
+    sim.renderMenu()
+    check(sim.drawnText(apT("connect.button.busy")), "while connecting, the button says so")
+    sim.netEvent("refused", { extra = "InvalidSlot" })
+    sim.tick(2)
+    sim.renderMenu()
+    check(isTone(labelColor("connect.field.slot"), "bad"), "the slot name is drawn in red")
+    check(not isTone(labelColor("connect.field.password"), "bad"), "not the password")
+    check(sim.drawnText(apT("connect.button")), "the button is back")
+    sim.type("x")
+    sim.renderMenu()
+    check(not isTone(labelColor("connect.field.slot"), "bad"), "typing in it clears the red")
+    apNetResetForTesting()
+end)

@@ -41,7 +41,7 @@
     "connect.field.password": "Password",
     "connect.field.port": "Port",
     "connect.field.slot": "Slot name",
-    "connect.keys": "TAB next field, ENTER connect. In game: TAB dashboard.",
+    "connect.keys": "TAB next field, ENTER connect, Ctrl+V paste. In game: TAB dashboard.",
     "connect.keys.run": "In game: TAB dashboard.",
     "connect.need_slot": "Enter your slot name.",
     "connect.no_module": "The network module is missing: this Hyperspace cannot connect. The Solo mode button plays offline.",
@@ -379,6 +379,9 @@
     "dash.checks.hover": "Point at a box to see what it is, and what it gave once done.",
     "dash.checks.gave": "{item} for {slot}",
     "dash.crew.done": "Aboard",
-    "dash.crew.waiting": "Not met yet"
+    "dash.crew.waiting": "Not met yet",
+    "connect.button.busy": "Connecting...",
+    "connect.paste_hint": "Copy the address from your room page, then press Ctrl+V in a field to paste it.",
+    "connect.paste_empty": "Nothing to paste. Copy the address first (on Linux: install wl-clipboard or xclip)."
   }
 }

@@ -41,7 +41,7 @@
     "connect.field.password": "Contraseña",
     "connect.field.port": "Puerto",
     "connect.field.slot": "Nombre de slot",
-    "connect.keys": "TAB: siguiente campo. ENTER: conectar. Durante la partida: TAB abre el panel.",
+    "connect.keys": "TAB: siguiente campo. ENTER: conectar. Ctrl+V: pegar. Durante la partida: TAB abre el panel.",
     "connect.keys.run": "Durante la partida: TAB abre el panel.",
     "connect.need_slot": "Ingresa el nombre de tu slot.",
     "connect.no_module": "Falta el módulo de red: esta versión de Hyperspace no puede conectarse. El botón Modo solo permite jugar sin conexión.",
@@ -379,6 +379,9 @@
     "dash.checks.hover": "Señala una casilla para ver qué es y qué dio una vez hecha.",
     "dash.checks.gave": "{item} para {slot}",
     "dash.crew.done": "A bordo",
-    "dash.crew.waiting": "Aún sin conocer"
+    "dash.crew.waiting": "Aún sin conocer",
+    "connect.button.busy": "Conectando...",
+    "connect.paste_hint": "Copia la dirección de la página de tu sala y pulsa Ctrl+V en un campo para pegarla.",
+    "connect.paste_empty": "Nada que pegar. Copia primero la dirección (en Linux: instala wl-clipboard o xclip)."
   }
 }

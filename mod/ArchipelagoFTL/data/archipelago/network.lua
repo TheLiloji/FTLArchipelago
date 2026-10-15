@@ -41,6 +41,7 @@ function apNetResetForTesting()
     state.scoutRetryAt = nil
     state.seedRefused = false
     state.refusal = nil
+    state.refusalReasons = nil
     state.replayClean = false
     state.itemsInBatch = false
     if _G.apNetForgetDurableStore then _G.apNetForgetDurableStore() end
@@ -74,6 +75,7 @@ function apNetConnect(uri, slot, password)
     end
     state.connecting = true
     state.refusal = nil
+    state.refusalReasons = nil
     state.unreachableShown = false
     state.unreachableSince = nil
     -- After a refused seed, take every item again, from an empty inventory so nothing is counted twice.
@@ -695,6 +697,7 @@ local function onRefused(event)
         said[1] = apT("net.refused.unknown")
     end
     state.refusal = said[1]
+    state.refusalReasons = reasons
     if _G.apNotifyStatus then
         for _, line in ipairs(said) do
             _G.apNotifyStatus(line)
@@ -886,6 +889,12 @@ end
 -- FTL's own achievements: difficulty earned on, -1 if not, nil when the module cannot tell.
 function apNetAchievementStatus(name)
     return moduleCall("AchievementStatus", tostring(name))
+end
+
+-- The system clipboard's first line, "" when empty or when the module cannot read it.
+function apNetClipboard()
+    local text = moduleCall("Clipboard")
+    return text ~= nil and tostring(text) or ""
 end
 
 -- What a check sends, once the server answered the scout: { item, slot, mine }, or nil.
