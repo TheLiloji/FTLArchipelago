@@ -577,6 +577,10 @@ local function resetWorld()
                                     shipClass = { GetText = function() return (sim.shipClasses or {})[name] or "" end },
                                 }
                             end,
+                            GetCrewBlueprint = function(_, name)
+                                local title = (sim.crewTitles or {})[name] or ""
+                                return { desc = { title = { GetText = function() return title end } } }
+                            end,
                         }
                     end,
                 }
