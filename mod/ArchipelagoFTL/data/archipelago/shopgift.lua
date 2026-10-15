@@ -73,6 +73,15 @@ local function shipClassOf(base)
     return _G.apShipLabel and apShipLabel(base) or base
 end
 
+-- The ship (class or layout) and the sector a shop slot is sold on, each nil when any will do.
+function apShopSlotWhere(key)
+    local gift = { location = tostring(key) }
+    if giftSlot(gift) == nil then
+        return nil, nil
+    end
+    return giftOwner(gift), giftSector(gift)
+end
+
 -- Where a shop slot is sold in this seed ("Kestrel Cruiser B, sector 6"), as hints say it: nil when anywhere.
 function apShopPlace(key)
     local gift = { location = tostring(key) }
@@ -408,6 +417,17 @@ function apShopSlotKeys()
         keys[#keys + 1] = "shop:" .. slot
     end
     return keys
+end
+
+-- What a shop slot held, bought or not: { item, slot, kind }, or nil before the scout.
+function apShopSlotContent(key)
+    key = tostring(key)
+    for _, gift in ipairs(_G.apShopGifts or {}) do
+        if tostring(gift.location or "") == key then
+            return gift
+        end
+    end
+    return nil
 end
 
 function apShopGiftsScouted(scouted)
