@@ -107,3 +107,45 @@ HOOK_METHOD(ScoreKeeper, UnlockShip, (int shipId, int shipType, bool save, bool 
     }
     super(shipId, shipType, save, hidePopup);
 }
+
+// Archipelago deals are augments only on paper: the mod takes them off the ship as soon as they are bought.
+// Full augment slots must not refuse them, nor say so when the mouse is on them.
+namespace
+{
+bool IsDeal(const std::string& name)
+{
+    return name.compare(0, 8, "AP_DEAL_") == 0;
+}
+
+bool IsDeal(const AugmentBlueprint* blueprint)
+{
+    return blueprint != nullptr && IsDeal(blueprint->name);
+}
+}
+
+HOOK_METHOD(AugmentStoreBox, CanHold, () -> bool)
+{
+    LOG_HOOK("HOOK_METHOD -> AugmentStoreBox::CanHold -> Begin (ArchipelagoHooks.cpp)\n")
+    if (IsDeal(blueprint)) return shopper != nullptr && !shopper->HasAugmentation(blueprint->name);
+    return super();
+}
+
+HOOK_METHOD(AugmentStoreBox, MouseMove, (int mX, int mY) -> void)
+{
+    LOG_HOOK("HOOK_METHOD -> AugmentStoreBox::MouseMove -> Begin (ArchipelagoHooks.cpp)\n")
+    if (IsDeal(blueprint)) return button.MouseMove(mX, mY, false);
+    super(mX, mY);
+}
+
+// The purchase adds the augment, which a full ship refuses: the deal is added beside the slots, never counted.
+HOOK_METHOD(ShipObject, AddAugmentation, (const std::string& name) -> bool)
+{
+    LOG_HOOK("HOOK_METHOD -> ShipObject::AddAugmentation -> Begin (ArchipelagoHooks.cpp)\n")
+    if (!IsDeal(name)) return super(name);
+    ShipInfo* info = G_->GetShipInfo(iShipId);
+    const int count = info->augCount;
+    info->augCount = 0;
+    const bool added = super(name);
+    info->augCount = count;
+    return added;
+}
