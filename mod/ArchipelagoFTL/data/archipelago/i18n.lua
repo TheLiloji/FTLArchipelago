@@ -231,7 +231,8 @@ function apShipSpecies(name)
                 best = race
             end
         end
-        if best == nil then
+        -- A LIST_ entry (Militia, pirates) is a random draw: GetCrewBlueprint picks a new race each call.
+        if best == nil or best:sub(1, 5) == "LIST_" then
             return nil
         end
         local crew = blueprints:GetCrewBlueprint(best)

@@ -606,6 +606,10 @@ test("dashboard: a Multiverse ship shows the race of most of its crew, a base ga
     check(not sim.drawnText("Human"), "the race of most of the crew, not the first one")
     closeDashboard()
     equals(apShipSpecies("PLAYER_SHIP_UNION"), nil, "a ship without a crew list shows no race")
+    sim.shipNames.PLAYER_SHIP_MILITIA = "Militia"
+    sim.shipCrews.PLAYER_SHIP_MILITIA = { "human", "LIST_CREW_MILITIA_RANDOM", "LIST_CREW_MILITIA_RANDOM" }
+    sim.crewTitles.LIST_CREW_MILITIA_RANDOM = "Rock"
+    equals(apShipSpecies("PLAYER_SHIP_MILITIA"), nil, "a crew drawn from a random list shows no race")
 
     applySeed({ goal = { kind = "victories", count = 1 }, layouts = { "PLAYER_SHIP_HARD" } })
     sim.shipCrews = { PLAYER_SHIP_HARD = { "human" } }
