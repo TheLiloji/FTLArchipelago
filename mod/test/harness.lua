@@ -635,6 +635,7 @@ local function resetWorld()
                 if key == "languageSet" then return sim.gameLanguage ~= "" end
                 if key == "difficulty" then return sim.difficulty or 0 end
                 if key == "bDlcEnabled" then return sim.dlc ~= false end
+                if key == "openedList" then return sim.openedList or 2 end
                 return nil
             end,
         }),
