@@ -44,6 +44,20 @@ test("shop: a refused package refunds the displayed price, even with no price fr
         "the player gets back exactly what FTL took")
 end)
 
+test("shop: a package bought with no room aboard still sends its check", function()
+    sim.startRun(true)
+    apNetResetForTesting()
+    apShopGiftsConfigure({
+        { slot = "Berserker", item = "Seashell", location = "full:1" },
+    })
+    local sent = nil
+    local restore = stub("apSendCheck", function(location) sent = location; return true end)
+    sim.netEvent("package_bought", { name = "AP_GIFT_1" })
+    sim.tick(60)
+    restore()
+    equals(sent, "full:1", "the module kept it off the ship, the shop sends it all the same")
+end)
+
 test("seed: changing seed gives shops back what the old one had removed", function()
     _G.apInventory = { ships = {}, shopAvailability = {} }
     sim.rarityFor("BEAM_2", 4)
