@@ -302,6 +302,25 @@ test("dashboard: the journal keeps the items received, newest first, and the hin
     closeDashboard()
 end)
 
+test("dashboard: a bundle in the journal lists what it brought", function()
+    sim.startRun(true)
+    applySeed({ items = { ["Drone Bundle 2"] = { k = "bundle", bps = { "COMBAT_1", "DEFENSE_1" },
+                                                 names = { "Combat Drone I", "Defense Drone I" }, c = "u" } } })
+    _G.apReceivedHistory = {}
+    apReceiveItem("Drone Bundle 2", "Axel")
+    openDashboard("journal")
+    local bundle, member
+    for _, draw in ipairs(sim.draws) do
+        if draw.text == "Drone Bundle 2" then bundle = draw end
+        if draw.text == "Defense Drone I" then member = draw end
+    end
+    check(bundle ~= nil and member ~= nil, "the bundle and its drones are listed")
+    check(bundle ~= nil and member ~= nil and member.y > bundle.y and member.x > bundle.x,
+        "each drone under the bundle, set in")
+    check(sim.drawnText("Combat Drone I"), "every one of them")
+    closeDashboard()
+end)
+
 test("dashboard: a delivered item goes into the journal, a replayed one does not", function()
     sim.startRun(true)
     applySeed({ items = { ["50 Scrap"] = { k = "filler", res = "scrap", n = 50 } } })
