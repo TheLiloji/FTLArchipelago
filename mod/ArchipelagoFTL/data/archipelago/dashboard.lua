@@ -604,7 +604,8 @@ local function drawShips(x, y, w, h)
     local columns = 2
     local perColumn = math.ceil(#rows / columns)
     local cardW = math.floor((w - GAP) / columns)
-    local cardH = math.floor((h - 30 - GAP * (perColumn - 1)) / math.max(1, perColumn))
+    -- A seed with few ships keeps cards of a normal height at the top instead of stretching them.
+    local cardH = math.min(96, math.floor((h - 30 - GAP * (perColumn - 1)) / math.max(1, perColumn)))
     for index, row in ipairs(rows) do
         local col = (index - 1) // perColumn
         local line = (index - 1) % perColumn
@@ -849,8 +850,12 @@ local function checkRows(entry, category)
             return type(a.id) == "number"
         end)
     end
+    -- The ship flown first, then what counts on any ship, then the other ships: the same order in every language.
+    local function rank(row)
+        return row.current and 0 or (row.ship == nil and 1 or 2)
+    end
     table.sort(rows, function(a, b)
-        if a.current ~= b.current then return a.current end
+        if rank(a) ~= rank(b) then return rank(a) < rank(b) end
         local aLeft, bLeft = a.done < a.total, b.done < b.total
         if aLeft ~= bLeft then return aLeft end
         return a.label < b.label
@@ -1104,7 +1109,9 @@ local function drawAchievementCards(x, y, w, bottom, rows)
     flush()
     local cardW = math.floor((w - GAP * 2) / 3)
     local function card(row, cx, ry, cw, boxes, first)
-        rect(cx, ry, cw, lineH - GAP, row.current and "hover" or "faint")
+        -- A card spread over several lines stays one card: its next lines cover the gap above them.
+        local top = first and ry or ry - GAP
+        rect(cx, top, cw, ry + lineH - GAP - top, row.current and "hover" or "faint")
         if row.current then rect(cx, ry, 3, lineH - GAP, "border") end
         local complete = row.done >= row.total
         if first then
@@ -1112,7 +1119,7 @@ local function drawAchievementCards(x, y, w, bottom, rows)
             textRight(9, cx + cw - 10, ry + 7, 56, complete and "good" or "dim",
                 apT("dash.fraction", { done = row.done, total = row.total }))
         end
-        drawIcons(boxes, cx + 12, ry + 26)
+        drawIcons(boxes, cx + 12, ry + (first and 26 or 6))
     end
     scrollList("checks:achievement", { x = x, y = y, w = w, h = bottom - y }, lines, lineH, function(line, rx, ry, rw)
         if line.wide then
