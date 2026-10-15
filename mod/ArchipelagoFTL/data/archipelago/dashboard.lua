@@ -1146,7 +1146,7 @@ local function drawVictoryCards(x, y, w, bottom, rows)
     local cardW = math.floor((w - GAP * (columns - 1)) / columns)
     local miniW = math.floor((cardW - 24 - 8 * 2) / 3)
     local miniH = math.floor(miniW * 121 / 191)
-    local lineH = miniH + 58
+    local lineH = miniH + 66
     local lines = {}
     for index, row in ipairs(rows) do
         local line = lines[math.floor((index - 1) / columns) + 1] or {}
