@@ -247,12 +247,25 @@ test("dashboard: a check done turns its box green and tells what it gave", funct
     closeDashboard()
 end)
 
-test("dashboard: a crew check is named by the race in the game's language", function()
+test("dashboard: first crew members get a card each, with the race's sprite", function()
     sim.startRun(true)
-    applySeed({ items = {}, loc = { ["crew:engi"] = "First Engi aboard" } })
+    applySeed({ items = {}, loc = { ["crew:engi"] = "First Engi aboard", ["crew:mantis"] = "First Mantis aboard" } })
+    apSendCheck("crew:mantis", "test")
+    sim.images = {}
     openDashboard("checks")
-    check(sim.drawnText(apRaceLabel("engi")), "the box names the race as the game does")
+    check(sim.drawnText(apRaceLabel("engi")), "the card names the race as the game does")
     check(not sim.drawnText("First Engi aboard"), "not the English location name")
+    local engi, mantis
+    for _, image in ipairs(sim.images) do
+        if image.texture.name == "people/engi_base.png" then engi = image end
+        if image.texture.name == "people/mantis_base.png" then mantis = image end
+    end
+    check(engi ~= nil and mantis ~= nil, "each race shows its own sprite")
+    check(engi ~= nil and engi.part[1] == 0 and engi.part[3] == 0 and engi.part[2] < 0.1,
+        "only the first frame of the sheet")
+    check(engi ~= nil and mantis ~= nil and engi.alpha < mantis.alpha, "a race not met yet is faded")
+    check(sim.drawnText(apT("dash.crew.waiting")) and sim.drawnText(apT("dash.crew.done")),
+        "each card says whether the race came aboard")
     closeDashboard()
 end)
 

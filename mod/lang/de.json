@@ -377,6 +377,8 @@
     "dash.checks.ship_clear": "Hier nichts mehr für dieses Schiff",
     "dash.checks.ship_sector": "davon {n} in diesem Sektor",
     "dash.checks.hover": "Zeig auf ein Feld, um zu sehen, was es ist und was es nach dem Erledigen gab.",
-    "dash.checks.gave": "{item} für {slot}"
+    "dash.checks.gave": "{item} für {slot}",
+    "dash.crew.done": "An Bord",
+    "dash.crew.waiting": "Noch nicht getroffen"
   }
 }
