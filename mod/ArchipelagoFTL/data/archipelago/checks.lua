@@ -191,8 +191,8 @@ local function warnShip(refusal)
     shipWarned = true
     local layout = currentLayout()
     local ship = layout and ((_G.apShipLabel and _G.apShipLabel(layout)) or layout) or "?"
-    if _G.apNotifyStatus then
-        _G.apNotifyStatus(apT(SHIP_MESSAGES[refusal], { ship = ship }))
+    if _G.apNotifyWarning then
+        _G.apNotifyWarning(apT(SHIP_MESSAGES[refusal], { ship = ship }))
     end
 end
 
@@ -205,8 +205,8 @@ function apRunCounts()
         if not seedlessWarned then
             seedlessWarned = true
             checkLog("this run was not started with the current seed loaded: nothing it does counts")
-            if _G.apNotifyStatus then
-                _G.apNotifyStatus(apT("check.run_without_seed"))
+            if _G.apNotifyWarning then
+                _G.apNotifyWarning(apT("check.run_without_seed"))
             end
         end
     elseif refusal ~= "unknown" then

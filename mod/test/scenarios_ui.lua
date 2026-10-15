@@ -16,6 +16,38 @@ test("toasts: an item, a check and a trap each get their own colour, then fade a
     equals(#apToastsForTesting(), 0, "and gone a few seconds later")
 end)
 
+test("toasts: they last in seconds, not frames, so a fast screen does not cut them short", function()
+    sim.startRun(true)
+    apNotifyResetForTesting()
+    local saved = Hyperspace.FPS
+    -- 144 frames a second: SpeedFactor counts sixteenths of a second.
+    Hyperspace.FPS = { SpeedFactor = 16 / 144 }
+    apNotifyStatus("short")
+    for _ = 1, 144 * 5 do sim.renderGui() end
+    equals(#apToastsForTesting(), 1, "still there after five seconds at 144 Hz")
+    for _ = 1, 144 * 2 do sim.renderGui() end
+    equals(#apToastsForTesting(), 0, "gone after its six seconds")
+    Hyperspace.FPS = saved
+end)
+
+test("toasts: a long message stays long enough to read, and a run that does not count is not pushed out", function()
+    sim.startRun(true)
+    apNotifyResetForTesting()
+    local long = string.rep("word ", 30)
+    apNotifyStatus(long)
+    for _ = 1, 60 * 7 do sim.renderGui() end
+    check(sim.drawnText(long), "150 characters are still shown after seven seconds")
+
+    apNotifyResetForTesting()
+    apNotifyWarning("this run does not count")
+    for index = 1, 6 do apNotifyStatus("message " .. index) end
+    local kept = false
+    for _, toast in ipairs(apToastsForTesting()) do
+        if toast.text == "this run does not count" then kept = toast.tone == "warn" end
+    end
+    check(kept, "the warning stays, in its warning colour, when a burst of messages follows")
+end)
+
 test("toasts: never more than four, and none over the dashboard", function()
     sim.startRun(true)
     apNotifyResetForTesting()

@@ -3,11 +3,14 @@ local TAG = "[AP-notify] "
 -- FTL keeps the text of every message (and the tests read it there), but the mod draws them itself.
 local HIDDEN_X = -4000
 
+-- In seconds of real time: counted in frames, a message lasted half as long on a 120 Hz screen, and a blink with
+-- FTL's frame limit off.
 local TOAST = {
-    life = 6 * 60,
-    fade = 45,
+    life = 6,
+    fade = 0.75,
     max = 4,
-    keptLife = 15 * 60,
+    keptLife = 15,
+    readingSpeed = 15,
     width = { run = 300, menu = 460 },
     gap = 6,
 }
@@ -35,8 +38,11 @@ end
 
 -- A kept message (the goal) is not pushed out by the burst of items that often follows it.
 local function push(text, tone, kept)
-    toasts[#toasts + 1] = { text = tostring(text), tone = tone or "text", age = 0,
-                            life = kept and TOAST.keptLife or TOAST.life, kept = kept }
+    text = tostring(text)
+    -- A long message stays long enough to be read: about fifteen characters a second, plus two to find it.
+    local reading = 2 + #text / TOAST.readingSpeed
+    toasts[#toasts + 1] = { text = text, tone = tone or "text", age = 0,
+                            life = math.max(kept and TOAST.keptLife or TOAST.life, reading), kept = kept }
     while #toasts > TOAST.max do
         local oldest = 1
         for index, toast in ipairs(toasts) do
@@ -80,6 +86,16 @@ local function toastHeight(text, w)
     return 12 + lines * 14
 end
 
+-- FTL's own clock: SpeedFactor counts sixteenths of a second. A long stall (loading) does not wipe the messages.
+local function frameSeconds()
+    local ok, factor = pcall(function() return Hyperspace.FPS.SpeedFactor end)
+    factor = ok and tonumber(factor) or nil
+    if factor == nil or factor <= 0 then
+        return 1 / 60
+    end
+    return math.min(factor * 0.0625, 0.25)
+end
+
 function apDrawToasts()
     if hidden or #toasts == 0 then
         return
@@ -106,8 +122,9 @@ function apDrawToasts()
             y = top - TOAST.gap
         end
     end
+    local step = frameSeconds()
     for index = #toasts, 1, -1 do
-        toasts[index].age = toasts[index].age + 1
+        toasts[index].age = toasts[index].age + step
         if toasts[index].age >= toasts[index].life then
             table.remove(toasts, index)
         end
@@ -220,6 +237,12 @@ end
 function apNotifyKept(message)
     print(apT("status.prefix", { message = message }))
     push(message, "good", true)
+end
+
+-- A warning the player must not miss, such as a run that does not count: kept like the goal.
+function apNotifyWarning(message)
+    print(apT("status.prefix", { message = message }))
+    push(message, "warn", true)
 end
 
 script.on_render_event(Defines.RenderEvents.GUI_CONTAINER, function() end, function()
