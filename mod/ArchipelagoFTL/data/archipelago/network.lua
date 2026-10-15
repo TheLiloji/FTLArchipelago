@@ -740,6 +740,13 @@ local HANDLERS = {
         scheduleRetry()
     end,
 
+    -- A package bought with no room left aboard: the module kept it off the ship, the shop collects it.
+    package_bought = function(event)
+        if _G.apShopPackageBought then
+            _G.apShopPackageBought(tostring(event.name))
+        end
+    end,
+
     -- FTL tried to unlock a ship by itself and the lock refused it.
     unlock_denied = function(event)
         if _G.apShipUnlockDenied then

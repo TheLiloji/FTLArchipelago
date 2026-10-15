@@ -458,7 +458,18 @@ function apShopGiftsConfigure(gifts, source)
     return true
 end
 
+-- Packages bought while the ship had no room: the module never put them aboard.
+local boughtWithoutRoom = {}
+
+function apShopPackageBought(blueprintName)
+    boughtWithoutRoom[blueprintName] = true
+end
+
 local function playerHas(blueprintName)
+    if boughtWithoutRoom[blueprintName] then
+        boughtWithoutRoom[blueprintName] = nil
+        return true
+    end
     local found = false
     pcall(function()
         local equipment = Hyperspace.App.gui.equipScreen

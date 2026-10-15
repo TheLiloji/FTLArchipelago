@@ -149,3 +149,52 @@ HOOK_METHOD(ShipObject, AddAugmentation, (const std::string& name) -> bool)
     info->augCount = count;
     return added;
 }
+
+// Archipelago packages are weapons only on paper too: a full ship (four weapons, full cargo) must still be able
+// to buy one. The store then lets the button be pressed, keeps quiet about the full cargo, and the package goes
+// straight to the mod instead of into a ship with no room for it.
+namespace
+{
+bool IsPackage(const Blueprint* blueprint)
+{
+    return blueprint != nullptr && blueprint->name.compare(0, 8, "AP_GIFT_") == 0;
+}
+
+bool RoomForWeapon(Equipment* equipment)
+{
+    for (EquipmentBox* box : equipment->vEquipmentBoxes) {
+        if (box != nullptr && box != equipment->overcapacityBox && box->IsEmpty() && box->CanHoldWeapon()) return true;
+    }
+    return false;
+}
+
+// The package box under the mouse, only ever compared, never read.
+const StoreBox* pointedPackage = nullptr;
+}
+
+HOOK_METHOD(StoreBox, OnLoop, () -> void)
+{
+    LOG_HOOK("HOOK_METHOD -> StoreBox::OnLoop -> Begin (ArchipelagoHooks.cpp)\n")
+    super();
+    if (IsPackage(pBlueprint) && count > 0 && !desc.locked && !button.bActive) button.SetActive(true);
+    if (button.bHover) pointedPackage = IsPackage(pBlueprint) ? this : nullptr;
+    else if (pointedPackage == this) pointedPackage = nullptr;
+}
+
+// The full-cargo tooltip comes from the mouse handling: it is dropped there while a package is under the mouse.
+HOOK_METHOD(MouseControl, SetTooltip, (const std::string& tooltip) -> void)
+{
+    LOG_HOOK("HOOK_METHOD -> MouseControl::SetTooltip -> Begin (ArchipelagoHooks.cpp)\n")
+    if (pointedPackage != nullptr && tooltip == G_->GetTextLibrary()->GetText("max_weapons")) return;
+    super(tooltip);
+}
+
+HOOK_METHOD(Equipment, AddWeapon, (WeaponBlueprint* bp, bool free, bool forceCargo) -> void)
+{
+    LOG_HOOK("HOOK_METHOD -> Equipment::AddWeapon -> Begin (ArchipelagoHooks.cpp)\n")
+    if (!IsPackage(bp) || RoomForWeapon(this)) return super(bp, free, forceCargo);
+    ArchipelagoFTL::Event e;
+    e.kind = "package_bought";
+    e.name = bp->name;
+    ArchipelagoFTL::Instance().Push(std::move(e));
+}
