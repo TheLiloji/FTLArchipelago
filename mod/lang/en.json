@@ -141,7 +141,7 @@
     "dash.tile.systems": "SYSTEMS",
     "deal.backfired": "+{scrap} scrap. No one out there to take it: the pact turns on you.",
     "deal.blood.risk": "And {chance}% of the time, one of your crew dies for good.\nNo Clone Bay brings them back. Never your last one.",
-    "deal.blood.taken": "The blood pact takes {name}. No clone will bring them back.",
+    "deal.blood.taken": "The blood pact takes {name}. No Clone Bay will bring them back.",
     "deal.blood.title": "Blood pact: +{scrap} scrap",
     "deal.body": "You gain {scrap} scrap the moment you sign.\nIn exchange, one of these is sprung:\nfire, hull breach, fuel leak, system damage,\nhull damage, or the rebel fleet gains ground.\n\nTwo times out of three it hits another player.\nOne time out of three it hits you.\nYou find out which only after signing.",
     "deal.closed": "This deal is already closed",

@@ -141,7 +141,7 @@
     "dash.tile.systems": "SISTEMAS",
     "deal.backfired": "+{scrap} de sucata. Ninguém lá fora para receber: o pacto se volta contra você.",
     "deal.blood.risk": "E em {chance}% das vezes, um tripulante morre de vez.\nNenhuma baía de clonagem o traz de volta. Nunca o último.",
-    "deal.blood.taken": "O pacto de sangue leva {name}. Nenhum clone o trará de volta.",
+    "deal.blood.taken": "O pacto de sangue leva {name}. Nenhuma baía de clonagem o trará de volta.",
     "deal.blood.title": "Pacto de sangue: +{scrap}",
     "deal.body": "Você recebe {scrap} de sucata no momento em que assina.\nEm troca, uma destas é disparada:\nincêndio, rombo, vazamento de combustível, avaria,\ndano ao casco, ou a frota rebelde avança.\n\nDuas em cada três vezes atinge outro jogador.\nUma em cada três, atinge você.\nSó vai saber depois de assinar.",
     "deal.closed": "Este pacto já está assinado",
