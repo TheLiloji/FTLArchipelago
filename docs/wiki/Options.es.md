@@ -81,7 +81,7 @@ El Options Creator las muestra por grupos:
 
 En los nombres aparecen dos tipos de tienda. **Shop Weapons**, **Shop Drones**, **Shop Augments** y **Shop
 Unlock Mode** hablan de las tiendas de FTL. Las opciones **Archipelago Shop** hablan de la tienda de
-Archipelago: los paquetes que se venden en las balizas ARCHIPELAGO, con objetos de otros jugadores.
+Archipelago: los paquetes que se venden en las balizas TIENDA AP, con objetos de otros jugadores.
 
 ## Novedades de la 0.5
 

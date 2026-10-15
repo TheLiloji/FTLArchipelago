@@ -30,6 +30,7 @@
 <text name="list_tutorial_2" language="pt">Numa partida Archipelago, as naves vêm do multimundo: alguém por aí encontra a chave da vossa nave e envia-a. Pode chegar na primeira hora ou muito mais tarde.\n\nCarreguem em TAB durante a partida para ver o que já chegou e o que ainda falta.</text>
 
 <text name="ap_beacon_label" language="pt">ARCHIPELAGO</text>
+<text name="ap_store_label" language="pt">LOJA AP</text>
 <text name="ap_beacon_undiscovered" language="pt">Alguém está a emitir numa frequência Archipelago.</text>
 <text name="ap_beacon_unvisited" language="pt">Mercador Archipelago: mercadorias endereçadas a outros mundos, e negócios que ninguém devia aceitar.</text>
 <text name="ap_beacon_visited" language="pt">Mercador Archipelago.</text>

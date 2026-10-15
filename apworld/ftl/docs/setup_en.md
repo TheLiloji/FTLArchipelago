@@ -113,7 +113,7 @@ Create your YAML with **ArchipelagoOptionsCreator** (in the Archipelago Launcher
 other game. The options worth a second look:
 
 - **Sectorsanity**, **Sectorsanity First Sector** and **Sectorsanity Last Sector** decide how big the seed is.
-- **Archipelago Shop Checks** puts goods for other players on sale at one ARCHIPELAGO beacon per sector. Each
+- **Archipelago Shop Checks** puts goods for other players on sale at one AP STORE beacon per sector. Each
   slot is one check, and the cheapest kind: scrap, no fight. The number is a minimum: when your options create
   more items than checks, the seed adds shop slots until every item has a place. With **Archipelago Shop by
   Sector** (off by default) each slot belongs to one sector and is sold there only.
@@ -159,8 +159,8 @@ Pick a ship in the hangar (locked ships are simply not there) and play. The mod 
 - Head starts apply at the beginning of each run.
 - A system you have no blueprint for cannot be bought: if a store sells you one anyway, the mod removes it and
   refunds exactly the scrap you paid.
-- Beacons marked **ARCHIPELAGO** on the map hold either the Archipelago shop or one of four encounters. The
-  Slug in one of them sells a real Archipelago hint.
+- The beacon marked **AP STORE** on the map holds the Archipelago shop; beacons marked **ARCHIPELAGO** hold one of
+  five encounters. The Slug in one of them sells a real Archipelago hint.
 - Hints about your world, whoever asked for them, show up in game and in the dashboard.
 
 `TAB` opens the dashboard during a run and pauses the game. Its pages: an overview (goal, checks, links,

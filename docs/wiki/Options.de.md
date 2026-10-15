@@ -81,7 +81,7 @@ Der Options Creator zeigt sie in Gruppen:
 
 In den Namen tauchen zwei Arten von Läden auf. **Shop Weapons**, **Shop Drones**, **Shop Augments** und **Shop
 Unlock Mode** betreffen die Läden von FTL. Die Optionen **Archipelago Shop** betreffen den Archipelago-Laden:
-die Pakete an den ARCHIPELAGO-Baken, die Gegenstände anderer Spieler enthalten.
+die Pakete an den AP-SHOP-Baken, die Gegenstände anderer Spieler enthalten.
 
 ## Neu in 0.5
 

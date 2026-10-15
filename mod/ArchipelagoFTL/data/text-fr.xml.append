@@ -30,6 +30,7 @@
 <text name="list_tutorial_2" language="fr">Dans une partie Archipelago, les vaisseaux vous arrivent du multiworld : quelqu'un, quelque part, met la main sur la clé du vôtre et vous l'envoie. Parfois dès la première heure, parfois bien plus tard.\n\nEn partie, la touche TAB montre ce qui vous est déjà arrivé et ce qui manque encore.</text>
 
 <text name="ap_beacon_label" language="fr">ARCHIPELAGO</text>
+<text name="ap_store_label" language="fr">BOUTIQUE AP</text>
 <text name="ap_beacon_undiscovered" language="fr">Quelqu'un émet sur une fréquence Archipelago.</text>
 <text name="ap_beacon_unvisited" language="fr">Marchand Archipelago : des colis adressés à d'autres mondes, et des marchés que personne ne devrait accepter.</text>
 <text name="ap_beacon_visited" language="fr">Marchand Archipelago.</text>

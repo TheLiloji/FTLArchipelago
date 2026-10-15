@@ -119,8 +119,8 @@ Four options make received items count right away, all off by default:
   layout, so earning one with Type A, B or C sends the same check.
 - **General achievements.** Up to twenty-one of them, in widening tiers: the straightforward ones, then the
   run-long "going the distance" challenges, then the hardest one-off feats.
-- **The Archipelago shop.** One beacon per sector, marked ARCHIPELAGO on the map, sells goods for other players.
-  Buying one sends it to its owner. The seed balances itself: at least twenty slots by default (Archipelago Shop Checks), and more when your options create more items than checks, so no item is ever left out; the other way round, filler makes up the difference (at least twenty, Minimum Filler). The bigger the shop, the more packages each ARCHIPELAGO beacon offers: 3, 6, 9 or 12. A package marked
+- **The Archipelago shop.** One beacon per sector, marked AP STORE on the map, sells goods for other players.
+  Buying one sends it to its owner. The seed balances itself: at least twenty slots by default (Archipelago Shop Checks), and more when your options create more items than checks, so no item is ever left out; the other way round, filler makes up the difference (at least twenty, Minimum Filler). The bigger the shop, the more packages each AP STORE beacon offers: 3, 6, 9 or 12. A package marked
   **FOR YOU** holds one of your own items. A package that was already sent never comes back on the shelf.
   With **Archipelago Shop by Sector** (off by default) each package belongs to one sector, 1 to 7, and only
   that sector's beacon sells it: the logic counts it as deep as its sector.

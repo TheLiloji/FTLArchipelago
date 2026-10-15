@@ -81,7 +81,7 @@ L'Options Creator le mostra in gruppi:
 
 Nei nomi compaiono due tipi di negozio. **Shop Weapons**, **Shop Drones**, **Shop Augments** e **Shop Unlock
 Mode** riguardano i negozi di FTL. Le opzioni **Archipelago Shop** riguardano il negozio Archipelago: i pacchi
-venduti ai beacon ARCHIPELAGO, con oggetti di altri giocatori.
+venduti ai beacon NEGOZIO AP, con oggetti di altri giocatori.
 
 ## Novità della 0.5
 

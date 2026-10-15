@@ -29,6 +29,7 @@
 <text name="list_tutorial_2" language="es">En una partida de Archipelago, las naves provienen del Multiworld: alguien en otro mundo encuentra la llave de tu nave y te la envía. Puede llegar durante la primera hora o mucho más tarde.\n\nPresiona TAB durante la partida para ver lo que ya recibiste y lo que todavía está pendiente.</text>
 
 <text name="ap_beacon_label" language="es">ARCHIPELAGO</text>
+<text name="ap_store_label" language="es">TIENDA AP</text>
 <text name="ap_beacon_undiscovered" language="es">Alguien transmite en una frecuencia de Archipelago.</text>
 <text name="ap_beacon_unvisited" language="es">Mercader de Archipelago: mercancías destinadas a otros mundos y tratos que nadie debería aceptar.</text>
 <text name="ap_beacon_visited" language="es">Mercader de Archipelago.</text>

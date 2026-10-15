@@ -81,7 +81,7 @@ Le créateur d'options les range en groupes :
 
 Deux sortes de boutiques apparaissent dans les noms. **Shop Weapons**, **Shop Drones**, **Shop Augments** et
 **Shop Unlock Mode** parlent des magasins de FTL. Les options **Archipelago Shop** parlent de la boutique
-Archipelago : les colis vendus aux balises ARCHIPELAGO, qui contiennent les objets des autres joueurs.
+Archipelago : les colis vendus aux balises BOUTIQUE AP, qui contiennent les objets des autres joueurs.
 
 ## Nouveau en 0.5
 

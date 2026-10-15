@@ -65,7 +65,7 @@
 </ships>
 
 <events>
-    <beaconType name="AP_BEACON" id="ap_beacon_label" global="true" persist="false"
+    <beaconType name="AP_BEACON" id="ap_store_label" global="true" persist="false"
                 hideVanillaLabel="false">
         <color r="150" g="140" b="220" a="1.0"/>
         <undiscoveredTooltip id="ap_beacon_undiscovered"/>
