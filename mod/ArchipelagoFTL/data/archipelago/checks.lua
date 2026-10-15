@@ -482,6 +482,9 @@ end
 local RACE_FAMILY = {
     human = "human", engi = "engi", energy = "energy", zoltan = "energy", mantis = "mantis",
     rock = "rock", slug = "slug", anaerobic = "anaerobic", lanius = "anaerobic", crystal = "crystal",
+    -- Multiverse's own races, each with its variants (orchid_vampweed, phantom_goul...).
+    orchid = "orchid", shell = "shell", leech = "leech", phantom = "phantom", spider = "spider",
+    lizard = "lizard", cognitive = "cognitive", siren = "siren", pony = "pony", obelisk = "obelisk",
 }
 
 function apRaceFamily(species)

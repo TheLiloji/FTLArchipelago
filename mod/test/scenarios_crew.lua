@@ -230,7 +230,16 @@ test("crew: a species of no race stays itself", function()
     equals(apRaceFamily("human_soldier"), "human", "a Multiverse soldier is a human")
     equals(apRaceFamily("crystal"), "crystal", "a base race is unchanged")
     equals(apRaceFamily("technolanius"), "technolanius", "a name that only contains a race is not that race")
-    equals(apRaceFamily("orchid_vampweed"), "orchid_vampweed", "a species with no race of the seed stays as is")
+    equals(apRaceFamily("eldritch_spawn"), "eldritch_spawn", "a species with no race of the seed stays as is")
+    equals(apRaceFamily("orchid_vampweed"), "orchid", "a Multiverse race keeps its variants too")
+    equals(apRaceFamily("phantom_goul_alpha"), "phantom", "however long the variant's name")
+end)
+
+test("crew: a race the text library lacks takes its name from its crew blueprint", function()
+    sim.crewTitles = { orchid = "Orchid Floral" }
+    equals(apRaceLabel("orchid"), "Orchid Floral", "Multiverse writes it in the blueprint")
+    equals(apRaceLabel("nothing_known"), "nothing_known", "no title anywhere: the id itself")
+    sim.crewTitles = nil
 end)
 
 test("crew: a Multiverse unique crew member counts as its race", function()
