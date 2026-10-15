@@ -407,6 +407,10 @@ local function drawCategoriesCard(x, y, w, h, book)
         local complete = entry.done >= entry.total
         local count = apT("dash.fraction", { done = entry.done, total = entry.total })
         local countW = width(9, count)
+        -- A click opens that category on the Checks page.
+        local area = { x = rx - 4, y = ry - 3, w = colW + 8, h = math.min(rowH, 24) }
+        state.areas["go:" .. index] = area
+        if hovered(area) then rect(area.x, area.y, area.w, area.h, "hover") end
         text(9, rx, ry, colW - countW - 8, complete and "good" or "text", apT(CATEGORY_TITLE[name]))
         textRight(9, rx + colW, ry, countW, complete and "good" or "dim", count)
         bar(rx, ry + 14, colW, 3, entry.done / entry.total, complete and "good" or "border")
@@ -606,7 +610,7 @@ local function drawShips(x, y, w, h)
     local perColumn = math.ceil(#rows / columns)
     local cardW = math.floor((w - GAP) / columns)
     -- A seed with few ships keeps cards of a normal height at the top instead of stretching them.
-    local cardH = math.min(96, math.floor((h - 30 - GAP * (perColumn - 1)) / math.max(1, perColumn)))
+    local cardH = math.min(110, math.floor((h - 30 - GAP * (perColumn - 1)) / math.max(1, perColumn)))
     for index, row in ipairs(rows) do
         local col = (index - 1) // perColumn
         local line = (index - 1) % perColumn
@@ -616,31 +620,34 @@ local function drawShips(x, y, w, h)
         for _, layout in ipairs(row.layouts) do any = any or layout.unlocked end
         card(cx, cy, cardW, cardH)
         rect(cx, cy, 3, cardH, any and "good" or "faint")
-        local chipW, chipH = 64, 22
-        local chipsW = #row.layouts * chipW + (#row.layouts - 1) * 6
+        -- Each layout as the ship list shows it: in colour once unlocked, faded until then.
+        local miniGap = 6
+        local miniH = cardH - 30
+        local miniW = math.min(math.floor(miniH * 191 / 121), math.floor((cardW * 0.6 - miniGap * 2) / 3))
+        miniH = math.floor(miniW * 121 / 191)
+        local minisW = #row.layouts * miniW + (#row.layouts - 1) * miniGap
+        local textW = cardW - minisW - 40
         -- The race goes under the name, or after it when the cards are too short for one more line.
         local roomy = cardH >= 64
         local label = (row.species and not roomy) and apT("dash.ships.species", { ship = row.label, species = row.species })
             or row.label
-        text(12, cx + 16, cy + 10, cardW - chipsW - 44, any and "text" or "dim", label)
+        text(12, cx + 16, cy + 10, textW, any and "text" or "dim", label)
         if row.species and roomy then
-            text(9, cx + 16, cy + 28, cardW - chipsW - 44, "dim", row.species)
+            text(9, cx + 16, cy + 28, textW, "dim", row.species)
         end
         local remaining = row.remaining > 0 and apT("dash.ships.remaining", { n = row.remaining })
             or apT("dash.ships.clear")
-        text(9, cx + 16, cy + cardH - 22, cardW - chipsW - 44, "dim", remaining)
-        local chipX = cx + cardW - 16 - chipsW
-        local chipY = cy + math.floor((cardH - chipH) / 2)
+        text(9, cx + 16, cy + cardH - 22, textW, "dim", remaining)
+        local mx = cx + cardW - 12 - minisW
+        local my = cy + math.floor((cardH - miniH - 18) / 2)
         for _, layout in ipairs(row.layouts) do
-            if layout.unlocked then
-                rect(chipX, chipY, chipW, chipH, "faint")
-                rect(chipX, chipY + chipH - 3, chipW, 3, "good")
-            else
-                outline(chipX, chipY, chipW, chipH, "faint", 1)
+            if not ui.shipMini(layout.name, mx, my, miniW, miniH, layout.unlocked and 1 or 0.3) then
+                rect(mx, my, miniW, miniH, layout.unlocked and "faint" or "card")
             end
-            textCenter(10, chipX + chipW / 2, chipY + 4, chipW - 8,
-                layout.unlocked and "text" or "dim", apT("dash.ships.type", { letter = layout.letter }))
-            chipX = chipX + chipW + 6
+            rect(mx, my + miniH + 2, miniW, 3, layout.unlocked and "good" or "faint")
+            textCenter(9, mx + miniW / 2, my + miniH + 7, miniW, layout.unlocked and "text" or "dim",
+                apT("dash.ships.type", { letter = layout.letter }))
+            mx = mx + miniW + miniGap
         end
     end
 end
@@ -1141,12 +1148,6 @@ local function drawAchievementCards(x, y, w, bottom, rows)
 end
 
 -- Victories: one card per ship, each layout drawn as the ship list shows it, in colour once won.
-local function layoutMini(layout)
-    local ok, file = pcall(function()
-        return Hyperspace.Global.GetInstance():GetBlueprints():GetShipBlueprint(layout, -1).imgFile
-    end)
-    return ok and file and gameImage("customizeUI/miniship_" .. tostring(file) .. ".png") or nil
-end
 
 local function drawVictoryCards(x, y, w, bottom, rows)
     local columns = 2
@@ -1172,10 +1173,8 @@ local function drawVictoryCards(x, y, w, bottom, rows)
                 local mx = cx + 12 + (index - 1) * (miniW + 8)
                 local my = ry + 26
                 local done = box.done >= box.total
-                local mini = layoutMini(tostring(row.ship) .. (suffix[(box.id or 1) - 1] or ""))
-                if mini then
-                    blit(mini, mx, my, miniW, miniH, done and 1 or 0.45)
-                else
+                if not ui.shipMini(tostring(row.ship) .. (suffix[(box.id or 1) - 1] or ""), mx, my, miniW, miniH,
+                        done and 1 or 0.45) then
                     rect(mx, my, miniW, miniH, "card")
                 end
                 rect(mx, my + miniH + 2, miniW, 3, done and "good" or "faint")
@@ -1346,6 +1345,7 @@ local function drawWindow()
     state.areas = {}
     loadJournal()
     local x, y, w, h = WINDOW.x, WINDOW.y, WINDOW.w, WINDOW.h
+    ui.hideGameTooltip()
     rect(0, 0, 1280, 720, "shade")
     rect(x, y, w, h, "window")
     outline(x, y, w, h, "border", 2)
@@ -1483,6 +1483,8 @@ script.on_internal_event(Defines.InternalEvents.ON_MOUSE_L_BUTTON_DOWN, function
                 state.page = tonumber(index)
             elseif kind == "cat" then
                 state.category = tonumber(index)
+            elseif kind == "go" then
+                state.page, state.category = 4, tonumber(index)
             end
         end
     end

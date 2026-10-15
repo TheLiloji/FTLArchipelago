@@ -161,12 +161,35 @@ def main() -> int:
 
     # The dashboard draws each Multiverse achievement with the icon Hyperspace gives it.
     icons = dict(re.findall(r'<achievement name="([A-Z_0-9]+)">.*?<icon>([^<]+)</icon>', hs, re.S))
+    # And each weapon with its art's first frame, as the start-of-run menu draws it.
+    animations = "".join(read(name) for name in ("data/animations.xml.append", "data/dlcAnimations.xml.append")
+                         if name in archive.namelist())
+    sheets = {m.group(1): (m.group(6).strip(), *map(int, m.group(2, 3, 4, 5))) for m in re.finditer(
+        r'<animSheet name="([^"]+)" w="(\d+)" h="(\d+)" fw="(\d+)" fh="(\d+)">([^<]+)</animSheet>', animations)}
+    weapon_anims = {}
+    for m in re.finditer(r'<weaponAnim name="([^"]+)">(.*?)</weaponAnim>', animations, re.S):
+        sheet = re.search(r"<sheet>([^<]+)</sheet>", m.group(2))
+        desc = re.search(r'<desc[^>]*x="(\d+)"[^>]*y="(\d+)"', m.group(2))
+        if sheet:
+            weapon_anims[m.group(1)] = (sheet.group(1).strip(), *(map(int, desc.groups()) if desc else (0, 0)))
+    sold_names = {item[2] for item in sold}
+    weapon_art = {}
+    for name, body in re.findall(r'<weaponBlueprint name="([A-Z_0-9]+)"[^>]*>(.*?)</weaponBlueprint>', catalogue, re.S):
+        art = re.search(r"<weaponArt>([^<]+)</weaponArt>", body)
+        anim = weapon_anims.get(art.group(1).strip()) if art else None
+        if anim and anim[0] in sheets and name in sold_names:
+            weapon_art[name] = (*sheets[anim[0]], anim[1], anim[2])
     mod_lines = [
         f"-- Extracted from FTL: Multiverse {version} by apworld/tools/extract_mv.py, do not edit by hand.",
         "local images = (_G.apGameData or {}).achievementImages",
         "if images then",
         *(f'    images.{name} = "achievements/{icons[name].strip()}.png"'
           for _, name, _ in feats if name in icons),
+        "end",
+        "local weapons = (_G.apGameData or {}).weaponArt",
+        "if weapons then",
+        *(f'    weapons.{name} = {{ "{path}", {w}, {h}, {fw}, {fh}, {x}, {y} }}'
+          for name, (path, w, h, fw, fh, x, y) in sorted(weapon_art.items())),
         "end",
         "",
     ]

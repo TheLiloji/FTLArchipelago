@@ -626,3 +626,10 @@ test("dashboard: a Multiverse achievement shows the icon Hyperspace gives it", f
         "even when the icon's name differs from the achievement's")
     equals(apGameData.achievementImages.ACH_SECTOR_5, "achievements/0.png", "the base game's stay as they were")
 end)
+
+test("start-of-run menu: a Multiverse weapon has its art too", function()
+    local art = apGameData.weaponArt.BEAM_4
+    check(art ~= nil and tostring(art[1]):match("%.png$") ~= nil, "BEAM_4: its sheet comes from Multiverse's animations")
+    check(art ~= nil and art[4] > 0 and art[5] > 0, "with a frame size")
+    check(apGameData.weaponArt.LASER_BURST_3 ~= nil, "the base game's weapons keep theirs")
+end)

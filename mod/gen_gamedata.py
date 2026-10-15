@@ -43,6 +43,38 @@ def collect_achievement_images():
     return dict(sorted(images.items()))
 
 
+def collect_weapon_art(roots_blueprints, roots_animations):
+    """Each weapon's first animation frame, as a store draws it: image, image size, frame size, frame position."""
+    sheets, anims = {}, {}
+    for root in roots_animations:
+        for node in root.iter("animSheet"):
+            sheets[node.get("name")] = (node.text or "").strip(), node
+        for node in root.iter("weaponAnim"):
+            desc = node.find("desc")
+            anims[node.get("name")] = ((node.findtext("sheet") or "").strip(),
+                                       int(desc.get("x", 0)) if desc is not None else 0,
+                                       int(desc.get("y", 0)) if desc is not None else 0)
+    art = {}
+    for root in roots_blueprints:
+        for node in root.iter("weaponBlueprint"):
+            name, anim = node.get("name"), (node.findtext("weaponArt") or "").strip()
+            if not name or anim not in anims:
+                continue
+            sheet, x, y = anims[anim]
+            if sheet not in sheets:
+                continue
+            path, sheet_node = sheets[sheet]
+            numbers = [int(sheet_node.get(k, 0)) for k in ("w", "h", "fw", "fh")]
+            if path and all(numbers):
+                art[name] = (path, *numbers, x, y)
+    return dict(sorted(art.items()))
+
+
+def lua_weapon_art(art, target):
+    return [f'{target}.{name} = {{ "{path}", {w}, {h}, {fw}, {fh}, {x}, {y} }}'
+            for name, (path, w, h, fw, fh, x, y) in art.items()]
+
+
 def collect_ships():
     ships = {}
     for filename in ("blueprints.xml", "dlcBlueprints.xml", "dlcBlueprintsOverwrite.xml"):
@@ -136,6 +168,14 @@ def main():
         lines.append("    },")
     lines += [
         "}",
+        "",
+        "-- Each weapon's art: image, its width and height, a frame's width and height, the first frame's column and row.",
+        "gamedata.weaponArt = {}",
+    ]
+    blueprints = [r for r in (parse(f) for f in ("blueprints.xml", "dlcBlueprints.xml", "dlcBlueprintsOverwrite.xml")) if r is not None]
+    animations = [r for r in (parse(f) for f in ("animations.xml", "dlcAnimations.xml")) if r is not None]
+    lines += lua_weapon_art(collect_weapon_art(blueprints, animations), "gamedata.weaponArt")
+    lines += [
         "",
         "-- Each achievement's icon, as the game's achievement screen draws it.",
         "gamedata.achievementImages = {",

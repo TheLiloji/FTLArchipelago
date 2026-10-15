@@ -150,7 +150,8 @@ test("start-of-run menu: the arrows change page", function()
     local weapons = {}
     for _, name in ipairs({ "LASER_BURST_3", "BEAM_2", "MISSILES_2" }) do weapons[name] = 2 end
     catalog(weapons)
-    for index = 1, 9 do
+    -- Seven weapons at five a page: two pages.
+    for index = 1, 4 do
         sim.weaponBlueprints["TEST_WEAPON_" .. index] = 3
         apInventory.shopAvailability["TEST_WEAPON_" .. index] = 2
     end
@@ -257,4 +258,17 @@ test("start-of-run menu: works in solo mode too", function()
     check(menuShown(), "and keeps it on Continue")
     apSoloStop()
     _G.apRunStartCheckForTesting = false
+end)
+
+test("start-of-run menu: each row shows the weapon, the drone or the race it gives", function()
+    local first = next(sim.droneBlueprints)
+    catalog({ LASER_BURST_3 = 2, [first] = 2 }, { { race = "energy" } })
+    sim.images = {}
+    sim.startRun(true)
+    check(menuShown(), "open")
+    local seen = {}
+    for _, image in ipairs(sim.images) do seen[tostring(image.texture.name)] = image end
+    check(seen[apGameData.weaponArt.LASER_BURST_3[1]] ~= nil, "the weapon's own art")
+    check(seen["ship/drones/" .. first:lower() .. "_base.png"] ~= nil, "the drone's picture")
+    check(seen["people/energy_base.png"] ~= nil, "the race's sprite")
 end)
