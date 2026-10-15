@@ -247,6 +247,15 @@ test("dashboard: a check done turns its box green and tells what it gave", funct
     closeDashboard()
 end)
 
+test("dashboard: a crew check is named by the race in the game's language", function()
+    sim.startRun(true)
+    applySeed({ items = {}, loc = { ["crew:engi"] = "First Engi aboard" } })
+    openDashboard("checks")
+    check(sim.drawnText(apRaceLabel("engi")), "the box names the race as the game does")
+    check(not sim.drawnText("First Engi aboard"), "not the English location name")
+    closeDashboard()
+end)
+
 test("dashboard: the ship flown comes first, with what is left for it and in this sector", function()
     sim.startRun(true)
     applySeed({ items = {}, loc = {

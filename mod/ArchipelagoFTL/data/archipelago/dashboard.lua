@@ -801,6 +801,11 @@ local function placeOf(key, name, category)
         end
         return { row = "~general", label = apT("dash.checks.general"), box = label, text = label, named = true }
     end
+    local race = key:match("^crew:(.+)$")
+    if race then
+        local label = _G.apRaceLabel and apRaceLabel(race) or race
+        return { row = "~crew", label = apT(CATEGORY_TITLE.crew), box = label, text = label, named = true }
+    end
     return { row = "~" .. category, label = apT(CATEGORY_TITLE[category]), box = tostring(name),
              text = tostring(name), named = true }
 end
@@ -875,7 +880,7 @@ local LINE_H = BOX_H + 8
 
 local function boxWidth(box)
     if not box.named then return BOX_W end
-    return math.min(170, width(9, box.text) + 16)
+    return math.min(240, width(9, box.text) + 16)
 end
 
 -- A row too long for the panel goes on as many lines as it needs, its name on the first one.
@@ -912,7 +917,7 @@ local function drawBox(box, row, bx, by, bw)
         local dotsW = box.total * 3 + (box.total - 1) * 2
         for dot = 1, box.total do
             rect(bx + math.floor((bw - dotsW) / 2) + (dot - 1) * 5, by + BOX_H - 5, 3, 3,
-                dot <= box.done and "good" or (row.current and "border" or "faint"))
+                dot <= box.done and "good" or (row.current and "border" or "dim"))
         end
     end
     if box.here and row.current then
