@@ -75,6 +75,33 @@ def lua_weapon_art(art, target):
             for name, (path, w, h, fw, fh, x, y) in art.items()]
 
 
+IMG = DATA.parent / "img"
+
+
+def drone_art_path(image, icon, exists):
+    """The picture the start-of-run menu draws for a drone: the drone itself, a crew drone's sprite,
+    or its drone bar icon."""
+    if image and exists(f"ship/drones/{image}_base.png"):
+        return f"ship/drones/{image}_base.png"
+    if icon and exists(f"people/{icon}_base.png"):
+        return f"people/{icon}_base.png"
+    if icon and exists(f"systemUI/weapbox_icon_D_{icon}.png"):
+        return f"systemUI/weapbox_icon_D_{icon}.png"
+    return None
+
+
+def collect_drone_art(roots_blueprints):
+    art = {}
+    for root in roots_blueprints:
+        for node in root.iter("droneBlueprint"):
+            name = node.get("name")
+            path = drone_art_path((node.findtext("droneImage") or "").strip(), (node.findtext("iconImage") or "").strip(),
+                                  lambda rel: (IMG / rel).exists())
+            if name and path:
+                art[name] = path
+    return dict(sorted(art.items()))
+
+
 def collect_ships():
     ships = {}
     for filename in ("blueprints.xml", "dlcBlueprints.xml", "dlcBlueprintsOverwrite.xml"):
@@ -175,6 +202,12 @@ def main():
     blueprints = [r for r in (parse(f) for f in ("blueprints.xml", "dlcBlueprints.xml", "dlcBlueprintsOverwrite.xml")) if r is not None]
     animations = [r for r in (parse(f) for f in ("animations.xml", "dlcAnimations.xml")) if r is not None]
     lines += lua_weapon_art(collect_weapon_art(blueprints, animations), "gamedata.weaponArt")
+    lines += [
+        "",
+        "-- Each drone's picture: the drone, a crew drone's sprite sheet (people/), or its drone bar icon.",
+        "gamedata.droneArt = {}",
+    ]
+    lines += [f'gamedata.droneArt.{name} = "{path}"' for name, path in collect_drone_art(blueprints).items()]
     lines += [
         "",
         "-- Each achievement's icon, as the game's achievement screen draws it.",

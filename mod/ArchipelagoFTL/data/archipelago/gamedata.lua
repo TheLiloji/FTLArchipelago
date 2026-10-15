@@ -196,6 +196,29 @@ gamedata.weaponArt.SHOTGUN = { "weapons/shotgun_strip8.png", 296, 51, 37, 51, 0,
 gamedata.weaponArt.SHOTGUN_2 = { "weapons/shotgun_2_strip8.png", 296, 53, 37, 53, 0, 0 }
 gamedata.weaponArt.SHOTGUN_PLAYER = { "weapons/shotgun_strip8.png", 296, 51, 37, 51, 0, 0 }
 
+-- Each drone's picture: the drone, a crew drone's sprite sheet (people/), or its drone bar icon.
+gamedata.droneArt = {}
+gamedata.droneArt.ANTI_DRONE = "ship/drones/drone_anti_base.png"
+gamedata.droneArt.BATTLE = "people/battle_base.png"
+gamedata.droneArt.BOARDER = "systemUI/weapbox_icon_D_boarder.png"
+gamedata.droneArt.BOARDER_ION = "systemUI/weapbox_icon_D_ionD.png"
+gamedata.droneArt.BOSS_DEFENSE_2 = "ship/drones/drone_defense2_base.png"
+gamedata.droneArt.COMBAT_1 = "ship/drones/drone_combat_base.png"
+gamedata.droneArt.COMBAT_2 = "ship/drones/drone_combat2_base.png"
+gamedata.droneArt.COMBAT_BEAM = "ship/drones/drone_beam_base.png"
+gamedata.droneArt.COMBAT_BEAM_2 = "ship/drones/drone_beam_2_base.png"
+gamedata.droneArt.COMBAT_FIRE = "ship/drones/drone_fire_base.png"
+gamedata.droneArt.COMBAT_ION = "ship/drones/drone_combat_base.png"
+gamedata.droneArt.COMBAT_MISSILE = "ship/drones/drone_combat_base.png"
+gamedata.droneArt.DEFENSE_1 = "ship/drones/drone_defense_base.png"
+gamedata.droneArt.DEFENSE_2 = "ship/drones/drone_defense2_base.png"
+gamedata.droneArt.DEFENSE_2_ENEMY = "ship/drones/drone_defense2_base.png"
+gamedata.droneArt.DRONE_HACKING = "ship/drones/drone_hack_base.png"
+gamedata.droneArt.DRONE_SHIELD = "systemUI/weapbox_icon_D_shield.png"
+gamedata.droneArt.DRONE_SHIELD_PLAYER = "systemUI/weapbox_icon_D_shield.png"
+gamedata.droneArt.REPAIR = "people/repair_base.png"
+gamedata.droneArt.SHIP_REPAIR = "ship/drones/drone_shiprepair_base.png"
+
 -- Each achievement's icon, as the game's achievement screen draws it.
 gamedata.achievementImages = {
     ACH_BAD_DODGING = "achievements/18.png",

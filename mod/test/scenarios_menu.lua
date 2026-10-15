@@ -269,6 +269,26 @@ test("start-of-run menu: each row shows the weapon, the drone or the race it giv
     local seen = {}
     for _, image in ipairs(sim.images) do seen[tostring(image.texture.name)] = image end
     check(seen[apGameData.weaponArt.LASER_BURST_3[1]] ~= nil, "the weapon's own art")
-    check(seen["ship/drones/" .. first:lower() .. "_base.png"] ~= nil, "the drone's picture")
+    local dronePath = apGameData.droneArt[first] or ("ship/drones/" .. first:lower() .. "_base.png")
+    check(seen[dronePath] ~= nil, "the drone's picture")
     check(seen["people/energy_base.png"] ~= nil, "the race's sprite")
+end)
+
+test("start-of-run menu: a crew drone shows its sprite, a drone without a picture its drone bar icon", function()
+    local saved = apGameData.droneArt
+    apGameData.droneArt = { TEST_CREW_DRONE = "people/battle_base.png", TEST_ICON_DRONE = "systemUI/weapbox_icon_D_shield.png" }
+    sim.droneBlueprints.TEST_CREW_DRONE, sim.droneBlueprints.TEST_ICON_DRONE = 2, 2
+    catalog({ TEST_CREW_DRONE = 2, TEST_ICON_DRONE = 2 })
+    sim.images = {}
+    sim.startRun(true)
+    check(menuShown(), "open")
+    local crew, icon
+    for _, image in ipairs(sim.images) do
+        if image.texture.name == "people/battle_base.png" then crew = image end
+        if image.texture.name == "systemUI/weapbox_icon_D_shield.png" then icon = image end
+    end
+    check(crew ~= nil and crew.part ~= nil and crew.part[2] < 1, "the crew drone: one frame of its sprite sheet")
+    check(icon ~= nil, "the other: its drone bar icon")
+    apGameData.droneArt = saved
+    sim.droneBlueprints.TEST_CREW_DRONE, sim.droneBlueprints.TEST_ICON_DRONE = nil, nil
 end)

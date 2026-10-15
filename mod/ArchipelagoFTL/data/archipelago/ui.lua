@@ -210,13 +210,24 @@ function ui.shipMini(layout, x, y, w, h, alpha)
     return true
 end
 
--- A drone as it flies: its base picture at its own size (the picture has a wide empty border), narrowed only
--- when wider than the box.
+-- A drone as the game draws it: the drone itself at its own size, a crew drone's sprite like a crew member,
+-- or its drone bar icon doubled (pixel art stays sharp at twice its size). The path comes from the game data.
 function ui.droneArt(blueprint, x, y, w, h, alpha)
-    local ok, name = pcall(function() return Hyperspace.Blueprints:GetDroneBlueprint(blueprint).droneImage end)
-    local texture = ok and name and ui.image("ship/drones/" .. tostring(name) .. "_base.png")
+    local path = (((_G.apGameData or {}).droneArt) or {})[tostring(blueprint)]
+    if path == nil then
+        local ok, name = pcall(function() return Hyperspace.Blueprints:GetDroneBlueprint(blueprint).droneImage end)
+        path = ok and name and ("ship/drones/" .. tostring(name) .. "_base.png") or nil
+    end
+    local texture = path and ui.image(path)
     if texture == nil or not texture then return false end
-    local scale = math.min(1, w / texture.width)
+    if path:sub(1, 7) == "people/" then
+        local size = math.min(h, 70)
+        ui.blit(texture, x + (w - size) / 2, y + (h - size) / 2, size, size, alpha,
+            0, CREW_FRAME / texture.width, 0, CREW_FRAME / texture.height)
+        return true
+    end
+    local scale = path:sub(1, 9) == "systemUI/" and 2 or 1
+    scale = math.min(scale, w / texture.width, h / texture.height * 2)
     local dw, dh = texture.width * scale, texture.height * scale
     ui.blit(texture, x + (w - dw) / 2, y + (h - dh) / 2, dw, dh, alpha)
     return true
