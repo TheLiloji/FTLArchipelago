@@ -288,6 +288,55 @@ test("dashboard: Multiverse's eighteen races all fit on the crew page", function
     closeDashboard()
 end)
 
+local function imagesNamed(pattern)
+    local found = {}
+    for _, image in ipairs(sim.images) do
+        if tostring(image.texture.name):match(pattern) then found[#found + 1] = image end
+    end
+    return found
+end
+
+test("dashboard: achievements show their game icon, faded until done", function()
+    sim.startRun(true)
+    applySeed({ items = {}, loc = { ["ach:ACH_FULL_ARSENAL"] = "The Kestrel: Full Arsenal",
+                                    ["ach:ACH_TOUGH_SHIP"] = "The Kestrel: Tough Little Ship",
+                                    ["ach:ACH_BURNING"] = "Achievement: Burning" } })
+    apSendCheck("ach:ACH_TOUGH_SHIP", "test")
+    sim.images = {}
+    openDashboard("checks")
+    local function icon(id)
+        local path = apGameData.achievementImages[id]
+        for _, image in ipairs(sim.images) do
+            if image.texture.name == path then return image end
+        end
+    end
+    check(icon("ACH_FULL_ARSENAL") and icon("ACH_TOUGH_SHIP") and icon("ACH_BURNING"), "each achievement has its icon")
+    check(icon("ACH_TOUGH_SHIP").alpha > icon("ACH_FULL_ARSENAL").alpha, "the one done is in full colour")
+    check(sim.drawnText(apT("dash.checks.general")), "general achievements have their own card")
+    check(#overflowing() == 0, "nothing leaves the window")
+    closeDashboard()
+end)
+
+test("dashboard: victories show each layout's ship, in colour once won", function()
+    sim.startRun(true)
+    applySeed({ items = {}, loc = { ["PLAYER_SHIP_HARD:victory"] = "Kestrel Cruiser A: Defeat the Flagship",
+                                    ["PLAYER_SHIP_HARD_2:victory"] = "Kestrel Cruiser B: Defeat the Flagship" } })
+    apSendCheck("PLAYER_SHIP_HARD_2:victory", "test")
+    sim.images = {}
+    openDashboard("checks")
+    local minis = imagesNamed("^customizeUI/miniship_")
+    equals(#minis, 2, "one ship picture per layout")
+    local a, b
+    for _, image in ipairs(minis) do
+        if image.texture.name == "customizeUI/miniship_player_ship_hard.png" then a = image end
+        if image.texture.name == "customizeUI/miniship_player_ship_hard_2.png" then b = image end
+    end
+    check(a ~= nil and b ~= nil, "each layout shows its own picture")
+    check(a ~= nil and b ~= nil and b.alpha > a.alpha, "the layout won is in full colour")
+    check(sim.drawnText(apT("dash.ships.type", { letter = "B" })), "and its letter")
+    closeDashboard()
+end)
+
 test("dashboard: the ship flown comes first, with what is left for it and in this sector", function()
     sim.startRun(true)
     applySeed({ items = {}, loc = {

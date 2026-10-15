@@ -573,6 +573,7 @@ local function resetWorld()
                                 if displayName == nil then return nil end
                                 return {
                                     blueprintName = name,
+                                    imgFile = name:lower(),
                                     name = { GetText = function() return displayName end },
                                     shipClass = { GetText = function() return (sim.shipClasses or {})[name] or "" end },
                                 }

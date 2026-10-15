@@ -33,6 +33,16 @@ def collect_achievements():
     return sorted(general), {k: sorted(v) for k, v in sorted(per_ship.items())}
 
 
+def collect_achievement_images():
+    root = parse("achievements.xml")
+    images = {}
+    for node in root.iter("achievement"):
+        ach_id, img = node.get("id"), (node.findtext("img") or "").strip()
+        if ach_id and img:
+            images[ach_id] = img
+    return dict(sorted(images.items()))
+
+
 def collect_ships():
     ships = {}
     for filename in ("blueprints.xml", "dlcBlueprints.xml", "dlcBlueprintsOverwrite.xml"):
@@ -124,6 +134,14 @@ def main():
         lines.append(f"    [\"{ship}\"] = {{")
         lines.append(lua_string_list(achievements))
         lines.append("    },")
+    lines += [
+        "}",
+        "",
+        "-- Each achievement's icon, as the game's achievement screen draws it.",
+        "gamedata.achievementImages = {",
+    ]
+    for ach_id, img in collect_achievement_images().items():
+        lines.append(f'    {ach_id} = "{img}",')
     lines += [
         "}",
         "",
