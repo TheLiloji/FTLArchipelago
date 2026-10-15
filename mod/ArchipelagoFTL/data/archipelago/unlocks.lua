@@ -165,8 +165,28 @@ local function drawOutOfSeed()
     end
 end
 
+-- The first time a profile opens the list, FTL shows its help over it, which Lua cannot see. The game sets
+-- openedList to 2 as it does: opened while it was lower, the list shows the help until it closes again.
+local listOpen, helpShown, openedBefore = false, false, 2
+
+local function helpOverList()
+    local open = Hyperspace.CustomShipSelect.GetInstance():IsOpen()
+    local opened = tonumber(Hyperspace.Settings.openedList) or 2
+    if open and not listOpen then
+        helpShown = openedBefore < 2
+    elseif not open then
+        helpShown = false
+        openedBefore = opened
+    end
+    listOpen = open
+    return helpShown
+end
+
 script.on_render_event(Defines.RenderEvents.MAIN_MENU, function() end, function()
-    pcall(drawOutOfSeed)
+    local ok, help = pcall(helpOverList)
+    if not (ok and help) then
+        pcall(drawOutOfSeed)
+    end
 end)
 
 -- A Type B or C FTL earned by itself (its achievements, with layout unlocks set to vanilla) before its ship's

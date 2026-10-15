@@ -588,6 +588,20 @@ test("hangar: the ship list marks the layouts the seed leaves out", function()
     sim.renderMenu()
     equals(count(), 0, "the pages of modded ships are left alone")
 
+    sim.shipList = { open = false, page = 0, variant = 0 }
+    sim.openedList = 0
+    sim.renderMenu()
+    sim.shipList = { open = true, page = 0, variant = 0 }
+    sim.openedList = 2
+    sim.renderMenu()
+    equals(count(), 0, "first opening: nothing over FTL's help")
+    sim.shipList.open = false
+    sim.renderMenu()
+    sim.shipList.open = true
+    sim.renderMenu()
+    equals(count(), 8, "opened again, the marks are back")
+    sim.openedList = nil
+
     sim.shipList = { open = true, page = 0, variant = 0 }
     applySeed({})
     sim.renderMenu()
