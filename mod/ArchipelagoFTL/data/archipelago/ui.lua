@@ -197,6 +197,19 @@ function ui.weaponArt(blueprint, x, y, w, h, alpha)
     return true
 end
 
+-- A ship layout as the ship list shows it (its "miniship" picture), fitted in the box.
+function ui.shipMini(layout, x, y, w, h, alpha)
+    local ok, file = pcall(function()
+        return Hyperspace.Global.GetInstance():GetBlueprints():GetShipBlueprint(layout, -1).imgFile
+    end)
+    local texture = ok and file and ui.image("customizeUI/miniship_" .. tostring(file) .. ".png")
+    if texture == nil or not texture then return false end
+    local scale = math.min(w / texture.width, h / texture.height)
+    local mw, mh = texture.width * scale, texture.height * scale
+    ui.blit(texture, x + (w - mw) / 2, y + (h - mh) / 2, mw, mh, alpha)
+    return true
+end
+
 -- A drone as it flies: its base picture at its own size (the picture has a wide empty border), narrowed only
 -- when wider than the box.
 function ui.droneArt(blueprint, x, y, w, h, alpha)

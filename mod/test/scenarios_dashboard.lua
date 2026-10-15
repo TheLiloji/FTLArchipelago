@@ -349,7 +349,7 @@ test("dashboard: a seed with one ship keeps its card a normal height", function(
         if r.w < DASH.w - 100 then tallest = math.max(tallest, r.h) end
     end
     _G.apGameData.ships = saved
-    check(tallest <= 100, "no card stretched over the whole page (" .. tallest .. ")")
+    check(tallest <= 120, "no card stretched over the whole page (" .. tallest .. ")")
     closeDashboard()
 end)
 
@@ -368,6 +368,38 @@ test("dashboard: rows go ship flown, then what counts on any ship, then the othe
     local kestrel, shields, engi = y[apShipLabel("PLAYER_SHIP_HARD")], y[apSystemLabel("shields")], y[apShipLabel("PLAYER_SHIP_CIRCLE")]
     check(kestrel and shields and engi and kestrel < shields and shields < engi,
         "Kestrel, then Shields, then the Engi Cruiser, whatever the names")
+    closeDashboard()
+end)
+
+test("dashboard: the ships page shows each layout's picture, faded until unlocked", function()
+    sim.startRun(true)
+    dashboardSeed()
+    _G.apInventory.ships = { "PLAYER_SHIP_HARD" }
+    sim.images = {}
+    openDashboard("ships")
+    local a, b
+    for _, image in ipairs(sim.images) do
+        if image.texture.name == "customizeUI/miniship_player_ship_hard.png" then a = image end
+        if image.texture.name == "customizeUI/miniship_player_ship_hard_2.png" then b = image end
+    end
+    check(a ~= nil and b ~= nil, "the Kestrel's layouts have their pictures")
+    check(a ~= nil and b ~= nil and a.alpha > b.alpha, "the layout unlocked is in colour, the other faded")
+    closeDashboard()
+end)
+
+test("dashboard: a category on the overview opens it on the checks page", function()
+    sim.startRun(true)
+    dashboardSeed()
+    openDashboard("overview")
+    local target
+    for _, draw in ipairs(sim.draws) do
+        if draw.text == apT("dash.cat.victory") then target = draw end
+    end
+    check(target ~= nil, "the victories are listed on the overview")
+    sim.click(target.x + 4, target.y + 4)
+    sim.renderGui()
+    check(sim.drawnText(apT("dash.checks.remaining", { n = 1 })) and sim.drawnText(apT("dash.ships.type", { letter = "A" })),
+        "the click opens the checks page on the victories")
     closeDashboard()
 end)
 
