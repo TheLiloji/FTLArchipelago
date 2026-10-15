@@ -379,6 +379,8 @@
     "dash.checks.ship_clear": "Nada más aquí para esta nave",
     "dash.checks.ship_sector": "{n} en este sector",
     "dash.checks.hover": "Señala una casilla para ver qué es y qué dio una vez hecha.",
-    "dash.checks.gave": "{item} para {slot}"
+    "dash.checks.gave": "{item} para {slot}",
+    "dash.crew.done": "A bordo",
+    "dash.crew.waiting": "Aún sin conocer"
   }
 }

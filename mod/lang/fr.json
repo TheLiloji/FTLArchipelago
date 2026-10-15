@@ -378,6 +378,8 @@
     "dash.checks.ship_clear": "Plus rien ici pour ce vaisseau",
     "dash.checks.ship_sector": "dont {n} dans ce secteur",
     "dash.checks.hover": "Survole une case pour voir ce que c'est, et ce qu'elle a donné une fois faite.",
-    "dash.checks.gave": "{item} pour {slot}"
+    "dash.checks.gave": "{item} pour {slot}",
+    "dash.crew.done": "À bord",
+    "dash.crew.waiting": "Pas encore rencontré"
   }
 }

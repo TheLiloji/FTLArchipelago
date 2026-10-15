@@ -809,6 +809,11 @@ local function placeOf(key, name, category)
         end
         return { row = "~general", label = apT("dash.checks.general"), box = label, text = label, named = true }
     end
+    local race = key:match("^crew:(.+)$")
+    if race then
+        local label = _G.apRaceLabel and apRaceLabel(race) or race
+        return { row = "~crew", label = apT(CATEGORY_TITLE.crew), box = label, text = label, named = true }
+    end
     return { row = "~" .. category, label = apT(CATEGORY_TITLE[category]), box = tostring(name),
              text = tostring(name), named = true }
 end
@@ -883,7 +888,7 @@ local LINE_H = BOX_H + 8
 
 local function boxWidth(box)
     if not box.named then return BOX_W end
-    return math.min(170, width(9, box.text) + 16)
+    return math.min(240, width(9, box.text) + 16)
 end
 
 -- A row too long for the panel goes on as many lines as it needs, its name on the first one.
@@ -920,7 +925,7 @@ local function drawBox(box, row, bx, by, bw)
         local dotsW = box.total * 3 + (box.total - 1) * 2
         for dot = 1, box.total do
             rect(bx + math.floor((bw - dotsW) / 2) + (dot - 1) * 5, by + BOX_H - 5, 3, 3,
-                dot <= box.done and "good" or (row.current and "border" or "faint"))
+                dot <= box.done and "good" or (row.current and "border" or "dim"))
         end
     end
     if box.here and row.current then
@@ -980,6 +985,61 @@ local function drawPointed(x, y, w, complete)
     end
 end
 
+-- First crew members get a card each, with the race's own sprite: facing down, first frame.
+local FRAME = 35
+local crewTextures = {}
+
+local function crewTexture(race)
+    if crewTextures[race] == nil then
+        local ok, texture = pcall(function()
+            return Hyperspace.Resources:GetImageId("people/" .. race .. "_base.png")
+        end)
+        crewTextures[race] = (ok and texture and (texture.width or 0) >= FRAME) and texture or false
+    end
+    return crewTextures[race] or nil
+end
+
+local function drawCrewCards(x, y, w, bottom, rows)
+    local cards = {}
+    for _, row in ipairs(rows) do
+        for _, box in ipairs(row.boxes) do cards[#cards + 1] = box end
+    end
+    local columns = 4
+    local cardW = math.floor((w - GAP * (columns - 1)) / columns)
+    local cardH = 128
+    local lines = {}
+    for index, box in ipairs(cards) do
+        local line = lines[math.floor((index - 1) / columns) + 1] or {}
+        line[#line + 1] = box
+        lines[math.floor((index - 1) / columns) + 1] = line
+    end
+    scrollList("checks:crew", { x = x, y = y, w = w, h = bottom - y }, lines, cardH + GAP,
+        function(line, rx, ry)
+            for column, box in ipairs(line) do
+                local cx = rx + (column - 1) * (cardW + GAP)
+                local done = box.done >= box.total
+                local area = { x = cx, y = ry, w = cardW, h = cardH }
+                rect(cx, ry, cardW, cardH, hovered(area) and "hover" or "faint")
+                rect(cx, ry + cardH - 3, cardW, 3, done and "good" or "card")
+                if hovered(area) then state.pointed = box end
+                local race = tostring(box.checks[1].key):match("^crew:(.+)$")
+                local texture = race and crewTexture(race)
+                -- Three times its size; the frame's empty border lets it overflow the card's top a little.
+                local size = FRAME * 3
+                local sx = cx + math.floor((cardW - size) / 2)
+                if texture then
+                    Graphics.CSurface.GL_BlitImagePartial(texture, sx, ry - 12, size, size,
+                        0, FRAME / texture.width, 0, FRAME / texture.height,
+                        done and 1 or 0.45, Graphics.GL_Color(1, 1, 1, 1), false)
+                end
+                textCenter(10, cx + cardW / 2, ry + 82, cardW - 12, done and "good" or "text", box.text)
+                local status = done and (contentOf(box.checks[1].key) or apT("dash.crew.done"))
+                    or apT("dash.crew.waiting")
+                textCenter(9, cx + cardW / 2, ry + 100, cardW - 12, done and "good" or "dim", status)
+            end
+        end)
+end
+
 local function drawChecks(x, y, w, h)
     local book = checkBook()
     state.pointed = nil
@@ -1029,6 +1089,12 @@ local function drawChecks(x, y, w, h)
         top = top + 62
     end
     local detailH = 52
+    if category == "crew" then
+        rect(px + 16, y + h - detailH - 6, pw - 32, 1, "faint")
+        drawCrewCards(px + 16, top, pw - 32, y + h - detailH - 12, rows)
+        drawPointed(px + 16, y + h - detailH, pw - 32, current.done >= current.total)
+        return
+    end
     local labelW = 180
     local fractionW = 56
     local boxesW = pw - 32 - labelW - fractionW
