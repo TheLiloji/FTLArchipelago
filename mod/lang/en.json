@@ -382,6 +382,7 @@
     "dash.crew.waiting": "Not met yet",
     "connect.button.busy": "Connecting...",
     "connect.paste_hint": "Copy the address from your room page, then press Ctrl+V in a field to paste it.",
-    "connect.paste_empty": "Nothing to paste. Copy the address first (on Linux: install wl-clipboard or xclip)."
+    "connect.paste_empty": "Nothing to paste: the clipboard is empty.",
+    "connect.paste_empty.linux": "Clipboard empty or unreadable: on Linux, install wl-clipboard or xclip."
   }
 }

@@ -328,6 +328,7 @@ local function resetWorld()
         LastUri = function() return sim.net.last.uri end,
         LastSlot = function() return sim.net.last.slot end,
         Clipboard = function() return sim.clipboard or "" end,
+        Platform = function() return sim.platform or "windows" end,
         Connect = function(_, uri, slot, password)
             sim.net.calls[#sim.net.calls + 1] =
                 { "Connect", uri = uri, slot = slot, password = password }

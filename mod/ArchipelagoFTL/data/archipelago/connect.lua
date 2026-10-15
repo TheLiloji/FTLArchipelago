@@ -38,6 +38,8 @@ local blamed = {}
 local onMenu = false
 
 local AUTO_KEY = "ap_autoconnect"
+-- The password typed before a seed change relaunches FTL, kept for that one relaunch only.
+local RELAUNCH_PASSWORD_KEY = "relaunch_password"
 local autoTried = false
 local soloTried = false
 
@@ -138,6 +140,9 @@ local function acceptReset()
     if _G.apSeedChangeAcknowledged then _G.apSeedChangeAcknowledged() end
     if done then
         local relaunch = _G.apNetRelaunchWhenClosed and _G.apNetRelaunchWhenClosed() or false
+        if relaunch and FIELDS[4].value ~= "" and _G.apNetRememberText then
+            _G.apNetRememberText(RELAUNCH_PASSWORD_KEY, FIELDS[4].value)
+        end
         message, messageTone = apT(relaunch and "reset.relaunch" or "reset.asked"), "good"
         connectLog("profile erased, dated copy kept alongside"
             .. (relaunch and ", automatic relaunch planned" or ", relaunch by hand"))
@@ -318,6 +323,11 @@ local function drawStatus()
 end
 
 local function resumeLast()
+    local kept = _G.apNetRecallText and _G.apNetRecallText(RELAUNCH_PASSWORD_KEY) or ""
+    if kept ~= "" then
+        FIELDS[4].value = kept
+        _G.apNetRememberText(RELAUNCH_PASSWORD_KEY, "")
+    end
     if _G.apNetLastConnection == nil then
         return
     end
@@ -481,12 +491,15 @@ end
 local function paste()
     local text = (_G.apNetClipboard and apNetClipboard() or ""):match("^%s*(.-)%s*$")
     text = text:gsub("^/connect%s+", "")
-    local empty = apT("connect.paste_empty")
+    local empty = apT(_G.apNetPlatform and apNetPlatform() == "linux" and "connect.paste_empty.linux"
+        or "connect.paste_empty")
     if text == "" then
         message, messageTone = empty, "warn"
         return
     end
-    if message == empty then message, messageTone = nil, "dim" end
+    if message == apT("connect.paste_empty") or message == apT("connect.paste_empty.linux") then
+        message, messageTone = nil, "dim"
+    end
     local field = FIELDS[focus]
     if field.key == "uri" or field.key == "port" then
         local bare = text:gsub("^wss?://", ""):gsub("/+$", "")

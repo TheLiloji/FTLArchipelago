@@ -382,6 +382,7 @@
     "dash.crew.waiting": "Ainda não encontrado",
     "connect.button.busy": "A ligar...",
     "connect.paste_hint": "Copie o endereço da página da sua sala e prima Ctrl+V num campo para o colar.",
-    "connect.paste_empty": "Nada para colar. Copie primeiro o endereço (no Linux: instale wl-clipboard ou xclip)."
+    "connect.paste_empty": "Nada para colar: a área de transferência está vazia.",
+    "connect.paste_empty.linux": "Área de transferência vazia ou ilegível: no Linux, instale wl-clipboard ou xclip."
   }
 }

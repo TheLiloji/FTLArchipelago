@@ -897,6 +897,11 @@ function apNetClipboard()
     return text ~= nil and tostring(text) or ""
 end
 
+-- "windows" or "linux"; nil with a library older than 0.5.
+function apNetPlatform()
+    return moduleCall("Platform")
+end
+
 -- What a check sends, once the server answered the scout: { item, slot, mine }, or nil.
 function apNetScoutedItem(key)
     return (state.checkItems or {})[key]

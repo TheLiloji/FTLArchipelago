@@ -668,6 +668,10 @@ test("connection panel: Ctrl+V pastes, and an address with its port fills both f
     ctrlV()
     equals(apConnectState().message, apT("connect.paste_empty"), "an empty clipboard says so")
     equals(apConnectState().port, "38281", "and changes nothing")
+    sim.platform = "linux"
+    ctrlV()
+    equals(apConnectState().message, apT("connect.paste_empty.linux"), "only Linux hears about the clipboard tools")
+    sim.platform = nil
     sim.keyDown(Defines.SDL.KEY_UP)
     sim.clipboard = "/connect archipelago.gg:51234 and the rest of the room message"
     ctrlV()

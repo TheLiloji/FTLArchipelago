@@ -879,6 +879,36 @@ test("reset: when the relaunch is planned, the screen says FTL restarts on its o
     sim.durable = {}
 end)
 
+test("reset: the password typed before the relaunch is there again after it, once", function()
+    sim.net.relaunchPossible = true
+    apContractResetForTesting()
+    apConnectResetForTesting()
+    apInventoryClear()
+    sim.durable = { ap_autoconnect = "1", ap_seed_tag = "4242" }
+    sim.net.resetRequested = false
+    sim.renderMenu()
+    sim.keyDown(Defines.SDL.KEY_DOWN)
+    for _, key in ipairs({ Defines.SDL.KEY_s, Defines.SDL.KEY_e, Defines.SDL.KEY_c }) do sim.keyDown(key) end
+    equals(apConnectState().password, "sec", "the password field took the keys")
+    applySeed({ seed_hash = "seed-A" })
+    apInventoryAdd({ kind = "ship", bp = "PLAYER_SHIP_ROCK" })
+    applySeed({ seed_hash = "seed-B" })
+    sim.quitCalled = false
+    sim.renderMenu()
+    for y = 150, 400 do
+        sim.click(640 - 200, y)
+        if sim.quitCalled then break end
+    end
+    check(sim.quitCalled, "the game closes for its relaunch")
+
+    apConnectResetForTesting()
+    sim.renderMenu()
+    equals(apConnectState().password, "sec", "the relaunched game fills the password in again")
+    equals(sim.durable.relaunch_password, "", "and forgets it at once")
+    sim.net.relaunchPossible = nil
+    sim.durable = {}
+end)
+
 test("reset: if the relaunch is impossible, the screen asks to relaunch by hand", function()
     sim.net.relaunchPossible = false
     answerYes()
