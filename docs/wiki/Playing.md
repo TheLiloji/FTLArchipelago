@@ -73,11 +73,12 @@ per beacon; the rest follow at the next jumps.
 Notes at the bottom left tell you what arrived and what was sent. They fade after a few seconds, and everything
 is kept in the dashboard.
 
-## ARCHIPELAGO beacons
+## Archipelago beacons
 
-![ARCHIPELAGO beacons on the map](../images/map.jpg)
+![Archipelago beacons on the map](../images/map.jpg)
 
-Each sector has beacons marked **ARCHIPELAGO**. They hold either the Archipelago shop or one of five events.
+Each sector has one beacon marked **AP STORE**, with the Archipelago shop, and beacons marked **ARCHIPELAGO**, with one of
+five events.
 
 ### The Archipelago shop
 

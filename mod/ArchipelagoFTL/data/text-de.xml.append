@@ -30,6 +30,7 @@
 <text name="list_tutorial_2" language="de">In einem Archipelago-Durchlauf kommen Schiffe aus dem Multiworld: irgendwo findet jemand den Schlüssel zu eurem Schiff und schickt ihn herüber. Das kann in der ersten Stunde passieren oder viel später.\n\nDrückt im Spiel TAB, um zu sehen, was schon da ist und was noch aussteht.</text>
 
 <text name="ap_beacon_label" language="de">ARCHIPELAGO</text>
+<text name="ap_store_label" language="de">AP-SHOP</text>
 <text name="ap_beacon_undiscovered" language="de">Jemand sendet auf einer Archipelago-Frequenz.</text>
 <text name="ap_beacon_unvisited" language="de">Archipelago-Händler: Waren für andere Welten, und Geschäfte, die niemand annehmen sollte.</text>
 <text name="ap_beacon_visited" language="de">Archipelago-Händler.</text>

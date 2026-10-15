@@ -30,6 +30,7 @@
 <text name="list_tutorial_2">In an Archipelago run, ships come from the multiworld: someone out there finds your ship's key and sends it over. It can land in the first hour, or much later.\n\nPress TAB during a run to see what has already arrived, and what is still out there.</text>
 
 <text name="ap_beacon_label">ARCHIPELAGO</text>
+<text name="ap_store_label">AP STORE</text>
 <text name="ap_beacon_undiscovered">Someone is broadcasting on an Archipelago frequency.</text>
 <text name="ap_beacon_unvisited">Archipelago trader: goods addressed to other worlds, and deals nobody should take.</text>
 <text name="ap_beacon_visited">Archipelago trader.</text>

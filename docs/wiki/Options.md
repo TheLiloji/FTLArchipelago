@@ -82,7 +82,7 @@ The Options Creator shows them in groups:
 
 Two kinds of shop appear in the names. **Shop Weapons**, **Shop Drones**, **Shop Augments** and **Shop Unlock
 Mode** are about FTL's own stores. **Archipelago Shop** options are about the Archipelago shop: the
-packages sold at the ARCHIPELAGO beacons, which hold other players' items.
+packages sold at the AP STORE beacons, which hold other players' items.
 
 ## New in 0.5
 
