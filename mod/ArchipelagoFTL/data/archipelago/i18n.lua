@@ -182,7 +182,16 @@ function apRaceLabel(name)
     if name == nil or name == "" then
         return "?"
     end
-    return textLibraryLookup("crew_" .. name .. "_title") or tostring(name)
+    local text = textLibraryLookup("crew_" .. name .. "_title")
+    if text then return text end
+    -- Multiverse writes its race names in the crew blueprints, not in the text library.
+    local ok, title = pcall(function()
+        return Hyperspace.Global.GetInstance():GetBlueprints():GetCrewBlueprint(name).desc.title:GetText()
+    end)
+    if ok and type(title) == "string" and title ~= "" then
+        return title
+    end
+    return tostring(name)
 end
 function apShipLabel(name)
     if name == nil or name == "" then

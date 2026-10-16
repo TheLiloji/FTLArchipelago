@@ -65,7 +65,7 @@
 </ships>
 
 <events>
-    <beaconType name="AP_BEACON" id="ap_beacon_label" global="true" persist="false"
+    <beaconType name="AP_BEACON" id="ap_store_label" global="true" persist="false"
                 hideVanillaLabel="false">
         <color r="150" g="140" b="220" a="1.0"/>
         <undiscoveredTooltip id="ap_beacon_undiscovered"/>
@@ -105,6 +105,9 @@
     <event name="AP_EVT_ANOTHER_WORLD_PLAIN">
         <changeBackground>AP_BACKGROUND</changeBackground>
     </event>
+    <event name="AP_EVT_HIJACK">
+        <changeBackground>AP_BACKGROUND</changeBackground>
+    </event>
 </events>
 
 <store>
@@ -124,6 +127,14 @@
             <item><blueprint>AP_DEAL_1</blueprint></item>
             <item><blueprint>AP_DEAL_2</blueprint></item>
             <item><blueprint>AP_DEAL_3</blueprint></item>
+        </category>
+
+        <category type="AUGMENTS">
+            <chance>100</chance>
+            <allowDuplicates/>
+            <item><blueprint>AP_DEAL_4</blueprint></item>
+            <item><blueprint>AP_DEAL_5</blueprint></item>
+            <item><blueprint>AP_DEAL_6</blueprint></item>
         </category>
 
         <resource>
@@ -175,6 +186,14 @@
             <item><blueprint>AP_GIFT_6</blueprint></item>
         </category>
 
+        <category type="AUGMENTS">
+            <chance>100</chance>
+            <allowDuplicates/>
+            <item><blueprint>AP_DEAL_4</blueprint></item>
+            <item><blueprint>AP_DEAL_5</blueprint></item>
+            <item><blueprint>AP_DEAL_6</blueprint></item>
+        </category>
+
         <resource>
             <type>fuel</type>
             <count min="3" max="9"/>
@@ -222,6 +241,14 @@
             <item><blueprint>AP_GIFT_4</blueprint></item>
             <item><blueprint>AP_GIFT_5</blueprint></item>
             <item><blueprint>AP_GIFT_6</blueprint></item>
+        </category>
+
+        <category type="AUGMENTS">
+            <chance>100</chance>
+            <allowDuplicates/>
+            <item><blueprint>AP_DEAL_4</blueprint></item>
+            <item><blueprint>AP_DEAL_5</blueprint></item>
+            <item><blueprint>AP_DEAL_6</blueprint></item>
         </category>
 
         <category type="WEAPONS">
@@ -280,6 +307,14 @@
             <item><blueprint>AP_GIFT_4</blueprint></item>
             <item><blueprint>AP_GIFT_5</blueprint></item>
             <item><blueprint>AP_GIFT_6</blueprint></item>
+        </category>
+
+        <category type="AUGMENTS">
+            <chance>100</chance>
+            <allowDuplicates/>
+            <item><blueprint>AP_DEAL_4</blueprint></item>
+            <item><blueprint>AP_DEAL_5</blueprint></item>
+            <item><blueprint>AP_DEAL_6</blueprint></item>
         </category>
 
         <category type="WEAPONS">
@@ -346,6 +381,7 @@
     <script>data/archipelago/events.lua</script>
     <script>data/archipelago/contract.lua</script>
     <script>data/archipelago/checks.lua</script>
+    <script>data/archipelago/combat.lua</script>
     <script>data/archipelago/json.lua</script>
     <script>data/archipelago/network.lua</script>
     <script>data/archipelago/solo_order.lua</script>

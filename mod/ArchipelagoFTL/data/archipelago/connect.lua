@@ -31,10 +31,15 @@ local message = nil
 local attempt = nil
 local messageTone = "dim"
 local shiftHeld = false
+local ctrlHeld = false
+-- Fields the last refusal blames, drawn in red until they are edited.
+local blamed = {}
 
 local onMenu = false
 
 local AUTO_KEY = "ap_autoconnect"
+-- The password typed before a seed change relaunches FTL, kept for that one relaunch only.
+local RELAUNCH_PASSWORD_KEY = "relaunch_password"
 local autoTried = false
 local soloTried = false
 
@@ -135,6 +140,9 @@ local function acceptReset()
     if _G.apSeedChangeAcknowledged then _G.apSeedChangeAcknowledged() end
     if done then
         local relaunch = _G.apNetRelaunchWhenClosed and _G.apNetRelaunchWhenClosed() or false
+        if relaunch and FIELDS[4].value ~= "" and _G.apNetRememberText then
+            _G.apNetRememberText(RELAUNCH_PASSWORD_KEY, FIELDS[4].value)
+        end
         message, messageTone = apT(relaunch and "reset.relaunch" or "reset.asked"), "good"
         connectLog("profile erased, dated copy kept alongside"
             .. (relaunch and ", automatic relaunch planned" or ", relaunch by hand"))
@@ -257,9 +265,10 @@ local function drawForm()
     for index, field in ipairs(FIELDS) do
         local box = g.fields[index]
         local focused = index == focus
-        ui.text(9, p.x + PAD, box.y + 5, LABEL_W - 8, focused and "text" or "dim", apT(field.label))
+        local wrong = blamed[index] == true
+        ui.text(9, p.x + PAD, box.y + 5, LABEL_W - 8, wrong and "bad" or (focused and "text" or "dim"), apT(field.label))
         ui.rect(box.x, box.y, box.w, box.h, focused and "hover" or "card")
-        ui.outline(box.x, box.y, box.w, box.h, focused and "border" or "faint", 1)
+        ui.outline(box.x, box.y, box.w, box.h, wrong and "bad" or (focused and "border" or "faint"), 1)
         local value = displayValue(field)
         if focused then
             value = value .. "_"
@@ -268,11 +277,13 @@ local function drawForm()
     end
 
     ui.checkbox(g.auto.x, g.auto.y, autoActive(), apT("connect.auto"), g.auto.w)
-    ui.button(g.button, apT("connect.button"), "primary")
+    ui.button(g.button, apT(attempt ~= nil and "connect.button.busy" or "connect.button"), "primary", attempt ~= nil)
     ui.button(g.solo, apT("connect.solo"), "secondary")
 
     if message ~= nil then
         ui.wrapped(9, g.message.x, g.message.y, g.message.w, messageTone, message)
+    else
+        ui.wrapped(9, g.message.x, g.message.y, g.message.w, "dim", apT("connect.paste_hint"))
     end
     ui.wrapped(9, p.x + PAD, g.shortcuts, p.w - PAD * 2, "dim", apT("connect.keys"))
 end
@@ -312,6 +323,11 @@ local function drawStatus()
 end
 
 local function resumeLast()
+    local kept = _G.apNetRecallText and _G.apNetRecallText(RELAUNCH_PASSWORD_KEY) or ""
+    if kept ~= "" then
+        FIELDS[4].value = kept
+        _G.apNetRememberText(RELAUNCH_PASSWORD_KEY, "")
+    end
     if _G.apNetLastConnection == nil then
         return
     end
@@ -319,9 +335,10 @@ local function resumeLast()
     if not ok or last == nil then
         return
     end
-    local address, port = tostring(last.uri):match("^(.*):(%d+)$")
+    local uri = tostring(last.uri):gsub("^wss?://", "")
+    local address, port = uri:match("^(.*):(%d+)$")
     if address == nil then
-        address, port = tostring(last.uri), nil
+        address, port = uri, nil
     end
     if address ~= "" then FIELDS[1].value = address end
     if port then FIELDS[2].value = port end
@@ -359,9 +376,13 @@ local function followAttempt()
         attempt = nil
     elseif _G.apNetState ~= nil and _G.apNetState.refusal ~= nil then
         message, messageTone = _G.apNetState.refusal, "warn"
+        local reasons = tostring(_G.apNetState.refusalReasons or "")
+        blamed = { [3] = reasons:find("InvalidSlot", 1, true) ~= nil or nil,
+                   [4] = reasons:find("InvalidPassword", 1, true) ~= nil or nil }
         attempt = nil
     elseif _G.apNetState ~= nil and _G.apNetState.unreachableShown then
         message, messageTone = apT("net.error.unreachable"), "warn"
+        blamed = { [1] = true, [2] = true }
         attempt = nil
     end
 end
@@ -383,15 +404,23 @@ function apConnectNow()
     if values.port ~= "" and not address:match(":%d+$") then
         address = address .. ":" .. values.port
     end
+    -- A local server has no TLS: without a scheme the secure attempt fails first, slowly enough on some
+    -- machines to warn "not answering" before the plain one connects.
+    local target = address
+    local host = address:lower():match("^([^:/]+)") or ""
+    if not address:find("://", 1, true) and (host == "localhost" or host == "127.0.0.1") then
+        target = "ws://" .. address
+    end
 
     connectLog("attempting to " .. address .. ", slot " .. values.slot)
+    blamed = {}
     if _G.apContractState then
         _G.apContractState.refusal = nil
     end
 
     local ok = false
     if _G.apNetConnect then
-        local succeeded, result = pcall(_G.apNetConnect, address, values.slot, values.password)
+        local succeeded, result = pcall(_G.apNetConnect, target, values.slot, values.password)
         ok = succeeded and result ~= false
     end
 
@@ -410,7 +439,7 @@ function apConnectResetForTesting()
     for index, field in ipairs(FIELDS) do
         field.value = DEFAULTS[index]
     end
-    focus, message, messageTone, shiftHeld = FOCUS_INITIAL, nil, "dim", false
+    focus, message, messageTone, shiftHeld, ctrlHeld, blamed = FOCUS_INITIAL, nil, "dim", false, false, {}
     onMenu = false
     autoTried = false
     soloTried = false
@@ -457,9 +486,43 @@ local function character(key)
     return keyMap[key]
 end
 
+-- Ctrl+V puts the clipboard in the field. An address copied with its port, or the room page's whole
+-- "/connect archipelago.gg:54321", fills both fields.
+local function paste()
+    local text = (_G.apNetClipboard and apNetClipboard() or ""):match("^%s*(.-)%s*$")
+    text = text:gsub("^/connect%s+", "")
+    local empty = apT(_G.apNetPlatform and apNetPlatform() == "linux" and "connect.paste_empty.linux"
+        or "connect.paste_empty")
+    if text == "" then
+        message, messageTone = empty, "warn"
+        return
+    end
+    if message == apT("connect.paste_empty") or message == apT("connect.paste_empty.linux") then
+        message, messageTone = nil, "dim"
+    end
+    local field = FIELDS[focus]
+    if field.key == "uri" or field.key == "port" then
+        local bare = text:gsub("^wss?://", ""):gsub("/+$", "")
+        -- Whatever follows the port (a path, a password, a sentence) stays out of both fields.
+        local host, port = bare:match("^([^%s:/]+):(%d+)")
+        if host ~= nil then
+            FIELDS[1].value, FIELDS[2].value = host:sub(1, FIELDS[1].max), port:sub(1, FIELDS[2].max)
+            blamed[1], blamed[2] = nil, nil
+            return
+        end
+        if field.key == "uri" then text = bare end
+    end
+    if field.digitsOnly then text = text:gsub("%D", "") end
+    field.value = text:sub(1, field.max)
+    blamed[focus] = nil
+end
+
 script.on_internal_event(Defines.InternalEvents.ON_KEY_UP, function(key)
     if key == Defines.SDL.KEY_LSHIFT or key == Defines.SDL.KEY_RSHIFT then
         shiftHeld = false
+    end
+    if key == Defines.SDL.KEY_LCTRL or key == Defines.SDL.KEY_RCTRL then
+        ctrlHeld = false
     end
     return Defines.Chain.CONTINUE
 end)
@@ -471,6 +534,14 @@ script.on_internal_event(Defines.InternalEvents.ON_KEY_DOWN, function(key)
     if key == Defines.SDL.KEY_LSHIFT or key == Defines.SDL.KEY_RSHIFT then
         shiftHeld = true
         return Defines.Chain.CONTINUE
+    end
+    if key == Defines.SDL.KEY_LCTRL or key == Defines.SDL.KEY_RCTRL then
+        ctrlHeld = true
+        return Defines.Chain.CONTINUE
+    end
+    if ctrlHeld and key == Defines.SDL.KEY_v then
+        paste()
+        return Defines.Chain.PREEMPT
     end
 
     if key == Defines.SDL.KEY_TAB or key == Defines.SDL.KEY_DOWN then
@@ -486,6 +557,7 @@ script.on_internal_event(Defines.InternalEvents.ON_KEY_DOWN, function(key)
         return Defines.Chain.PREEMPT
     end
     if key == Defines.SDL.KEY_BACKSPACE then
+        blamed[focus] = nil
         local field = FIELDS[focus]
         field.value = field.value:sub(1, -2)
         return Defines.Chain.PREEMPT
@@ -505,6 +577,7 @@ script.on_internal_event(Defines.InternalEvents.ON_KEY_DOWN, function(key)
         if #field.value < field.max then
             field.value = field.value .. c
         end
+        blamed[focus] = nil
         return Defines.Chain.PREEMPT
     end
     return Defines.Chain.CONTINUE

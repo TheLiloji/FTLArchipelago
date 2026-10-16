@@ -30,6 +30,7 @@
 <text name="list_tutorial_2" language="it">In una partita Archipelago le navi vengono dal multiworld: qualcuno là fuori trova la chiave della vostra nave e ve la manda. Può arrivare nella prima ora o molto più tardi.\n\nPremete TAB durante la partita per vedere cosa è già arrivato e cosa manca ancora.</text>
 
 <text name="ap_beacon_label" language="it">ARCHIPELAGO</text>
+<text name="ap_store_label" language="it">NEGOZIO AP</text>
 <text name="ap_beacon_undiscovered" language="it">Qualcuno trasmette su una frequenza Archipelago.</text>
 <text name="ap_beacon_unvisited" language="it">Mercante Archipelago: merci indirizzate ad altri mondi, e patti che nessuno dovrebbe accettare.</text>
 <text name="ap_beacon_visited" language="it">Mercante Archipelago.</text>
@@ -44,4 +45,19 @@
 <text name="ap_evt_zoltan_toll_c3_text" language="it">L'ufficiale annota il tuo rifiuto senza commenti e ti fa passare. Gli Zoltan annotano tutto.</text>
 <text name="ap_evt_another_world_void" language="it">Scaricarla nel vuoto.</text>
 <text name="ap_evt_another_world_void_text" language="it">Smonti il relè e lasci che la sovratensione si disperda nel vuoto. Uscendo, forma un arco sul tuo scafo. Il recupero vale buoni rottami.</text>
+<text name="ap_evt_another_world_pass" language="it">Lasciarla passare, e andarsene.</text>
+<text name="ap_evt_another_world_pass_text" language="it">Tieni il relè chiuso e lasci passare la sovratensione. Si spegne prima del salto successivo. Niente guadagnato, niente perso.</text>
 <text name="ap_evt_zoltan_toll_c2_text" language="it">L'ufficiale conferma che è un tuo diritto e ti lascia prendere due celle dalla riserva dell'Anello. La scorta ti scansiona all'uscita, un po' troppo da vicino: qualcosa nello scafo cede.</text>
+<text name="ap_evt_hijack_text" language="it">Una nave pirata si è agganciata a un relè Archipelago. Ha intercettato un pacco diretto a un altro mondo e chiede 20 rottami per lasciarlo andare.</text>
+<text name="ap_evt_hijack_c1" language="it">Attaccarli e prendere il pacco.</text>
+<text name="ap_evt_hijack_c1_text" language="it">I pirati caricano le armi. Il pacco è nella loro stiva.</text>
+<text name="ap_evt_hijack_c2" language="it">Pagare i 20 rottami.</text>
+<text name="ap_evt_hijack_c2_text" language="it">I pirati prendono i tuoi rottami e liberano il pacco. Parte, proprio come se lo avessi comprato nel negozio Archipelago.</text>
+<text name="ap_evt_hijack_c3" language="it">Lasciarli in pace.</text>
+<text name="ap_evt_hijack_c3_text" language="it">Ti lasci il relè alle spalle. Il pacco aspetterà qualcun altro.</text>
+<text name="ap_evt_hijack_surrender_text" language="it">I pirati ti chiamano. Si arrendono e offrono di consegnarti il pacco se smetti di sparare.</text>
+<text name="ap_evt_hijack_surrender_c1" language="it">Accettare e prendere il pacco.</text>
+<text name="ap_evt_hijack_surrender_c2" language="it">Continuare a sparare.</text>
+<text name="ap_evt_hijack_yield_text" language="it">Espellono il pacco da una camera stagna. Lo recuperi e lo mandi a destinazione.</text>
+<text name="ap_evt_hijack_destroyed_text" language="it">La nave pirata va in pezzi. Recuperi il pacco dal relitto e lo mandi a destinazione.</text>
+<text name="ap_evt_hijack_deadcrew_text" language="it">L'equipaggio pirata è morto. Mandi il pacco a destinazione, poi spogli la loro nave.</text>

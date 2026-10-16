@@ -14,6 +14,7 @@ ui.COLOR = {
     good = { 0.55, 0.82, 0.55, 1.0 },
     warn = { 0.88, 0.74, 0.42, 1.0 },
     bad = { 0.88, 0.45, 0.42, 1.0 },
+    useful = { 0.52, 0.68, 0.96, 1.0 },
 }
 
 function ui.color(name, alpha)
@@ -73,6 +74,34 @@ function ui.textCenter(font, center, y, maxWidth, tone, value, alpha)
     ui.text(font, math.floor(center - w / 2), y, w, tone, value, alpha)
 end
 
+-- Splits a text at its spaces into at most maxLines lines of maxWidth; only the last one may be cut.
+function ui.lines(font, value, maxWidth, maxLines)
+    local lines, current = {}, nil
+    for word in tostring(value):gmatch("%S+") do
+        local candidate = current and (current .. " " .. word) or word
+        if current ~= nil and ui.width(font, candidate) > maxWidth and #lines < maxLines - 1 then
+            lines[#lines + 1] = current
+            current = word
+        else
+            current = candidate
+        end
+    end
+    lines[#lines + 1] = current or ""
+    return lines
+end
+
+-- A short label on one line, or on two when it does not fit: y is where a single line would sit.
+local function twoLines(draw, font, at, y, maxWidth, lineH, tone, value, alpha)
+    local lines = ui.width(font, value) <= maxWidth and { tostring(value) } or ui.lines(font, value, maxWidth, 2)
+    local top = y - math.floor((#lines - 1) * lineH / 2)
+    for index, line in ipairs(lines) do
+        draw(font, at, top + (index - 1) * lineH, maxWidth, tone, line, alpha)
+    end
+end
+
+function ui.textTwoLines(...) twoLines(ui.text, ...) end
+function ui.textCenterTwoLines(...) twoLines(ui.textCenter, ...) end
+
 function ui.wrapped(font, x, y, maxWidth, tone, value, alpha)
     Graphics.CSurface.GL_SetColor(ui.color(tone, alpha))
     Graphics.freetype.easy_printAutoNewlines(font, x, y, math.max(8, maxWidth), tostring(value))
@@ -129,9 +158,107 @@ function ui.shade()
     ui.rect(0, 0, 1280, 720, "shade")
 end
 
+-- Under a full-screen panel the mouse still hovers the ship: FTL's own tooltip must not draw over the panel.
+function ui.hideGameTooltip()
+    pcall(function()
+        local mouse = Hyperspace.Mouse
+        mouse.tooltip = ""
+        mouse.tooltipTimer = 0
+    end)
+end
+
 function ui.window(x, y, w, h, accent)
     ui.rect(x, y, w, h, "window")
     ui.outline(x, y, w, h, accent or "border", 2)
+end
+
+-- The game's own pictures. Each is looked up once; a missing one is remembered as false, not retried every frame.
+local images = {}
+function ui.image(path)
+    if path == nil then return nil end
+    if images[path] == nil then
+        local ok, texture = pcall(function() return Hyperspace.Resources:GetImageId(path) end)
+        images[path] = (ok and texture and (texture.width or 0) > 0) and texture or false
+    end
+    return images[path] or nil
+end
+
+-- Draws part of a texture (u and v from 0 to 1) in a box.
+function ui.blit(texture, x, y, w, h, alpha, u1, u2, v1, v2)
+    Graphics.CSurface.GL_BlitImagePartial(texture, x, y, w, h, u1 or 0, u2 or 1, v1 or 0, v2 or 1,
+        alpha or 1, Graphics.GL_Color(1, 1, 1, 1), false)
+end
+
+-- A race as the ship shows it: the first frame of its sprite sheet, facing down. Works for Multiverse races too.
+local CREW_FRAME = 35
+function ui.raceSprite(race, x, y, size, alpha)
+    local texture = race and ui.image("people/" .. tostring(race) .. "_base.png")
+    if texture == nil or (texture.width or 0) < CREW_FRAME then return false end
+    ui.blit(texture, x, y, size, size, alpha, 0, CREW_FRAME / texture.width, 0, CREW_FRAME / texture.height)
+    return true
+end
+
+-- A weapon lying flat, as stores show it: the first frame of its art, turned a quarter, centred in the box.
+-- Lua cannot load a weapon animation, so the frame comes from the game data (and Multiverse's).
+local function weaponFrame(blueprint)
+    local art = (((_G.apGameData or {}).weaponArt) or {})[tostring(blueprint)]
+    local texture = art and ui.image(art[1])
+    if texture == nil or not texture then return nil end
+    local w, h, fw, fh, column, row = art[2], art[3], art[4], art[5], art[6] or 0, art[7] or 0
+    -- Rows count from the bottom of the sheet.
+    local top = (math.floor(h / fh) - 1 - row) * fh
+    return { texture = texture, w = fw, h = fh, u = column * fw / w, v = top / h, du = fw / w, dv = fh / h }
+end
+
+function ui.weaponArt(blueprint, x, y, w, h, alpha)
+    local frame = weaponFrame(blueprint)
+    if frame == nil then return false end
+    -- Turned, the frame's height lies across the box: shrink only when it would not fit.
+    local scale = math.min(1, w / frame.h, h / frame.w)
+    local fw, fh = frame.w * scale, frame.h * scale
+    Graphics.CSurface.GL_PushMatrix()
+    -- A quarter turn clockwise: the barrel points right, as in a store.
+    Graphics.CSurface.GL_Translate(x + (w + fh) / 2, y + (h - fw) / 2, 0)
+    Graphics.CSurface.GL_Rotate(90, 0, 0, 1)
+    ui.blit(frame.texture, 0, 0, fw, fh, alpha, frame.u, frame.u + frame.du, frame.v, frame.v + frame.dv)
+    Graphics.CSurface.GL_PopMatrix()
+    return true
+end
+
+-- A ship layout as the ship list shows it (its "miniship" picture), fitted in the box.
+function ui.shipMini(layout, x, y, w, h, alpha)
+    local ok, file = pcall(function()
+        return Hyperspace.Global.GetInstance():GetBlueprints():GetShipBlueprint(layout, -1).imgFile
+    end)
+    local texture = ok and file and ui.image("customizeUI/miniship_" .. tostring(file) .. ".png")
+    if texture == nil or not texture then return false end
+    local scale = math.min(w / texture.width, h / texture.height)
+    local mw, mh = texture.width * scale, texture.height * scale
+    ui.blit(texture, x + (w - mw) / 2, y + (h - mh) / 2, mw, mh, alpha)
+    return true
+end
+
+-- A drone as the game draws it: the drone itself at its own size, a crew drone's sprite like a crew member,
+-- or its drone bar icon doubled (pixel art stays sharp at twice its size). The path comes from the game data.
+function ui.droneArt(blueprint, x, y, w, h, alpha)
+    local path = (((_G.apGameData or {}).droneArt) or {})[tostring(blueprint)]
+    if path == nil then
+        local ok, name = pcall(function() return Hyperspace.Blueprints:GetDroneBlueprint(blueprint).droneImage end)
+        path = ok and name and ("ship/drones/" .. tostring(name) .. "_base.png") or nil
+    end
+    local texture = path and ui.image(path)
+    if texture == nil or not texture then return false end
+    if path:sub(1, 7) == "people/" then
+        local size = math.min(h, 70)
+        ui.blit(texture, x + (w - size) / 2, y + (h - size) / 2, size, size, alpha,
+            0, CREW_FRAME / texture.width, 0, CREW_FRAME / texture.height)
+        return true
+    end
+    local scale = path:sub(1, 9) == "systemUI/" and 2 or 1
+    scale = math.min(scale, w / texture.width, h / texture.height * 2)
+    local dw, dh = texture.width * scale, texture.height * scale
+    ui.blit(texture, x + (w - dw) / 2, y + (h - dh) / 2, dw, dh, alpha)
+    return true
 end
 
 _G.apUi = ui

@@ -53,8 +53,10 @@ def preset_table() -> list[str]:
             if abs(real.get(key, -1) - announced) > 0.05:
                 issues.append(f"presets/{path.name}: announces {announced:g} {key}, "
                               f"the report measures {real.get(key)}")
-    if read != 3:
-        issues.append(f"suspicious extraction: {read} preset header(s) read instead of three")
+    expected = len(list((ROOT / "presets").glob("*.yaml")))
+    if read != expected or len(measured) != expected:
+        issues.append(f"suspicious extraction: {read} preset header(s) read, {len(measured)} measured, "
+                      f"for {expected} presets")
     return issues
 
 
@@ -118,7 +120,7 @@ def main() -> int:
         for issue in issues:
             print(f"  {issue}", file=sys.stderr)
         return 1
-    print(f"check_docs_numbers: the six preset headers and {len(DESIGN_NUMBERS)} numbers of the "
+    print(f"check_docs_numbers: the preset headers and {len(DESIGN_NUMBERS)} numbers of the "
           "game page match the code")
     return 0
 

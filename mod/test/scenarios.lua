@@ -1583,6 +1583,18 @@ test("a shop object is announced once when it unlocks, and its copy once when it
     equals(sim.delivered(), 1, "the copy is delivered anyway")
 end)
 
+test("a shop object unlocked is announced with the game's name, in the game's language", function()
+    _G.apInventory = { ships = {}, shopAvailability = {} }
+    apShopConfigure({ mode = "rarity_boost", deliver = false, baseline = {} })
+    sim.startRun(true)
+    sim.resetBlueprints()
+    sim.rarityFor("MISSILES_2", 1).title = sim.textString("Missiles Artemis")
+    apQueueItem({ kind = "shop", bp = "MISSILES_2", display = "Artemis Missiles" })
+    drain()
+    check(shownKey("shop.unlocked", { item = "Missiles Artemis" }), "the banner uses the game's name")
+    sim.resetBlueprints()
+end)
+
 test("an augment received as a shop item is installed, not put in cargo", function()
     _G.apInventory = { ships = {}, shopAvailability = {} }
     apShopConfigure({ mode = "rarity_boost", deliver = true, baseline = {} })
@@ -3173,6 +3185,33 @@ test("network: a shop the module cannot scout yet (first connection to a seed) i
     equals(sim.netCalls("ScoutLocations"), 3, "nothing more is asked once it worked")
 end)
 
+test("network: a slow data package never leaves the shop empty for good, and the slot says it waits", function()
+    local scout = sim.net.client.ScoutLocations
+    local refusing = true
+    sim.net.client.ScoutLocations = function(self, names)
+        if refusing then
+            sim.net.calls[#sim.net.calls + 1] = { "ScoutLocations", count = 0 }
+            return false
+        end
+        return scout(self, names)
+    end
+    connectWithShop(1)
+    sim.tick(200 * 25)
+    local asked = sim.netCalls("ScoutLocations")
+    check(asked > 20, "past the quick retries (" .. asked .. " asks)")
+    check(apShopWaiting(), "the shop is still waiting")
+    equals(apShopEmptyReason(), "waiting", "and its slots say so, not that all is sold")
+    sim.tick(30 * 60 + 10)
+    check(sim.netCalls("ScoutLocations") > asked, "it keeps asking, slowly")
+    refusing = false
+    sim.tick(30 * 60 + 10)
+    sim.netEvent("scout", { name = "Archipelago Shop 1", sender = "Berserker", extra = "Seashell", value = 1 })
+    sim.tick(1)
+    equals(_G.apShopGifts[1] and _G.apShopGifts[1].location, "shop:1", "and fills once the server knows")
+    check(not apShopWaiting(), "then it no longer waits")
+    sim.net.client.ScoutLocations = scout
+end)
+
 test("network: a shop that fails to configure doesn't cut the tick", function()
     connectWithShop(1)
     _G.apShopGiftsScouted = function() error("shop broken") end
@@ -3313,6 +3352,69 @@ test("a deal always produces a trap, here or elsewhere", function()
     check(otherTraps > 0, "and most go out to others (" .. otherTraps .. "/30)")
     check(otherTraps > selfTraps, "a deal must stay tempting, so it mostly points outward")
     _G.apNetSendTrap = nil
+end)
+
+local function deadCrew()
+    local dead = {}
+    for i = 0, sim.player.vCrewList:size() - 1 do
+        local member = sim.player.vCrewList[i]
+        if member.bDead then dead[#dead + 1] = member:GetName() end
+    end
+    return dead
+end
+
+local function signWithLuck(blueprintName, luck)
+    local random = math.random
+    math.random = function(low, high) return luck == "worst" and (low or 1) or (high or low or 1) end
+    sim.sign(blueprintName)
+    sim.tick(60)
+    math.random = random
+end
+
+test("blood pacts, on the second page, pay more and say what they can cost", function()
+    sim.startRun(true)
+    apShopGiftsConfigure(DEMO)
+    local desc = sim.rarityFor("AP_DEAL_6", 0)
+    equals(desc.title.data, apT("deal.blood.title", { scrap = 130 }), "the title says blood pact and its scrap")
+    check(desc.description.data:find(apT("deal.blood.risk", { chance = 20 }), 1, true),
+        "the risk to the crew and its odds are written")
+    check(not sim.rarityFor("AP_DEAL_1", 0).description.data:find(apT("deal.blood.risk", { chance = 5 }), 1, true),
+        "an ordinary deal says nothing of the sort")
+end)
+
+test("a blood pact can take a crew member for good, never the last one, and an ordinary deal never does", function()
+    sim.startRun(true)
+    apShopGiftsConfigure(DEMO)
+    apNotifyResetForTesting()
+    signWithLuck("AP_DEAL_4", "worst")
+    local dead = deadCrew()
+    equals(#dead, 1, "the blood price is paid by one crew member")
+    check(sim.logged("the blood price is paid by"), "the log names it")
+    local warned = false
+    for _, toast in ipairs(apToastsForTesting()) do
+        warned = warned or toast.text == apT("deal.blood.taken", { name = dead[1] })
+    end
+    check(warned, "and the player is told who")
+
+    sim.reset()
+    sim.startRun(true)
+    apShopGiftsConfigure(DEMO)
+    signWithLuck("AP_DEAL_6", "best")
+    equals(#deadCrew(), 0, "with luck, nobody dies")
+
+    sim.reset()
+    sim.startRun(true)
+    apShopGiftsConfigure(DEMO)
+    signWithLuck("AP_DEAL_3", "worst")
+    equals(#deadCrew(), 0, "an ordinary deal never kills, whatever the luck")
+
+    sim.reset()
+    sim.startRun(true)
+    apShopGiftsConfigure(DEMO)
+    sim.player.vCrewList[0].bDead = true
+    sim.player.vCrewList[1].bDead = true
+    signWithLuck("AP_DEAL_5", "worst")
+    equals(#deadCrew(), 2, "the last crew member is spared: the pact does not end the run")
 end)
 
 test("an unknown blueprint is announced by its Archipelago name, not its id", function()
@@ -4664,6 +4766,70 @@ test("event: absorbing the power surge doesn't touch the multiworld at all", fun
         "the branch has no Lua effect at all anymore: everything happens on the XML side")
 end)
 
+test("event: the pirates hold another player's package and say whose", function()
+    sim.startRun(true)
+    _G.apShopSlotCount = 2
+    apShopGiftsConfigure({
+        { location = "shop:1", slot = "Tester", item = "Progressive Shields",
+          sphere = 1, kind = "progression", cost = 40, mine = true },
+        { location = "shop:2", slot = "Axel", item = "20 Scrap",
+          sphere = 2, kind = "filler", cost = 25 },
+    })
+    local box = sim.openChoiceBox("AP_EVT_HIJACK", 3)
+    check(box.text:find("Axel", 1, true) ~= nil, "a friend's package before the player's own: " .. box.text)
+    check(box.text:find("20 Scrap", 1, true) ~= nil, "and what's inside")
+end)
+
+test("event: winning the fight frees the pirates' package for free", function()
+    for _, ending in ipairs({ "AP_HIJACK_WON", "AP_HIJACK_DEADCREW", "AP_HIJACK_YIELD" }) do
+        sim.startRun(true)
+        _G.apShopSlotCount = 2
+        twoGifts()
+        sim.openChoiceBox("AP_EVT_HIJACK", 3)
+        apEventsResetForTesting()
+        local scrapBefore = sim.player.currentScrap
+        local sent = {}
+        local restore = stub("apSendCheck", function(key) sent[#sent + 1] = key; return true end)
+        playBranch(ending)
+        restore()
+        equals(#sent, 1, ending .. ": the package goes out")
+        equals(sent[1], "shop:1", ending .. ": the one the pirates held")
+        equals(sim.player.currentScrap, scrapBefore, ending .. ": nothing to pay")
+        check(sim.shown("Nina"), ending .. ": the player sees who got it")
+    end
+end)
+
+test("event: paying the pirates sends their package, an empty shop refunds", function()
+    sim.startRun(true)
+    _G.apShopSlotCount = 2
+    twoGifts()
+    sim.openChoiceBox("AP_EVT_HIJACK", 3)
+    local sent = {}
+    local restore = stub("apSendCheck", function(key) sent[#sent + 1] = key; return true end)
+    playBranch("AP_EVT_HIJACK_B")
+    restore()
+    equals(sent[1], "shop:1", "paid: the package goes out")
+
+    sim.startRun(true)
+    apShopGiftsConfigure({})
+    sim.player.currentScrap = 50
+    sim.openChoiceBox("AP_EVT_HIJACK", 3)
+    sim.player.currentScrap = 30
+    playBranch("AP_EVT_HIJACK_B")
+    equals(sim.player.currentScrap, 50, "nothing to free: the 20 scrap come back")
+end)
+
+test("event: a fight won with no package left gives only the usual reward", function()
+    sim.startRun(true)
+    apShopGiftsConfigure({})
+    local box = sim.openChoiceBox("AP_EVT_HIJACK", 3)
+    equals(box.text, "AP_EVT_HIJACK", "no package: the XML text stays")
+    apEventsResetForTesting()
+    playBranch("AP_HIJACK_WON")
+    equals(sim.errors, 0, "and no error")
+    check(not shownKey("event.gift.nothing"), "no refund message: nothing was paid")
+end)
+
 test("event: the relay names both packages in its two responses", function()
     sim.startRun(true)
     _G.apShopSlotCount = 2
@@ -4752,8 +4918,8 @@ test("event: every wired branch carries a branch name from the XML", function()
     local count = 0
     for branch, effect in pairs(_G.apEventBranchEffects) do
         check(type(effect) == "function", branch .. " has an effect")
-        check(branch:match("^AP_EVT_[A-Z_]+_[AB]$") ~= nil,
-              branch .. " follows the form AP_EVT_<name>_<A|B>")
+        check(branch:match("^AP_EVT_[A-Z_]+_[AB]$") ~= nil or branch:match("^AP_HIJACK_[A-Z]+$") ~= nil,
+              branch .. " follows the form AP_EVT_<name>_<A|B>, or ends the pirates' fight")
         count = count + 1
     end
     check(count >= 6, "at least six branches have an Archipelago effect (" .. count .. ")")
@@ -6836,11 +7002,16 @@ test("menu: the summary counts UNLOCKED systems, not the game's sixteen", functi
     sim.renderMenu()
     check(not sim.drawnText("16 / 16"), "an empty inventory doesn't announce sixteen systems")
 
-    apInventoryAdd({ kind = "cap", sys = "shields", n = 1 })
-    apInventoryAdd({ kind = "cap", sys = "engines", n = 1 })
+    apInventoryAdd({ kind = "cap", sys = "cloaking", n = 1 })
+    sim.renderMenu()
+    check(sim.drawnText("0 / 16") or sim.drawnText("0/16"),
+        "a level without its blueprint unlocks nothing: " .. table.concat(sim.drawn, " | "))
+
+    apInventoryAdd({ kind = "cap", sys = "shields", n = 0 })
+    apInventoryAdd({ kind = "cap", sys = "engines", n = 0 })
     sim.renderMenu()
     check(sim.drawnText("2 / 16") or sim.drawnText("2/16"),
-        "two unlocked out of sixteen: " .. table.concat(sim.drawn, " | "))
+        "two blueprints, two unlocked out of sixteen: " .. table.concat(sim.drawn, " | "))
 end)
 
 test("seed: changing seed asks the question, and only once", function()
@@ -7093,7 +7264,13 @@ test("goal: a seed that does not list its layouts counts them all", function()
 end)
 
 local function layoutSeed(collect)
-    local loc = { ["PLAYER_SHIP_HARD:victory"] = "Kestrel Cruiser A: Defeat the Flagship" }
+    local loc = { ["PLAYER_SHIP_HARD:victory"] = "Kestrel Cruiser A: Defeat the Flagship",
+                  ["ach:ACH_TOUGH_SHIP"] = "Kestrel Cruiser: Tough Little Ship",
+                  ["PLAYER_SHIP_HARD:sys:teleporter"] = "Kestrel Cruiser: Install Crew Teleporter",
+                  ["PLAYER_SHIP_CIRCLE:sys:teleporter"] = "Engi Cruiser: Install Crew Teleporter",
+                  ["PLAYER_SHIP_HARD:fight:1"] = "Kestrel Cruiser: Fight 1 won",
+                  ["PLAYER_SHIP_HARD:fight:2"] = "Kestrel Cruiser: Fight 2 won",
+                  ["PLAYER_SHIP_CIRCLE:fight:1"] = "Engi Cruiser: Fight 1 won" }
     for sector = 2, 8 do
         loc["PLAYER_SHIP_HARD:sector:" .. sector] = "Kestrel Cruiser A: Reach sector " .. sector
     end
@@ -7116,6 +7293,27 @@ test("victory: the layout's sector checks still due go out with it", function()
     end
     check(apCheckAlreadySent("PLAYER_SHIP_HARD:victory"), "and the victory")
     check(not sim.logged("out of seed"), "sector 1 is not in the seed and is not tried")
+    sim.starMap.worldLevel = 0
+end)
+
+test("victory: with everything, the ship's achievements and system checks go out too", function()
+    layoutSeed(2)
+    apOnRunEnd("victory")
+    check(apCheckAlreadySent("PLAYER_SHIP_HARD:sector:8"), "the sectors as before")
+    check(apCheckAlreadySent("ach:ACH_TOUGH_SHIP"), "the Kestrel's achievement")
+    check(apCheckAlreadySent("PLAYER_SHIP_HARD:sys:teleporter"), "the Kestrel's system check")
+    check(not apCheckAlreadySent("PLAYER_SHIP_CIRCLE:sys:teleporter"), "another ship's stays due")
+    check(apCheckAlreadySent("PLAYER_SHIP_HARD:fight:1") and apCheckAlreadySent("PLAYER_SHIP_HARD:fight:2"),
+        "the Kestrel's fight checks")
+    check(not apCheckAlreadySent("PLAYER_SHIP_CIRCLE:fight:1"), "and not the Engi's")
+    sim.starMap.worldLevel = 0
+end)
+
+test("victory: sectors only leaves the achievements due", function()
+    layoutSeed(1)
+    apOnRunEnd("victory")
+    check(not apCheckAlreadySent("ach:ACH_TOUGH_SHIP"), "the achievement stays due")
+    check(not apCheckAlreadySent("PLAYER_SHIP_HARD:fight:1"), "and so do the fights")
     sim.starMap.worldLevel = 0
 end)
 
@@ -7172,6 +7370,62 @@ test("shop by sector: an event only hands out a package from a sector already re
     equals(table.concat(offered, ","), "Item 1,Item 2,Item 8,Item 9", "sectors 1 and 2 only")
     check(apShopGiftGiveAt("shop:6") == nil, "a sector 6 package waits")
     sim.starMap.worldLevel = 0
+end)
+
+local function shopOf(slots, config)
+    local gifts = {}
+    for _, slot in ipairs(slots) do
+        gifts[#gifts + 1] = { location = "shop:" .. slot, slot = "Nina", item = "Item " .. slot,
+                              kind = "useful", cost = 30 }
+    end
+    apShopConfigure({ mode = "rarity_boost", deliver = true, baseline = {}, sectors = config.sectors })
+    _G.apShopConfig.owners = config.owners
+    _G.apShopConfig.per = config.per
+    _G.apShopSlotCount = 14
+    apShopGiftsResetForTesting()
+    apShopGiftsConfigure(gifts)
+end
+
+local function firstSlotText()
+    return sim.rarityFor("AP_GIFT_1", 0).description.data
+end
+
+test("shop: an empty slot says the next packages are sold in a later sector", function()
+    sim.startRun(true)
+    sim.starMap.worldLevel = 0
+    shopOf({ 3, 10 }, { sectors = 7 })
+    local reason, params = apShopEmptyReason()
+    equals(reason, "sector", "nothing for sector 1")
+    equals(params.n, 3, "the next ones are in sector 3")
+    equals(firstSlotText(), apT("shop.slot.sector.body", { n = 3 }), "and the slot says so")
+end)
+
+test("shop: an empty slot says the packages left belong to sectors already passed", function()
+    sim.startRun(true)
+    sim.starMap.worldLevel = 4
+    shopOf({ 3, 10 }, { sectors = 7 })
+    equals(apShopEmptyReason(), "later", "sector 3 is behind: next run")
+    equals(firstSlotText(), apT("shop.slot.later.body"), "and the slot says so")
+    sim.starMap.worldLevel = 0
+end)
+
+test("shop: an empty slot names the ship that sells the packages left", function()
+    sim.startRun(true)
+    sim.player.myBlueprint.blueprintName = "PLAYER_SHIP_HARD"
+    shopOf({ 2 }, { owners = { "PLAYER_SHIP_HARD", "PLAYER_SHIP_CIRCLE" }, per = "per_class" })
+    local reason, params = apShopEmptyReason()
+    equals(reason, "ship", "slot 2 belongs to the second ship")
+    check(params.ship ~= nil and params.ship ~= "", "a ship is named: " .. tostring(params.ship))
+end)
+
+test("shop: an empty slot says the server has not answered yet, and only then that all is sold", function()
+    sim.startRun(true)
+    shopOf({ 1 }, {})
+    apSendCheck("shop:1", "test")
+    local restore = stub("apShopWaiting", function() return true end)
+    equals(apShopEmptyReason(), "waiting", "while the scout is pending")
+    restore()
+    equals(apShopEmptyReason(), "empty", "every package gone: really empty")
 end)
 
 test("shop without sectors: every beacon sells from the whole shop", function()

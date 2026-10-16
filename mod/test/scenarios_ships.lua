@@ -95,6 +95,11 @@ test("ships: the Engi FTL unlocked on its own sends nothing (Astron's run)", fun
     sim.tick(1)
     check(shownKey("check.run_ship_not_received", { ship = apShipLabel("PLAYER_SHIP_CIRCLE") }),
         "the player is told as the run starts, before any check")
+    local warned = false
+    for _, toast in ipairs(apToastsForTesting()) do
+        warned = warned or (toast.kept and toast.tone == "warn")
+    end
+    check(warned, "as a warning that stays on screen")
     for sector = 2, 3 do reachSector(sector) end
     equals(sentChecks(), "", "no sector check leaves")
     local restoreGoal = stub("apNetSendGoal", function() return true end)

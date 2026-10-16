@@ -73,11 +73,12 @@ per beacon; the rest follow at the next jumps.
 Notes at the bottom left tell you what arrived and what was sent. They fade after a few seconds, and everything
 is kept in the dashboard.
 
-## ARCHIPELAGO beacons
+## Archipelago beacons
 
-![ARCHIPELAGO beacons on the map](../images/map.jpg)
+![Archipelago beacons on the map](../images/map.jpg)
 
-Each sector has beacons marked **ARCHIPELAGO**. They hold either the Archipelago shop or one of four events.
+Each sector has one beacon marked **AP STORE**, with the Archipelago shop, and beacons marked **ARCHIPELAGO**, with one of
+five events.
 
 ### The Archipelago shop
 
@@ -92,9 +93,15 @@ Filler costs 10 to 25 scrap, useful items 30 to 65, and important ones 70 to 150
 comes back. Each sector sells its own packages: the shop of sector 5 has other packages than the one of sector 2,
 and they cost more.
 
-### The four events
+The shop also sells **pacts**: scrap right away, and a trap sprung in exchange, two times out of three on another
+player (with Trap Link on), one time out of three on you. The **blood pacts** on the second page pay more, and
+add a chance (5, 10 or 20 %) that one of your crew dies for good, Clone Bay or not. They never take your last
+crew member.
+
+### The five events
 
 - **A relay** carrying packages for other players. Pay 15 scrap to forward one.
+- **Pirates holding a package**, often a friend's. Pay them 20 scrap, or fight them and send it for free if you win.
 - **A Zoltan checkpoint**, which asks for fuel for the shared Energy Link reserve, or a toll if Energy Link is off.
 - **A Slug** who sells a real Archipelago hint for 20 scrap. If there is nothing left to hint, you get the scrap
   back.
@@ -112,20 +119,21 @@ wheel scrolls, `Esc` closes it.
 | ![Overview](../images/dashboard.png) | ![Ships](../images/dashboard-ships.png) |
 | **Overview**: goal, checks per category, links, last items, hints. | **Ships**: which layouts you own, checks left per ship. |
 | ![Systems](../images/dashboard-systems.png) | ![Checks](../images/dashboard-checks.png) |
-| **Systems**: blueprints and upgrade levels received. | **Checks**: everything still to do, by category. |
+| **Systems**: blueprints and upgrade levels received. | **Checks**: everything still to do by category, then what is done, in green. |
 
 ![Journal](../images/dashboard-journal.png)
 
-**Journal**: every item received, who sent it, and the hints about your world.
+**Journal**: every item received, who sent it, and the hints about your world. Items are coloured by their
+Archipelago class: progression green, useful blue, trap red, filler grey.
 
 ## The goal
 
 Beat the Flagship with a number of **different** ships (or layouts). The main menu and the dashboard say it in
-full, for example "defeat the Flagship 2 times, a different ship for each victory", and list the ships you have
+full, for example "defeat the Flagship 2 times, a different ship layout for each victory", and list the ships you have
 already won with. A second win with the same ship still sends that ship's victory check, it just does not
 count again for the goal.
 
-Some seeds also ask for **Archives**: items spread in the other players' worlds. You need both the victories and
+Some seeds also ask for **Archives**: items spread in the multiworld, in your own world too. You need both the victories and
 enough Archives. The goal is sent on its own as soon as both are there, even if the last Archive arrives while
 you sit in the menu.
 

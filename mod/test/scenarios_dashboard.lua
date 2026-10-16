@@ -143,37 +143,305 @@ end)
 test("dashboard: the systems page tells locked, levels and head starts apart", function()
     sim.startRun(true)
     dashboardSeed()
-    _G.apInventory.systemCaps = { shields = 3 }
+    _G.apInventory.systemCaps = { shields = 3, cloaking = 2 }
+    _G.apInventory.blueprints = { shields = true }
     _G.apInventory.startingUpgrades = { shields = 1, reactor = 2 }
     openDashboard("systems")
-    check(sim.drawnText(apT("dash.systems.header", { done = 1, total = 16 })), "one system unlocked out of sixteen")
+    check(sim.drawnText(apT("dash.systems.header", { done = 1, total = 16 })),
+        "one system unlocked out of sixteen: cloaking has a level but no blueprint")
     check(sim.drawnText(apT("dash.system.locked")), "the others are locked")
     check(sim.drawnText(apT("dash.system.start", { n = 1 })), "the head start is shown on its system")
     check(sim.drawnText(apT("dash.systems.reactor", { n = 2 })), "and the reactor bonus in the header")
     closeDashboard()
 end)
 
-test("dashboard: the checks page lists what is left in the chosen category, and scrolls", function()
+test("dashboard: each system card shows FTL's icon, green once usable, grey while locked", function()
+    sim.startRun(true)
+    dashboardSeed()
+    _G.apInventory.systemCaps = { shields = 3, cloaking = 2 }
+    _G.apInventory.blueprints = { shields = true }
+    sim.images = {}
+    openDashboard("systems")
+    local drawn = {}
+    for _, image in ipairs(sim.images) do
+        if type(image.texture) == "table" then drawn[image.texture.name] = (drawn[image.texture.name] or 0) + 1 end
+    end
+    check(drawn["icons/s_shields_green1.png"], "shields, blueprint received: green")
+    check(drawn["icons/s_cloaking_grey1.png"], "cloaking, a level but no blueprint: grey")
+    local icons = 0
+    for name in pairs(drawn) do
+        if name:find("^icons/s_") then icons = icons + 1 end
+    end
+    equals(icons, 16, "one icon per system")
+    closeDashboard()
+end)
+
+local function sameColorTone(drawn, tone)
+    local c = (_G.apUi or {}).COLOR and apUi.COLOR[tone]
+    return drawn ~= nil and c ~= nil and drawn.r == c[1] and drawn.g == c[2] and drawn.b == c[3]
+end
+
+local function boxDraw(value, color)
+    for _, draw in ipairs(sim.draws) do
+        if draw.text == value and draw.size == 9 and (color == nil or sameColorTone(draw.color, color)) then
+            return draw
+        end
+    end
+end
+
+-- Points the mouse at a box of the checks grid and draws the page again.
+local function pointAt(draw)
+    Hyperspace.Mouse = { position = { x = draw.x + 2, y = draw.y + 3 } }
+    sim.renderGui()
+    Hyperspace.Mouse = nil
+end
+
+test("dashboard: the checks page draws a box per check, and pointing at one names it", function()
     sim.startRun(true)
     local loc = {}
     for i = 1, 60 do loc["shop:" .. i] = string.format("Archipelago Shop %02d", i) end
     loc["sys:shields"] = "Install Shields"
+    loc["sys:shields:2"] = "Shields Level 2"
     applySeed({ items = {}, loc = loc })
+    _G.apShopConfig.owners, _G.apShopConfig.sectors = nil, nil
     apSendCheck("shop:1", "test")
     openDashboard("checks")
     check(sim.drawnText(apT("dash.checks.remaining", { n = 59 })), "59 shop slots left")
-    check(not sim.drawnText("Archipelago Shop 01"), "the one already bought is not listed")
-    check(sim.drawnText("Archipelago Shop 02"), "the next one is")
-    check(not sim.drawnText("Archipelago Shop 60"), "the end of the list waits below")
-
-    sim.scroll(1)
-    sim.renderGui()
-    check(sim.drawnText("Archipelago Shop 02"), "the wheel only scrolls where the mouse is")
+    check(sim.drawnText(apT("dash.checks.any_ship")), "a shop sold anywhere has one row for any ship")
+    check(boxDraw("2") ~= nil and boxDraw("60") ~= nil, "a box per slot, all of them on screen")
+    check(not sim.drawnText("Archipelago Shop 02"), "names wait for the mouse")
+    check(sim.drawnText(apT("dash.checks.hover")), "and the page says so")
+    pointAt(boxDraw("2"))
+    check(sim.drawnText("Archipelago Shop 02"), "pointing at a box names its check")
 
     local rowH = 46
     sim.click(DASH.x + 20 + 40, DASH.y + 96 + (rowH + 6) + 10)
     sim.renderGui()
-    check(sim.drawnText("Install Shields"), "clicking the systems category lists its checks")
+    check(sim.drawnText(apSystemLabel("shields")), "the systems category has a row per system")
+    check(boxDraw("1") ~= nil and boxDraw("2") ~= nil, "with a box per level, the install first")
+    closeDashboard()
+end)
+
+test("dashboard: a check done turns its box green and tells what it gave", function()
+    sim.startRun(true)
+    applySeed({ items = {}, loc = { ["shop:1"] = "Archipelago Shop 1", ["shop:2"] = "Archipelago Shop 2",
+                                    ["PLAYER_SHIP_HARD:sector:2"] = "Kestrel Cruiser A: Reach sector 2" } })
+    _G.apShopConfig.owners, _G.apShopConfig.sectors = nil, nil
+    apShopGiftsConfigure({ { location = "shop:1", slot = "Axel", item = "Glaive Beam", kind = "useful" },
+                           { location = "shop:2", slot = "Axel", item = "Hull Repair", kind = "filler" } })
+    apSendCheck("shop:1", "test")
+    openDashboard("checks")
+    local done = boxDraw("1")
+    check(done ~= nil and sameColorTone(done.color, "window"), "the box done is drawn on green")
+    check(sameColorTone(boxDraw("2") and boxDraw("2").color, "text"), "the one left is not")
+    pointAt(done)
+    check(sim.drawnText(apT("dash.checks.gave", { item = "Glaive Beam", slot = "Axel" })),
+        "a shop slot bought still says what it held and for whom")
+    pointAt(boxDraw("2"))
+    check(not sim.drawnText("Hull Repair"), "one not bought yet keeps its secret")
+    closeDashboard()
+
+    apSendCheck("shop:2", "test")
+    openDashboard("checks")
+    check(sim.drawnText(apT("dash.checks.all_done")), "a category all done says so")
+    closeDashboard()
+end)
+
+test("dashboard: first crew members get a card each, with the race's sprite", function()
+    sim.startRun(true)
+    applySeed({ items = {}, loc = { ["crew:engi"] = "First Engi aboard", ["crew:mantis"] = "First Mantis aboard" } })
+    apSendCheck("crew:mantis", "test")
+    sim.images = {}
+    openDashboard("checks")
+    check(sim.drawnText(apRaceLabel("engi")), "the card names the race as the game does")
+    check(not sim.drawnText("First Engi aboard"), "not the English location name")
+    local engi, mantis
+    for _, image in ipairs(sim.images) do
+        if image.texture.name == "people/engi_base.png" then engi = image end
+        if image.texture.name == "people/mantis_base.png" then mantis = image end
+    end
+    check(engi ~= nil and mantis ~= nil, "each race shows its own sprite")
+    check(engi ~= nil and engi.part[1] == 0 and engi.part[3] == 0 and engi.part[2] < 0.1,
+        "only the first frame of the sheet")
+    check(engi ~= nil and mantis ~= nil and engi.alpha < mantis.alpha, "a race not met yet is faded")
+    check(sim.drawnText(apT("dash.crew.waiting")) and sim.drawnText(apT("dash.crew.done")),
+        "each card says whether the race came aboard")
+    closeDashboard()
+end)
+
+test("dashboard: Multiverse's eighteen races all fit on the crew page", function()
+    sim.startRun(true)
+    local loc = {}
+    for _, race in ipairs({ "human", "engi", "energy", "mantis", "rock", "slug", "anaerobic", "crystal", "orchid",
+                            "shell", "leech", "phantom", "spider", "lizard", "cognitive", "siren", "pony", "obelisk" }) do
+        loc["crew:" .. race] = "First " .. race .. " aboard"
+    end
+    applySeed({ items = {}, loc = loc })
+    sim.images = {}
+    openDashboard("checks")
+    local sprites = 0
+    for _, image in ipairs(sim.images) do
+        if tostring(image.texture.name):match("^people/") then sprites = sprites + 1 end
+    end
+    equals(sprites, 18, "every race on screen, no scrolling needed")
+    check(#overflowing() == 0, "and nothing leaves the window")
+    closeDashboard()
+end)
+
+local function imagesNamed(pattern)
+    local found = {}
+    for _, image in ipairs(sim.images) do
+        if tostring(image.texture.name):match(pattern) then found[#found + 1] = image end
+    end
+    return found
+end
+
+test("dashboard: achievements show their game icon, faded until done", function()
+    sim.startRun(true)
+    applySeed({ items = {}, loc = { ["ach:ACH_FULL_ARSENAL"] = "The Kestrel: Full Arsenal",
+                                    ["ach:ACH_TOUGH_SHIP"] = "The Kestrel: Tough Little Ship",
+                                    ["ach:ACH_BURNING"] = "Achievement: Burning" } })
+    apSendCheck("ach:ACH_TOUGH_SHIP", "test")
+    sim.images = {}
+    openDashboard("checks")
+    local function icon(id)
+        local path = apGameData.achievementImages[id]
+        for _, image in ipairs(sim.images) do
+            if image.texture.name == path then return image end
+        end
+    end
+    check(icon("ACH_FULL_ARSENAL") and icon("ACH_TOUGH_SHIP") and icon("ACH_BURNING"), "each achievement has its icon")
+    check(icon("ACH_TOUGH_SHIP").alpha > icon("ACH_FULL_ARSENAL").alpha, "the one done is in full colour")
+    check(sim.drawnText(apT("dash.checks.general")), "general achievements have their own card")
+    check(#overflowing() == 0, "nothing leaves the window")
+    sim.gameTexts.ACH_BURNING_name = "Pyromane"
+    pointAt(icon("ACH_BURNING"))
+    check(sim.drawnText("Pyromane"), "pointing at an achievement names it in the game's language")
+    check(not sim.drawnText("Achievement: Burning"), "not with the seed's English location name")
+    sim.gameTexts.ACH_BURNING_name = nil
+    closeDashboard()
+end)
+
+test("dashboard: victories show each layout's ship, in colour once won", function()
+    sim.startRun(true)
+    applySeed({ items = {}, loc = { ["PLAYER_SHIP_HARD:victory"] = "Kestrel Cruiser A: Defeat the Flagship",
+                                    ["PLAYER_SHIP_HARD_2:victory"] = "Kestrel Cruiser B: Defeat the Flagship" } })
+    apSendCheck("PLAYER_SHIP_HARD_2:victory", "test")
+    sim.images = {}
+    openDashboard("checks")
+    local minis = imagesNamed("^customizeUI/miniship_")
+    equals(#minis, 2, "one ship picture per layout")
+    local a, b
+    for _, image in ipairs(minis) do
+        if image.texture.name == "customizeUI/miniship_player_ship_hard.png" then a = image end
+        if image.texture.name == "customizeUI/miniship_player_ship_hard_2.png" then b = image end
+    end
+    check(a ~= nil and b ~= nil, "each layout shows its own picture")
+    check(a ~= nil and b ~= nil and b.alpha > a.alpha, "the layout won is in full colour")
+    check(sim.drawnText(apT("dash.ships.type", { letter = "B" })), "and its letter")
+    closeDashboard()
+end)
+
+test("dashboard: a seed with one ship keeps its card a normal height", function()
+    sim.startRun(true)
+    applySeed({ items = {}, loc = { ["PLAYER_SHIP_HARD:victory"] = "Kestrel Cruiser A: Defeat the Flagship" } })
+    local saved = _G.apGameData.ships
+    _G.apGameData.ships = { { name = "PLAYER_SHIP_HARD", layouts = 1 } }
+    sim.rects = {}
+    openDashboard("ships")
+    local tallest = 0
+    for _, r in ipairs(sim.rects) do
+        if r.w < DASH.w - 100 then tallest = math.max(tallest, r.h) end
+    end
+    _G.apGameData.ships = saved
+    check(tallest <= 120, "no card stretched over the whole page (" .. tallest .. ")")
+    closeDashboard()
+end)
+
+test("dashboard: rows go ship flown, then what counts on any ship, then the other ships", function()
+    sim.startRun(true)
+    applySeed({ items = {}, loc = { ["sys:shields"] = "Install Shields",
+                                    ["PLAYER_SHIP_CIRCLE:sys:cloaking"] = "Engi Cruiser: Install Cloaking",
+                                    ["PLAYER_SHIP_HARD:sys:cloaking"] = "Kestrel Cruiser: Install Cloaking" } })
+    openDashboard("checks")
+    local y = {}
+    for _, draw in ipairs(sim.draws) do
+        for _, name in ipairs({ apShipLabel("PLAYER_SHIP_HARD"), apSystemLabel("shields"), apShipLabel("PLAYER_SHIP_CIRCLE") }) do
+            if draw.text == name and draw.size == 10 and draw.x > DASH.x + 300 then y[name] = y[name] or draw.y end
+        end
+    end
+    local kestrel, shields, engi = y[apShipLabel("PLAYER_SHIP_HARD")], y[apSystemLabel("shields")], y[apShipLabel("PLAYER_SHIP_CIRCLE")]
+    check(kestrel and shields and engi and kestrel < shields and shields < engi,
+        "Kestrel, then Shields, then the Engi Cruiser, whatever the names")
+    closeDashboard()
+end)
+
+test("dashboard: the ships page shows each layout's picture, faded until unlocked", function()
+    sim.startRun(true)
+    dashboardSeed()
+    _G.apInventory.ships = { "PLAYER_SHIP_HARD" }
+    sim.images = {}
+    openDashboard("ships")
+    local a, b
+    for _, image in ipairs(sim.images) do
+        if image.texture.name == "customizeUI/miniship_player_ship_hard.png" then a = image end
+        if image.texture.name == "customizeUI/miniship_player_ship_hard_2.png" then b = image end
+    end
+    check(a ~= nil and b ~= nil, "the Kestrel's layouts have their pictures")
+    check(a ~= nil and b ~= nil and a.alpha > b.alpha, "the layout unlocked is in colour, the other faded")
+    closeDashboard()
+end)
+
+test("dashboard: a category on the overview opens it on the checks page", function()
+    sim.startRun(true)
+    dashboardSeed()
+    openDashboard("overview")
+    local target
+    for _, draw in ipairs(sim.draws) do
+        if draw.text == apT("dash.cat.victory") then target = draw end
+    end
+    check(target ~= nil, "the victories are listed on the overview")
+    sim.click(target.x + 4, target.y + 4)
+    sim.renderGui()
+    check(sim.drawnText(apT("dash.checks.remaining", { n = 1 })) and sim.drawnText(apT("dash.ships.type", { letter = "A" })),
+        "the click opens the checks page on the victories")
+    closeDashboard()
+end)
+
+test("dashboard: the ship flown comes first, with what is left for it and in this sector", function()
+    sim.startRun(true)
+    applySeed({ items = {}, loc = {
+        ["PLAYER_SHIP_CIRCLE:sector:2"] = "Engi Cruiser A: Reach sector 2",
+        ["PLAYER_SHIP_HARD:sector:2"] = "Kestrel Cruiser A: Reach sector 2",
+        ["PLAYER_SHIP_HARD:sector:3"] = "Kestrel Cruiser A: Reach sector 3",
+        ["PLAYER_SHIP_HARD_2:sector:2"] = "Kestrel Cruiser B: Reach sector 2",
+        ["shop:1"] = "Archipelago Shop 1", ["shop:2"] = "Archipelago Shop 2", ["shop:3"] = "Archipelago Shop 3",
+        ["shop:4"] = "Archipelago Shop 4",
+    } })
+    _G.apShopConfig.owners = { "PLAYER_SHIP_HARD", "PLAYER_SHIP_CIRCLE" }
+    _G.apShopConfig.sectors = 2
+    openDashboard("checks")
+    local kestrel = apShipLabel("PLAYER_SHIP_HARD")
+    check(sim.drawnText(apT("dash.checks.ship", { ship = kestrel })), "the banner names the ship flown")
+    check(sim.drawnText(apT("dash.checks.remaining", { n = 2 })), "the Kestrel has two shop slots left")
+    check(sim.drawnText(apT("dash.checks.ship_sector", { n = 1 })), "one of them sold in this sector")
+    local kestrelY, engiY
+    for _, draw in ipairs(sim.draws) do
+        if draw.text == kestrel then kestrelY = kestrelY or draw.y end
+        if draw.text == apShipLabel("PLAYER_SHIP_CIRCLE") then engiY = engiY or draw.y end
+    end
+    check(kestrelY ~= nil and engiY ~= nil and kestrelY < engiY, "the ship flown is the first row")
+
+    sim.click(DASH.x + 20 + 40, DASH.y + 96 + 46 + 6 + 10)
+    sim.renderGui()
+    check(sim.drawnText(apT("dash.checks.ship", { ship = kestrel .. " A" })), "sectors are counted per layout")
+    check(sim.drawnText(apT("dash.checks.remaining", { n = 2 })), "the layout A has two sectors left")
+    check(sim.drawnText(kestrel .. " B"), "the layout B has its own row")
+    apSendCheck("PLAYER_SHIP_HARD:sector:2", "test")
+    apSendCheck("PLAYER_SHIP_HARD:sector:3", "test")
+    sim.renderGui()
+    check(sim.drawnText(apT("dash.checks.ship_clear")), "nothing left for this ship: the banner says so")
+    _G.apShopConfig.owners, _G.apShopConfig.sectors = nil, nil
     closeDashboard()
 end)
 
@@ -195,6 +463,25 @@ test("dashboard: the journal keeps the items received, newest first, and the hin
     closeDashboard()
 end)
 
+test("dashboard: a bundle in the journal lists what it brought", function()
+    sim.startRun(true)
+    applySeed({ items = { ["Drone Bundle 2"] = { k = "bundle", bps = { "COMBAT_1", "DEFENSE_1" },
+                                                 names = { "Combat Drone I", "Defense Drone I" }, c = "u" } } })
+    _G.apReceivedHistory = {}
+    apReceiveItem("Drone Bundle 2", "Axel")
+    openDashboard("journal")
+    local bundle, member
+    for _, draw in ipairs(sim.draws) do
+        if draw.text == "Drone Bundle 2" then bundle = draw end
+        if draw.text == "Defense Drone I" then member = draw end
+    end
+    check(bundle ~= nil and member ~= nil, "the bundle and its drones are listed")
+    check(bundle ~= nil and member ~= nil and member.y > bundle.y and member.x > bundle.x,
+        "each drone under the bundle, set in")
+    check(sim.drawnText("Combat Drone I"), "every one of them")
+    closeDashboard()
+end)
+
 test("dashboard: a delivered item goes into the journal, a replayed one does not", function()
     sim.startRun(true)
     applySeed({ items = { ["50 Scrap"] = { k = "filler", res = "scrap", n = 50 } } })
@@ -203,6 +490,61 @@ test("dashboard: a delivered item goes into the journal, a replayed one does not
     apReceiveItem("50 Scrap", "Axel", true)
     equals(#_G.apReceivedHistory, 1, "only the new item is recorded")
     equals(_G.apReceivedHistory[1].sender, "Axel", "with its sender")
+end)
+
+local function drawnColor(value)
+    for _, draw in ipairs(sim.draws) do
+        if draw.text == value then return draw.color end
+    end
+end
+
+local function sameColor(drawn, tone)
+    local c = (_G.apUi or {}).COLOR and apUi.COLOR[tone]
+    return drawn ~= nil and c ~= nil and drawn.r == c[1] and drawn.g == c[2] and drawn.b == c[3]
+end
+
+test("dashboard: the journal colours each item by its Archipelago class, guessed for an older seed", function()
+    sim.startRun(true)
+    applySeed({ items = {
+        ["Kestrel Key"] = { k = "ship", ship = "PLAYER_SHIP_HARD", c = "p" },
+        ["Glaive Beam"] = { k = "weapon", bp = "BEAM_3", c = "u" },
+        ["Breach Trap"] = { k = "trap", eff = "breach", c = "t" },
+        ["50 Scrap"] = { k = "filler", res = "scrap", n = 50, c = "f" },
+        ["Old Archive"] = { k = "archive" },
+        ["Old Trap"] = { k = "trap", eff = "fire" },
+    } })
+    _G.apReceivedHistory = {}
+    for _, name in ipairs({ "Kestrel Key", "Glaive Beam", "Breach Trap", "50 Scrap", "Old Archive", "Old Trap" }) do
+        apReceiveItem(name, "Axel")
+    end
+    openDashboard("journal")
+    check(sameColor(drawnColor("Kestrel Key"), "good"), "progression is green")
+    check(sameColor(drawnColor("Glaive Beam"), "useful"), "useful is blue")
+    check(sameColor(drawnColor("Breach Trap"), "bad"), "a trap is red")
+    check(sameColor(drawnColor("50 Scrap"), "dim"), "filler is grey")
+    check(sameColor(drawnColor("Old Archive"), "good"), "a seed without classes: an archive reads as progression")
+    check(sameColor(drawnColor("Old Trap"), "bad"), "and a trap as a trap")
+    check(sim.drawnText(apT("dash.class.t")), "the colours are explained on the page")
+    closeDashboard()
+end)
+
+test("journal: an item's class survives a restart, and a journal saved before classes still loads", function()
+    sim.startRun(true)
+    sim.durable = {}
+    applySeed({ seed_hash = "journal-class", items = { ["Breach Trap"] = { k = "trap", eff = "breach", c = "t" } } })
+    _G.apReceivedHistory = {}
+    apReceiveItem("Breach Trap", "Axel")
+    local key = "ap_journal_" .. tostring(apSeedFingerprint())
+    sim.durable[key] = sim.durable[key] .. "\30Glaive Beam\31Axel"
+
+    _G.apReceivedHistory = {}
+    apContractResetForTesting()
+    applySeed({ seed_hash = "journal-class", items = { ["Breach Trap"] = { k = "trap", eff = "breach", c = "t" } } })
+    openDashboard("journal")
+    check(sameColor(drawnColor("Breach Trap"), "bad"), "the trap is still red after the restart")
+    check(drawnColor("Glaive Beam") ~= nil, "an entry from an older journal is still listed")
+    equals(_G.apReceivedHistory[2].sender, "Axel", "with its sender")
+    closeDashboard()
 end)
 
 test("dashboard: a system already on the ship counts its upgrades, its blueprint missing", function()
@@ -236,10 +578,38 @@ end)
 test("dashboard: the systems page counts the upgrades of the ship being flown", function()
     sim.startRun(true)
     dashboardSeed()
-    _G.apInventory.systemCaps = {}
+    _G.apInventory.systemCaps = { shields = 1 }
+    _G.apInventory.blueprints = { shields = true }
     _G.apInventory.shipCaps = { PLAYER_SHIP_HARD = { shields = 2 }, PLAYER_SHIP_ROCK = { shields = 5 } }
     openDashboard("systems")
     check(sim.drawnText(apT("hud.system.received", { n = 2 })), "the Kestrel's two upgrades, not the Rock's")
     closeDashboard()
     _G.apInventory.shipCaps = {}
+end)
+
+test("dashboard: the This run card only promises what the seed's settings let an option do", function()
+    local function seed(options, extra)
+        local data = { goal = { kind = "victories", count = 3 }, items = {}, loc = { ["shop:1"] = "Archipelago Shop 1" },
+                       options = options }
+        for key, value in pairs(extra or {}) do data[key] = value end
+        applySeed(data)
+    end
+    sim.startRun(true)
+
+    seed({ free_upgrades = 1, system_install = 1 })
+    openDashboard("overview")
+    check(sim.drawnText(apT("dash.run.free_upgrades")), "free upgrades with capped systems: said")
+    check(sim.drawnText(apT("dash.run.install.start")), "systems put aboard with blueprints in the seed: said")
+    closeDashboard()
+
+    seed({ free_upgrades = 1, system_install = 2 }, { system_caps = false, system_blueprints = false })
+    openDashboard("overview")
+    check(not sim.drawnText(apT("dash.run.free_upgrades")), "no progressive upgrades: nothing to give for free")
+    check(not sim.drawnText(apT("dash.run.install.now")), "no blueprints: nothing to put aboard")
+    closeDashboard()
+
+    seed({})
+    openDashboard("overview")
+    check(not sim.drawnText(apT("dash.run.free_upgrades")), "and nothing without the options")
+    closeDashboard()
 end)

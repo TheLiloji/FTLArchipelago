@@ -30,6 +30,7 @@
 <text name="list_tutorial_2" language="pt">Numa partida Archipelago, as naves vêm do multimundo: alguém por aí encontra a chave da vossa nave e envia-a. Pode chegar na primeira hora ou muito mais tarde.\n\nCarreguem em TAB durante a partida para ver o que já chegou e o que ainda falta.</text>
 
 <text name="ap_beacon_label" language="pt">ARCHIPELAGO</text>
+<text name="ap_store_label" language="pt">LOJA AP</text>
 <text name="ap_beacon_undiscovered" language="pt">Alguém está a emitir numa frequência Archipelago.</text>
 <text name="ap_beacon_unvisited" language="pt">Mercador Archipelago: mercadorias endereçadas a outros mundos, e negócios que ninguém devia aceitar.</text>
 <text name="ap_beacon_visited" language="pt">Mercador Archipelago.</text>
@@ -44,4 +45,19 @@
 <text name="ap_evt_zoltan_toll_c3_text" language="pt">O oficial regista a tua recusa sem comentários e deixa-te passar. Os Zoltan registam tudo.</text>
 <text name="ap_evt_another_world_void" language="pt">Descarregá-la no vazio.</text>
 <text name="ap_evt_another_world_void_text" language="pt">Desmontas o relé e deixas a sobretensão perder-se no vazio. Ao sair, faz um arco sobre o teu casco. A recuperação vale boa sucata.</text>
+<text name="ap_evt_another_world_pass" language="pt">Deixá-la passar, e seguir caminho.</text>
+<text name="ap_evt_another_world_pass_text" language="pt">Manténs o relé fechado e deixas a sobretensão passar. Apaga-se antes do salto seguinte. Nada ganho, nada perdido.</text>
 <text name="ap_evt_zoltan_toll_c2_text" language="pt">O oficial confirma que é o teu direito e deixa-te tirar duas células da reserva do Anel. A escolta analisa-te à saída, de perto demais: algo cede no casco.</text>
+<text name="ap_evt_hijack_text" language="pt">Uma nave pirata agarrou-se a um repetidor Archipelago. Apanhou um pacote destinado a outro mundo e pede 20 de sucata para o largar.</text>
+<text name="ap_evt_hijack_c1" language="pt">Atacá-los e ficar com o pacote.</text>
+<text name="ap_evt_hijack_c1_text" language="pt">Os piratas ligam as armas. O pacote está no porão deles.</text>
+<text name="ap_evt_hijack_c2" language="pt">Pagar os 20 de sucata.</text>
+<text name="ap_evt_hijack_c2_text" language="pt">Os piratas ficam com a tua sucata e largam o pacote. Ele parte, tal como se o tivesses comprado na loja Archipelago.</text>
+<text name="ap_evt_hijack_c3" language="pt">Deixá-los em paz.</text>
+<text name="ap_evt_hijack_c3_text" language="pt">Deixas o repetidor para trás. O pacote vai esperar por outra pessoa.</text>
+<text name="ap_evt_hijack_surrender_text" language="pt">Os piratas chamam por ti. Rendem-se e oferecem-se para entregar o pacote se parares de disparar.</text>
+<text name="ap_evt_hijack_surrender_c1" language="pt">Aceitar e ficar com o pacote.</text>
+<text name="ap_evt_hijack_surrender_c2" language="pt">Continuar a disparar.</text>
+<text name="ap_evt_hijack_yield_text" language="pt">Expulsam o pacote por uma câmara de vácuo. Apanha-lo e envias-o ao destinatário.</text>
+<text name="ap_evt_hijack_destroyed_text" language="pt">A nave pirata desfaz-se. Tiras o pacote dos destroços e envias-o ao destinatário.</text>
+<text name="ap_evt_hijack_deadcrew_text" language="pt">A tripulação pirata está morta. Envias o pacote ao destinatário e depois depenas a nave deles.</text>

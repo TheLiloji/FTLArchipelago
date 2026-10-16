@@ -3,57 +3,102 @@
 [English](Options.md) · [Français](Options.fr.md) · **Deutsch** · [Español](Options.es.md) ·
 [Italiano](Options.it.md) · [Português](Options.pt.md)
 
-*Diese Seite wurde mit KI übersetzt und kann Fehler enthalten. Im Zweifel gilt die englische Seite.*
+Deine Optionen stehen in einer kleinen Textdatei, der **YAML**. Du erstellst sie einmal vor dem Spiel und
+schickst sie der Person, die die Multiworld erzeugt.
 
-## Am einfachsten: die Standardwerte behalten
+## Bevor du anfängst
 
-Die Standardoptionen sind die empfohlenen. Du musst nur deinen Namen ändern:
+Du brauchst **Archipelago 0.6.7**, mit der `ftl.apworld` von der
+[Release-Seite](https://github.com/TheLiloji/FTLArchipelago/releases/latest) im Ordner `custom_worlds`.
+Ohne sie fehlt FTL in der Liste. Die Installationsanleitungen ([Windows](Setup-Windows.de.md),
+[Linux](Setup-Linux.de.md)) erklären jeden Schritt.
 
-1. Öffne **ArchipelagoOptionsCreator** (im Archipelago-Ordner) oder die Optionsseite der Website, die den Raum
-   hostet.
-2. Wähle **FTL: Faster Than Light**, gib deinen Namen ein und exportiere die YAML-Datei.
+## Ein paar Begriffe
 
-Mit den Standardwerten gewinnst du, wenn du das Flaggschiff **5 Mal mit 5 verschiedenen Schiffen auf Normal
-oder Schwer** besiegst und **10 der 12 Archive** sammelst, die in den Welten der anderen Spieler versteckt sind.
-Das ist ein Spiel für mehrere Abende, etwa 10 Stunden bis zum Ziel.
+| Begriff | Bedeutung |
+|---|---|
+| Check | etwas, das du im Spiel tust und das einen Gegenstand verschickt: einen Sektor erreichen, gewinnen, eine Errungenschaft... |
+| Gegenstand (Item) | was ein Check dir oder einem anderen Spieler gibt: ein Schiff, ein System, eine Waffe, Schrott... |
+| Seed | das erzeugte Spiel, für alle in der Multiworld gleich |
+| Slot | dein Platz in der Multiworld, benannt durch die Zeile `name:` deiner YAML |
+| Layout | eine Version eines Schiffs: Kestrel A, Kestrel B und Kestrel C sind drei Layouts |
+| progressive | ein Gegenstand, der ein System bei jedem Erhalt um eine Stufe erhöht |
+| Archive | Gegenstände, die du zusätzlich zu deinen Siegen zum Abschluss brauchst |
+| Logik | was der Generator annimmt, dass du hast, bevor er einen Check von dir verlangt |
 
-Wenn deine Gruppe mit **Death Link** spielt, schalte es ein. Standardmäßig zählt auch der Verlust eines
-Crewmitglieds als Tod, nicht nur ein verlorener Lauf. Ein Crewmitglied, das die Klonkammer zurückholt, zählt nicht.
+## Am einfachsten: ein Preset nehmen
 
-## Presets
+Presets sind fertige YAML-Dateien. Nimm das, das zu deiner Zeit passt:
 
-Lieber kürzer oder länger? Wähle das Preset, das zu deiner Zeit passt:
-
-| Preset | Zeit bis zum Ziel | Was sich ändert |
+| Preset | Zeit bis zum Ziel | Was es ist |
 |---|---|---|
-| `short_game` | etwa 5 h | 2 Siege, 4 Schiffsvarianten, 4 von 5 Archiven, alle Verbesserungen eines Systems auf einmal |
-| `medium_game` | etwa 10 h | nichts: das sind die Standardoptionen |
-| `long_game` | 20 h oder mehr | 10 Siege, 14 Schiffsvarianten, 16 von 20 Archiven, ein System einzubauen ist ein Check |
+| `first_game` | etwa 3 Std. | **Dein erstes Archipelago-Spiel.** 1 Sieg, Leicht zählt, 3 Schiffe vom Typ A, 2 von 3 Archiven, keine Fallen. Erhaltene Verbesserungen und Systeme kommen von selbst an Bord |
+| `short_game` | etwa 5 Std. | 2 Siege auf Normal oder Schwer, 4 Layouts, 4 von 5 Archiven, alle Stufen eines Systems auf einmal |
+| `medium_game` | etwa 10 Std. | die Standardoptionen: 5 Siege auf Normal oder Schwer, 7 Layouts, 10 von 12 Archiven |
+| `long_game` | 20 Std. oder mehr | 10 Siege, 14 Layouts, 16 von 20 Archiven, ein System einzubauen ist ein Check |
 
-Sie liegen in `presets.zip` auf der [Release-Seite](https://github.com/TheLiloji/FTLArchipelago/releases/latest)
-und im Menü **Preset** der Optionsseite der Website. Oben in jeder Datei steht, wie viele Checks sie hat und wie
-lange sie ungefähr dauert. Ändere die Zeile `name:` und fertig.
+Sie liegen in `presets.zip` auf der [Release-Seite](https://github.com/TheLiloji/FTLArchipelago/releases/latest).
+Oben in jeder Datei steht, wie viele Checks sie hat und wie lange sie ungefähr dauert.
+
+1. Öffne die Datei in einem Texteditor.
+2. Ersetze die Zeile `name:` durch deinen Namen. Nur Buchstaben ohne Umlaute oder Akzente, Ziffern,
+   Leerzeichen, `-` und `_`, höchstens 16 Zeichen: Das Verbindungsfenster im Spiel kann nichts anderes tippen.
+3. Schick die Datei der Person, die die Multiworld erzeugt.
+
+Die Zeiten gelten für jemanden, der in wenigen Runs gewinnt. Wenn FTL neu für dich ist, rechne mit mehr.
+
+## Eine eigene YAML erstellen
+
+Öffne **ArchipelagoOptionsCreator** (im Archipelago-Ordner), wähle **FTL: Faster Than Light**, gib deinen
+Namen ein und exportiere die YAML. Jede Option hat eine kurze Beschreibung (auf Englisch): Fahr mit der Maus
+darüber. Die Standardwerte sind das Preset `medium_game`.
+
+Drei häufige Fallen:
+
+- **Siege auf Leicht.** Standardmäßig zählen nur Siege auf Normal und Schwer für dein Ziel. Wenn du auf Leicht
+  spielst, stell **Victory Difficulty** auf `any` (in der YAML geht auch `easy`).
+- **Weniger Checks heißt nicht kürzeres Spiel.** Wenn du Sektoren oder Errungenschaften abschaltest,
+  verschwinden ihre Gegenstände nicht: Sie wandern in den Archipelago-Laden, wo du sie mit Schrott kaufst. Um
+  ein Spiel zu verkürzen, senk lieber **Victories Required** und **Layouts in the Seed**.
+- **Death Link.** Wenn deine Gruppe damit spielt, schalte es ein. Mit **Death Link Trigger** auf `both`
+  (Standard) tötet jedes verlorene Crewmitglied auch die anderen. In einer großen Multiworld oder beim ersten
+  Spiel nimm `ship_destroyed`: Dann zählt nur ein verlorener Run.
 
 ## Was die Optionen tun
 
 Der Options Creator zeigt sie in Gruppen:
 
-- **Goal**: wie viele Siege, auf welcher Schwierigkeit, und wie viele Archive.
-- **Game Size**: welche Schiffsvarianten im Spiel sind und wie viele (standardmäßig 7 zufällig gezogene),
-  und was Checks sendet (Sektoren, Systeme, Erfolge, Crew, der Archipelago-Laden). Weniger Checks heißt ein kürzeres Spiel.
-- **Playing with Others**: Death Link, Energy Link (ein gemeinsamer Treibstoffvorrat), Trap Link und wie viele
+- **Goal**: wie viele Siege, auf welchem Schwierigkeitsgrad, und wie viele Archive. Archive können überall in
+  der Multiworld liegen, auch in deiner eigenen Welt.
+- **Game Size**: welche Layouts im Spiel sind und wie viele, und was Checks verschickt: Sektoren, Systeme,
+  Errungenschaften, Crew, gewonnene Kämpfe, der Archipelago-Laden.
+  **Excluded Ships and Layouts** lässt Schiffe oder Layouts weg, die du nie fliegen willst.
+- **Playing with Others**: Death Link, Energy Link (ein geteilter Treibstoffvorrat), Trap Link und wie viele
   Fallen.
-- **Advanced** (zuerst geschlossen): dein erstes Schiff, die Head-Start-Gegenstände, die Sprache des Mods (er
-  folgt FTL von selbst), welche Sektoren zählen, wie Typ B und C freigeschaltet werden, was in Läden gesperrt ist
-  und wie streng die Logik ist. Das musst du nicht anfassen.
+- **Advanced** (anfangs zugeklappt): Du musst hier nichts ändern. Dein erstes Schiff, die Head-Start-Items, die
+  Sprache des Mods (sie folgt FTL von selbst), welche Sektoren zählen, wie Typ B und C freigeschaltet werden,
+  was in Läden gesperrt ist, die Optionen unten und wie streng die Logik ist.
 
-Jede Option hat eine kurze Beschreibung: fahre im Options Creator mit der Maus darüber. Die Beschreibungen sind
-auf Englisch, wie überall in Archipelago.
+In den Namen tauchen zwei Arten von Läden auf. **Shop Weapons**, **Shop Drones**, **Shop Augments** und **Shop
+Unlock Mode** betreffen die Läden von FTL. Die Optionen **Archipelago Shop** betreffen den Archipelago-Laden:
+die Pakete an den AP-SHOP-Baken, die Gegenstände anderer Spieler enthalten.
+
+## Neu in 0.5
+
+| Option | Was sie tut |
+|---|---|
+| **Free Upgrades** | Erhaltene Systemstufen werden kostenlos eingebaut, sofort und zu Beginn jedes Runs. Nur mit Progressive System Upgrades (standardmäßig an) |
+| **System Install** | Systeme, deren Bauplan du erhalten hast, kommen kostenlos an Bord: `run_start` zu Beginn jedes Runs, `immediately` auch sobald der Bauplan eintrifft. Das Schiff braucht einen Raum dafür |
+| **Run Start Scrap** | Jeder neue Run beginnt mit diesem Prozentsatz des gesamten erhaltenen Schrotts. 10 bis 25 ist ein guter Bereich |
+| **Combat Checks per Ship** | Mit jedem Schiff verschicken die ersten gewonnenen Kämpfe eines Runs Checks. Diese Kämpfe bringen weniger Schrott (**Combat Check Scrap**) |
+| **Victory Collects the Layout** | Was ein Sieg zusätzlich verschickt: `sectors` (Standard) die noch offenen Sektor-Checks des Layouts, `everything` auch die Errungenschaften, System- und Kampf-Checks seines Schiffs |
+| **Sector Logic** | Neuer Wert `power`: Vor tiefen Sektoren und dem Flaggschiff erwartet die Logik Schildschichten, Waffen und Antrieb auf dem Schiff, das den Check macht |
 
 ## Expertenoptionen
 
-Einige Optionen gibt es nur in der YAML-Datei, weil fast niemand sie braucht: genau festlegen, welche Schiffe
-gewinnen müssen (`goal: victory_selection` mit `victory_layouts`), die Mindestmenge an Füllgegenständen und die
-fünf Optionen `*_blueprint_logic`, die die Logik für Schilde, Sensoren, Krankenstation, Triebwerke und Waffen
-fein einstellen. Die vollständige Liste mit allen Details steht auf der Spielseite (auf Englisch):
-`apworld/ftl/docs/en_FTL Faster Than Light.md`.
+Ein paar Optionen gibt es nur in der YAML-Datei, weil fast niemand sie braucht: genau festlegen, welche Schiffe
+gewinnen müssen (`goal: victory_selection` mit `victory_layouts`), die Mindestmenge an Füllgegenständen, und
+die fünf Optionen `*_blueprint_logic`, die die Logik für Schilde, Sensoren, Krankenstation, Antrieb und Waffen
+feinjustieren. Die vollständige Liste mit allen Details steht auf der
+[Spielseite](https://github.com/TheLiloji/FTLArchipelago/blob/main/apworld/ftl/docs/en_FTL%20Faster%20Than%20Light.md)
+(auf Englisch).

@@ -191,8 +191,8 @@ local function warnShip(refusal)
     shipWarned = true
     local layout = currentLayout()
     local ship = layout and ((_G.apShipLabel and _G.apShipLabel(layout)) or layout) or "?"
-    if _G.apNotifyStatus then
-        _G.apNotifyStatus(apT(SHIP_MESSAGES[refusal], { ship = ship }))
+    if _G.apNotifyWarning then
+        _G.apNotifyWarning(apT(SHIP_MESSAGES[refusal], { ship = ship }))
     end
 end
 
@@ -205,8 +205,8 @@ function apRunCounts()
         if not seedlessWarned then
             seedlessWarned = true
             checkLog("this run was not started with the current seed loaded: nothing it does counts")
-            if _G.apNotifyStatus then
-                _G.apNotifyStatus(apT("check.run_without_seed"))
+            if _G.apNotifyWarning then
+                _G.apNotifyWarning(apT("check.run_without_seed"))
             end
         end
     elseif refusal ~= "unknown" then
@@ -495,6 +495,9 @@ end
 local RACE_FAMILY = {
     human = "human", engi = "engi", energy = "energy", zoltan = "energy", mantis = "mantis",
     rock = "rock", slug = "slug", anaerobic = "anaerobic", lanius = "anaerobic", crystal = "crystal",
+    -- Multiverse's own races, each with its variants (orchid_vampweed, phantom_goul...).
+    orchid = "orchid", shell = "shell", leech = "leech", phantom = "phantom", spider = "spider",
+    lizard = "lizard", cognitive = "cognitive", siren = "siren", pony = "pony", obelisk = "obelisk",
 }
 
 function apRaceFamily(species)
@@ -563,6 +566,28 @@ end)
 
 local previousOnRunEnd = apOnRunEnd
 
+-- Victory Collects the Layout set to everything: the ship's own achievements, per-ship system checks and
+-- fight checks.
+local function collectShipChecks(layout)
+    local ship = tostring(layout):gsub("_[23]$", "")
+    local data = _G.apGameData or {}
+    for _, achievement in ipairs((data.shipAchievements or {})[ship] or {}) do
+        local key = "ach:" .. achievement
+        if _G.apLocationNameFor and apLocationNameFor(key) ~= nil then
+            apSendCheck(key, apT("check.label.achievement", {
+                name = (_G.apAchievementLabel and apAchievementLabel(achievement)) or achievement }))
+        end
+    end
+    for _, kind in ipairs({ ":sys:", ":fight:" }) do
+        local prefix = ship .. kind
+        for key, name in pairs(((_G.apContractState or {}).locNames) or {}) do
+            if tostring(key):sub(1, #prefix) == prefix then
+                apSendCheck(key, tostring(name))
+            end
+        end
+    end
+end
+
 function apOnRunEnd(cause, detail)
     if previousOnRunEnd then
         previousOnRunEnd(cause, detail)
@@ -572,7 +597,8 @@ function apOnRunEnd(cause, detail)
     end
     apTry(TAG, function()
         local layout = currentLayout()
-        if layout and (apSeedOption("victory_collects_layout") or 0) ~= 0 then
+        local collect = tonumber(apSeedOption("victory_collects_layout") or 0) or 0
+        if layout and collect >= 1 then
             local ship = (_G.apShipLabel and _G.apShipLabel(layout)) or layout
             for sector = 1, 8 do
                 local key = layout .. ":sector:" .. sector
@@ -580,6 +606,9 @@ function apOnRunEnd(cause, detail)
                     apSendCheck(key, apT("check.label.sector", { n = sector, ship = ship }))
                 end
             end
+        end
+        if layout and collect >= 2 then
+            collectShipChecks(layout)
         end
         if layout then
             apSendCheck(layout .. ":victory",

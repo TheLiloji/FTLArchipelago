@@ -16,6 +16,38 @@ test("toasts: an item, a check and a trap each get their own colour, then fade a
     equals(#apToastsForTesting(), 0, "and gone a few seconds later")
 end)
 
+test("toasts: they last in seconds, not frames, so a fast screen does not cut them short", function()
+    sim.startRun(true)
+    apNotifyResetForTesting()
+    local saved = Hyperspace.FPS
+    -- 144 frames a second: SpeedFactor counts sixteenths of a second.
+    Hyperspace.FPS = { SpeedFactor = 16 / 144 }
+    apNotifyStatus("short")
+    for _ = 1, 144 * 5 do sim.renderGui() end
+    equals(#apToastsForTesting(), 1, "still there after five seconds at 144 Hz")
+    for _ = 1, 144 * 2 do sim.renderGui() end
+    equals(#apToastsForTesting(), 0, "gone after its six seconds")
+    Hyperspace.FPS = saved
+end)
+
+test("toasts: a long message stays long enough to read, and a run that does not count is not pushed out", function()
+    sim.startRun(true)
+    apNotifyResetForTesting()
+    local long = string.rep("word ", 30)
+    apNotifyStatus(long)
+    for _ = 1, 60 * 7 do sim.renderGui() end
+    check(sim.drawnText(long), "150 characters are still shown after seven seconds")
+
+    apNotifyResetForTesting()
+    apNotifyWarning("this run does not count")
+    for index = 1, 6 do apNotifyStatus("message " .. index) end
+    local kept = false
+    for _, toast in ipairs(apToastsForTesting()) do
+        if toast.text == "this run does not count" then kept = toast.tone == "warn" end
+    end
+    check(kept, "the warning stays, in its warning colour, when a burst of messages follows")
+end)
+
 test("toasts: never more than four, and none over the dashboard", function()
     sim.startRun(true)
     apNotifyResetForTesting()
@@ -280,7 +312,7 @@ test("the goal says in plain words that each victory needs another ship", functi
     apLangResolve("fr")
     local goal = apGoalText()
     equals(goal.headline, "Objectif : battre le vaisseau amiral 2 fois", "the headline says what to do")
-    equals(goal.lines[1].text, "Un vaisseau différent à chaque victoire", "then the rule")
+    equals(goal.lines[1].text, "Une disposition différente à chaque victoire", "then the rule")
     equals(goal.lines[2].text, "Difficulté : au choix", "then the difficulty")
 
     local restoreGoal = stub("apNetSendGoal", function() return true end)
@@ -588,9 +620,113 @@ test("hangar: the ship list marks the layouts the seed leaves out", function()
     sim.renderMenu()
     equals(count(), 0, "the pages of modded ships are left alone")
 
+    sim.shipList = { open = false, page = 0, variant = 0 }
+    sim.openedList = 0
+    sim.renderMenu()
+    sim.shipList = { open = true, page = 0, variant = 0 }
+    sim.openedList = 2
+    sim.renderMenu()
+    equals(count(), 0, "first opening: nothing over FTL's help")
+    sim.shipList.open = false
+    sim.renderMenu()
+    sim.shipList.open = true
+    sim.renderMenu()
+    equals(count(), 8, "opened again, the marks are back")
+    sim.openedList = nil
+
     sim.shipList = { open = true, page = 0, variant = 0 }
     applySeed({})
     sim.renderMenu()
     equals(count(), 0, "an older seed without its layouts marks nothing")
     sim.shipList = { open = false, page = 0, variant = 0 }
+end)
+
+local function ctrlV()
+    sim.keyDown(Defines.SDL.KEY_LCTRL)
+    sim.keyDown(Defines.SDL.KEY_v)
+    sim.keyUp(Defines.SDL.KEY_LCTRL)
+end
+
+test("connection panel: Ctrl+V pastes, and an address with its port fills both fields", function()
+    apConnectResetForTesting()
+    apNetResetForTesting()
+    sim.renderMenu()
+    sim.clipboard = "Tester Two"
+    ctrlV()
+    equals(apConnectState().slot, "Tester Two", "the slot field takes the clipboard")
+    sim.keyDown(Defines.SDL.KEY_UP)
+    sim.keyDown(Defines.SDL.KEY_UP)
+    sim.clipboard = "/connect archipelago.gg:54321"
+    ctrlV()
+    equals(apConnectState().uri, "archipelago.gg", "the room page's /connect line gives the address")
+    equals(apConnectState().port, "54321", "and its port")
+    sim.keyDown(Defines.SDL.KEY_DOWN)
+    sim.clipboard = "port 38 281"
+    ctrlV()
+    equals(apConnectState().port, "38281", "the port keeps only digits")
+    sim.clipboard = ""
+    ctrlV()
+    equals(apConnectState().message, apT("connect.paste_empty"), "an empty clipboard says so")
+    equals(apConnectState().port, "38281", "and changes nothing")
+    sim.platform = "linux"
+    ctrlV()
+    equals(apConnectState().message, apT("connect.paste_empty.linux"), "only Linux hears about the clipboard tools")
+    sim.platform = nil
+    sim.keyDown(Defines.SDL.KEY_UP)
+    sim.clipboard = "/connect archipelago.gg:51234 and the rest of the room message"
+    ctrlV()
+    equals(apConnectState().message, nil, "a paste that works clears the empty-clipboard message")
+    equals(apConnectState().uri, "archipelago.gg", "text after host:port stays out of the address")
+    equals(apConnectState().port, "51234", "and the port is still read")
+    sim.clipboard = "wss://archipelago.gg:38281/some/path"
+    ctrlV()
+    equals(apConnectState().uri, "archipelago.gg", "a wss:// address with a path gives the host")
+    equals(apConnectState().port, "38281", "and its port")
+    sim.keyDown(Defines.SDL.KEY_DOWN)
+    sim.keyDown(Defines.SDL.KEY_v)
+    equals(apConnectState().port, "38281", "v alone is still a letter, not a paste (and the port refuses it)")
+    sim.clipboard = nil
+end)
+
+local function labelColor(key)
+    for _, draw in ipairs(sim.draws) do
+        if draw.text == apT(key) then return draw.color end
+    end
+end
+
+local function isTone(color, tone)
+    local c = apUi.COLOR[tone]
+    return color ~= nil and color.r == c[1] and color.g == c[2] and color.b == c[3]
+end
+
+test("connection panel: the field a refusal blames turns red until it is edited, and the button waits", function()
+    apConnectResetForTesting()
+    apNetResetForTesting()
+    sim.renderMenu()
+    sim.type("Nobody")
+    apConnectNow()
+    sim.renderMenu()
+    check(sim.drawnText(apT("connect.button.busy")), "while connecting, the button says so")
+    sim.netEvent("refused", { extra = "InvalidSlot" })
+    sim.tick(2)
+    sim.renderMenu()
+    check(isTone(labelColor("connect.field.slot"), "bad"), "the slot name is drawn in red")
+    check(not isTone(labelColor("connect.field.password"), "bad"), "not the password")
+    check(sim.drawnText(apT("connect.button")), "the button is back")
+    sim.type("x")
+    sim.renderMenu()
+    check(not isTone(labelColor("connect.field.slot"), "bad"), "typing in it clears the red")
+    apNetResetForTesting()
+end)
+
+test("a label too long for one line goes on two instead of being cut", function()
+    local ui = _G.apUi
+    sim.draws = {}
+    ui.textTwoLines(10, 0, 20, ui.width(10, "Rocky, repair") + 2, 14, "text", "Rocky, repair expert")
+    local drawn = {}
+    for _, draw in ipairs(sim.draws) do if draw.text then drawn[#drawn + 1] = draw.text end end
+    equals(table.concat(drawn, "|"), "Rocky, repair|expert", "split at a space, nothing cut")
+    sim.draws = {}
+    ui.textTwoLines(10, 0, 20, 400, 14, "text", "Rocky")
+    equals(#sim.draws, 1, "a label that fits stays on one line")
 end)

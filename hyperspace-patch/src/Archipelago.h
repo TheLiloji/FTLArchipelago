@@ -31,6 +31,10 @@ public:
 
     std::string LastUri() const;
     std::string LastSlot() const;
+    // The system clipboard's text (first line only, at most 200 bytes), or "" when there is none.
+    std::string Clipboard() const;
+    // "windows" or "linux": the Lua sandbox has no way to tell.
+    std::string Platform() const;
 
     bool RequestProfileReset();
     bool RelaunchWhenClosed();

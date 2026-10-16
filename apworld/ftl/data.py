@@ -14,6 +14,7 @@ SYSTEM_CHECK_FORMAT = "sys:{system}"
 CREW_CHECK_FORMAT = "crew:{race}"
 SYSTEM_LEVEL_CHECK_FORMAT = "sys:{system}:{level}"
 SHIP_SYSTEM_CHECK_FORMAT = "{ship}:sys:{system}"
+FIGHT_CHECK_FORMAT = "{ship}:fight:{n}"
 
 KIND_SHIP = "ship"
 KIND_CAP = "cap"
@@ -77,6 +78,12 @@ LOCATION_OFFSET_SHOP = 40_000
 LOCATION_OFFSET_SYSTEM = 50_000
 LOCATION_OFFSET_CREW = 60_000
 LOCATION_OFFSET_SHIP_SYSTEM = 70_000
+# Taken by the Multiverse achievements on the Multiverse branch, already released there: never reuse it.
+LOCATION_OFFSET_MV_ACH = 80_000
+LOCATION_OFFSET_FIGHT = 90_000
+
+# Combat checks: the first fights a ship wins in a run, at most this many per ship.
+MAX_FIGHTS_PER_SHIP = 10
 
 MAX_ACHIEVEMENTS_PER_SHIP = 10
 
@@ -260,6 +267,38 @@ LAYOUT_EMPTY_SLOTS_RAW: tuple[tuple[str, tuple[str, ...]], ...] = (
      ("shields", "drones", "clonebay", "teleporter", "hacking", "battery", "mind")),
     ("PLAYER_SHIP_STEALTH_3",
      ("sensors", "shields", "medbay", "teleporter", "cloaking", "hacking", "battery", "mind")),
+)
+
+# (layout, shields, weapons, engines): start levels from ftl.dat, the systems the power sector logic reads.
+LAYOUT_START_LEVELS_RAW: tuple[tuple[str, int, int, int], ...] = (
+    ("PLAYER_SHIP_ANAEROBIC", 2, 3, 1),
+    ("PLAYER_SHIP_ANAEROBIC_2", 2, 1, 1),
+    ("PLAYER_SHIP_CIRCLE", 2, 3, 2),
+    ("PLAYER_SHIP_CIRCLE_2", 2, 3, 1),
+    ("PLAYER_SHIP_CIRCLE_3", 2, 1, 2),
+    ("PLAYER_SHIP_CRYSTAL", 2, 3, 2),
+    ("PLAYER_SHIP_CRYSTAL_2", 2, 1, 2),
+    ("PLAYER_SHIP_ENERGY", 2, 3, 1),
+    ("PLAYER_SHIP_ENERGY_2", 1, 4, 2),
+    ("PLAYER_SHIP_ENERGY_3", 2, 2, 2),
+    ("PLAYER_SHIP_FED", 2, 2, 2),
+    ("PLAYER_SHIP_FED_2", 2, 2, 2),
+    ("PLAYER_SHIP_FED_3", 2, 1, 2),
+    ("PLAYER_SHIP_HARD", 2, 3, 2),
+    ("PLAYER_SHIP_HARD_2", 2, 4, 2),
+    ("PLAYER_SHIP_HARD_3", 2, 2, 2),
+    ("PLAYER_SHIP_JELLY", 2, 3, 2),
+    ("PLAYER_SHIP_JELLY_2", 2, 2, 2),
+    ("PLAYER_SHIP_JELLY_3", 2, 2, 2),
+    ("PLAYER_SHIP_MANTIS", 2, 1, 2),
+    ("PLAYER_SHIP_MANTIS_2", 4, 1, 1),
+    ("PLAYER_SHIP_MANTIS_3", 2, 2, 2),
+    ("PLAYER_SHIP_ROCK", 2, 3, 2),
+    ("PLAYER_SHIP_ROCK_2", 2, 3, 2),
+    ("PLAYER_SHIP_ROCK_3", 2, 3, 2),
+    ("PLAYER_SHIP_STEALTH", 0, 2, 4),
+    ("PLAYER_SHIP_STEALTH_2", 0, 4, 2),
+    ("PLAYER_SHIP_STEALTH_3", 0, 2, 3),
 )
 
 SYSTEMS_RAW: tuple[tuple[int, str, str, int], ...] = (
@@ -541,6 +580,9 @@ GROUP_VICTORIES = "Ship victories"
 GROUP_SHIP_ACHIEVEMENTS = "Ship achievements"
 GROUP_GENERAL_ACHIEVEMENTS = "General achievements"
 GROUP_SHOP_SLOTS = "Archipelago shop"
+GROUP_FIGHTS = "Fights won"
+# Location groups that only ever hold filler: the logic does not count them as room for the items it needs.
+FILLER_ONLY_GROUPS: frozenset[str] = frozenset()
 
 TIER_GENERAL = "general"
 TIER_DISTANCE = "distance"
@@ -629,6 +671,7 @@ class Location:
     system: str | None = None
     level: int | None = None
     race: str | None = None
+    fight: int | None = None
     description: str = ""
 
 
@@ -676,6 +719,10 @@ SHIPS_BY_BLUEPRINT: dict[str, Ship] = {ship.blueprint: ship for ship in SHIPS}
 
 LAYOUT_SYSTEMS: dict[str, tuple[str, ...]] = dict(LAYOUT_SYSTEMS_RAW)
 LAYOUT_EMPTY_SLOTS: dict[str, tuple[str, ...]] = dict(LAYOUT_EMPTY_SLOTS_RAW)
+POWER_SYSTEMS: tuple[str, ...] = ("shields", "weapons", "engines")
+LAYOUT_START_LEVELS: dict[str, dict[str, int]] = {
+    blueprint: dict(zip(POWER_SYSTEMS, levels)) for blueprint, *levels in LAYOUT_START_LEVELS_RAW
+}
 ACHIEVEMENT_DESCRIPTIONS: dict[str, str] = dict(ACHIEVEMENT_DESCRIPTIONS_RAW)
 
 
@@ -988,6 +1035,18 @@ def _build_locations() -> tuple[Location, ...]:
                 level=1,
             ))
 
+    for ship in SHIPS:
+        for n in range(1, MAX_FIGHTS_PER_SHIP + 1):
+            locations.append(Location(
+                name=f"{ship.display}: Fight {n} won",
+                code=LOCATION_ID_BASE + LOCATION_OFFSET_FIGHT + ship.slot * 20 + n,
+                check_id=FIGHT_CHECK_FORMAT.format(ship=ship.blueprint, n=n),
+                group=GROUP_FIGHTS,
+                ship=ship.blueprint,
+                fight=n,
+                description=f"Win {n} fight(s) in a single run with the {ship.display}.",
+            ))
+
     for slot, race, label in CREW_RACES:
         locations.append(Location(
             name=f"First {label} aboard",
@@ -1103,6 +1162,16 @@ def _check() -> None:
             "LAYOUT_EMPTY_SLOTS_RAW and the layout list do not match: "
             "regenerate the block from ftl.dat."
         )
+    if set(LAYOUT_START_LEVELS) != {layout.blueprint for layout in LAYOUTS}:
+        raise ValueError(
+            "LAYOUT_START_LEVELS_RAW and the layout list do not match: "
+            "regenerate the block from ftl.dat."
+        )
+    for layout in LAYOUTS:
+        for system, level in LAYOUT_START_LEVELS[layout.blueprint].items():
+            if (level > 0) != (system in layout.start_systems):
+                raise ValueError(f"{layout.blueprint} starts with {system} at level {level}, "
+                                 "which disagrees with its start systems")
     if set(LAYOUT_SYSTEMS) != {layout.blueprint for layout in LAYOUTS}:
         raise ValueError(
             "LAYOUT_SYSTEMS_RAW and the layout list do not match: "
@@ -1171,7 +1240,7 @@ def _check_vanilla_totals() -> None:
         "sellable items": (len(SHOP_ITEMS), 74),
         "locations": (len(LOCATIONS), 28 * SECTOR_COUNT + 28 + 30 + 21 + MAX_SHOP_SLOTS
                       + sum(system.max_level for system in SYSTEMS) + len(CREW_RACES)
-                      + 10 * 16),
+                      + 10 * 16 + 10 * MAX_FIGHTS_PER_SHIP),
     }
     wrong = {label: pair for label, pair in expected.items() if pair[0] != pair[1]}
     if wrong:

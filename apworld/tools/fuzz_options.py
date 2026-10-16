@@ -78,8 +78,20 @@ def sample(rng: random.Random, name: str, option: type) -> object:
 
 
 def make_the_goal_reachable(rng: random.Random, options: dict) -> dict:
+    from worlds.ftl.options import excluded_layouts
+    # Leaving out the starting ship or the Kestrel is refused (tested on its own): those keys are dropped.
+    start = {ship.slot: ship for ship in data.SHIPS}.get(options.get("start_ship"))
+    kept = {data.LAYOUTS_BY_BLUEPRINT[data.ALWAYS_UNLOCKED_LAYOUTS[0]].ship}
+    if start is not None:
+        kept.add(start.blueprint)
+    kept_names = {data.SHIPS_BY_BLUEPRINT[blueprint].display.split()[0] for blueprint in kept}
+    options["excluded_layouts"] = [key for key in options.get("excluded_layouts", [])
+                                   if key.split()[0] not in kept_names]
+    left_out = excluded_layouts(types.SimpleNamespace(
+        excluded_layouts=types.SimpleNamespace(value=set(options["excluded_layouts"]))))
     last_variant = options["ship_layouts"]
-    available = [layout.display for layout in data.LAYOUTS if layout.variant <= last_variant]
+    available = [layout.display for layout in data.LAYOUTS
+                 if layout.variant <= last_variant and layout.blueprint not in left_out]
     if options["goal"] == 0:
         options["victories_required"] = rng.randint(1, len(available))
         options["victory_layouts"] = []
@@ -87,6 +99,9 @@ def make_the_goal_reachable(rng: random.Random, options: dict) -> dict:
         options["victory_layouts"] = sorted(
             rng.sample(available, rng.randint(1, min(6, len(available))))
         )
+    # A first sector past the last one is refused (tested on its own): drawn in order, the draw tests the rest.
+    first, last = options["sectorsanity_first_sector"], options["sectorsanity_last_sector"]
+    options["sectorsanity_first_sector"], options["sectorsanity_last_sector"] = min(first, last), max(first, last)
     return options
 
 

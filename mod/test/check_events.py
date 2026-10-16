@@ -147,6 +147,20 @@ def main() -> int:
                     f"{name}, choice {index}: no cost and no risk, "
                     "a dilemma whose two branches are free is just a menu"
                 )
+        loses_something = 0
+        for choice in choices:
+            inner = choice.find("event")
+            if inner is None:
+                continue
+            loss = any(child.tag in COSTS for child in inner) or any(
+                int(item.get("min", "0")) < 0
+                for modify in inner.findall("item_modify") for item in modify.findall("item"))
+            loses_something += loss
+        if choices and loses_something == len(choices):
+            failures.append(
+                f"{name}: every choice costs hull, scrap or crew. A player who wants none of it, or "
+                "cannot afford it, must have a way out"
+            )
         if choices and pay_in_scrap == len(choices):
             failures.append(
                 f"{name}: every choice costs scrap. If short, FTL still opens the "
@@ -154,7 +168,10 @@ def main() -> int:
             )
 
     lua = EVENTS_LUA.read_text(encoding="utf-8")
-    for branch in sorted(set(re.findall(r"\b(AP_EVT_[A-Z_]+)\s*=", lua))):
+    # The endings of a fight are loaded by its ship, not picked in a choice.
+    branches_in_xml |= {node.get("name") for node in events_tree.iter("event")
+                        if (node.get("name") or "").startswith("AP_HIJACK_")}
+    for branch in sorted(set(re.findall(r"\b(AP_(?:EVT|HIJACK)_[A-Z_]+)\s*=", lua))):
         if branch not in branches_in_xml:
             failures.append(
                 f"Lua effect on \"{branch}\", which exists in no XML choice: "
@@ -189,7 +206,7 @@ def main() -> int:
         path.read_text(encoding="utf-8")
         for path in sorted((ROOT / "test").glob("scenarios*.lua"))
     )
-    for branch in sorted(set(re.findall(r"\b(AP_EVT_[A-Z_]+)\s*=", lua))):
+    for branch in sorted(set(re.findall(r"\b(AP_(?:EVT|HIJACK)_[A-Z_]+)\s*=", lua))):
         if f'"{branch}"' not in scenarios:
             failures.append(
                 f"branch \"{branch}\" has a Lua effect that no test names explicitly"

@@ -38,6 +38,16 @@ class TestSourceManifest(unittest.TestCase):
         for part in parts:
             self.assertTrue(part.isdigit(), part)
 
+    def test_the_world_and_the_mod_carry_the_same_version(self) -> None:
+        # A template states the world version it needs: a host with an older world must refuse the YAML instead
+        # of dropping the options it does not know.
+        main_lua = Path(__file__).resolve().parents[3] / "mod" / "ArchipelagoFTL" / "data" / "archipelago" / "main.lua"
+        if not main_lua.is_file():  # pragma: no cover
+            raise unittest.SkipTest("the mod is not next to the world")
+        import re
+        shown = re.search(r'MOD_VERSION = "([\d.]+)"', main_lua.read_text(encoding="utf-8")).group(1)
+        self.assertEqual(self.manifest["world_version"], shown)
+
 
 class TestOptionsSurvivePickle(unittest.TestCase):
     def test_every_default_can_be_pickled(self) -> None:

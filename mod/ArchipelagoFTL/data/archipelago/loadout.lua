@@ -10,7 +10,8 @@ local PANEL = { x = 190, y = 86, w = 900, h = 548 }
 local COLUMN_GAP = 16
 local COLUMN_TOP = 90
 local COLUMN_BOTTOM = 70
-local ROW_H = 34
+local ROW_H = 48
+local ICON_W = 64
 local ROW_GAP = 6
 local LIST_OFFSET = 44
 local PAGER_H = 24
@@ -204,6 +205,7 @@ end
 local function draw()
     local catalog = receivedCatalog()
     local g = geometry()
+    ui.hideGameTooltip()
     ui.shade()
     ui.window(PANEL.x, PANEL.y, PANEL.w, PANEL.h)
     if logoTexture == nil then
@@ -244,7 +246,16 @@ local function draw()
                 local over = available and ui.hovered(area)
                 ui.rect(area.x, area.y, area.w, area.h, isChosen and "hover" or (over and "hover" or "window"))
                 ui.rect(area.x, area.y, 3, area.h, isChosen and "good" or (over and "border" or "faint"))
-                ui.text(10, area.x + 14, area.y + 10, area.w - 24,
+                local alpha = (available or isChosen) and 1 or 0.4
+                local iconX, iconY, iconH = area.x + 8, area.y + 4, area.h - 8
+                if category == "weapon" then
+                    ui.weaponArt(entry.bp, iconX, iconY, ICON_W, iconH, alpha)
+                elseif category == "drone" then
+                    ui.droneArt(entry.bp, iconX, iconY, ICON_W, iconH, alpha)
+                else
+                    ui.raceSprite(entry.race, iconX + (ICON_W - 70) / 2, area.y + (area.h - 70) / 2, 70, alpha)
+                end
+                ui.textTwoLines(10, area.x + ICON_W + 16, area.y + 17, area.w - ICON_W - 24, 14,
                     isChosen and "good" or (available and "text" or "dim"), entry.label)
             end
             if total > 1 then

@@ -11,6 +11,7 @@ requires:
   version: 0.6.7
 "FTL: Faster Than Light":
   victories_required: 5
+  # any: an Easy victory counts. normal: Normal or Hard only.
   victory_difficulty: normal
   layout_count: 7
   archives: 12

@@ -1,0 +1,29 @@
+# First game, or one evening: about 3 hours to the goal.
+# One victory on any difficulty (Easy counts), three Type A ships, two Archives, no traps.
+# Received upgrades and systems come aboard by themselves, and part of your scrap comes back each run.
+# Measured: 76 locations, 38 free shop slots, ~13.9 checks per hour,
+# ~3.3 h to the goal, ~13 minutes max wait with nothing to send.
+# Change the name line, then generate as usual.
+
+name: Player
+description: First FTL Archipelago game, about 3 hours to the goal.
+game: "FTL: Faster Than Light"
+requires:
+  version: 0.6.7
+"FTL: Faster Than Light":
+  victories_required: 1
+  # any: an Easy victory counts. normal: Normal or Hard only.
+  victory_difficulty: any
+  layout_count: 3
+  ship_layouts: type_a_only
+  archives: 3
+  archives_required: 2
+  sectorsanity_last_sector: 6
+  general_achievements: basic
+  full_system_upgrades: true
+  free_upgrades: true
+  system_install: run_start
+  run_start_scrap: 15
+  shop_weapons: 15
+  shop_drones: 6
+  shop_augments: 10

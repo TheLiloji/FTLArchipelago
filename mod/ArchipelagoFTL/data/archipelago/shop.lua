@@ -264,8 +264,11 @@ function apApplyShopItem(descriptor)
 
     applyAvailability(name, received)
 
-    local label = descriptor.display or name
     local now = describe(name)
+    -- The game's own name speaks the player's language; the seed's display name is English.
+    local okTitle, title = pcall(function() return now.title:GetText() end)
+    local label = (okTitle and type(title) == "string" and title ~= "" and title ~= name) and title
+        or descriptor.display or name
     shopLog(string.format("%s: %d copy(ies) received, rarity %d -> %d%s",
         name, received, originalRarity[name] or -1,
         now and math.floor(now.rarity) or -1,

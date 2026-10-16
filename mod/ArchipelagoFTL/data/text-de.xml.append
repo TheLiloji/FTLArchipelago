@@ -30,6 +30,7 @@
 <text name="list_tutorial_2" language="de">In einem Archipelago-Durchlauf kommen Schiffe aus dem Multiworld: irgendwo findet jemand den Schlüssel zu eurem Schiff und schickt ihn herüber. Das kann in der ersten Stunde passieren oder viel später.\n\nDrückt im Spiel TAB, um zu sehen, was schon da ist und was noch aussteht.</text>
 
 <text name="ap_beacon_label" language="de">ARCHIPELAGO</text>
+<text name="ap_store_label" language="de">AP-SHOP</text>
 <text name="ap_beacon_undiscovered" language="de">Jemand sendet auf einer Archipelago-Frequenz.</text>
 <text name="ap_beacon_unvisited" language="de">Archipelago-Händler: Waren für andere Welten, und Geschäfte, die niemand annehmen sollte.</text>
 <text name="ap_beacon_visited" language="de">Archipelago-Händler.</text>
@@ -44,4 +45,19 @@
 <text name="ap_evt_zoltan_toll_c3_text" language="de">Der Offizier notiert deine Weigerung kommentarlos und winkt dich durch. Die Zoltan notieren alles.</text>
 <text name="ap_evt_another_world_void" language="de">Sie ins Leere entladen.</text>
 <text name="ap_evt_another_world_void_text" language="de">Du baust das Relais aus und lässt die Überspannung ins Leere abfließen. Auf dem Weg nach draußen schlägt sie über deine Hülle. Die Bergung bringt guten Schrott.</text>
+<text name="ap_evt_another_world_pass" language="de">Sie vorbeiziehen lassen und weiterfliegen.</text>
+<text name="ap_evt_another_world_pass_text" language="de">Du hältst das Relais geschlossen und lässt die Überspannung vorbeiziehen. Vor dem nächsten Sprung ist sie verklungen. Nichts gewonnen, nichts verloren.</text>
 <text name="ap_evt_zoltan_toll_c2_text" language="de">Der Offizier bestätigt dein Recht und lässt dich zwei Zellen aus dem Vorrat des Rings nehmen. Die Eskorte scannt dich beim Abflug etwas zu genau: irgendwo in der Hülle gibt etwas nach.</text>
+<text name="ap_evt_hijack_text" language="de">Ein Piratenschiff hat sich an ein Archipelago-Relais gehängt. Es hat ein Paket für eine andere Welt abgefangen und will 20 Schrott, um es freizugeben.</text>
+<text name="ap_evt_hijack_c1" language="de">Angreifen und das Paket holen.</text>
+<text name="ap_evt_hijack_c1_text" language="de">Die Piraten fahren ihre Waffen hoch. Das Paket liegt in ihrem Frachtraum.</text>
+<text name="ap_evt_hijack_c2" language="de">Die 20 Schrott zahlen.</text>
+<text name="ap_evt_hijack_c2_text" language="de">Die Piraten nehmen deinen Schrott und geben das Paket frei. Es geht raus, genau so, als hättest du es im Archipelago-Laden gekauft.</text>
+<text name="ap_evt_hijack_c3" language="de">Sie in Ruhe lassen.</text>
+<text name="ap_evt_hijack_c3_text" language="de">Du lässt das Relais hinter dir. Das Paket wartet auf jemand anderen.</text>
+<text name="ap_evt_hijack_surrender_text" language="de">Die Piraten funken dich an. Sie geben auf und bieten dir das Paket an, wenn du das Feuer einstellst.</text>
+<text name="ap_evt_hijack_surrender_c1" language="de">Annehmen und das Paket nehmen.</text>
+<text name="ap_evt_hijack_surrender_c2" language="de">Weiterfeuern.</text>
+<text name="ap_evt_hijack_yield_text" language="de">Sie stoßen das Paket aus einer Luftschleuse. Du sammelst es ein und schickst es weiter.</text>
+<text name="ap_evt_hijack_destroyed_text" language="de">Das Piratenschiff bricht auseinander. Du ziehst das Paket aus dem Wrack und schickst es weiter.</text>
+<text name="ap_evt_hijack_deadcrew_text" language="de">Die Piratencrew ist tot. Du schickst das Paket weiter und nimmst dann ihr Schiff aus.</text>

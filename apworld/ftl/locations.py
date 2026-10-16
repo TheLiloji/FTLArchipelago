@@ -3,7 +3,7 @@ from __future__ import annotations
 from BaseClasses import Location
 
 from . import data
-from .options import apply_sector_floor
+from .options import apply_sector_floor, excluded_layouts
 
 
 class FTLLocation(Location):
@@ -41,7 +41,9 @@ def allowed_layouts(options) -> tuple[data.Layout, ...]:
         highest_variant = 1
     else:
         highest_variant = 2
-    return tuple(layout for layout in data.LAYOUTS if layout.variant <= highest_variant)
+    excluded = excluded_layouts(options)
+    return tuple(layout for layout in data.LAYOUTS
+                 if layout.variant <= highest_variant and layout.blueprint not in excluded)
 
 
 def selected_layouts(options) -> tuple[data.Layout, ...]:
@@ -132,6 +134,9 @@ def selected_locations(options) -> tuple[data.Location, ...]:
                 kept.append(location)
         elif location.group == data.GROUP_CREW:
             if options.crew_checks:
+                kept.append(location)
+        elif location.group == data.GROUP_FIGHTS:
+            if location.ship in ships and (location.fight or 0) <= options.combat_checks.value:
                 kept.append(location)
         elif location.group == data.GROUP_SHIP_ACHIEVEMENTS:
             needed = data.ACHIEVEMENT_LAYOUT.get(location.achievement or "")

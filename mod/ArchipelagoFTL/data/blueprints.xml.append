@@ -268,3 +268,33 @@
     <stackable>false</stackable>
     <value>0</value>
 </augBlueprint>
+
+<augBlueprint name="AP_DEAL_4">
+    <title>Blood pact: +60 scrap</title>
+    <desc>Scrap now, a trap for someone, and 5% of the time one of your crew dies for good.</desc>
+    <cost>5</cost>
+    <bp>8</bp>
+    <rarity>0</rarity>
+    <stackable>false</stackable>
+    <value>0</value>
+</augBlueprint>
+
+<augBlueprint name="AP_DEAL_5">
+    <title>Blood pact: +90 scrap</title>
+    <desc>Scrap now, a trap for someone, and 10% of the time one of your crew dies for good.</desc>
+    <cost>10</cost>
+    <bp>8</bp>
+    <rarity>0</rarity>
+    <stackable>false</stackable>
+    <value>0</value>
+</augBlueprint>
+
+<augBlueprint name="AP_DEAL_6">
+    <title>Blood pact: +130 scrap</title>
+    <desc>Scrap now, a trap for someone, and 20% of the time one of your crew dies for good.</desc>
+    <cost>15</cost>
+    <bp>8</bp>
+    <rarity>0</rarity>
+    <stackable>false</stackable>
+    <value>0</value>
+</augBlueprint>

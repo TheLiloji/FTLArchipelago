@@ -73,6 +73,15 @@ local function shipClassOf(base)
     return _G.apShipLabel and apShipLabel(base) or base
 end
 
+-- The ship (class or layout) and the sector a shop slot is sold on, each nil when any will do.
+function apShopSlotWhere(key)
+    local gift = { location = tostring(key) }
+    if giftSlot(gift) == nil then
+        return nil, nil
+    end
+    return giftOwner(gift), giftSector(gift)
+end
+
 -- Where a shop slot is sold in this seed ("Kestrel Cruiser B, sector 6"), as hints say it: nil when anywhere.
 function apShopPlace(key)
     local gift = { location = tostring(key) }
@@ -119,9 +128,13 @@ local function announceSize()
     end)
 end
 
-local DEAL_BLUEPRINTS = { "AP_DEAL_1", "AP_DEAL_2", "AP_DEAL_3" }
+local DEAL_BLUEPRINTS = { "AP_DEAL_1", "AP_DEAL_2", "AP_DEAL_3", "AP_DEAL_4", "AP_DEAL_5", "AP_DEAL_6" }
 
-local DEAL_REWARD = { 35, 55, 80 }
+local DEAL_REWARD = { 35, 55, 80, 60, 90, 130 }
+
+-- The blood pacts, on the shop's second page: more scrap, and a chance in a hundred to lose a crew member for
+-- good, Clone Bay or not.
+local DEAL_BLOOD = { [4] = 5, [5] = 10, [6] = 20 }
 
 local DEAL_SELF_CHANCE = 34
 
@@ -207,6 +220,63 @@ local function giftPrice(gift)
 end
 
 
+local EMPTY_TEXTS = {
+    noseed = { "shop.slot.noseed.title", "shop.slot.noseed.short", "shop.slot.noseed.body" },
+    waiting = { "shop.slot.waiting.title", "shop.slot.waiting.short", "shop.slot.waiting.body" },
+    sector = { "shop.slot.sector.title", "shop.slot.sector.short", "shop.slot.sector.body" },
+    ship = { "shop.slot.ship.title", "shop.slot.ship.short", "shop.slot.ship.body" },
+    later = { "shop.slot.later.title", "shop.slot.later.short", "shop.slot.later.body" },
+    empty = { "shop.slot.empty.title", "shop.slot.empty.short", "shop.slot.empty.body" },
+}
+
+-- Why a shop slot is empty, from what the player can act on: wait, go to a sector, fly another ship, or nothing.
+local function emptyReason()
+    local gifts = _G.apShopGifts or {}
+    local linked = _G.apContractState ~= nil and _G.apContractState.connected == true
+    if #gifts == 0 and not linked then
+        return "noseed", {}
+    end
+    if _G.apShopWaiting and apShopWaiting() then
+        return "waiting", {}
+    end
+    local here = currentSector() or 1
+    local nextSector, otherShips, earlier = nil, {}, false
+    for _, gift in ipairs(gifts) do
+        if not alreadyGone(gift.location or gift.item) then
+            local sector = giftSector(gift)
+            if not ownerAboard(gift) then
+                local owner = giftOwner(gift)
+                if owner and not otherShips[owner] then
+                    otherShips[owner] = true
+                    otherShips[#otherShips + 1] = owner
+                end
+            elseif sector ~= nil and sector > here then
+                nextSector = math.min(nextSector or sector, sector)
+            elseif sector ~= nil and sector < here then
+                earlier = true
+            end
+        end
+    end
+    if nextSector then
+        return "sector", { n = nextSector }
+    end
+    if #otherShips > 0 then
+        local names = {}
+        for index = 1, math.min(2, #otherShips) do
+            names[#names + 1] = shipClassOf(tostring(otherShips[index]):gsub("_[23]$", ""))
+        end
+        return "ship", { ship = table.concat(names, ", ") }
+    end
+    if earlier then
+        return "later", {}
+    end
+    return "empty", {}
+end
+
+function apShopEmptyReason()
+    return emptyReason()
+end
+
 local function writeGift(blueprintName, gift)
     local desc = giftDesc(blueprintName)
     if desc == nil then
@@ -217,17 +287,11 @@ local function writeGift(blueprintName, gift)
 
     if gift == nil then
         setGiftArt(blueprintName, nil)
-        local noGifts = #(_G.apShopGifts or {}) == 0
-        local linked = _G.apContractState ~= nil and _G.apContractState.connected == true
-        if noGifts and not linked then
-            desc.title.data = apT("shop.slot.noseed.title")
-            desc.shortTitle.data = apT("shop.slot.noseed.short")
-            desc.description.data = apT("shop.slot.noseed.body")
-        else
-            desc.title.data = apT("shop.slot.empty.title")
-            desc.shortTitle.data = apT("shop.slot.empty.short")
-            desc.description.data = apT("shop.slot.empty.body")
-        end
+        local reason, params = emptyReason()
+        local keys = EMPTY_TEXTS[reason]
+        desc.title.data = apT(keys[1], params)
+        desc.shortTitle.data = apT(keys[2], params)
+        desc.description.data = apT(keys[3], params)
         desc.title.isLiteral = true
         desc.shortTitle.isLiteral = true
         desc.description.isLiteral = true
@@ -327,11 +391,13 @@ function apApplyShopGifts()
         local desc = dealDesc(blueprintName)
         if desc ~= nil and not dealsSigned[blueprintName] then
             local reward = tostring(DEAL_REWARD[index] or 30)
-            desc.title.data = apT("deal.title", { scrap = reward })
+            local blood = DEAL_BLOOD[index]
+            desc.title.data = apT(blood and "deal.blood.title" or "deal.title", { scrap = reward })
             desc.title.isLiteral = true
             desc.shortTitle.data = apT("deal.short", { scrap = reward })
             desc.shortTitle.isLiteral = true
             desc.description.data = apT("deal.body", { scrap = reward })
+                .. (blood and ("\n\n" .. apT("deal.blood.risk", { chance = blood })) or "")
             desc.description.isLiteral = true
             desc.tooltip.data = desc.description.data
             desc.tooltip.isLiteral = true
@@ -351,6 +417,17 @@ function apShopSlotKeys()
         keys[#keys + 1] = "shop:" .. slot
     end
     return keys
+end
+
+-- What a shop slot held, bought or not: { item, slot, kind }, or nil before the scout.
+function apShopSlotContent(key)
+    key = tostring(key)
+    for _, gift in ipairs(_G.apShopGifts or {}) do
+        if tostring(gift.location or "") == key then
+            return gift
+        end
+    end
+    return nil
 end
 
 function apShopGiftsScouted(scouted)
@@ -381,7 +458,18 @@ function apShopGiftsConfigure(gifts, source)
     return true
 end
 
+-- Packages bought while the ship had no room: the module never put them aboard.
+local boughtWithoutRoom = {}
+
+function apShopPackageBought(blueprintName)
+    boughtWithoutRoom[blueprintName] = true
+end
+
 local function playerHas(blueprintName)
+    if boughtWithoutRoom[blueprintName] then
+        boughtWithoutRoom[blueprintName] = nil
+        return true
+    end
     local found = false
     pcall(function()
         local equipment = Hyperspace.App.gui.equipScreen
@@ -497,6 +585,35 @@ local function collect(index, blueprintName)
     apApplyShopGifts()
 end
 
+-- Never the last one: the pact costs a crew member, not the run.
+local function bloodPrice(index)
+    local chance = DEAL_BLOOD[index]
+    if chance == nil or math.random(1, 100) > chance then
+        return
+    end
+    local player = Hyperspace.ships.player
+    local alive = {}
+    local crew = player.vCrewList
+    for i = 0, crew:size() - 1 do
+        local member = crew[i]
+        local okDrone, drone = pcall(function() return member:IsDrone() end)
+        if member ~= nil and member.iShipId == 0 and not member.bDead and not (okDrone and drone) then
+            alive[#alive + 1] = member
+        end
+    end
+    if #alive < 2 then
+        giftLog(string.format("deal %d: the blood price falls, but only one crew member is left: spared", index))
+        return
+    end
+    local victim = alive[math.random(1, #alive)]
+    local name = tostring(victim:GetName())
+    victim:Kill(true)
+    giftLog(string.format("deal %d: the blood price is paid by %s", index, name))
+    if _G.apNotifyWarning then
+        _G.apNotifyWarning(apT("deal.blood.taken", { name = name }))
+    end
+end
+
 local function signDeal(index, blueprintName)
     dealsSigned[blueprintName] = true
 
@@ -551,6 +668,8 @@ local function signDeal(index, blueprintName)
             end
         end
     end
+
+    pcall(bloodPrice, index)
 
     local desc = dealDesc(blueprintName)
     if desc ~= nil then

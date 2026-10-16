@@ -33,6 +33,9 @@ Three things are taken away from you at the start and handed back as items.
 Kestrel, see below) and the hangar fills up as ship keys arrive. Type B and Type C layouts are items of their
 own by default, so you no longer have to earn two achievements with a ship before you may fly its Type B.
 
+**Excluded Ships and Layouts** leaves out the ships or layouts you never want: name a ship ("Engi Cruiser") or
+a layout ("Engi Cruiser B"). Your first ship and the Kestrel A cannot be left out.
+
 **Layouts in the Seed** keeps 7 layouts by default, drawn at random among those Ship Layouts allows. Your first
 ship and the Kestrel A are always in, and a Type B or C only comes with its ship's Type A. The others have no key
 and no check.
@@ -82,6 +85,18 @@ On top of that, "Head Start" items give you one free level of a system, or one e
 the beginning of *every future run*. This is what makes a roguelike work in an Archipelago: an item that
 arrives during a run you are about to lose is not wasted, because it makes the next run start stronger.
 
+Four options make received items count right away, all off by default:
+
+- **Free Upgrades**: system levels you receive are installed for free, at once and at the start of every run,
+  instead of only being for sale. Needs Progressive System Upgrades.
+- **System Install**: a system whose blueprint you received comes aboard for free, at the start of every run
+  (`run_start`) or also as soon as it arrives (`immediately`), if the ship has a room for it. Needs System
+  Blueprints.
+- **Run Start Scrap**: each new run starts with a percentage of all the scrap items you received.
+- **Combat Checks per Ship**: with each ship, the first fights you win in a run send checks ("Kestrel
+  Cruiser: Fight 1 won"). Those fights give less scrap (Combat Check Scrap, 50 % by default); missiles, fuel
+  and drone parts stay.
+
 ## What is considered a check?
 
 - **Sectors.** Reaching sector 1 to 8 with a given layout. Each layout has its own eight checks, so flying the
@@ -98,16 +113,17 @@ arrives during a run you are about to lose is not wasted, because it makes the n
   event, a store or a rescue. The crew you start a run with does not count. Seven checks, on by default
   (Crew Checks).
 - **Victories.** Destroying the Flagship with a given layout. One check per layout, always enabled.
-  The victory also sends that layout's sector checks still due (Victory Collects the Layout, on by default).
+  The victory also sends that layout's sector checks still due (Victory Collects the Layout, `sectors` by
+  default; `everything` also sends its ship's achievements, system checks and fight checks).
 - **Ship achievements.** The three achievements of each ship. FTL awards them to the ship and not to the
   layout, so earning one with Type A, B or C sends the same check.
 - **General achievements.** Up to twenty-one of them, in widening tiers: the straightforward ones, then the
   run-long "going the distance" challenges, then the hardest one-off feats.
-- **The Archipelago shop.** One beacon per sector, marked ARCHIPELAGO on the map, sells goods for other players.
-  Buying one sends it to its owner. The seed balances itself: at least twenty slots by default (Archipelago Shop Checks), and more when your options create more items than checks, so no item is ever left out; the other way round, filler makes up the difference (at least twenty, Minimum Filler). The bigger the shop, the more packages each ARCHIPELAGO beacon offers: 3, 6, 9 or 12. A package marked
+- **The Archipelago shop.** One beacon per sector, marked AP STORE on the map, sells goods for other players.
+  Buying one sends it to its owner. The seed balances itself: at least twenty slots by default (Archipelago Shop Checks), and more when your options create more items than checks, so no item is ever left out; the other way round, filler makes up the difference (at least twenty, Minimum Filler). The bigger the shop, the more packages each AP STORE beacon offers: 3, 6, 9 or 12. A package marked
   **FOR YOU** holds one of your own items. A package that was already sent never comes back on the shelf.
-  By default each package belongs to one sector, 1 to 7, and only that sector's beacon sells it: the logic
-  counts it as deep as its sector (Archipelago Shop by Sector).
+  With **Archipelago Shop by Sector** (off by default) each package belongs to one sector, 1 to 7, and only
+  that sector's beacon sells it: the logic counts it as deep as its sector.
   **Archipelago Shop per Ship** (off by default) also gives each package to one ship, or one layout: it is only
   sold while you fly that ship.
   Prices follow importance first, then depth: filler costs 10 to 25 scrap, useful items 30 to 65, and
@@ -115,7 +131,7 @@ arrives during a run you are about to lose is not wasted, because it makes the n
 
 ## Archives
 
-A second currency: by default 12 Archipelago Archives are scattered through the other players' worlds, and
+A second currency: by default 12 Archipelago Archives are scattered through the multiworld, yours included, and
 10 of them are needed (**Archives** and **Archives Required**, 0 turns them off). The two spare ones are slack you
 never have to chase. Beating the
 boss five times is no longer enough on its own - you also have to wait for, and trade for, the
@@ -195,6 +211,14 @@ Two families of options decide how much ship the generator assumes you have befo
 **Sector Logic** counts blueprints without caring which: `relaxed` puts every sector in logic as soon as the
 layout is, `standard` expects a couple of blueprints before the deep sectors, `strict` expects a real ship.
 
+`power` looks at the ship instead: each check is judged on the ship that does it, from its real start. Sector 5
+needs 2 shield layers, sector 8 also Weapon Control 5, the Flagship 3 layers, Weapon Control 6 and Engines 4.
+So a Mantis B, which starts with 2 layers, meets sector 5 right away. A ship that starts without shields (the
+Stealth Cruiser) may use Engines 5 in place of one layer, except for the Flagship. Victory Difficulty moves the
+bar: `any` asks 2 layers for the Flagship, `hard` asks 4. It reads upgrade levels, so it matters most with
+Progressive System Upgrades on; without them, levels are bought with scrap and only the Stealth's Shields
+blueprint is waited for.
+
 **The five per-system sliders** (Shields, Sensors, Medbay, Engines, Weapons) are the opposite: they name one
 system each. Set to `required`, a ship whose starting layout includes that system is only in logic once you
 hold its blueprint, which can leave several cruisers sitting in the hangar early on. A ship built without the
@@ -262,10 +286,12 @@ on, so if you enable the general achievements and only ever win on Hard, check t
 
 ## Custom events and hints
 
-Four encounters of the mod's own appear at beacons marked ARCHIPELAGO, each a choice with no way back:
+Five encounters of the mod's own appear at beacons marked ARCHIPELAGO, each a choice with no way back:
 
 - **A relay** carrying two packages for other worlds. Route one: its check is sent, for 15 scrap. If there is no
   package to route, the scrap is refunded.
+- **Pirates holding a package**, preferably one for another player. Pay them 20 scrap, or fight them: win, and the
+  package goes out for free on top of the usual loot.
 - **A Zoltan checkpoint** asks for a tithe to the shared Energy Link reserve, or lets you draw fuel from it.
 - **A Slug** sells a hint for 20 scrap: a real Archipelago hint about one of your unvisited locations, recorded on
   the server like any other. Without a server, or with nothing left to find, the scrap is refunded.

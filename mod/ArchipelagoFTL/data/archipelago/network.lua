@@ -41,6 +41,7 @@ function apNetResetForTesting()
     state.scoutRetryAt = nil
     state.seedRefused = false
     state.refusal = nil
+    state.refusalReasons = nil
     state.replayClean = false
     state.itemsInBatch = false
     if _G.apNetForgetDurableStore then _G.apNetForgetDurableStore() end
@@ -74,6 +75,7 @@ function apNetConnect(uri, slot, password)
     end
     state.connecting = true
     state.refusal = nil
+    state.refusalReasons = nil
     state.unreachableShown = false
     state.unreachableSince = nil
     -- After a refused seed, take every item again, from an empty inventory so nothing is counted twice.
@@ -414,13 +416,25 @@ end
 
 local SCOUT_RETRY_TICKS = 3 * 60
 local SCOUT_RETRIES = 20
+-- A big multiworld can take minutes to send its data package: past the quick retries, ask again slowly, never
+-- leaving the shop empty for good.
+local SCOUT_SLOW_RETRY_TICKS = 30 * 60
 
 local function scheduleRescout(message)
-    if state.scoutRetryAt == nil and (state.scoutRetries or 0) < SCOUT_RETRIES then
-        state.scoutRetries = (state.scoutRetries or 0) + 1
-        state.scoutRetryAt = state.ticks + SCOUT_RETRY_TICKS
+    if state.scoutRetryAt ~= nil then
+        return
+    end
+    state.scoutRetries = (state.scoutRetries or 0) + 1
+    local slow = state.scoutRetries > SCOUT_RETRIES
+    state.scoutRetryAt = state.ticks + (slow and SCOUT_SLOW_RETRY_TICKS or SCOUT_RETRY_TICKS)
+    if not slow or state.scoutRetries % 10 == 0 then
         netLog(message)
     end
+end
+
+-- The shop is still waiting for the server to say what it sells.
+function apShopWaiting()
+    return state.connected == true and (state.scoutsPending == true or state.scoutRetryAt ~= nil)
 end
 
 local function requestShopScouts()
@@ -683,6 +697,7 @@ local function onRefused(event)
         said[1] = apT("net.refused.unknown")
     end
     state.refusal = said[1]
+    state.refusalReasons = reasons
     if _G.apNotifyStatus then
         for _, line in ipairs(said) do
             _G.apNotifyStatus(line)
@@ -723,6 +738,13 @@ local HANDLERS = {
             _G.apNotifyStatus(apT("net.disconnected"))
         end
         scheduleRetry()
+    end,
+
+    -- A package bought with no room left aboard: the module kept it off the ship, the shop collects it.
+    package_bought = function(event)
+        if _G.apShopPackageBought then
+            _G.apShopPackageBought(tostring(event.name))
+        end
     end,
 
     -- FTL tried to unlock a ship by itself and the lock refused it.
@@ -874,6 +896,17 @@ end
 -- FTL's own achievements: difficulty earned on, -1 if not, nil when the module cannot tell.
 function apNetAchievementStatus(name)
     return moduleCall("AchievementStatus", tostring(name))
+end
+
+-- The system clipboard's first line, "" when empty or when the module cannot read it.
+function apNetClipboard()
+    local text = moduleCall("Clipboard")
+    return text ~= nil and tostring(text) or ""
+end
+
+-- "windows" or "linux"; nil with a library older than 0.5.
+function apNetPlatform()
+    return moduleCall("Platform")
 end
 
 -- What a check sends, once the server answered the scout: { item, slot, mine }, or nil.

@@ -35,6 +35,8 @@
 %rename("%s") ArchipelagoFTL::Client::CheckedLocations;
 %rename("%s") ArchipelagoFTL::Client::LastUri;
 %rename("%s") ArchipelagoFTL::Client::LastSlot;
+%rename("%s") ArchipelagoFTL::Client::Clipboard;
+%rename("%s") ArchipelagoFTL::Client::Platform;
 %rename("%s") ArchipelagoFTL::Client::RequestProfileReset;
 %rename("%s") ArchipelagoFTL::Client::RelaunchWhenClosed;
 %rename("%s") ArchipelagoFTL::Client::ProfileResetRequested;
