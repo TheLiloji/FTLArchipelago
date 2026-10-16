@@ -174,11 +174,22 @@ end
 
 -- The game's own pictures. Each is looked up once; a missing one is remembered as false, not retried every frame.
 local images = {}
+-- A file the game lacks comes back as its shared "missing" picture, a yellow warning triangle, not as nothing.
+local missing = nil
+local function missingPicture()
+    if missing == nil then
+        local ok, texture = pcall(function() return Hyperspace.Resources:GetImageId("archipelago/no_such_image.png") end)
+        missing = ok and texture or false
+    end
+    return missing or nil
+end
+
 function ui.image(path)
     if path == nil then return nil end
     if images[path] == nil then
         local ok, texture = pcall(function() return Hyperspace.Resources:GetImageId(path) end)
-        images[path] = (ok and texture and (texture.width or 0) > 0) and texture or false
+        local found = ok and texture and (texture.width or 0) > 0 and texture ~= missingPicture()
+        images[path] = found and texture or false
     end
     return images[path] or nil
 end
@@ -241,12 +252,14 @@ end
 -- A drone as the game draws it: the drone itself at its own size, a crew drone's sprite like a crew member,
 -- or its drone bar icon doubled (pixel art stays sharp at twice its size). The path comes from the game data.
 function ui.droneArt(blueprint, x, y, w, h, alpha)
+    -- The game data first, then the drone the game itself would draw (a mod may have moved the file).
     local path = (((_G.apGameData or {}).droneArt) or {})[tostring(blueprint)]
-    if path == nil then
+    local texture = path and ui.image(path)
+    if not texture then
         local ok, name = pcall(function() return Hyperspace.Blueprints:GetDroneBlueprint(blueprint).droneImage end)
         path = ok and name and ("ship/drones/" .. tostring(name) .. "_base.png") or nil
+        texture = path and ui.image(path)
     end
-    local texture = path and ui.image(path)
     if texture == nil or not texture then return false end
     if path:sub(1, 7) == "people/" then
         local size = math.min(h, 70)

@@ -428,6 +428,11 @@ local function resetWorld()
 
         Resources = {
             GetImageId = function(_, name)
+                -- Like the game: a file it lacks gives one shared warning picture, not nil.
+                if (sim.missingImages or {})[name] or name == "archipelago/no_such_image.png" then
+                    sim.missingPicture = sim.missingPicture or { name = "missing", width = 25, height = 22 }
+                    return sim.missingPicture
+                end
                 return { name = name, width = 460, height = 460 }
             end,
         },
