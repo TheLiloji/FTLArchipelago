@@ -144,9 +144,10 @@ local function shipRows()
     local unlocked = unlockedLayouts()
     local book = ((_G.apContractState or {}).locNames) or {}
     local rows, open, total = {}, 0, 0
-    for _, ship in ipairs(((_G.apGameData or {}).ships) or {}) do
+    for _, ship in ipairs(apSeedShips()) do
         local row = { base = ship.name, layouts = {}, remaining = 0 }
         row.label = _G.apShipLabel and apShipLabel(ship.name) or ship.name
+        row.species = _G.apShipSpecies and apShipSpecies(ship.name) or nil
         for index = 0, (ship.layouts or 1) - 1 do
             local name = layoutName(ship.name, index)
             if not _G.apLayoutInSeed or apLayoutInSeed(name) then
@@ -157,8 +158,8 @@ local function shipRows()
             end
         end
         for key in pairs(book) do
-            local prefix = tostring(key):match("^(PLAYER_SHIP_[A-Z]+)")
-            if prefix == ship.name and not sentCheck(key) then
+            local prefix = tostring(key):match("^(PLAYER_SHIP_[A-Z0-9_]-):")
+            if prefix and prefix:gsub("_[23]$", "") == ship.name and not sentCheck(key) then
                 row.remaining = row.remaining + 1
             end
         end
@@ -626,7 +627,14 @@ local function drawShips(x, y, w, h)
         miniH = math.floor(miniW * 121 / 191)
         local minisW = #row.layouts * miniW + (#row.layouts - 1) * miniGap
         local textW = cardW - minisW - 40
-        text(12, cx + 16, cy + 10, textW, any and "text" or "dim", row.label)
+        -- The race goes under the name, or after it when the cards are too short for one more line.
+        local roomy = cardH >= 64
+        local label = (row.species and not roomy) and apT("dash.ships.species", { ship = row.label, species = row.species })
+            or row.label
+        text(12, cx + 16, cy + 10, textW, any and "text" or "dim", label)
+        if row.species and roomy then
+            text(9, cx + 16, cy + 28, textW, "dim", row.species)
+        end
         local remaining = row.remaining > 0 and apT("dash.ships.remaining", { n = row.remaining })
             or apT("dash.ships.clear")
         text(9, cx + 16, cy + cardH - 22, textW, "dim", remaining)

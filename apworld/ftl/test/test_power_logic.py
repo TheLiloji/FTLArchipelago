@@ -171,3 +171,24 @@ class TestStandardStaysTheDefault(FTLTestBase):
     def test_existing_seeds_keep_their_logic(self) -> None:
         self.assertEqual(self.world.options.sector_logic.value, rules.SectorLogic.option_standard)
         self.assertEqual(rules.power_upgrade_names(self.world.options), frozenset())
+
+
+MV_KESTREL = data.LAYOUTS_BY_BLUEPRINT["PLAYER_SHIP_MVKESTREL"]
+
+
+class TestPowerMilestonesOnMultiverseShips(FTLTestBase):
+
+    options = {"multiverse": True, "sector_logic": "power"}
+
+    def test_a_multiverse_ship_is_judged_from_its_own_start(self) -> None:
+        self.assertEqual(data.LAYOUT_START_LEVELS[MV_KESTREL.blueprint],
+                         {"shields": 2, "weapons": 3, "engines": 2})
+        state = _state_with(self, MV_KESTREL)
+        self.assertTrue(_reach(self, MV_KESTREL, "Reach sector 4", state))
+        self.assertFalse(_reach(self, MV_KESTREL, "Reach sector 5", state), "the MV Kestrel starts with one layer")
+        state = _state_with(self, MV_KESTREL, _times("Progressive Shields", 2))
+        self.assertTrue(_reach(self, MV_KESTREL, "Reach sector 5", state))
+
+    def test_every_multiverse_layout_has_its_start_levels(self) -> None:
+        for layout in data.MV_LAYOUTS:
+            self.assertIn(layout.blueprint, data.LAYOUT_START_LEVELS)

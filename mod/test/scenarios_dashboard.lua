@@ -575,6 +575,53 @@ test("dashboard: the ships page only lists the seed's layouts", function()
     closeDashboard()
 end)
 
+test("dashboard: Multiverse ships come from the seed, not from the base game's list", function()
+    sim.startRun(true)
+    applySeed({
+        goal = { kind = "victories", count = 1 },
+        multiverse = true,
+        layouts = { "PLAYER_SHIP_MVKESTREL", "PLAYER_SHIP_UNION", "PLAYER_SHIP_UNION_2" },
+        loc = { ["PLAYER_SHIP_UNION_2:victory"] = "Union Cruiser B: Defeat the Flagship" },
+    })
+    _G.apInventory.ships = { "PLAYER_SHIP_MVKESTREL" }
+    -- Multiverse's ships are not in the base game's ftl.dat, the fake only knows them here.
+    sim.shipNames.PLAYER_SHIP_UNION, sim.shipClasses.PLAYER_SHIP_UNION = "Chrysippus", "Union Cruiser"
+    openDashboard("ships")
+    check(sim.drawnText(apT("dash.ships.header", { done = 1, total = 3 })), "three Multiverse layouts")
+    check(sim.drawnText(apShipLabel("PLAYER_SHIP_UNION")), "the Union Cruiser has its row")
+    check(sim.drawnText("Union Cruiser"), "under its class, as the seed names it")
+    check(not sim.drawnText("Chrysippus"), "not under the name of the ship itself")
+    check(sim.drawnText(apT("dash.ships.remaining", { n = 1 })), "with its check left")
+    closeDashboard()
+end)
+
+test("dashboard: a Multiverse ship shows the race of most of its crew, a base game seed does not", function()
+    sim.startRun(true)
+    applySeed({
+        goal = { kind = "victories", count = 1 },
+        multiverse = true,
+        layouts = { "PLAYER_SHIP_ZOLTAN", "PLAYER_SHIP_UNION" },
+    })
+    sim.shipNames.PLAYER_SHIP_ZOLTAN, sim.shipClasses.PLAYER_SHIP_ZOLTAN = "Paragon", "Ministry Cruiser"
+    sim.shipNames.PLAYER_SHIP_UNION, sim.shipClasses.PLAYER_SHIP_UNION = "Chrysippus", "Union Cruiser"
+    sim.shipCrews = { PLAYER_SHIP_ZOLTAN = { "human", "zoltan", "zoltan" }, PLAYER_SHIP_UNION = {} }
+    sim.crewTitles = { zoltan = "Zoltan", human = "Human" }
+    openDashboard("ships")
+    check(sim.drawnText("Zoltan"), "the Ministry Cruiser is flown by Zoltans")
+    check(not sim.drawnText("Human"), "the race of most of the crew, not the first one")
+    closeDashboard()
+    equals(apShipSpecies("PLAYER_SHIP_UNION"), nil, "a ship without a crew list shows no race")
+    sim.shipNames.PLAYER_SHIP_MILITIA = "Militia"
+    sim.shipCrews.PLAYER_SHIP_MILITIA = { "human", "LIST_CREW_MILITIA_RANDOM", "LIST_CREW_MILITIA_RANDOM" }
+    sim.crewTitles.LIST_CREW_MILITIA_RANDOM = "Rock"
+    equals(apShipSpecies("PLAYER_SHIP_MILITIA"), nil, "a crew drawn from a random list shows no race")
+
+    applySeed({ goal = { kind = "victories", count = 1 }, layouts = { "PLAYER_SHIP_HARD" } })
+    sim.shipCrews = { PLAYER_SHIP_HARD = { "human" } }
+    equals(apShipSpecies("PLAYER_SHIP_HARD"), nil, "base game names already say the race")
+    sim.shipCrews, sim.crewTitles = nil, nil
+end)
+
 test("dashboard: the systems page counts the upgrades of the ship being flown", function()
     sim.startRun(true)
     dashboardSeed()
@@ -585,6 +632,34 @@ test("dashboard: the systems page counts the upgrades of the ship being flown", 
     check(sim.drawnText(apT("hud.system.received", { n = 2 })), "the Kestrel's two upgrades, not the Rock's")
     closeDashboard()
     _G.apInventory.shipCaps = {}
+end)
+
+test("profile: a Multiverse ship already unlocked counts, the MV Kestrel does not", function()
+    sim.unlocked = {}
+    sim.unlocked["PLAYER_SHIP_MVKESTREL"] = true
+    check(not apProfileHasShips({ "PLAYER_SHIP_MVKESTREL", "PLAYER_SHIP_UNION_2" }), "a fresh Multiverse profile")
+    sim.unlocked["PLAYER_SHIP_UNION_2"] = true
+    check(apProfileHasShips({ "PLAYER_SHIP_MVKESTREL", "PLAYER_SHIP_UNION_2" }), "the Union B was unlocked before")
+    sim.unlocked = {}
+end)
+
+test("dashboard: checks of a ship whose name has an underscore are counted on its row", function()
+    sim.startRun(true)
+    applySeed({
+        goal = { kind = "victories", count = 1 },
+        layouts = { "PLAYER_SHIP_AUTO", "PLAYER_SHIP_AUTO_FED" },
+        loc = { ["PLAYER_SHIP_AUTO_FED:victory"] = "Federation Auto-Cruiser A: Defeat the Flagship",
+                ["PLAYER_SHIP_AUTO:victory"] = "Auto-Cruiser A: Defeat the Flagship" },
+    })
+    _G.apInventory.ships = {}
+    openDashboard("ships")
+    local remaining = apT("dash.ships.remaining", { n = 1 })
+    local found = 0
+    for _, draw in ipairs(sim.draws) do
+        if draw.text == remaining then found = found + 1 end
+    end
+    equals(found, 2, "one check left on each row, not two on the Auto-Cruiser's")
+    closeDashboard()
 end)
 
 test("dashboard: the This run card only promises what the seed's settings let an option do", function()

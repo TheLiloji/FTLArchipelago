@@ -199,7 +199,12 @@ function apShipLabel(name)
     end
     local ok, text = pcall(function()
         local bp = Hyperspace.Global.GetInstance():GetBlueprints():GetShipBlueprint(name, -1)
-        return bp ~= nil and bp.name:GetText() or nil
+        if bp == nil then
+            return nil
+        end
+        -- Multiverse ships go by their class in the seed ("Militia Cruiser"); their own names mean little.
+        local class = _G.apSeedIsMultiverse and apSeedIsMultiverse() and bp.shipClass:GetText() or ""
+        return class ~= "" and class or bp.name:GetText()
     end)
     if ok and type(text) == "string" and text ~= "" then
         return text
@@ -207,11 +212,44 @@ function apShipLabel(name)
     return tostring(name)
 end
 
+-- Multiverse ships go by a faction ("Ministry Cruiser"): the race of most of its starting crew says who flies it.
+function apShipSpecies(name)
+    if not (_G.apSeedIsMultiverse and apSeedIsMultiverse()) or name == nil or name == "" then
+        return nil
+    end
+    local ok, text = pcall(function()
+        local blueprints = Hyperspace.Global.GetInstance():GetBlueprints()
+        local bp = blueprints:GetShipBlueprint(name, -1)
+        if bp == nil then
+            return nil
+        end
+        local counts, best = {}, nil
+        for i = 0, bp.defaultCrew:size() - 1 do
+            local race = tostring(bp.defaultCrew[i])
+            counts[race] = (counts[race] or 0) + 1
+            if best == nil or counts[race] > counts[best] then
+                best = race
+            end
+        end
+        -- A LIST_ entry (Militia, pirates) is a random draw: GetCrewBlueprint picks a new race each call.
+        if best == nil or best:sub(1, 5) == "LIST_" then
+            return nil
+        end
+        local crew = blueprints:GetCrewBlueprint(best)
+        local title = crew and crew.desc.title:GetText() or ""
+        return title ~= "" and title or nil
+    end)
+    return ok and text or nil
+end
+
 function apAchievementLabel(id)
     if id == nil or id == "" then
         return "?"
     end
-    return textLibraryLookup(tostring(id) .. "_name") or tostring(id)
+    local seedName = _G.apLocationNameFor and apLocationNameFor("ach:" .. tostring(id))
+    return textLibraryLookup(tostring(id) .. "_name")
+        or (seedName and seedName:match("^MV Achievement: (.+)$"))
+        or tostring(id)
 end
 
 function apHumaniseId(name)

@@ -59,7 +59,7 @@ class VictoriesRequired(Range):
     default = 5
 
 
-_LAYOUT_BY_DISPLAY: dict[str, data.Layout] = {layout.display: layout for layout in data.LAYOUTS}
+_LAYOUT_BY_DISPLAY: dict[str, data.Layout] = {layout.display: layout for layout in data.ALL_LAYOUTS}
 _LAYOUT_SHORT_NAMES: dict[str, data.Layout] = {
     f"{layout.display.split()[0]} {layout.letter}": layout for layout in data.LAYOUTS
 }
@@ -123,7 +123,7 @@ class VictoryLayouts(OptionSet):
         f'"{data.LAYOUTS[0].display}".\n'
         "\n"
         "    Every layout you list must be part of the seed, so keep Ship Layouts wide enough to "
-        "contain them."
+        "contain them. With Multiverse, name its layouts, like \"Union Cruiser B\"."
     )
 
     display_name = "Victory Layouts"
@@ -132,7 +132,7 @@ class VictoryLayouts(OptionSet):
     default = frozenset()
 
 
-_SHIP_BY_DISPLAY: dict[str, data.Ship] = {ship.display: ship for ship in data.SHIPS}
+_SHIP_BY_DISPLAY: dict[str, data.Ship] = {ship.display: ship for ship in data.ALL_SHIPS}
 
 
 class ExcludedLayouts(OptionSet):
@@ -147,7 +147,7 @@ class ExcludedLayouts(OptionSet):
         "\n"
         "    Valid keys: "
         + ", ".join(f'"{ship.display}"' for ship in data.SHIPS)
-        + ", and any layout name, like those of Victory Layouts."
+        + ", and any layout name, like those of Victory Layouts. With Multiverse, its ship and layout names too."
     )
 
     display_name = "Excluded Ships and Layouts"
@@ -164,7 +164,7 @@ def excluded_layouts(options: "FTLOptions") -> frozenset[str]:
         if layout is not None and layout.variant == 0:
             ship = data.SHIPS_BY_BLUEPRINT[layout.ship]
         if ship is not None:
-            out.update(other.blueprint for other in data.LAYOUTS if other.ship == ship.blueprint)
+            out.update(other.blueprint for other in data.ALL_LAYOUTS if other.ship == ship.blueprint)
         elif layout is not None:
             out.add(layout.blueprint)
     return frozenset(out)
@@ -205,6 +205,26 @@ class ShipLayouts(Choice):
     option_up_to_type_b = 1
     option_all_layouts = 2
     default = option_all_layouts
+
+
+class Multiverse(Toggle):
+    """Play with FTL: Multiverse instead of the base game: its ships replace the base game's.
+
+    Install Multiverse with the mod (see the setup guide). Starting Ship is then ignored: you start with the
+    MV Kestrel Cruiser, the ship Multiverse always gives.
+    """
+
+    display_name = "Multiverse"
+
+
+class MultiverseAchievementChecks(Toggle):
+    """With Multiverse, whether 26 of its achievements (Accomplishments and Special Events) send a check.
+
+    They only ever hold filler or traps: nothing the seed needs is hidden behind them, since some are
+    long or rare.
+    """
+
+    display_name = "Multiverse Achievement Checks"
 
 
 class LayoutCount(Range):
@@ -329,6 +349,9 @@ class CombatCheckScrap(Range):
 class CrewChecks(DefaultOnToggle):
     """The first crew member of each race to join you sends a check: Human, Engi, Zoltan,
     Mantis, Rock, Slug and Lanius. 7 checks.
+
+    With Multiverse, its own races are added: Crystal, Orchid, Shell, Leech, Phantom, Spider and Lizard,
+    plus Cognitive, Siren, Pony and Obelisk, which are rare and only ever hold filler. 11 more checks.
     """
 
     display_name = "Crew Checks"
@@ -906,6 +929,8 @@ class FTLOptions(PerGameCommonOptions):
     excluded_layouts: ExcludedLayouts
     start_ship: StartShip
 
+    multiverse: Multiverse
+    multiverse_achievements: MultiverseAchievementChecks
     ship_layouts: ShipLayouts
     layout_count: LayoutCount
     layout_unlocks: LayoutUnlocks
@@ -956,6 +981,7 @@ class FTLOptions(PerGameCommonOptions):
 
 
 ftl_option_groups = [
+    OptionGroup("Multiverse", [Multiverse, MultiverseAchievementChecks]),
     OptionGroup("Goal", [VictoriesRequired, VictoryDifficulty, Archives, ArchivesRequired]),
     OptionGroup(
         "Game Size",
@@ -1093,8 +1119,9 @@ def _check() -> None:
     if len(set(shorts)) != len(shorts):
         raise ValueError(f"ambiguous ship aliases: {sorted(shorts)}")
 
-    for table, label in ((_LAYOUT_BY_DISPLAY, "long"), (_LAYOUT_SHORT_NAMES, "short")):
-        if len(table) != len(data.LAYOUTS):
+    for table, label, expected in ((_LAYOUT_BY_DISPLAY, "long", data.ALL_LAYOUTS),
+                                   (_LAYOUT_SHORT_NAMES, "short", data.LAYOUTS)):
+        if len(table) != len(expected):
             raise ValueError(f"two layouts share the same {label} name")
     collisions = sorted(set(_LAYOUT_SHORT_NAMES) & set(_LAYOUT_BY_DISPLAY))
     for key in collisions:

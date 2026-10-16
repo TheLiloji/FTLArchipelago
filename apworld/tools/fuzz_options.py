@@ -45,7 +45,7 @@ from Fill import FillError, distribute_items_restrictive  # noqa: E402
 from Options import Choice, NamedRange, OptionSet, Range, Toggle  # noqa: E402
 from test.general import setup_multiworld  # noqa: E402
 from worlds.ftl import FTLWorld, data  # noqa: E402
-from worlds.ftl.options import FTLOptions  # noqa: E402
+from worlds.ftl.options import FTLOptions, VictoriesRequired  # noqa: E402
 
 COMMON = {
     "progression_balancing", "accessibility", "local_items", "non_local_items",
@@ -81,7 +81,8 @@ def make_the_goal_reachable(rng: random.Random, options: dict) -> dict:
     from worlds.ftl.options import excluded_layouts
     # Leaving out the starting ship or the Kestrel is refused (tested on its own): those keys are dropped.
     start = {ship.slot: ship for ship in data.SHIPS}.get(options.get("start_ship"))
-    kept = {data.LAYOUTS_BY_BLUEPRINT[data.ALWAYS_UNLOCKED_LAYOUTS[0]].ship}
+    kept = {data.LAYOUTS_BY_BLUEPRINT[data.ALWAYS_UNLOCKED_LAYOUTS[0]].ship,
+            data.LAYOUTS_BY_BLUEPRINT[data.MV_ALWAYS_UNLOCKED_LAYOUTS[0]].ship}
     if start is not None:
         kept.add(start.blueprint)
     kept_names = {data.SHIPS_BY_BLUEPRINT[blueprint].display.split()[0] for blueprint in kept}
@@ -90,10 +91,11 @@ def make_the_goal_reachable(rng: random.Random, options: dict) -> dict:
     left_out = excluded_layouts(types.SimpleNamespace(
         excluded_layouts=types.SimpleNamespace(value=set(options["excluded_layouts"]))))
     last_variant = options["ship_layouts"]
-    available = [layout.display for layout in data.LAYOUTS
+    pool = data.MV_LAYOUTS if options.get("multiverse") else data.LAYOUTS
+    available = [layout.display for layout in pool
                  if layout.variant <= last_variant and layout.blueprint not in left_out]
     if options["goal"] == 0:
-        options["victories_required"] = rng.randint(1, len(available))
+        options["victories_required"] = rng.randint(1, min(len(available), VictoriesRequired.range_end))
         options["victory_layouts"] = []
     else:
         options["victory_layouts"] = sorted(

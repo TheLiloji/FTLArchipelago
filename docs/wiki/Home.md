@@ -12,6 +12,7 @@ players' games. You get them from your friends, and you send them theirs by play
 - [Setup on Linux](Setup-Linux.md)
 - [Playing](Playing.md): the main menu, the hangar, the map, the shop, the dashboard and the goal
 - [Options](Options.md): what to put in your YAML, and the ready-made presets
+- [Multiverse](Multiverse.md): playing with FTL: Multiverse
 - [Hosting a seed](Hosting-a-seed.md): generating and running a room with FTL in it
 - [FAQ and problems](FAQ.md)
 

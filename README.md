@@ -117,6 +117,7 @@ defaults, 185 with `long_game`, and 300 or more if you turn everything on.
 No server? **Solo mode** plays a ready-made seed alone, one item per check. It does not use your YAML.
 
 More in the wiki: [playing](docs/wiki/Playing.md), [options](docs/wiki/Options.md),
+[Multiverse](docs/wiki/Multiverse.md),
 [hosting a seed](docs/wiki/Hosting-a-seed.md), [FAQ](docs/wiki/FAQ.md).
 
 ## Languages

@@ -641,6 +641,21 @@ test("hangar: the ship list marks the layouts the seed leaves out", function()
     sim.shipList = { open = false, page = 0, variant = 0 }
 end)
 
+test("run end: a Multiverse ending counts as a victory", function()
+    sim.startRun(true)
+    sim.clearLog()
+    sim.gameEvent("TRUE_VICTORY_SAVE")
+    check(sim.logged("RUN END: victory - Multiverse ending TRUE_VICTORY_SAVE"), "the true ending wins the run")
+end)
+
+test("run end: the Flagship's second phase is not a victory", function()
+    sim.startRun(true)
+    sim.clearLog()
+    sim.gameEvent("BOSS_TEXT_2")
+    sim.gameEvent("KNIGHT_ORCHID_LOVER")
+    check(not sim.logged("RUN END"), "reaching the Flagship or meeting a Knight does not end the run")
+end)
+
 local function ctrlV()
     sim.keyDown(Defines.SDL.KEY_LCTRL)
     sim.keyDown(Defines.SDL.KEY_v)

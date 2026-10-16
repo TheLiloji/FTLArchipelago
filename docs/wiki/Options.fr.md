@@ -6,6 +6,8 @@
 Tes options tiennent dans un petit fichier texte, le **YAML**. Tu le fais une fois, avant la partie, et tu
 l'envoies à la personne qui génère le multiworld.
 
+**Tu joues avec Multiverse ?** Voir [Multiverse](Multiverse.fr.md) : l'installation et ce qui change dans ton YAML.
+
 ## Avant de commencer
 
 Il te faut **Archipelago 0.6.7**, avec le `ftl.apworld` de la

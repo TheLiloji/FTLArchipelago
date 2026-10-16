@@ -38,23 +38,33 @@ end
 
 -- The default Kestrel layout is unlocked on a fresh profile; skip probing it so a brand
 -- new profile with nothing else unlocked does not read as "already has ships".
-local ALWAYS_THERE = { PLAYER_SHIP_HARD = 0 }
+local ALWAYS_THERE = { PLAYER_SHIP_HARD = 0, PLAYER_SHIP_MVKESTREL = 0 }
 
-function apProfileHasShips()
+-- layouts: every Multiverse layout, which the base game's list does not have.
+function apProfileHasShips(layouts)
     local unlocks = Hyperspace.CustomShipUnlocks and Hyperspace.CustomShipUnlocks.instance
     if unlocks == nil then
         return false
     end
+    local function unlocked(ship, variant)
+        if ALWAYS_THERE[ship] == variant then
+            return false
+        end
+        local ok, value = pcall(function() return unlocks:GetCustomShipUnlocked(ship, variant) end)
+        return ok and value == true
+    end
     for _, entry in ipairs(SHIPS) do
         for variant = 0, entry.layouts - 1 do
-            if ALWAYS_THERE[entry.name] ~= variant then
-                local ok, value = pcall(function()
-                    return unlocks:GetCustomShipUnlocked(entry.name, variant)
-                end)
-                if ok and value == true then
-                    return true
-                end
+            if unlocked(entry.name, variant) then
+                return true
             end
+        end
+    end
+    for _, blueprint in ipairs(type(layouts) == "table" and layouts or {}) do
+        local name = tostring(blueprint)
+        local suffix = name:match("_([23])$")
+        if unlocked(suffix and name:sub(1, -3) or name, suffix and tonumber(suffix) - 1 or 0) then
+            return true
         end
     end
     return false

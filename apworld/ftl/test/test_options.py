@@ -177,8 +177,13 @@ class TestEverythingEnabled(FTLTestBase):
     def test_every_location_of_the_table_exists(self) -> None:
         unused_shop_slots = data.MAX_SHOP_SLOTS - self.world.options.shop_checks.value
         per_ship = len(data.LOCATION_NAME_GROUPS[data.GROUP_SHIP_SYSTEMS])
+        mv_ships = {ship.blueprint for ship in data.MV_SHIPS}
+        multiverse = sum(1 for location in data.LOCATIONS
+                         if location.layout in {layout.blueprint for layout in data.MV_LAYOUTS}
+                         or location.group in (data.GROUP_MV_ACHIEVEMENTS, data.GROUP_MV_CREW, data.GROUP_MV_CREW_RARE)
+                         or (location.group == data.GROUP_FIGHTS and location.ship in mv_ships))
         self.assertEqual(len(self.addressed_locations()),
-                         len(data.LOCATIONS) - unused_shop_slots - per_ship)
+                         len(data.LOCATIONS) - unused_shop_slots - per_ship - multiverse)
 
     def test_pool_size_still_matches(self) -> None:
         self.assertEqual(len(self.multiworld.itempool), len(self.addressed_locations()))

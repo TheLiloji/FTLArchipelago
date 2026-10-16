@@ -604,3 +604,32 @@ test("checks: every check of the seed is scouted, without a hint", function()
     equals(sim.netCalls("HintLocation"), 0, "a scout is not a hint")
     shipDone()
 end)
+
+test("ships: Multiverse's Kestrel counts without its item and is never locked again", function()
+    local layouts = { "PLAYER_SHIP_MVKESTREL", "PLAYER_SHIP_ROCK" }
+    local loc = { ["PLAYER_SHIP_MVKESTREL:sector:2"] = "MV Kestrel: Reach sector 2" }
+    shipConnect({ "Rock Cruiser Key" }, { layouts = layouts, loc = loc, multiverse = true })
+    sim.unlocked["PLAYER_SHIP_MVKESTREL"] = true
+    startRunWith("PLAYER_SHIP_MVKESTREL")
+    reachSector(2)
+    equals(sentChecks(), "MV Kestrel: Reach sector 2", "the Multiverse Kestrel counts, like the Kestrel A")
+    sim.started = false
+    sim.menuOpen = true
+    sim.tick(240)
+    check(sim.unlocked["PLAYER_SHIP_MVKESTREL"], "and stays unlocked at the menu")
+    shipDone()
+end)
+
+test("dashboard: a Multiverse achievement shows the icon Hyperspace gives it", function()
+    equals(apGameData.achievementImages.ACH_ACC_DATABASE, "achievements/ach_acc_database.png", "named like its icon")
+    equals(apGameData.achievementImages.ACH_ACC_DETERGENT, "achievements/ach_detergent.png",
+        "even when the icon's name differs from the achievement's")
+    equals(apGameData.achievementImages.ACH_SECTOR_5, "achievements/0.png", "the base game's stay as they were")
+end)
+
+test("start-of-run menu: a Multiverse weapon has its art too", function()
+    local art = apGameData.weaponArt.BEAM_4
+    check(art ~= nil and tostring(art[1]):match("%.png$") ~= nil, "BEAM_4: its sheet comes from Multiverse's animations")
+    check(art ~= nil and art[4] > 0 and art[5] > 0, "with a frame size")
+    check(apGameData.weaponArt.LASER_BURST_3 ~= nil, "the base game's weapons keep theirs")
+end)

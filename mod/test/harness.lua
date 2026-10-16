@@ -60,11 +60,18 @@ end
 
 local nextCrewId = 0
 
+-- Multiverse unique crew draw on a base race's sprites: species -> animBase, as Hyperspace reads it.
+local ANIM_BASES = { unique_turzil = "engi", unique_tully = "human", unique_jerry_pony = "pony", unique_gnome = "gnome" }
+
 local function makeCrew(name, species, shipId)
     nextCrewId = nextCrewId + 1
+    local animBase = ANIM_BASES[species] or species or "human"
     return {
         _name = name,
-        extend = { selfId = nextCrewId },
+        extend = {
+            selfId = nextCrewId,
+            GetDefinition = function(self) return { animBase = animBase } end,
+        },
         species = species or "human",
         iShipId = shipId or 0,
         currentShipId = shipId or 0,
@@ -578,10 +585,12 @@ local function resetWorld()
                                     imgFile = name:lower(),
                                     name = { GetText = function() return displayName end },
                                     shipClass = { GetText = function() return (sim.shipClasses or {})[name] or "" end },
+                                    defaultCrew = vector((sim.shipCrews or {})[name] or {}),
                                 }
                             end,
-                            GetCrewBlueprint = function(_, name)
-                                local title = (sim.crewTitles or {})[name] or ""
+                            GetCrewBlueprint = function(_, race)
+                                local title = (sim.crewTitles or {})[race]
+                                if title == nil then return nil end
                                 return { desc = { title = { GetText = function() return title end } } }
                             end,
                         }
@@ -703,6 +712,7 @@ local function resetWorld()
         PLAYER_SHIP_STEALTH_2 = "DA-SR 12",
         PLAYER_SHIP_CIRCLE_2 = "The Vortex",
     }
+    sim.shipClasses = {}
 
     sim.starMap = {
         worldLevel = 0.0,

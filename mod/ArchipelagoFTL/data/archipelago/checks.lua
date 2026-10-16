@@ -394,6 +394,18 @@ local function watchedAchievements(layout)
             watched[#watched + 1] = ach
         end
     end
+
+    -- Achievements the base game does not have (Multiverse's) belong to no ship: always watched.
+    local known = {}
+    for _, ach in ipairs(data.generalAchievements) do known[ach] = true end
+    for _, list in pairs(data.shipAchievements) do
+        for _, ach in ipairs(list) do known[ach] = true end
+    end
+    for _, ach in ipairs(_G.apSeedAchievements and apSeedAchievements() or {}) do
+        if not known[ach] then
+            watched[#watched + 1] = ach
+        end
+    end
     return watched
 end
 
@@ -466,9 +478,36 @@ local function crewKey(member)
     return "name:" .. tostring(member.name) .. ":" .. tostring(member.species)
 end
 
--- Our living crew, not counting drones or boarders: who -> species.
+-- Multiverse splits species into kinds (engi_separatist, human_soldier, zoltan_monk...): each counts as its race.
+local RACE_FAMILY = {
+    human = "human", engi = "engi", energy = "energy", zoltan = "energy", mantis = "mantis",
+    rock = "rock", slug = "slug", anaerobic = "anaerobic", lanius = "anaerobic", crystal = "crystal",
+    -- Multiverse's own races, each with its variants (orchid_vampweed, phantom_goul...).
+    orchid = "orchid", shell = "shell", leech = "leech", phantom = "phantom", spider = "spider",
+    lizard = "lizard", cognitive = "cognitive", siren = "siren", pony = "pony", obelisk = "obelisk",
+}
+
+function apRaceFamily(species)
+    species = tostring(species or "")
+    return RACE_FAMILY[species] or RACE_FAMILY[species:match("^(%a+)_") or ""] or species
+end
+
+-- A Multiverse unique crew member (unique_turzil...) has its own species but draws on its race's sprites:
+-- it counts as that race. Multiverse's own races stay themselves.
+local function raceSpecies(member, species)
+    if not species:match("^unique_") then
+        return species
+    end
+    local ok, base = pcall(function() return member.extend:GetDefinition().animBase end)
+    if ok and base ~= nil and RACE_FAMILY[apRaceFamily(base)] ~= nil then
+        return tostring(base)
+    end
+    return species
+end
+
+-- Our living crew, not counting drones or boarders: who -> species, and who -> the game's own species.
 local function crewAboard()
-    local crew = {}
+    local crew, raw = {}, {}
     local player = Hyperspace.ships.player
     if player == nil then
         return nil
@@ -484,29 +523,31 @@ local function crewAboard()
         if member.iShipId == 0 and not member.bDead and not drone then
             local species = tostring(member.species or "")
             if species ~= "" then
-                crew[crewKey(member)] = species
+                crew[crewKey(member)] = raceSpecies(member, species)
+                raw[crewKey(member)] = { species = species, name = tostring(member:GetName()) }
             end
         end
     end
-    return crew
+    return crew, raw
 end
 
--- Multiverse splits species into kinds (engi_separatist, human_soldier, zoltan_monk...): each counts as its race.
-local RACE_FAMILY = {
-    human = "human", engi = "engi", energy = "energy", zoltan = "energy", mantis = "mantis",
-    rock = "rock", slug = "slug", anaerobic = "anaerobic", lanius = "anaerobic", crystal = "crystal",
-    -- Multiverse's own races, each with its variants (orchid_vampweed, phantom_goul...).
-    orchid = "orchid", shell = "shell", leech = "leech", phantom = "phantom", spider = "spider",
-    lizard = "lizard", cognitive = "cognitive", siren = "siren", pony = "pony", obelisk = "obelisk",
-}
-
-function apRaceFamily(species)
-    species = tostring(species or "")
-    return RACE_FAMILY[species] or RACE_FAMILY[species:match("^(%a+)_") or ""] or species
+-- Eto's idea, after Outer Wilds: each Multiverse character met on the way (a unique crew member) knows where one
+-- thing is. One free hint per character and per seed, so a new run does not bring it again.
+local function characterJoined(member)
+    local key = "ap_character_" .. tostring(_G.apSeedFingerprint and apSeedFingerprint() or 0) .. "_" .. member.species
+    if not _G.apNetRecall or apNetRecall(key) > 0 then
+        return
+    end
+    apNetRemember(key, 1)
+    local given = _G.apHintPurchase and apHintPurchase()
+    checkLog(member.species .. " joined: " .. (given and "free hint asked" or "no hint left to give"))
+    if given and _G.apNotifyStatus then
+        _G.apNotifyStatus(apT("crew.character.hint", { name = member.name }))
+    end
 end
 
 local function pollCrew()
-    local present = crewAboard()
+    local present, raw = crewAboard()
     if present == nil then
         return
     end
@@ -519,6 +560,9 @@ local function pollCrew()
             local race = apRaceFamily(species)
             local label = (_G.apRaceLabel and _G.apRaceLabel(race)) or race
             apSendCheck("crew:" .. race, apT("check.label.crew", { name = label }))
+            if raw[key].species:match("^unique_") then
+                characterJoined(raw[key])
+            end
         end
     end
 end
@@ -674,7 +718,7 @@ end
 local function allLayouts()
     local layouts = {}
     local data = _G.apGameData or {}
-    for _, ship in ipairs(data.ships or {}) do
+    for _, ship in ipairs(apSeedShips()) do
         for index = 0, (ship.layouts or 1) - 1 do
             layouts[#layouts + 1] = ship.name .. ((data.variantSuffix or {})[index] or "")
         end

@@ -2,6 +2,19 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+try:
+    from .data_mv import (MV_ACHIEVEMENTS_RAW, MV_LAYOUT_EMPTY_SLOTS_RAW, MV_LAYOUT_START_LEVELS_RAW,
+                          MV_LAYOUT_SYSTEMS_RAW, MV_SHIPS_RAW,
+                          MV_SHOP_ITEMS_RAW)
+except ImportError:  # loaded on its own by the tools and the id tests
+    import sys
+    from pathlib import Path
+
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    from data_mv import (MV_ACHIEVEMENTS_RAW, MV_LAYOUT_EMPTY_SLOTS_RAW, MV_LAYOUT_START_LEVELS_RAW,
+                         MV_LAYOUT_SYSTEMS_RAW, MV_SHIPS_RAW,
+                         MV_SHOP_ITEMS_RAW)
+
 CONTRACT_VERSION = 3
 
 GAME_NAME = "FTL: Faster Than Light"
@@ -42,6 +55,7 @@ LAYOUT_LETTERS = ("A", "B", "C")
 SECTOR_COUNT = 8
 
 ALWAYS_UNLOCKED_LAYOUTS = ("PLAYER_SHIP_HARD",)
+MV_ALWAYS_UNLOCKED_LAYOUTS = ("PLAYER_SHIP_MVKESTREL",)
 
 CROSS_RUN_ACHIEVEMENTS = ("ACH_SCRAP", "ACH_SHIPS", "ACH_UNLOCK_ALL")
 
@@ -69,6 +83,9 @@ ITEM_OFFSET_ARCHIVE = 12_000
 ITEM_OFFSET_CREW = 13_000
 ITEM_OFFSET_SHIP_SYSTEM_LEVEL = 14_000
 ITEM_OFFSET_BUNDLE = 16_000
+ITEM_OFFSET_MV_SHOP_WEAPON = 20_000
+ITEM_OFFSET_MV_SHOP_DRONE = 21_000
+ITEM_OFFSET_MV_SHOP_AUGMENT = 22_000
 
 LOCATION_OFFSET_SECTOR = 0
 LOCATION_OFFSET_VICTORY = 10_000
@@ -133,6 +150,22 @@ CREW_RACES: tuple[tuple[int, str, str], ...] = (
     (4, "rock", "Rock"),
     (5, "slug", "Slug"),
     (6, "anaerobic", "Lanius"),
+)
+
+# Multiverse's own races: each variant (Orchid Caretaker, Phantom Goul...) counts for its race. The rare ones
+# only come through a few events or secrets: their checks hold filler, so nothing depends on finding them.
+MV_CREW_RACES: tuple[tuple[int, str, str, bool], ...] = (
+    (10, "crystal", "Crystal", False),
+    (11, "orchid", "Orchid", False),
+    (12, "shell", "Shell", False),
+    (13, "leech", "Leech", False),
+    (14, "phantom", "Phantom", False),
+    (15, "spider", "Spider", False),
+    (16, "lizard", "Lizard", False),
+    (17, "cognitive", "Cognitive", True),
+    (18, "siren", "Siren", True),
+    (19, "pony", "Pony", True),
+    (20, "obelisk", "Obelisk", True),
 )
 
 # --- BEGIN GENERATED BLOCK, extracted from ftl.dat, do not edit by hand ---
@@ -570,19 +603,27 @@ SHOP_FAMILY_OFFSETS: dict[str, int] = {
 }
 BUNDLE_FAMILY_OFFSETS: dict[str, int] = {"weapon": 0, "drone": 100, "augment": 200}
 BUNDLE_LABELS: dict[str, str] = {"weapon": "Weapon Bundle", "drone": "Drone Bundle", "augment": "Augment Bundle"}
+MV_SHOP_FAMILY_OFFSETS: dict[str, int] = {
+    "weapon": ITEM_OFFSET_MV_SHOP_WEAPON,
+    "drone": ITEM_OFFSET_MV_SHOP_DRONE,
+    "augment": ITEM_OFFSET_MV_SHOP_AUGMENT,
+}
 
 GROUP_SYSTEMS = "Systems"
 GROUP_SHIP_SYSTEMS = "Ship systems"
 GROUP_CREW = "Crew"
+GROUP_MV_CREW = "Multiverse crew"
+GROUP_MV_CREW_RARE = "Multiverse rare crew"
 GROUP_CREW_MEMBERS = "Crew members"
 GROUP_SECTORS = "Sectors"
 GROUP_VICTORIES = "Ship victories"
 GROUP_SHIP_ACHIEVEMENTS = "Ship achievements"
 GROUP_GENERAL_ACHIEVEMENTS = "General achievements"
+GROUP_MV_ACHIEVEMENTS = "Multiverse achievements"
 GROUP_SHOP_SLOTS = "Archipelago shop"
 GROUP_FIGHTS = "Fights won"
 # Location groups that only ever hold filler: the logic does not count them as room for the items it needs.
-FILLER_ONLY_GROUPS: frozenset[str] = frozenset()
+FILLER_ONLY_GROUPS: frozenset[str] = frozenset({GROUP_MV_ACHIEVEMENTS, GROUP_MV_CREW_RARE})
 
 TIER_GENERAL = "general"
 TIER_DISTANCE = "distance"
@@ -598,6 +639,8 @@ class Ship:
     slot: int
     display: str
     layout_count: int
+    letters: tuple[str, ...] = ()
+    multiverse: bool = False
 
 
 @dataclass(frozen=True)
@@ -654,6 +697,7 @@ class ShopItem:
     display: str
     rarity: int
     cost: int
+    multiverse: bool = False
 
 
 @dataclass(frozen=True)
@@ -713,23 +757,36 @@ def _build_ships() -> tuple[Ship, ...]:
     )
 
 
+def _build_mv_ships() -> tuple[Ship, ...]:
+    vanilla = {ship.display for ship in SHIPS}
+    return tuple(
+        Ship(blueprint=blueprint, slot=slot, display=f"{display} (MV)" if display in vanilla else display,
+             layout_count=len(letters), letters=letters, multiverse=True)
+        for slot, blueprint, display, letters in MV_SHIPS_RAW
+    )
+
+
 SHIPS: tuple[Ship, ...] = _build_ships()
-SHIPS_BY_BLUEPRINT: dict[str, Ship] = {ship.blueprint: ship for ship in SHIPS}
+MV_SHIPS: tuple[Ship, ...] = _build_mv_ships()
+ALL_SHIPS: tuple[Ship, ...] = SHIPS + MV_SHIPS
+SHIPS_BY_BLUEPRINT: dict[str, Ship] = {ship.blueprint: ship for ship in ALL_SHIPS}
 
 
-LAYOUT_SYSTEMS: dict[str, tuple[str, ...]] = dict(LAYOUT_SYSTEMS_RAW)
-LAYOUT_EMPTY_SLOTS: dict[str, tuple[str, ...]] = dict(LAYOUT_EMPTY_SLOTS_RAW)
+LAYOUT_SYSTEMS: dict[str, tuple[str, ...]] = dict(LAYOUT_SYSTEMS_RAW + MV_LAYOUT_SYSTEMS_RAW)
+LAYOUT_EMPTY_SLOTS: dict[str, tuple[str, ...]] = dict(LAYOUT_EMPTY_SLOTS_RAW + MV_LAYOUT_EMPTY_SLOTS_RAW)
 POWER_SYSTEMS: tuple[str, ...] = ("shields", "weapons", "engines")
 LAYOUT_START_LEVELS: dict[str, dict[str, int]] = {
-    blueprint: dict(zip(POWER_SYSTEMS, levels)) for blueprint, *levels in LAYOUT_START_LEVELS_RAW
+    blueprint: dict(zip(POWER_SYSTEMS, levels))
+    for blueprint, *levels in LAYOUT_START_LEVELS_RAW + MV_LAYOUT_START_LEVELS_RAW
 }
 ACHIEVEMENT_DESCRIPTIONS: dict[str, str] = dict(ACHIEVEMENT_DESCRIPTIONS_RAW)
 
 
-def _build_layouts() -> tuple[Layout, ...]:
+def _build_layouts(ships: tuple[Ship, ...]) -> tuple[Layout, ...]:
     layouts = []
-    for ship in SHIPS:
-        for variant in range(ship.layout_count):
+    for ship in ships:
+        variants = [LAYOUT_LETTERS.index(letter) for letter in ship.letters] or range(ship.layout_count)
+        for variant in variants:
             blueprint = ship.blueprint + LAYOUT_SUFFIXES[variant]
             layouts.append(Layout(
                 blueprint=blueprint,
@@ -751,11 +808,11 @@ def _build_systems() -> tuple[System, ...]:
     )
 
 
-def _build_shop_items() -> tuple[ShopItem, ...]:
+def _build_shop_items(raw=None, multiverse=False) -> tuple[ShopItem, ...]:
     return tuple(
         ShopItem(blueprint=blueprint, family=family, slot=slot, display=display,
-                 rarity=rarity, cost=cost)
-        for slot, family, blueprint, display, rarity, cost in SHOP_ITEMS_RAW
+                 rarity=rarity, cost=cost, multiverse=multiverse)
+        for slot, family, blueprint, display, rarity, cost in (SHOP_ITEMS_RAW if raw is None else raw)
     )
 
 
@@ -765,10 +822,18 @@ SHOP_ITEMS_BY_FAMILY: dict[str, tuple[ShopItem, ...]] = {
     family: tuple(item for item in SHOP_ITEMS if item.family == family)
     for family in SHOP_FAMILIES
 }
+MV_SHOP_ITEMS: tuple[ShopItem, ...] = _build_shop_items(MV_SHOP_ITEMS_RAW, multiverse=True)
+MV_SHOP_ITEMS_BY_FAMILY: dict[str, tuple[ShopItem, ...]] = {
+    family: tuple(item for item in MV_SHOP_ITEMS if item.family == family)
+    for family in SHOP_FAMILIES
+}
+SHOP_ITEM_NAMES: dict[ShopItem, str] = {}
 
 
-LAYOUTS: tuple[Layout, ...] = _build_layouts()
-LAYOUTS_BY_BLUEPRINT: dict[str, Layout] = {layout.blueprint: layout for layout in LAYOUTS}
+LAYOUTS: tuple[Layout, ...] = _build_layouts(SHIPS)
+MV_LAYOUTS: tuple[Layout, ...] = _build_layouts(MV_SHIPS)
+ALL_LAYOUTS: tuple[Layout, ...] = LAYOUTS + MV_LAYOUTS
+LAYOUTS_BY_BLUEPRINT: dict[str, Layout] = {layout.blueprint: layout for layout in ALL_LAYOUTS}
 SYSTEMS: tuple[System, ...] = _build_systems()
 SYSTEMS_BY_ID: dict[str, System] = {system.system_id: system for system in SYSTEMS}
 
@@ -776,7 +841,7 @@ SYSTEMS_BY_ID: dict[str, System] = {system.system_id: system for system in SYSTE
 def _build_items() -> tuple[Item, ...]:
     items: list[Item] = []
 
-    for ship in SHIPS:
+    for ship in ALL_SHIPS:
         items.append(Item(
             name=f"{ship.display} Key",
             code=ITEM_ID_BASE + ITEM_OFFSET_SHIP_KEY + ship.slot,
@@ -788,7 +853,7 @@ def _build_items() -> tuple[Item, ...]:
         ))
 
     layout_offsets = (None, ITEM_OFFSET_LAYOUT_B, ITEM_OFFSET_LAYOUT_C)
-    for layout in LAYOUTS:
+    for layout in ALL_LAYOUTS:
         if layout.variant == 0:
             continue
         ship = SHIPS_BY_BLUEPRINT[layout.ship]
@@ -869,14 +934,18 @@ def _build_items() -> tuple[Item, ...]:
     taken = {item.name for item in items}
     family_suffix = {"weapon": "Weapon", "drone": "Drone", "augment": "Augment"}
 
-    for shop_item in SHOP_ITEMS:
+    for shop_item in SHOP_ITEMS + MV_SHOP_ITEMS:
         name = shop_item.display
+        if shop_item.multiverse and name in taken:
+            name = f"{shop_item.display} (MV)"
         if name in taken:
-            name = f"{shop_item.display} ({family_suffix[shop_item.family]})"
+            name = f"{name} ({family_suffix[shop_item.family]})"
         taken.add(name)
+        SHOP_ITEM_NAMES[shop_item] = name
+        offsets = MV_SHOP_FAMILY_OFFSETS if shop_item.multiverse else SHOP_FAMILY_OFFSETS
         items.append(Item(
             name=name,
-            code=ITEM_ID_BASE + SHOP_FAMILY_OFFSETS[shop_item.family] + shop_item.slot,
+            code=ITEM_ID_BASE + offsets[shop_item.family] + shop_item.slot,
             group=SHOP_FAMILY_GROUPS[shop_item.family],
             classification="useful",
             kind=KIND_SHOP,
@@ -912,7 +981,7 @@ def _build_items() -> tuple[Item, ...]:
             count=tiers,
         ))
 
-    for ship in SHIPS:
+    for ship in ALL_SHIPS:
         for system in SYSTEMS:
             if system.max_level > 1:
                 items.append(Item(
@@ -957,7 +1026,7 @@ def _build_items() -> tuple[Item, ...]:
 def _build_locations() -> tuple[Location, ...]:
     locations: list[Location] = []
 
-    for layout in LAYOUTS:
+    for layout in ALL_LAYOUTS:
         for sector in range(1, SECTOR_COUNT + 1):
             locations.append(Location(
                 name=f"{layout.display}: Reach sector {sector}",
@@ -970,7 +1039,7 @@ def _build_locations() -> tuple[Location, ...]:
                 sector=sector,
             ))
 
-    for layout in LAYOUTS:
+    for layout in ALL_LAYOUTS:
         locations.append(Location(
             name=f"{layout.display}: Defeat the Flagship",
             code=LOCATION_ID_BASE + LOCATION_OFFSET_VICTORY + layout.index,
@@ -1023,7 +1092,7 @@ def _build_locations() -> tuple[Location, ...]:
                 level=level,
             ))
 
-    for ship in SHIPS:
+    for ship in ALL_SHIPS:
         for system in SYSTEMS:
             locations.append(Location(
                 name=f"{ship.display}: Install {system.display}",
@@ -1035,7 +1104,7 @@ def _build_locations() -> tuple[Location, ...]:
                 level=1,
             ))
 
-    for ship in SHIPS:
+    for ship in ALL_SHIPS:
         for n in range(1, MAX_FIGHTS_PER_SHIP + 1):
             locations.append(Location(
                 name=f"{ship.display}: Fight {n} won",
@@ -1056,6 +1125,15 @@ def _build_locations() -> tuple[Location, ...]:
             race=race,
         ))
 
+    for slot, race, label, rare in MV_CREW_RACES:
+        locations.append(Location(
+            name=f"First {label} aboard",
+            code=LOCATION_ID_BASE + LOCATION_OFFSET_CREW + slot,
+            check_id=CREW_CHECK_FORMAT.format(race=race),
+            group=GROUP_MV_CREW_RARE if rare else GROUP_MV_CREW,
+            race=race,
+        ))
+
     for slot, achievement, label, tier in GENERAL_ACHIEVEMENTS_RAW:
         locations.append(Location(
             name=f"Achievement: {label}",
@@ -1065,6 +1143,15 @@ def _build_locations() -> tuple[Location, ...]:
             achievement=achievement,
             tier=tier,
             description=ACHIEVEMENT_DESCRIPTIONS[achievement],
+        ))
+
+    for slot, achievement, label in MV_ACHIEVEMENTS_RAW:
+        locations.append(Location(
+            name=f"MV Achievement: {label}",
+            code=LOCATION_ID_BASE + LOCATION_OFFSET_MV_ACH + slot,
+            check_id=ACHIEVEMENT_CHECK_FORMAT.format(achievement=achievement),
+            group=GROUP_MV_ACHIEVEMENTS,
+            achievement=achievement,
         ))
 
     return tuple(locations)
@@ -1137,7 +1224,7 @@ def _check() -> None:
                 f"{required[item.kind]!r}"
             )
 
-    for layout in LAYOUTS:
+    for layout in ALL_LAYOUTS:
         unknown_systems = [s for s in layout.start_systems if s not in SYSTEMS_BY_ID]
         if unknown_systems:
             raise ValueError(
@@ -1157,22 +1244,22 @@ def _check() -> None:
                 f"{layout.blueprint} has an empty slot for {sorted(unsold)}, which no shop "
                 "sells (rarity 0): the logic would assume an impossible purchase"
             )
-    if set(LAYOUT_EMPTY_SLOTS) != {layout.blueprint for layout in LAYOUTS}:
+    if set(LAYOUT_EMPTY_SLOTS) != {layout.blueprint for layout in ALL_LAYOUTS}:
         raise ValueError(
             "LAYOUT_EMPTY_SLOTS_RAW and the layout list do not match: "
             "regenerate the block from ftl.dat."
         )
-    if set(LAYOUT_START_LEVELS) != {layout.blueprint for layout in LAYOUTS}:
+    if set(LAYOUT_START_LEVELS) != {layout.blueprint for layout in ALL_LAYOUTS}:
         raise ValueError(
             "LAYOUT_START_LEVELS_RAW and the layout list do not match: "
             "regenerate the block from ftl.dat."
         )
-    for layout in LAYOUTS:
+    for layout in ALL_LAYOUTS:
         for system, level in LAYOUT_START_LEVELS[layout.blueprint].items():
             if (level > 0) != (system in layout.start_systems):
                 raise ValueError(f"{layout.blueprint} starts with {system} at level {level}, "
                                  "which disagrees with its start systems")
-    if set(LAYOUT_SYSTEMS) != {layout.blueprint for layout in LAYOUTS}:
+    if set(LAYOUT_SYSTEMS) != {layout.blueprint for layout in ALL_LAYOUTS}:
         raise ValueError(
             "LAYOUT_SYSTEMS_RAW and the layout list do not match: "
             "regenerate the block from ftl.dat."
@@ -1220,7 +1307,7 @@ def _check() -> None:
     for item in ITEMS:
         if item.kind != KIND_SHOP:
             continue
-        shop_item = SHOP_ITEMS_BY_BLUEPRINT.get(item.blueprint or "")
+        shop_item = next((known for known, name in SHOP_ITEM_NAMES.items() if name == item.name), None)
         if shop_item is None:
             raise ValueError(f"{item.name!r} cites a blueprint missing from SHOP_ITEMS_RAW")
         if shop_item.rarity <= 0:
@@ -1239,8 +1326,9 @@ def _check_vanilla_totals() -> None:
         "general achievements": (len(GENERAL_ACHIEVEMENTS_RAW), 21),
         "sellable items": (len(SHOP_ITEMS), 74),
         "locations": (len(LOCATIONS), 28 * SECTOR_COUNT + 28 + 30 + 21 + MAX_SHOP_SLOTS
-                      + sum(system.max_level for system in SYSTEMS) + len(CREW_RACES)
-                      + 10 * 16 + 10 * MAX_FIGHTS_PER_SHIP),
+                      + sum(system.max_level for system in SYSTEMS) + len(CREW_RACES) + len(MV_CREW_RACES)
+                      + 10 * 16 + len(MV_LAYOUTS) * (SECTOR_COUNT + 1) + len(MV_SHIPS) * 16
+                      + len(MV_ACHIEVEMENTS_RAW) + len(ALL_SHIPS) * MAX_FIGHTS_PER_SHIP),
     }
     wrong = {label: pair for label, pair in expected.items() if pair[0] != pair[1]}
     if wrong:

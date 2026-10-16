@@ -34,6 +34,14 @@ def entrance_name(layout: data.Layout) -> str:
     return f"Fly the {layout.display}"
 
 
+def multiverse(options) -> bool:
+    return bool(getattr(options, "multiverse", False))
+
+
+def always_unlocked(options) -> tuple[str, ...]:
+    return data.MV_ALWAYS_UNLOCKED_LAYOUTS if multiverse(options) else data.ALWAYS_UNLOCKED_LAYOUTS
+
+
 def allowed_layouts(options) -> tuple[data.Layout, ...]:
     if options.ship_layouts == options.ship_layouts.option_type_a_only:
         highest_variant = 0
@@ -41,8 +49,9 @@ def allowed_layouts(options) -> tuple[data.Layout, ...]:
         highest_variant = 1
     else:
         highest_variant = 2
+    pool = data.MV_LAYOUTS if multiverse(options) else data.LAYOUTS
     excluded = excluded_layouts(options)
-    return tuple(layout for layout in data.LAYOUTS
+    return tuple(layout for layout in pool
                  if layout.variant <= highest_variant and layout.blueprint not in excluded)
 
 
@@ -96,7 +105,7 @@ def selected_sectors(options) -> tuple[int, ...]:
 def selected_locations(options) -> tuple[data.Location, ...]:
     layouts = {layout.blueprint for layout in selected_layouts(options)}
     ships = selected_ships(options)
-    every_ship = len(ships) == len(data.SHIPS)
+    every_ship = ships >= {ship.blueprint for ship in data.SHIPS}
     systems = available_systems(options)
     per_ship = bool(options.systemsanity_per_ship)
     ship_room = ship_systems(options)
@@ -135,6 +144,9 @@ def selected_locations(options) -> tuple[data.Location, ...]:
         elif location.group == data.GROUP_CREW:
             if options.crew_checks:
                 kept.append(location)
+        elif location.group in (data.GROUP_MV_CREW, data.GROUP_MV_CREW_RARE):
+            if multiverse(options) and options.crew_checks:
+                kept.append(location)
         elif location.group == data.GROUP_FIGHTS:
             if location.ship in ships and (location.fight or 0) <= options.combat_checks.value:
                 kept.append(location)
@@ -152,6 +164,9 @@ def selected_locations(options) -> tuple[data.Location, ...]:
             if location.achievement == "ACH_UNLOCK_ALL" and not every_ship:
                 continue
             kept.append(location)
+        elif location.group == data.GROUP_MV_ACHIEVEMENTS:
+            if multiverse(options) and options.multiverse_achievements:
+                kept.append(location)
         else:  # pragma: no cover
             raise ValueError(
                 f"{location.name!r} belongs to group {location.group!r}, which "

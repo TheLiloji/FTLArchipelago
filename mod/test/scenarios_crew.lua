@@ -202,6 +202,30 @@ test("crew: a Multiverse kind of a race counts as that race", function()
     check(apCheckAlreadySent("crew:anaerobic"), "a Lanius Welder sends First Lanius aboard")
 end)
 
+test("crew: each Multiverse character who joins gives one free hint per seed, a new run does not repeat it", function()
+    apContractResetForTesting()
+    apForgetChecksForTesting()
+    sim.durable = {}
+    applySeed({ seed_hash = "characters", loc = { ["crew:engi"] = "First Engi aboard" } })
+    local hints = 0
+    local restore = stub("apHintPurchase", function() hints = hints + 1; return true end)
+    sim.startRun(true)
+    sim.tick(1)
+    sim.player:AddCrewMemberFromString("Turzil", "unique_turzil", false, 0)
+    sim.player:AddCrewMemberFromString("Bob", "engi", false, 0)
+    sim.jumpArrive()
+    equals(hints, 1, "Turzil gives a hint, an ordinary Engi does not")
+    check(shownKey("crew.character.hint", { name = "Turzil" }), "and the player is told who knew")
+
+    sim.startRun(true)
+    sim.tick(1)
+    sim.player:AddCrewMemberFromString("Turzil", "unique_turzil", false, 0)
+    sim.player:AddCrewMemberFromString("Tully", "unique_tully", false, 0)
+    sim.jumpArrive()
+    equals(hints, 2, "met again in a new run, Turzil gives nothing more; Tully, met for the first time, does")
+    restore()
+end)
+
 test("crew: a species of no race stays itself", function()
     equals(apRaceFamily("human_soldier"), "human", "a Multiverse soldier is a human")
     equals(apRaceFamily("crystal"), "crystal", "a base race is unchanged")
@@ -216,4 +240,26 @@ test("crew: a race the text library lacks takes its name from its crew blueprint
     equals(apRaceLabel("orchid"), "Orchid Floral", "Multiverse writes it in the blueprint")
     equals(apRaceLabel("nothing_known"), "nothing_known", "no title anywhere: the id itself")
     sim.crewTitles = nil
+end)
+
+test("crew: a Multiverse unique crew member counts as its race", function()
+    apContractResetForTesting()
+    apForgetChecksForTesting()
+    applySeed({ loc = {
+        ["crew:human"] = "First Human aboard",
+        ["crew:engi"] = "First Engi aboard",
+        ["crew:pony"] = "First Pony aboard",
+    } })
+    sim.startRun(true)
+    sim.tick(1)
+    sim.player:AddCrewMemberFromString("Turzil", "unique_turzil", false, 0)
+    sim.player:AddCrewMemberFromString("Jerry", "unique_jerry_pony", false, 0)
+    sim.player:AddCrewMemberFromString("Gnome", "unique_gnome", false, 0)
+    sim.jumpArrive()
+    check(apCheckAlreadySent("crew:engi"), "Turzil, an Engi, sends First Engi aboard")
+    check(apCheckAlreadySent("crew:pony"), "Jerry, a Pony, sends First Pony aboard: a Multiverse race")
+    check(not apCheckAlreadySent("crew:gnome"), "a unique crew member of no race of the seed sends nothing")
+    sim.player:AddCrewMemberFromString("Tully", "unique_tully", false, 0)
+    sim.jumpArrive()
+    check(apCheckAlreadySent("crew:human"), "Tully, a Human, sends First Human aboard")
 end)
