@@ -245,6 +245,37 @@ class TestLayoutItems(FTLTestBase):
         self.assertFalse(self.can_reach_region(locations.region_name(layout_b)))
 
 
+class TestIndependentLayouts(FTLTestBase):
+
+    options = {"layout_count": 28, "layout_unlocks": "independent", "ship_layouts": "all_layouts"}
+
+    def _layout_b(self) -> data.Layout:
+        ship = _a_ship_that_is_not_given_for_free(self.world)
+        return next(
+            layout for layout in data.LAYOUTS if layout.ship == ship.blueprint and layout.variant == 1
+        )
+
+    def test_type_b_needs_its_item_but_not_the_ship_key(self) -> None:
+        layout_b = self._layout_b()
+        key = data.SHIP_KEY_NAMES[layout_b.ship]
+        self.collect_all_but(key)
+        self.assertTrue(self.can_reach_region(locations.region_name(layout_b)))
+        self.assertFalse(self.can_reach_region(locations.region_name(data.LAYOUTS_BY_BLUEPRINT[layout_b.ship])))
+
+    def test_the_ship_key_alone_gives_only_type_a(self) -> None:
+        layout_b = self._layout_b()
+        self.collect_all_but(data.LAYOUT_ITEM_NAMES[layout_b.blueprint])
+        self.assertTrue(self.can_reach_region(locations.region_name(data.LAYOUTS_BY_BLUEPRINT[layout_b.ship])))
+        self.assertFalse(self.can_reach_region(locations.region_name(layout_b)))
+
+    def test_the_mod_is_told_with_a_kind_an_older_mod_refuses(self) -> None:
+        slot = self.world.fill_slot_data()
+        layout_b = self._layout_b()
+        self.assertEqual(slot["items"][data.LAYOUT_ITEM_NAMES[layout_b.blueprint]]["k"], data.KIND_LAYOUT)
+        self.assertEqual(slot["items"][data.SHIP_KEY_NAMES[layout_b.ship]]["k"], data.KIND_SHIP)
+        self.assertIn(data.KIND_LAYOUT, slot["kinds_required"])
+
+
 class TestSectorsanityFirstSector(FTLTestBase):
 
     FIRST = 4

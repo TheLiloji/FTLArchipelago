@@ -2,6 +2,7 @@
 // Hyperspace's own.
 #include "Global.h"
 #include "ShipUnlocks.h"
+#include "CustomShipSelect.h"
 #include "Archipelago.h"
 
 #include <algorithm>
@@ -197,4 +198,38 @@ HOOK_METHOD(Equipment, AddWeapon, (WeaponBlueprint* bp, bool free, bool forceCar
     e.kind = "package_bought";
     e.name = bp->name;
     ArchipelagoFTL::Instance().Push(std::move(e));
+}
+
+// FTL's hangar never asks whether a base game ship's Type A is unlocked: seeing the ship means having it. With
+// independent layouts a Type B or C can come without it, so a Type A not unlocked is greyed out like a locked
+// B or C, and the hangar moves to the ship's first unlocked layout instead of showing it.
+namespace
+{
+bool LayoutUnlocked(int shipType, int variant)
+{
+    if (shipType >= 100) {
+        std::string name = CustomShipSelect::GetInstance()->GetShipBlueprint(shipType);
+        return !name.empty() && CustomShipUnlocks::instance->GetCustomShipUnlocked(name, variant);
+    }
+    return G_->GetScoreKeeper()->GetShipUnlocked(shipType, variant);
+}
+}
+
+HOOK_METHOD(ShipBuilder, SwitchShip, (int shipType, int shipVariant) -> void)
+{
+    LOG_HOOK("HOOK_METHOD -> ShipBuilder::SwitchShip -> Begin (ArchipelagoHooks.cpp)\n")
+    if (shipVariant == 0 && !LayoutUnlocked(shipType, 0)) {
+        for (int variant = 1; variant <= 2; ++variant) {
+            if (LayoutUnlocked(shipType, variant)) {
+                shipVariant = variant;
+                break;
+            }
+        }
+    }
+    super(shipType, shipVariant);
+    if (!LayoutUnlocked(currentShipId, 0)) {
+        typeA.bActive = false;
+        typeA.bRenderOff = true;
+        typeA.bRenderSelected = false;
+    }
 }

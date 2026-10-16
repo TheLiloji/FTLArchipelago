@@ -205,12 +205,15 @@ class FTLWorld(World):
         descriptors = {item.name: data.item_descriptor(item) for item in self._items_in_seed()}
         # Multiverse and the base game share blueprints: name each one as this seed's catalogue does.
         shop_names = {item.blueprint: data.SHOP_ITEM_NAMES[item] for item in self.shop_items}
+        independent = self.options.layout_unlocks == self.options.layout_unlocks.option_independent
         for name, descriptor in descriptors.items():
             item = data.ITEMS_BY_NAME[name]
             # The mod colours its journal by it.
             descriptor["c"] = CLASS_CODES[items.effective_classification(self, item)]
             if item.group == data.GROUP_SYSTEM_LEVELS and self.options.full_system_upgrades:
                 descriptor["n"] = item.count
+            if item.group == data.GROUP_SHIP_LAYOUTS and independent:
+                descriptor["k"] = data.KIND_LAYOUT
             if item.kind == data.KIND_BUNDLE:
                 members = self.bundles[item.family][int(name.rsplit(" ", 1)[1]) - 1]
                 descriptor["bps"] = [member.blueprint for member in members]
@@ -218,7 +221,7 @@ class FTLWorld(World):
 
         kinds = {descriptor["k"] for descriptor in descriptors.values()}
         required_kinds = {
-            data.ITEMS_BY_NAME[name].kind
+            descriptors[name]["k"]
             for name in descriptors
             if data.ITEMS_BY_NAME[name].classification in (
                 "progression", "progression_skip_balancing", "useful")

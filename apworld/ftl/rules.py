@@ -471,8 +471,9 @@ def _keystone_blueprints(world: "FTLWorld") -> tuple[str, ...]:
 
 def layout_requirements(world: "FTLWorld", layout: data.Layout) -> tuple[str, ...]:
     unlocks = world.options.layout_unlocks
-    names = [data.SHIP_KEY_NAMES[layout.ship]]
-    if layout.variant > 0 and unlocks == unlocks.option_items:
+    independent = unlocks == unlocks.option_independent
+    names = [] if layout.variant > 0 and independent else [data.SHIP_KEY_NAMES[layout.ship]]
+    if layout.variant > 0 and unlocks != unlocks.option_vanilla:
         names.append(data.LAYOUT_ITEM_NAMES[layout.blueprint])
     names.extend(blueprints_gating_layout(world.options, layout))
     return tuple(names)

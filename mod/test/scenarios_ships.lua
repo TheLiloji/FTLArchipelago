@@ -145,6 +145,23 @@ test("ships: a Type B needs its own item when the seed has layout items", functi
     shipDone()
 end)
 
+test("ships: independent layouts, a Type B counts without its ship's key, and the key alone gives only the A", function()
+    local independent = {}
+    for name, descriptor in pairs(SHIP_ITEMS) do independent[name] = descriptor end
+    independent["Layout B - Engi Cruiser"] = { k = "layout", bp = "PLAYER_SHIP_CIRCLE_2" }
+    local seed = { items = independent, kinds = { "ship", "filler", "layout" }, kinds_required = { "ship", "layout" } }
+    shipConnect({ "Kestrel Cruiser Key", "Layout B - Engi Cruiser" }, seed)
+    check(sim.unlocked["PLAYER_SHIP_CIRCLE_2"], "the Engi B is unlocked in the hangar without the Engi key")
+    check(not sim.unlocked["PLAYER_SHIP_CIRCLE"], "and the Engi A is not")
+    startRunWith("PLAYER_SHIP_CIRCLE_2")
+    reachSector(2)
+    equals(sentChecks(), "PLAYER_SHIP_CIRCLE_2: Reach sector 2", "a run with the Engi B counts")
+    startRunWith("PLAYER_SHIP_CIRCLE")
+    reachSector(3)
+    equals(sentChecks(), "PLAYER_SHIP_CIRCLE_2: Reach sector 2", "a run with the Engi A does not")
+    shipDone()
+end)
+
 test("ships: a Type C without its ship's key is refused, and waits in the hangar for the key", function()
     shipConnect({ "Kestrel Cruiser Key", "Layout C - Mantis Cruiser" })
     check(not sim.unlocked["PLAYER_SHIP_MANTIS_3"], "the Mantis C is not unlocked without the Mantis key")

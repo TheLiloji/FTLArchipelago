@@ -246,11 +246,14 @@ class LayoutUnlocks(Choice):
     items: each layout is its own Archipelago item, and you also need the ship's key to fly it.
     vanilla: layouts unlock the way FTL does it, by earning that ship's achievements. No layout
     items are created, and owning a ship key puts every one of its layouts in logic.
+    independent: each layout is its own item and needs nothing else: a Type B or C can be flown
+    without the ship's key, which only gives the Type A.
     """
 
     display_name = "Layout Unlocks"
     option_items = 0
     option_vanilla = 1
+    option_independent = 2
     default = option_items
 
 

@@ -306,7 +306,8 @@ function apReceiveItem(itemName, sender, isReplay, index)
     end
 
     return apQueueItem({
-        kind = kind,
+        -- A layout that needs no key is received like any ship: apShipReceived knows the seed is independent.
+        kind = kind == "layout" and "ship" or kind,
         bp = descriptor.bp,
         sys = descriptor.sys,
         ship = descriptor.ship,
@@ -407,22 +408,34 @@ end
 
 -- With layout_unlocks: items the seed has a Type B or C among its items; with vanilla it has none, and
 -- FTL unlocks them itself. Read from the items so older seeds, which do not send that option, work too.
-local layoutItemsFor, layoutItems = nil, false
+-- With independent, those items come as "layout": a Type B or C then needs no key.
+local layoutItemsFor, layoutItems, layoutsIndependent = nil, false, false
 
-function apSeedHasLayoutItems()
+local function readLayoutItems()
     local descriptors = state.itemDescriptors or {}
     if layoutItemsFor == descriptors then
-        return layoutItems
+        return
     end
-    layoutItemsFor, layoutItems = descriptors, false
+    layoutItemsFor, layoutItems, layoutsIndependent = descriptors, false, false
     for _, descriptor in pairs(descriptors) do
-        if type(descriptor) == "table" and descriptor.k == "ship" and type(descriptor.bp) == "string"
-            and descriptor.bp:match("_[23]$") then
-            layoutItems = true
-            break
+        if type(descriptor) == "table" and type(descriptor.bp) == "string" and descriptor.bp:match("_[23]$") then
+            if descriptor.k == "layout" then
+                layoutItems, layoutsIndependent = true, true
+            elseif descriptor.k == "ship" then
+                layoutItems = true
+            end
         end
     end
+end
+
+function apSeedHasLayoutItems()
+    readLayoutItems()
     return layoutItems
+end
+
+function apSeedLayoutsIndependent()
+    readLayoutItems()
+    return layoutsIndependent
 end
 
 function apSeedChangeLeftovers()
