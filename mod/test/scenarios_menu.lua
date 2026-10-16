@@ -292,3 +292,24 @@ test("start-of-run menu: a crew drone shows its sprite, a drone without a pictur
     apGameData.droneArt = saved
     sim.droneBlueprints.TEST_CREW_DRONE, sim.droneBlueprints.TEST_ICON_DRONE = nil, nil
 end)
+
+test("start-of-run menu: a drone picture the game lacks falls back to the drone it draws, never to the warning sign", function()
+    local saved = apGameData.droneArt
+    apGameData.droneArt = { TEST_MOVED_DRONE = "ship/drones/moved_away_base.png" }
+    sim.droneBlueprints.TEST_MOVED_DRONE = 2
+    sim.missingImages = { ["ship/drones/moved_away_base.png"] = true }
+    catalog({ TEST_MOVED_DRONE = 2 })
+    sim.images = {}
+    sim.startRun(true)
+    check(menuShown(), "open")
+    local fallback, warning
+    for _, image in ipairs(sim.images) do
+        if image.texture.name == "ship/drones/test_moved_drone_base.png" then fallback = image end
+        if image.texture.name == "missing" then warning = image end
+    end
+    check(fallback ~= nil, "the drone the game itself would draw")
+    check(warning == nil, "not the game's missing-file triangle")
+    apGameData.droneArt = saved
+    sim.droneBlueprints.TEST_MOVED_DRONE = nil
+    sim.missingImages = nil
+end)
