@@ -185,6 +185,10 @@ function apShipReceived(layout)
         return "not_in_seed"
     end
     local ship = layout:gsub("_[23]$", "")
+    -- Independent layouts: a Type B or C is its own item, the key only gives the Type A.
+    if layout ~= ship and _G.apSeedLayoutsIndependent and apSeedLayoutsIndependent() then
+        return owned(layout) and "ok" or "not_received"
+    end
     if not hasKey(ship) then
         return "not_received"
     end
@@ -209,8 +213,9 @@ function apApplyInventory()
     end
     for _, shipName in ipairs(names) do
         local ship = shipName:gsub("_[23]$", "")
-        -- A Type B or C waits for its ship's key: it is unlocked along with it.
-        if ship ~= shipName and not hasKey(ship) then
+        -- A Type B or C waits for its ship's key: it is unlocked along with it. Independent ones need none.
+        local independent = _G.apSeedLayoutsIndependent and apSeedLayoutsIndependent()
+        if ship ~= shipName and not hasKey(ship) and not independent then
             waiting = waiting + 1
         else
             local ok, err = apUnlockLayout(shipName, true)

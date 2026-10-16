@@ -599,6 +599,7 @@ end
 _G.apSupportedKinds = {
     ship = true, cap = true, start = true, filler = true, trap = true,
     weapon = true, drone = true, augment = true, shop = true, archive = true, crew = true, bundle = true,
+    layout = true,
 }
 
 _G.apSupportedResources = {}
