@@ -170,7 +170,77 @@ class TestStandardStaysTheDefault(FTLTestBase):
 
     def test_existing_seeds_keep_their_logic(self) -> None:
         self.assertEqual(self.world.options.sector_logic.value, rules.SectorLogic.option_standard)
+        self.assertEqual(self.world.sector_logic_level, rules.SectorLogic.option_standard)
+
+
+class TestStandardAddsTheMilestonesWithProgressiveUpgrades(FTLTestBase):
+
+    options = {"layout_count": 28}
+
+    def test_five_blueprints_and_one_shield_layer_are_not_enough_for_the_flagship(self) -> None:
+        blueprints = [name for name in data.BLUEPRINT_ITEM_NAMES.values()
+                      if name not in rules.layout_requirements(self.world, KESTREL_A)][:5]
+        state = _state_with(self, KESTREL_A, blueprints)
+        self.assertFalse(_reach(self, KESTREL_A, "Defeat the Flagship", state), "the Kestrel has one layer")
+        enough = (_times("Progressive Shields", 4) + _times("Progressive Weapon Control", 3)
+                  + _times("Progressive Engines", 2))
+        self.assertFalse(_reach(self, KESTREL_A, "Defeat the Flagship", _state_with(self, KESTREL_A, enough)),
+                         "the blueprints are still due")
+        self.assertTrue(_reach(self, KESTREL_A, "Defeat the Flagship",
+                               _state_with(self, KESTREL_A, blueprints + enough)))
+
+    def test_sector_5_waits_for_two_shield_layers(self) -> None:
+        blueprints = [name for name in data.BLUEPRINT_ITEM_NAMES.values()
+                      if name not in rules.layout_requirements(self.world, KESTREL_A)][:2]
+        self.assertFalse(_reach(self, KESTREL_A, "Reach sector 5", _state_with(self, KESTREL_A, blueprints)))
+        state = _state_with(self, KESTREL_A, blueprints + _times("Progressive Shields", 2))
+        self.assertTrue(_reach(self, KESTREL_A, "Reach sector 5", state))
+
+    def test_the_upgrades_it_reads_are_progression(self) -> None:
+        for name in ("Progressive Shields", "Progressive Weapon Control", "Progressive Engines"):
+            self.assertTrue(self.world.create_item(name).advancement, name)
+
+
+class TestStrictAddsTheMilestonesToo(FTLTestBase):
+
+    options = {"layout_count": 28, "sector_logic": "strict"}
+
+    def test_the_flagship_needs_shield_layers(self) -> None:
+        if self.world.sector_logic_level != rules.SectorLogic.option_strict:
+            self.skipTest("strict was lowered for this seed")
+        blueprints = [name for name in data.BLUEPRINT_ITEM_NAMES.values()
+                      if name not in rules.layout_requirements(self.world, KESTREL_A)][:11]
+        self.assertFalse(_reach(self, KESTREL_A, "Defeat the Flagship", _state_with(self, KESTREL_A, blueprints)))
+
+
+class TestStandardWithoutProgressiveUpgradesOnlyCountsBlueprints(FTLTestBase):
+
+    options = {"layout_count": 28, "progressive_systems": False}
+
+    def test_no_milestone_when_levels_are_bought_with_scrap(self) -> None:
         self.assertEqual(rules.power_upgrade_names(self.world.options), frozenset())
+        blueprints = [name for name in data.BLUEPRINT_ITEM_NAMES.values()
+                      if name not in rules.layout_requirements(self.world, KESTREL_A)][:5]
+        self.assertTrue(_reach(self, KESTREL_A, "Defeat the Flagship", _state_with(self, KESTREL_A, blueprints)))
+
+
+class TestStandardWithoutBlueprintsBecomesPower(FTLTestBase):
+
+    options = {"layout_count": 28, "system_blueprints": False}
+
+    def test_capped_levels_still_get_their_milestones(self) -> None:
+        self.assertEqual(self.world.sector_logic_level, rules.SectorLogic.option_power)
+        self.assertFalse(_reach(self, KESTREL_A, "Reach sector 5", _state_with(self, KESTREL_A)))
+
+
+class TestRelaxedWithoutBlueprintsStaysRelaxed(FTLTestBase):
+    """relaxed asks for nothing: no blueprints to count must not turn it into power (whose shields need a
+    blueprint the pool no longer has)."""
+
+    options = {"layout_count": 28, "sector_logic": "relaxed", "system_blueprints": False}
+
+    def test_relaxed_is_kept(self) -> None:
+        self.assertEqual(self.world.sector_logic_level, rules.SectorLogic.option_relaxed)
 
 
 MV_KESTREL = data.LAYOUTS_BY_BLUEPRINT["PLAYER_SHIP_MVKESTREL"]

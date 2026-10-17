@@ -325,6 +325,10 @@ class TestShopBySector(FTLTestBase):
         self.assertFalse(self.multiworld.get_location("Archipelago Shop 6", self.player).can_reach(state))
         for system in ("Shields", "Engines", "Oxygen", "Weapon Control"):
             state.collect(self.world.create_item(f"{system} blueprint"), True)
+        self.assertFalse(self.multiworld.get_location("Archipelago Shop 6", self.player).can_reach(state),
+                         "sector 6 also wants two shield layers")
+        for _ in range(2):
+            state.collect(self.world.create_item("Progressive Shields"), True)
         self.assertTrue(self.multiworld.get_location("Archipelago Shop 6", self.player).can_reach(state))
 
 
