@@ -4,6 +4,7 @@ import logging
 from pathlib import Path
 
 from BaseClasses import CollectionState
+from Fill import distribute_items_restrictive
 from Options import OptionError
 
 from .. import data, items, locations, options, rules
@@ -943,3 +944,63 @@ class TestEventBeaconsHidden(FTLTestBase):
 
     def test_the_mod_is_told(self) -> None:
         self.assertEqual(self.world.fill_slot_data()["event_beacons"], "hidden")
+
+
+class TestEarlyShipKeysDefault(FTLTestBase):
+
+    def test_one_key_is_placed_in_the_first_checks(self) -> None:
+        keys = self.world.logic.early_ship_keys
+        self.assertEqual(len(keys), 1)
+        owned = set(self.world.precollected_item_names)
+        for key in keys:
+            self.assertIn(key, data.SHIP_KEY_NAMES.values())
+            self.assertNotIn(key, owned)
+            self.assertEqual(self.multiworld.local_early_items[self.player].get(key), 1)
+
+    def test_the_key_lands_in_a_check_reachable_from_the_start(self) -> None:
+        distribute_items_restrictive(self.multiworld)
+        state = CollectionState(self.multiworld)
+        for key in self.world.logic.early_ship_keys:
+            spots = [location for location in self.multiworld.get_locations(self.player)
+                     if location.item is not None and location.item.name == key]
+            self.assertEqual(len(spots), 1, key)
+            self.assertTrue(spots[0].can_reach(state), f"{key} is at {spots[0].name}, out of reach at the start")
+
+
+class TestEarlyShipKeysSeveral(FTLTestBase):
+
+    options = {"early_ship_keys": 3, "layout_count": 15}
+
+    def test_three_different_keys(self) -> None:
+        keys = self.world.logic.early_ship_keys
+        self.assertEqual(len(set(keys)), 3)
+        for key in keys:
+            self.assertEqual(self.multiworld.local_early_items[self.player].get(key), 1)
+
+
+class TestEarlyShipKeysOff(FTLTestBase):
+
+    options = {"early_ship_keys": 0}
+
+    def test_no_key_is_forced_early(self) -> None:
+        self.assertEqual(self.world.logic.early_ship_keys, ())
+        early = self.multiworld.local_early_items[self.player]
+        self.assertFalse(set(early) & set(data.SHIP_KEY_NAMES.values()))
+
+
+class TestEarlyShipKeysWithNoOtherShip(FTLTestBase):
+
+    options = {"layout_count": 1, "victories_required": 1, "early_ship_keys": 5}
+
+    def test_only_the_ships_in_the_seed_can_come_early(self) -> None:
+        in_seed = {data.SHIP_KEY_NAMES[layout.ship] for layout in self.world.selected_layouts}
+        self.assertLessEqual(set(self.world.logic.early_ship_keys), in_seed)
+
+
+class TestEarlyShipKeysProgressive(FTLTestBase):
+
+    options = {"layout_unlocks": "progressive", "early_ship_keys": 2, "layout_count": 15}
+
+    def test_one_copy_of_each_key_comes_early(self) -> None:
+        for key in self.world.logic.early_ship_keys:
+            self.assertEqual(self.multiworld.local_early_items[self.player].get(key), 1)

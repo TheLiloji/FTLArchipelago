@@ -33,6 +33,9 @@ Three things are taken away from you at the start and handed back as items.
 Kestrel, see below) and the hangar fills up as ship keys arrive. Type B and Type C layouts are items of their
 own by default, so you no longer have to earn two achievements with a ship before you may fly its Type B.
 
+**Early Ship Keys** puts 1 ship key by default (up to 9) in your own first checks, so a second ship comes early
+instead of hanging on the luck of the fill. Set it to 0 to let every key land anywhere.
+
 **Excluded Ships and Layouts** leaves out the ships or layouts you never want: name a ship ("Engi Cruiser") or
 a layout ("Engi Cruiser B"). Your first ship and the Kestrel A cannot be left out.
 

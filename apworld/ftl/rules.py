@@ -274,6 +274,7 @@ class LogicPlan:
     early_blueprints: tuple[str, ...]
     progression_blueprints: frozenset[str]
     extra_ship_keys: tuple[str, ...]
+    early_ship_keys: tuple[str, ...]
     warnings: tuple[str, ...]
 
 
@@ -328,12 +329,15 @@ def plan(world: "FTLWorld") -> LogicPlan:
     else:
         progression = frozenset(data.BLUEPRINT_ITEM_NAMES.values())
 
+    early_keys = _early_ship_keys(world, level, start_items)
+
     return LogicPlan(
         sector_logic=level,
         starting_blueprints=starting_blueprints,
-        early_blueprints=_early_blueprints(world, level, start_items),
+        early_blueprints=_early_blueprints(world, level, start_items, len(early_keys)),
         progression_blueprints=progression,
         extra_ship_keys=extra_keys,
+        early_ship_keys=early_keys,
         warnings=tuple(warnings),
     )
 
@@ -463,8 +467,21 @@ def _progression_item_count(world: "FTLWorld", level: int) -> int:
     return count
 
 
-def _early_blueprints(world: "FTLWorld", level: int, start_items: set[str]) -> tuple[str, ...]:
-    room = _sphere_zero_room(world, level, start_items) - _bootstrap_cost(world, start_items)
+def _early_ship_keys(world: "FTLWorld", level: int, start_items: set[str]) -> tuple[str, ...]:
+    """Type A keys put in the player's own first checks, so a second ship does not hang on the luck of the fill."""
+    candidates = sorted(
+        data.SHIP_KEY_NAMES[layout.blueprint]
+        for layout in selected_layouts(world.options)
+        if layout.variant == 0 and data.SHIP_KEY_NAMES[layout.blueprint] not in start_items
+    )
+    wanted = min(world.options.early_ship_keys.value, len(candidates), _sphere_zero_room(world, level, start_items))
+    return tuple(sorted(world.random.sample(candidates, wanted)))
+
+
+def _early_blueprints(
+    world: "FTLWorld", level: int, start_items: set[str], taken: int = 0
+) -> tuple[str, ...]:
+    room = _sphere_zero_room(world, level, start_items) - _bootstrap_cost(world, start_items) - taken
     wanted = dict.fromkeys(
         [*_keystone_blueprints(world), *blueprints_placed_early(world.options)]
     )
