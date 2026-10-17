@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import collections
 import re
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Callable
@@ -381,7 +382,7 @@ def _reachable_regions(world: "FTLWorld", start_items: set[str]) -> set[str]:
     reachable.update(
         region_name(layout)
         for layout in selected_layouts(world.options)
-        if start_items.issuperset(layout_requirements(world, layout))
+        if _met_at_start(start_items, layout_requirements(world, layout))
     )
     return reachable
 
@@ -398,9 +399,9 @@ def _sphere_zero_room(world: "FTLWorld", level: int, start_items: set[str]) -> i
 
 def _bootstrap_cost(world: "FTLWorld", start_items: set[str]) -> int:
     costs = [
-        len(set(layout_requirements(world, layout)) - start_items)
+        _missing_at_start(start_items, layout_requirements(world, layout))
         for layout in selected_layouts(world.options)
-        if not start_items.issuperset(layout_requirements(world, layout))
+        if not _met_at_start(start_items, layout_requirements(world, layout))
     ]
     return min(costs, default=1)
 
@@ -481,11 +482,32 @@ def _keystone_blueprints(world: "FTLWorld") -> tuple[str, ...]:
     return tuple(name for _, name in sorted(majority, reverse=True))
 
 
+def _has_requirements(state: CollectionState, names: tuple[str, ...], player: int) -> bool:
+    """A name listed twice asks for two copies (progressive ship keys)."""
+    if len(set(names)) == len(names):
+        return state.has_all(names, player)
+    return state.has_all_counts(collections.Counter(names), player)
+
+
+def _met_at_start(start_items: set[str], names: tuple[str, ...]) -> bool:
+    """The start items hold one copy of each: a name asked twice is not met."""
+    return _missing_at_start(start_items, names) == 0
+
+
+def _missing_at_start(start_items: set[str], names: tuple[str, ...]) -> int:
+    return sum(max(0, count - (name in start_items)) for name, count in collections.Counter(names).items())
+
+
 def layout_requirements(world: "FTLWorld", layout: data.Layout) -> tuple[str, ...]:
     unlocks = world.options.layout_unlocks
     independent = unlocks == unlocks.option_independent
-    names = [] if layout.variant > 0 and independent else [data.SHIP_KEY_NAMES[layout.ship]]
-    if layout.variant > 0 and unlocks != unlocks.option_vanilla:
+    key = data.SHIP_KEY_NAMES[layout.ship]
+    names = [] if layout.variant > 0 and independent else [key]
+    if unlocks == unlocks.option_progressive:
+        # The nth copy of the key gives the nth layout: the name repeats once per copy needed.
+        copies = 1 + options_module.progressive_layouts(world.options, layout.ship).index(layout)
+        names = [key] * copies
+    elif layout.variant > 0 and unlocks != unlocks.option_vanilla:
         names.append(data.LAYOUT_ITEM_NAMES[layout.blueprint])
     names.extend(blueprints_gating_layout(world.options, layout))
     return tuple(names)
@@ -504,7 +526,7 @@ def set_rules(world: "FTLWorld") -> None:
     for layout in layouts:
         requirements = layout_requirements(world, layout)
         entrance = world.get_entrance(entrance_name(layout))
-        set_rule(entrance, lambda state, names=requirements: state.has_all(names, player))
+        set_rule(entrance, lambda state, names=requirements: _has_requirements(state, names, player))
 
     for location in world.created_locations:
         count = blueprints_required(level, location, bool(world.options.shop_by_sector))
@@ -765,7 +787,7 @@ def _goal_rule(world: "FTLWorld") -> Callable[[CollectionState], bool]:
             return False
         reached = 0
         for layout, names, wanted in zip(goal_candidates, requirement_sets, flagship_ready):
-            if state.has_all(names, player) and (wanted is None
+            if _has_requirements(state, names, player) and (wanted is None
                                                  or meets_power(options, state, player, layout, wanted)):
                 reached += 1
                 if reached >= needed:

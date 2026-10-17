@@ -94,7 +94,8 @@ def enabled_items(options, shop_items: tuple[data.ShopItem, ...] = ()) -> tuple[
     systems = locations.available_systems(options)
     ship_room = locations.ship_systems(options)
     per_ship = bool(options.progressive_systems_per_ship)
-    layout_items = options.layout_unlocks != options.layout_unlocks.option_vanilla
+    layout_items = options.layout_unlocks in (options.layout_unlocks.option_items,
+                                              options.layout_unlocks.option_independent)
     shop_names = {data.SHOP_ITEM_NAMES[item] for item in shop_items}
     bundle_counts = {family: len(chunk) for family, chunk in bundled_families(options, shop_items).items()}
 

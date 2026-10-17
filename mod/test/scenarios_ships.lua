@@ -162,6 +162,28 @@ test("ships: independent layouts, a Type B counts without its ship's key, and th
     shipDone()
 end)
 
+test("ships: a progressive ship key gives the A with its first copy, the B with its second", function()
+    local progressive = {}
+    for name, descriptor in pairs(SHIP_ITEMS) do progressive[name] = descriptor end
+    progressive["Engi Cruiser Key"] = { k = "progressive_ship", bp = "PLAYER_SHIP_CIRCLE",
+                                        bps = { "PLAYER_SHIP_CIRCLE", "PLAYER_SHIP_CIRCLE_2" } }
+    progressive["Layout B - Engi Cruiser"] = nil
+    local seed = { items = progressive, kinds = { "ship", "filler", "progressive_ship" },
+                   kinds_required = { "ship", "progressive_ship" } }
+    shipConnect({ "Kestrel Cruiser Key", "Engi Cruiser Key" }, seed)
+    check(sim.unlocked["PLAYER_SHIP_CIRCLE"], "one copy unlocks the Engi A")
+    check(not sim.unlocked["PLAYER_SHIP_CIRCLE_2"], "but not the B")
+    startRunWith("PLAYER_SHIP_CIRCLE_2")
+    reachSector(2)
+    equals(sentChecks(), "", "a run with the B does not count yet")
+    shipConnect({ "Kestrel Cruiser Key", "Engi Cruiser Key", "Engi Cruiser Key" }, seed)
+    check(sim.unlocked["PLAYER_SHIP_CIRCLE_2"], "the second copy unlocks the B")
+    startRunWith("PLAYER_SHIP_CIRCLE_2")
+    reachSector(2)
+    equals(sentChecks(), "PLAYER_SHIP_CIRCLE_2: Reach sector 2", "and a run with it counts")
+    shipDone()
+end)
+
 test("ships: a Type C without its ship's key is refused, and waits in the hangar for the key", function()
     shipConnect({ "Kestrel Cruiser Key", "Layout C - Mantis Cruiser" })
     check(not sim.unlocked["PLAYER_SHIP_MANTIS_3"], "the Mantis C is not unlocked without the Mantis key")

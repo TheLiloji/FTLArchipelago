@@ -3,6 +3,7 @@ from __future__ import annotations
 import logging
 from pathlib import Path
 
+from BaseClasses import CollectionState
 from Options import OptionError
 
 from .. import data, items, locations, options, rules
@@ -274,6 +275,47 @@ class TestIndependentLayouts(FTLTestBase):
         self.assertEqual(slot["items"][data.LAYOUT_ITEM_NAMES[layout_b.blueprint]]["k"], data.KIND_LAYOUT)
         self.assertEqual(slot["items"][data.SHIP_KEY_NAMES[layout_b.ship]]["k"], data.KIND_SHIP)
         self.assertIn(data.KIND_LAYOUT, slot["kinds_required"])
+
+
+class TestProgressiveShipKeys(FTLTestBase):
+
+    options = {"layout_count": 28, "layout_unlocks": "progressive", "ship_layouts": "all_layouts"}
+
+    def _ship(self) -> data.Ship:
+        return _a_ship_that_is_not_given_for_free(self.world)
+
+    def _layouts(self, ship: data.Ship) -> list[data.Layout]:
+        return sorted((layout for layout in data.LAYOUTS if layout.ship == ship.blueprint),
+                      key=lambda layout: layout.variant)
+
+    def test_one_key_per_layout_and_no_layout_item(self) -> None:
+        ship = self._ship()
+        names = [item.name for item in self.multiworld.itempool]
+        self.assertEqual(names.count(data.SHIP_KEY_NAMES[ship.blueprint]), len(self._layouts(ship)))
+        self.assertEqual(set(names) & set(data.LAYOUT_ITEM_NAMES.values()), set())
+
+    def test_each_copy_opens_the_next_layout(self) -> None:
+        ship = self._ship()
+        key = data.SHIP_KEY_NAMES[ship.blueprint]
+        layouts = self._layouts(ship)
+        for copies in range(len(layouts) + 1):
+            state = CollectionState(self.multiworld)
+            for item in self.multiworld.itempool:
+                if item.player == self.player and item.name != key:
+                    state.collect(item, True)
+            state.prog_items[self.player][key] = copies
+            state.stale[self.player] = True
+            for position, layout in enumerate(layouts):
+                self.assertEqual(state.can_reach_region(locations.region_name(layout), self.player),
+                                 position < copies, f"{layout.blueprint} with {copies} key(s)")
+
+    def test_the_mod_gets_the_order_and_a_kind_an_older_mod_refuses(self) -> None:
+        ship = self._ship()
+        slot = self.world.fill_slot_data()
+        descriptor = slot["items"][data.SHIP_KEY_NAMES[ship.blueprint]]
+        self.assertEqual(descriptor["k"], data.KIND_PROGRESSIVE_SHIP)
+        self.assertEqual(descriptor["bps"], [layout.blueprint for layout in self._layouts(ship)])
+        self.assertIn(data.KIND_PROGRESSIVE_SHIP, slot["kinds_required"])
 
 
 class TestSectorsanityFirstSector(FTLTestBase):

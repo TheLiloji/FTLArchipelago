@@ -248,12 +248,15 @@ class LayoutUnlocks(Choice):
     items are created, and owning a ship key puts every one of its layouts in logic.
     independent: each layout is its own item and needs nothing else: a Type B or C can be flown
     without the ship's key, which only gives the Type A.
+    progressive: no layout items. The ship's key comes once per layout of that ship in the seed: the
+    first copy gives the Type A, the next ones the following layouts in order (B, then C).
     """
 
     display_name = "Layout Unlocks"
     option_items = 0
     option_vanilla = 1
     option_independent = 2
+    option_progressive = 3
     default = option_items
 
 
@@ -1149,4 +1152,17 @@ def bundle_size(options: FTLOptions, family: str) -> int:
 def item_copies(options: FTLOptions, item: data.Item) -> int:
     if item.group == data.GROUP_SYSTEM_LEVELS and item.count and options.full_system_upgrades:
         return 1
+    if item.group == data.GROUP_SHIP_KEYS and item.count and progressive_ship_keys(options):
+        return max(1, len(progressive_layouts(options, item.ship)))
     return item.count
+
+
+def progressive_ship_keys(options) -> bool:
+    return options.layout_unlocks == options.layout_unlocks.option_progressive
+
+
+def progressive_layouts(options, ship: str) -> tuple[data.Layout, ...]:
+    """The layouts a progressive ship key gives, copy after copy: the seed's layouts of that ship, A first."""
+    from . import locations
+    return tuple(sorted((layout for layout in locations.selected_layouts(options) if layout.ship == ship),
+                        key=lambda layout: layout.variant))

@@ -43,10 +43,13 @@ KIND_CREW = "crew"
 KIND_BUNDLE = "bundle"
 # A Type B or C that needs no ship key (layout_unlocks: independent). A mod that does not know it refuses the seed.
 KIND_LAYOUT = "layout"
+# A ship key that comes once per layout (layout_unlocks: progressive): "bps" lists what each copy gives, in order.
+KIND_PROGRESSIVE_SHIP = "progressive_ship"
 
 KINDS_IMPLEMENTED = (
     KIND_SHIP, KIND_CAP, KIND_START, KIND_FILLER, KIND_TRAP,
     KIND_SHOP, KIND_WEAPON, KIND_DRONE, KIND_AUGMENT, KIND_ARCHIVE, KIND_CREW, KIND_BUNDLE, KIND_LAYOUT,
+    KIND_PROGRESSIVE_SHIP,
 )
 
 REACTOR_TARGET = "reactor"

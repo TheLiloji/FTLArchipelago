@@ -307,8 +307,10 @@ function apReceiveItem(itemName, sender, isReplay, index)
 
     return apQueueItem({
         -- A layout that needs no key is received like any ship: apShipReceived knows the seed is independent.
-        kind = kind == "layout" and "ship" or kind,
+        -- A progressive ship key is a ship too: "bps" says which layout each copy gives.
+        kind = (kind == "layout" or kind == "progressive_ship") and "ship" or kind,
         bp = descriptor.bp,
+        bps = kind == "progressive_ship" and descriptor.bps or nil,
         sys = descriptor.sys,
         ship = descriptor.ship,
         res = descriptor.res,
@@ -418,7 +420,9 @@ local function readLayoutItems()
     end
     layoutItemsFor, layoutItems, layoutsIndependent = descriptors, false, false
     for _, descriptor in pairs(descriptors) do
-        if type(descriptor) == "table" and type(descriptor.bp) == "string" and descriptor.bp:match("_[23]$") then
+        if type(descriptor) == "table" and descriptor.k == "progressive_ship" then
+            layoutItems = true
+        elseif type(descriptor) == "table" and type(descriptor.bp) == "string" and descriptor.bp:match("_[23]$") then
             if descriptor.k == "layout" then
                 layoutItems, layoutsIndependent = true, true
             elseif descriptor.k == "ship" then

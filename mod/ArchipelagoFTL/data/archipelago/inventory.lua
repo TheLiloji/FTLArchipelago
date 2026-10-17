@@ -258,6 +258,23 @@ function apInventoryAdd(descriptor)
     end
     repairInventory()
 
+    if descriptor.kind == "ship" and type(descriptor.bps) == "table" then
+        -- A progressive key: each copy (one per server index) gives the next layout of the list.
+        local copies = _G.apInventory.progressiveCopies or {}
+        _G.apInventory.progressiveCopies = copies
+        local seen = copies[descriptor.display or descriptor.bps[1]] or {}
+        copies[descriptor.display or descriptor.bps[1]] = seen
+        seen[descriptor.index ~= nil and descriptor.index >= 0 and descriptor.index or ("n" .. (#seen + 1))] = true
+        local count = 0
+        for _ in pairs(seen) do count = count + 1 end
+        local layouts = {}
+        for position = 1, math.min(count, #descriptor.bps) do layouts[#layouts + 1] = descriptor.bps[position] end
+        for _, blueprint in ipairs(layouts) do
+            apInventoryAdd({ kind = "ship", bp = blueprint })
+        end
+        return true
+    end
+
     if descriptor.kind == "ship" then
         local blueprint = descriptor.bp
         if type(blueprint) ~= "string" or blueprint == "" then

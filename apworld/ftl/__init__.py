@@ -214,6 +214,10 @@ class FTLWorld(World):
                 descriptor["n"] = item.count
             if item.group == data.GROUP_SHIP_LAYOUTS and independent:
                 descriptor["k"] = data.KIND_LAYOUT
+            if item.group == data.GROUP_SHIP_KEYS and options.progressive_ship_keys(self.options):
+                descriptor["k"] = data.KIND_PROGRESSIVE_SHIP
+                descriptor["bps"] = [layout.blueprint
+                                     for layout in options.progressive_layouts(self.options, item.ship)]
             if item.kind == data.KIND_BUNDLE:
                 members = self.bundles[item.family][int(name.rsplit(" ", 1)[1]) - 1]
                 descriptor["bps"] = [member.blueprint for member in members]
