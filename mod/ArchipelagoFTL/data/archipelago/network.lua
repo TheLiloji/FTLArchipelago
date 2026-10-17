@@ -90,7 +90,9 @@ function apNetConnect(uri, slot, password)
     state.retries = 0
     state.retryAt = nil
     -- The Multiverse build is its own Archipelago game (apGameName comes with its data).
-    if _G.apGameName then moduleCall("SetGame", apGameName) end
+    if _G.apGameName and ap.SetGame ~= nil then
+        pcall(function() ap:SetGame(tostring(apGameName)) end)
+    end
     netLog("connecting to " .. tostring(uri) .. " (slot " .. tostring(slot) .. ")")
     return ap:Connect(uri, slot, password or "")
 end
