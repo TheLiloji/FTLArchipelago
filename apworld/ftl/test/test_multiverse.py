@@ -196,3 +196,23 @@ class TestMultiverseKestrelCannotBeLeftOut(FTLTestBase):
         with self.assertRaises(OptionError) as raised:
             self.world_setup()
         self.assertIn("MV Kestrel Cruiser", str(raised.exception))
+
+
+class TestMultiverseLevelChecksCountTheStartingLevels(FTLTestBase):
+    options = {"multiverse": True, "systemsanity": "every_level"}
+
+    def test_the_mv_kestrel_starts_with_shields_2_and_engines_2(self) -> None:
+        from BaseClasses import CollectionState
+        state = CollectionState(self.multiworld)
+        for item in self.multiworld.precollected_items[self.player]:
+            state.collect(item, prevent_sweep=True)
+        for name in ("MV Kestrel Cruiser Key", "Shields blueprint", "Engines blueprint",
+                     "Progressive Shields", "Progressive Shields", "Progressive Engines"):
+            state.collect(self.world.create_item(name), prevent_sweep=True)
+
+        def reach(check: str) -> bool:
+            return self.multiworld.get_location(check, self.player).can_reach(state)
+
+        self.assertTrue(reach("Shields level 4"), "2 at the start, 2 received")
+        self.assertFalse(reach("Shields level 5"))
+        self.assertTrue(reach("Engines level 3"), "2 at the start, 1 received")
