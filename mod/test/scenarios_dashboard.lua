@@ -575,6 +575,36 @@ test("dashboard: the ships page only lists the seed's layouts", function()
     closeDashboard()
 end)
 
+test("dashboard: a seed with many ships scrolls the ships page instead of drawing names over each other", function()
+    sim.startRun(true)
+    dashboardSeed()
+    local gameShips, seedShips, inSeed = _G.apGameData.ships, _G.apSeedShips, _G.apLayoutInSeed
+    local many = {}
+    for index = 1, 28 do many[index] = { name = "PLAYER_SHIP_HARD", layouts = 1 } end
+    _G.apGameData.ships = many
+    if seedShips then _G.apSeedShips = function() return many end end
+    _G.apLayoutInSeed = function() return true end
+    openDashboard("ships")
+    local names, counts = {}, {}
+    for _, draw in ipairs(sim.draws) do
+        if draw.text == apShipLabel("PLAYER_SHIP_HARD") then names[#names + 1] = draw end
+        local value = tostring(draw.text)
+        if value == apT("dash.ships.clear") or value:find(apT("dash.ships.remaining", { n = 0 }):gsub("0", ""), 1, true) then
+            counts[#counts + 1] = draw
+        end
+    end
+    _G.apGameData.ships, _G.apSeedShips, _G.apLayoutInSeed = gameShips, seedShips, inSeed
+    check(#names > 0 and #names < 28, "only the cards that fit are drawn")
+    local apart = #counts > 0
+    for _, name in ipairs(names) do
+        for _, count in ipairs(counts) do
+            if count.x == name.x and math.abs(count.y - name.y) < 16 then apart = false end
+        end
+    end
+    check(apart, "a ship's name and its checks left keep their own lines")
+    closeDashboard()
+end)
+
 test("dashboard: the systems page counts the upgrades of the ship being flown", function()
     sim.startRun(true)
     dashboardSeed()
