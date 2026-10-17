@@ -195,9 +195,12 @@ def build_item_pool(world: "FTLWorld") -> list[FTLItem]:
             spare = item.group in SPARE_GROUPS
             optional.extend((spare, rank, item.name) for rank in range(copies))
 
-    if len(required) > capacity:
+    # Filler-only locations (rare Multiverse checks) take no progression: they do not count as room for it.
+    capacity_for_progression = capacity - sum(
+        1 for location in world.created_locations if location.group in data.FILLER_ONLY_GROUPS)
+    if len(required) > capacity_for_progression:
         raise OptionError(
-            f"FTL: {len(required)} progression items for only {capacity} locations. This "
+            f"FTL: {len(required)} progression items for only {capacity_for_progression} locations. This "
             "combination of options creates more required items than there are checks. Turn on "
             "sectorsanity or the achievements, or turn off the system blueprints."
         )
