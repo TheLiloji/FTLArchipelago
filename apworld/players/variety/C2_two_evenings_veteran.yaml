@@ -6,12 +6,13 @@
 
 name: Player_C2
 description: FTL alone in a multiworld, played over two evenings. You know FTL well.
-game: "FTL: Faster Than Light"
+game: "FTL Multiverse"
 requires:
   version: 0.6.7
 progression_balancing: 50
 accessibility: full
-"FTL: Faster Than Light":
+"FTL Multiverse":
+  multiverse: false
   goal: victory_selection
   victory_layouts:
     - Stealth Cruiser B

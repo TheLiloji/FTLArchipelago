@@ -1,9 +1,10 @@
 name: NoChecks
 description: Regression - sectorsanity and ship achievements off, 22 of the 27 checks are victories
-game: "FTL: Faster Than Light"
+game: "FTL Multiverse"
 requires:
   version: 0.6.7
-"FTL: Faster Than Light":
+"FTL Multiverse":
+  multiverse: false
   goal: victory_selection
   victory_layouts:
     - Federation Cruiser A

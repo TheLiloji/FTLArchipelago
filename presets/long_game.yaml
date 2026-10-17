@@ -6,10 +6,10 @@
 
 name: Player
 description: Long FTL game, 20 hours or more to the goal.
-game: "FTL: Faster Than Light"
+game: "FTL Multiverse"
 requires:
   version: 0.6.7
-"FTL: Faster Than Light":
+"FTL Multiverse":
   victories_required: 10
   # any: an Easy victory counts. normal: Normal or Hard only.
   victory_difficulty: normal

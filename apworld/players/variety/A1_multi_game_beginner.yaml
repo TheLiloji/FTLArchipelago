@@ -6,12 +6,13 @@
 
 name: Player_A1
 description: FTL is one slot among several games. New to FTL.
-game: "FTL: Faster Than Light"
+game: "FTL Multiverse"
 requires:
   version: 0.6.7
 progression_balancing: 70
 accessibility: full
-"FTL: Faster Than Light":
+"FTL Multiverse":
+  multiverse: false
   goal: victory_count
   victories_required: 1
   start_ship: kestrel_cruiser

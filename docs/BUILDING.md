@@ -7,7 +7,7 @@ both systems:
 ```sh
 hyperspace-patch/build-linux.sh --install      # or build-windows.sh, from Git Bash
 mod/install.sh                                 # builds the .ftl and applies it with ftlman
-python3 apworld/tools/build_apworld.py --output <Archipelago>/custom_worlds/ftl.apworld
+python3 apworld/tools/build_apworld.py --output <Archipelago>/custom_worlds/ftlmv.apworld
 ```
 
 The build needs clones of [FTL-Hyperspace](https://github.com/FTL-Hyperspace/FTL-Hyperspace),

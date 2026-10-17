@@ -41,8 +41,8 @@ jobs:
         run: |
           mkdir -p dist
           bash mod/build.sh
-          cp mod/ArchipelagoFTL.ftl dist/
-          python3 apworld/tools/build_apworld.py --output dist/ftl.apworld
+          cp mod/ArchipelagoFTLMV.ftl dist/
+          python3 apworld/tools/build_apworld.py --output dist/ftlmv.apworld
           (cd presets && zip -q ../dist/presets.zip *.yaml)
           cp hyperspace-patch/build/linux/Hyperspace.1.6.13.amd64.so hyperspace-patch/build/linux-gog/Hyperspace.1.6.12.amd64.so hyperspace-patch/build/windows/Hyperspace.dll dist/
           (cd dist && sha256sum * > SHA256SUMS.txt && cat SHA256SUMS.txt)

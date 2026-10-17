@@ -6,12 +6,13 @@
 
 name: Player_B1
 description: FTL alone, solo. New to FTL.
-game: "FTL: Faster Than Light"
+game: "FTL Multiverse"
 requires:
   version: 0.6.7
 progression_balancing: 50
 accessibility: full
-"FTL: Faster Than Light":
+"FTL Multiverse":
+  multiverse: false
   goal: victory_count
   victories_required: 3
   start_ship: kestrel_cruiser

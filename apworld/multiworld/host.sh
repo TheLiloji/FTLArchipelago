@@ -41,7 +41,7 @@ with zipfile.ZipFile(path) as z:
     raw = zlib.decompress(z.read(multi[0])[1:]).decode("latin-1")
 
 for expected in ("datapackage", "item_name_to_id", "location_name_to_id",
-                "FTL: Faster Than Light"):
+                "FTL Multiverse"):
     if expected not in raw:
         raise SystemExit(f"  FAIL: \"{expected}\" missing from the multidata")
 print("  the multidata embeds its datapackage, FTL included")

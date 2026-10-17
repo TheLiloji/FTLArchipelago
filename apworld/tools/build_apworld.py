@@ -10,6 +10,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 PACKAGE = ROOT / "ftl"
+# Packed under its own name, so it installs next to the base game's ftl.apworld.
+PACKAGE_NAME = "ftlmv"
 
 CONTAINER_VERSION = 7
 
@@ -46,7 +48,7 @@ def build(output: Path) -> None:
         output.unlink()
     with zipfile.ZipFile(output, "w", zipfile.ZIP_DEFLATED) as zf:
         for path in files_to_pack():
-            arcname = Path(PACKAGE.name) / path.relative_to(PACKAGE)
+            arcname = Path(PACKAGE_NAME) / path.relative_to(PACKAGE)
             if path.name == "archipelago.json" and path.parent == PACKAGE:
                 zf.writestr(str(arcname), container_manifest())
             else:
@@ -59,11 +61,11 @@ def verify() -> int:
 
     problems: list[str] = []
     with tempfile.TemporaryDirectory() as tmp:
-        target = Path(tmp) / "ftl.apworld"
+        target = Path(tmp) / "ftlmv.apworld"
         build(target)
         with zipfile.ZipFile(target) as zf:
             names = set(zf.namelist())
-            manifest_arc = f"{PACKAGE.name}/archipelago.json"
+            manifest_arc = f"{PACKAGE_NAME}/archipelago.json"
             if manifest_arc not in names:
                 problems.append(f"manifest missing from the package: {manifest_arc}")
             else:
@@ -72,7 +74,7 @@ def verify() -> int:
                     if field not in manifest:
                         problems.append(f"the package manifest has no \"{field}\"")
             for essential in ("__init__.py", "options.py", "data.py", "items.py", "locations.py"):
-                if f"{PACKAGE.name}/{essential}" not in names:
+                if f"{PACKAGE_NAME}/{essential}" not in names:
                     problems.append(f"module missing from the package: {essential}")
 
     if problems:
@@ -90,7 +92,7 @@ def main() -> None:
     parser.add_argument(
         "--output",
         type=Path,
-        default=Path.home() / ".local/opt/Archipelago/custom_worlds/ftl.apworld",
+        default=Path.home() / ".local/opt/Archipelago/custom_worlds/ftlmv.apworld",
         help="path of the .apworld to write (default: custom_worlds of the local build)",
     )
     parser.add_argument(

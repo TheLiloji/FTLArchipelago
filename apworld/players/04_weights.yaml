@@ -1,9 +1,10 @@
 name: Weighted
 description: Options drawn by weight, like a real player YAML
-game: "FTL: Faster Than Light"
+game: "FTL Multiverse"
 requires:
   version: 0.6.7
-"FTL: Faster Than Light":
+"FTL Multiverse":
+  multiverse: false
   goal:
     victory_count: 3
     victory_selection: 1

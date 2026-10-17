@@ -1,6 +1,6 @@
 {
  "_note": "Id baseline, written by apworld/tools/gen_id_baseline.py and checked by apworld/ftl/test/test_ids.py. Additions only: a name already present must never change its id or its check key, or it invalidates seeds already generated. items = {Archipelago name: id}. locations = {Archipelago name: [id, check key sent by the Lua mod]}.",
- "game": "FTL: Faster Than Light",
+ "game": "FTL Multiverse",
  "items": {
   "'Anelace' Rad-Pinpoint": 1179949689,
   "'Ares' Heavy Missiles": 1179949662,

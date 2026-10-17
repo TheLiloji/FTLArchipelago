@@ -1,9 +1,10 @@
 name: Minimal
 description: Narrowest seed possible - one layout per ship, no sectorsanity
-game: "FTL: Faster Than Light"
+game: "FTL Multiverse"
 requires:
   version: 0.6.7
-"FTL: Faster Than Light":
+"FTL Multiverse":
+  multiverse: false
   goal: victory_count
   victories_required: 2
   start_ship: kestrel_cruiser

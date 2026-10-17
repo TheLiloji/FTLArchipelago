@@ -17,7 +17,8 @@ except ImportError:  # loaded on its own by the tools and the id tests
 
 CONTRACT_VERSION = 3
 
-GAME_NAME = "FTL: Faster Than Light"
+# The Multiverse build is its own game, so a multiworld can hold base game and Multiverse players together.
+GAME_NAME = "FTL Multiverse"
 
 SECTOR_CHECK_FORMAT = "{layout}:sector:{sector}"
 SHOP_CHECK_FORMAT = "shop:{slot}"

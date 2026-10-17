@@ -207,8 +207,9 @@ class ShipLayouts(Choice):
     default = option_all_layouts
 
 
-class Multiverse(Toggle):
-    """Play with FTL: Multiverse instead of the base game: its ships replace the base game's.
+class Multiverse(DefaultOnToggle):
+    """Play with FTL: Multiverse instead of the base game: its ships replace the base game's. On by default in
+    this game; turned off, it plays the base game's ships.
 
     Install Multiverse with the mod (see the setup guide). Starting Ship is then ignored: you start with the
     MV Kestrel Cruiser, the ship Multiverse always gives.

@@ -1,9 +1,9 @@
 name: Navigator
 description: The FTL world, as it would really be played
-game: "FTL: Faster Than Light"
+game: "FTL Multiverse"
 requires:
   version: 0.6.7
-"FTL: Faster Than Light":
+"FTL Multiverse":
   goal: victory_count
   victories_required: 5
   victory_difficulty: hard

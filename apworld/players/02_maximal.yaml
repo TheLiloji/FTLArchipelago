@@ -1,9 +1,10 @@
 name: Maximal
 description: Every extension on, goal by selection
-game: "FTL: Faster Than Light"
+game: "FTL Multiverse"
 requires:
   version: 0.6.7
-"FTL: Faster Than Light":
+"FTL Multiverse":
+  multiverse: false
   goal: victory_selection
   victory_layouts:
     - Stealth Cruiser B

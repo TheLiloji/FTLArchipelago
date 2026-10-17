@@ -16,7 +16,7 @@ import types
 from pathlib import Path
 
 AP = Path(os.environ.get("AP_ROOT", "~/.local/opt/Archipelago")).expanduser()
-GAME = "FTL: Faster Than Light"
+GAME = "FTL Multiverse"
 PORT = 38299
 PASSWORD = "ftl-roundtrip"
 

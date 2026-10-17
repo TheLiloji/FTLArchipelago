@@ -67,7 +67,7 @@ def lua_table(value, indent: int = 0) -> str:
 
 
 def write_solo_order(data, slot_info, ftl_slot, datapackage) -> None:
-    table = datapackage.get("FTL: Faster Than Light", {})
+    table = datapackage.get("FTL Multiverse", {})
     item_names = {code: name for name, code in table.get("item_name_to_id", {}).items()}
     location_names = {code: name for name, code in table.get("location_name_to_id", {}).items()}
 
@@ -116,7 +116,7 @@ def main() -> int:
 
     _LOCATIONS.update(data["locations"])
     slot_info = data["slot_info"]
-    ftl_slots = [n for n, info in slot_info.items() if info.game == "FTL: Faster Than Light"]
+    ftl_slots = [n for n, info in slot_info.items() if info.game == "FTL Multiverse"]
     if not ftl_slots:
         print("no FTL world in this seed", file=sys.stderr)
         return 1
@@ -136,7 +136,7 @@ def main() -> int:
     items_by_game = {
         game: reverse(entry.get("item_name_to_id", {})) for game, entry in datapackage.items()
     }
-    locations = reverse(datapackage.get("FTL: Faster Than Light", {}).get("location_name_to_id", {}))
+    locations = reverse(datapackage.get("FTL Multiverse", {}).get("location_name_to_id", {}))
 
     def item_name(game: str, code: int) -> str:
         return items_by_game.get(game, {}).get(code, f"Unknown item {code}")

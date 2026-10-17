@@ -11,6 +11,11 @@ class FTLTestBase(WorldTestBase):
     game = data.GAME_NAME
     world: FTLWorld
 
+    def world_setup(self, *args, **kwargs) -> None:
+        # Multiverse is on by default in this game: the tests written for the base game keep it off.
+        self.options = {"multiverse": False, **self.options}
+        super().world_setup(*args, **kwargs)
+
     def addressed_locations(self):
         return [
             location for location in self.multiworld.get_locations(self.player)

@@ -15,7 +15,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 PRESETS = ROOT / "apworld" / "players" / "variety"
 AP = Path(os.environ.get("AP_ROOT", "~/.local/opt/Archipelago")).expanduser()
-GAME = "FTL: Faster Than Light"
+GAME = "FTL Multiverse"
 
 COMPANIONS = {
     "ChecksFinder": {},
@@ -322,7 +322,7 @@ def main() -> int:
 
     subprocess.run(
         [sys.executable, str(ROOT / "apworld/tools/build_apworld.py"),
-         "--output", str(AP / "custom_worlds" / "ftl.apworld")],
+         "--output", str(AP / "custom_worlds" / "ftlmv.apworld")],
         check=True, capture_output=True,
     )
 
