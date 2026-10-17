@@ -231,3 +231,13 @@ class TestStandardWithoutBlueprintsBecomesPower(FTLTestBase):
     def test_capped_levels_still_get_their_milestones(self) -> None:
         self.assertEqual(self.world.sector_logic_level, rules.SectorLogic.option_power)
         self.assertFalse(_reach(self, KESTREL_A, "Reach sector 5", _state_with(self, KESTREL_A)))
+
+
+class TestRelaxedWithoutBlueprintsStaysRelaxed(FTLTestBase):
+    """relaxed asks for nothing: no blueprints to count must not turn it into power (whose shields need a
+    blueprint the pool no longer has)."""
+
+    options = {"layout_count": 28, "sector_logic": "relaxed", "system_blueprints": False}
+
+    def test_relaxed_is_kept(self) -> None:
+        self.assertEqual(self.world.sector_logic_level, rules.SectorLogic.option_relaxed)

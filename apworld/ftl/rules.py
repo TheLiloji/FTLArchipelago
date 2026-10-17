@@ -287,8 +287,9 @@ def plan(world: "FTLWorld") -> LogicPlan:
 
     asked = options.sector_logic.value
     if not options.system_blueprints and asked != SectorLogic.option_power:
-        # Nothing left to count, but capped levels still need their milestones.
-        asked = SectorLogic.option_power if options.progressive_systems else SectorLogic.option_relaxed
+        # Nothing left to count, but capped levels still need their milestones. relaxed asked for none.
+        milestones = options.progressive_systems and asked in (SectorLogic.option_standard, SectorLogic.option_strict)
+        asked = SectorLogic.option_power if milestones else SectorLogic.option_relaxed
     warnings: list[str] = []
 
     candidates = ((asked, SectorLogic.option_relaxed) if asked == SectorLogic.option_power
