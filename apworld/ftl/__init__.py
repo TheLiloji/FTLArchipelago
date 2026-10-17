@@ -84,7 +84,7 @@ class FTLWorld(World):
         for name in self.logic.starting_blueprints:
             self.push_precollected(self.create_item(name))
 
-        for name in self.logic.early_blueprints:
+        for name in (*self.logic.early_blueprints, *self.logic.early_ship_keys):
             self.multiworld.local_early_items[self.player][name] = 1
 
     def _check_option_combinations(self) -> None:

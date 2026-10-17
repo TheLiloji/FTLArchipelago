@@ -261,6 +261,21 @@ class LayoutUnlocks(Choice):
     default = option_items
 
 
+class EarlyShipKeys(Range):
+    """How many ship keys, on top of your starting ship and the Kestrel, are placed in your own first checks.
+
+    Those keys are drawn at random among the ships in the seed and land in checks you can reach from the
+    very start, in your own world: a second ship comes early instead of hours later. The number of keys
+    does not change, only where they land. With progressive layout unlocks, it is the first copy (Type A).
+    0 lets every key land anywhere, like before.
+    """
+
+    display_name = "Early Ship Keys"
+    range_start = 0
+    range_end = len(data.SHIPS) - 1
+    default = 1
+
+
 class Sectorsanity(Choice):
     """Reaching a sector with a ship sends a check. Most checks come from here.
 
@@ -961,6 +976,7 @@ class FTLOptions(PerGameCommonOptions):
     ship_layouts: ShipLayouts
     layout_count: LayoutCount
     layout_unlocks: LayoutUnlocks
+    early_ship_keys: EarlyShipKeys
 
     sectorsanity: Sectorsanity
     sectorsanity_first_sector: SectorsanityFirstSector
@@ -1021,7 +1037,7 @@ ftl_option_groups = [
     ),
     OptionGroup(
         "Advanced",
-        [StartShip, HeadStarts, ModLanguage, EventBeacons, SectorsanityFirstSector, SectorsanityLastSector, VictoryCollectsLayout, LayoutUnlocks, CrossRunAchievementChecks,
+        [StartShip, HeadStarts, ModLanguage, EventBeacons, SectorsanityFirstSector, SectorsanityLastSector, VictoryCollectsLayout, LayoutUnlocks, EarlyShipKeys, CrossRunAchievementChecks,
          SystemBlueprints, ProgressiveSystems, FullSystemUpgrades, FreeUpgrades, SystemInstall, RunStartScrap, CrewMembers, ShopWeapons, ShopDrones, ShopAugments,
          WeaponBundleSize, DroneBundleSize, AugmentBundleSize,
          ShopUnlockMode, ShopItemDelivery, ShopBySector, ShopPerShip, SystemsanityPerShip,
