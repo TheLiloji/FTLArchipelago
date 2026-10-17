@@ -982,3 +982,13 @@ test("event beacons: the seed's option hides the labels it should, and leaving t
     check(next(sim.hiddenBeacons) == nil, "a seed from before the option keeps every label")
     sim.hiddenBeacons = nil
 end)
+
+test("network: a build that names its own Archipelago game sends it before connecting", function()
+    apNetResetForTesting()
+    sim.net.game = nil
+    _G.apGameName = "FTL Multiverse"
+    apNetConnect("ws://localhost:38281", "Navigator", "")
+    _G.apGameName = nil
+    equals(sim.net.game, "FTL Multiverse", "the module is told the game name")
+    apNetResetForTesting()
+end)
