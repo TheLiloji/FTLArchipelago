@@ -390,6 +390,7 @@ local function resetWorld()
             return locked
         end,
         AchievementStatus = function(_, name) return sim.achievements[name] or -1 end,
+        SetGame = function(_, game) sim.net.game = game end,
         HideBeaconLabel = function(_, name, hidden)
             sim.hiddenBeacons = sim.hiddenBeacons or {}
             sim.hiddenBeacons[name] = hidden == true or nil

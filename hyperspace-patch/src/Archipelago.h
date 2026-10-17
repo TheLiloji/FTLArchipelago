@@ -28,6 +28,8 @@ public:
     ~Client();
 
     bool Connect(const std::string& uri, const std::string& slot, const std::string& password);
+    // The Archipelago game name sent at the next Connect. The base game's by default.
+    void SetGame(const std::string& game);
 
     std::string LastUri() const;
     std::string LastSlot() const;

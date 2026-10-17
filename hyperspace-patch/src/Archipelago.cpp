@@ -29,7 +29,8 @@ namespace ArchipelagoFTL
 
 namespace
 {
-const char* kGameName = "FTL: Faster Than Light";
+// The game this client plays: the Multiverse build of the mod sets its own before connecting.
+std::string kGameName = "FTL: Faster Than Light";
 
 // AP network protocol bitmask: 1 (items from other worlds) | 2 (our own items sent back to
 // us) | 4 (starting inventory). 7 asks for all three, i.e. full remote item handling.
@@ -386,6 +387,11 @@ std::string Client::Platform() const
 #else
     return "linux";
 #endif
+}
+
+void Client::SetGame(const std::string& game)
+{
+    if (!game.empty()) kGameName = game;
 }
 
 bool Client::Connect(const std::string& uri, const std::string& slot, const std::string& password)

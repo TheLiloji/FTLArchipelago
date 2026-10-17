@@ -47,6 +47,7 @@
 %rename("%s") ArchipelagoFTL::Client::LockShips;
 %rename("%s") ArchipelagoFTL::Client::AchievementStatus;
 %rename("%s") ArchipelagoFTL::Client::HideBeaconLabel;
+%rename("%s") ArchipelagoFTL::Client::SetGame;
 
 %immutable MainMenu::bScoreScreen;
 %rename("%s") MainMenu::bScoreScreen;
