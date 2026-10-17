@@ -602,54 +602,66 @@ local function drawOverview(x, y, w, h)
     drawHintCard(rx, y + h - hintH, right, hintH)
 end
 
+-- Below this height the name and the checks left would be drawn over each other.
+local SHIP_CARD_MIN_H = 74
+
+local function drawShipCard(row, cx, cy, cardW, cardH)
+    local any = false
+    for _, layout in ipairs(row.layouts) do any = any or layout.unlocked end
+    card(cx, cy, cardW, cardH)
+    rect(cx, cy, 3, cardH, any and "good" or "faint")
+    -- Each layout as the ship list shows it: in colour once unlocked, faded until then.
+    local miniGap = 6
+    local miniH = cardH - 30
+    local miniW = math.min(math.floor(miniH * 191 / 121), math.floor((cardW * 0.6 - miniGap * 2) / 3))
+    miniH = math.floor(miniW * 121 / 191)
+    local minisW = #row.layouts * miniW + (#row.layouts - 1) * miniGap
+    local textW = cardW - minisW - 40
+    -- The race goes under the name, or after it when the cards are too short for one more line.
+    local roomy = cardH >= 64
+    local label = (row.species and not roomy) and apT("dash.ships.species", { ship = row.label, species = row.species })
+        or row.label
+    text(12, cx + 16, cy + 10, textW, any and "text" or "dim", label)
+    if row.species and roomy then
+        text(9, cx + 16, cy + 28, textW, "dim", row.species)
+    end
+    local remaining = row.remaining > 0 and apT("dash.ships.remaining", { n = row.remaining })
+        or apT("dash.ships.clear")
+    text(9, cx + 16, cy + cardH - 22, textW, "dim", remaining)
+    local mx = cx + cardW - 12 - minisW
+    local my = cy + math.floor((cardH - miniH - 18) / 2)
+    for _, layout in ipairs(row.layouts) do
+        if not ui.shipMini(layout.name, mx, my, miniW, miniH, layout.unlocked and 1 or 0.3) then
+            rect(mx, my, miniW, miniH, layout.unlocked and "faint" or "card")
+        end
+        rect(mx, my + miniH + 2, miniW, 3, layout.unlocked and "good" or "faint")
+        textCenter(9, mx + miniW / 2, my + miniH + 7, miniW, layout.unlocked and "text" or "dim",
+            apT("dash.ships.type", { letter = layout.letter }))
+        mx = mx + miniW + miniGap
+    end
+end
+
 local function drawShips(x, y, w, h)
     local rows, open, total = shipRows()
     text(12, x, y, w, "title", apT("dash.ships.header", { done = open, total = total }))
     local top = y + 30
     local columns = 2
-    local perColumn = math.ceil(#rows / columns)
-    local cardW = math.floor((w - GAP) / columns)
-    -- A seed with few ships keeps cards of a normal height at the top instead of stretching them.
-    local cardH = math.min(110, math.floor((h - 30 - GAP * (perColumn - 1)) / math.max(1, perColumn)))
+    local lines = {}
     for index, row in ipairs(rows) do
-        local col = (index - 1) // perColumn
-        local line = (index - 1) % perColumn
-        local cx = x + col * (cardW + GAP)
-        local cy = top + line * (cardH + GAP)
-        local any = false
-        for _, layout in ipairs(row.layouts) do any = any or layout.unlocked end
-        card(cx, cy, cardW, cardH)
-        rect(cx, cy, 3, cardH, any and "good" or "faint")
-        -- Each layout as the ship list shows it: in colour once unlocked, faded until then.
-        local miniGap = 6
-        local miniH = cardH - 30
-        local miniW = math.min(math.floor(miniH * 191 / 121), math.floor((cardW * 0.6 - miniGap * 2) / 3))
-        miniH = math.floor(miniW * 121 / 191)
-        local minisW = #row.layouts * miniW + (#row.layouts - 1) * miniGap
-        local textW = cardW - minisW - 40
-        -- The race goes under the name, or after it when the cards are too short for one more line.
-        local roomy = cardH >= 64
-        local label = (row.species and not roomy) and apT("dash.ships.species", { ship = row.label, species = row.species })
-            or row.label
-        text(12, cx + 16, cy + 10, textW, any and "text" or "dim", label)
-        if row.species and roomy then
-            text(9, cx + 16, cy + 28, textW, "dim", row.species)
-        end
-        local remaining = row.remaining > 0 and apT("dash.ships.remaining", { n = row.remaining })
-            or apT("dash.ships.clear")
-        text(9, cx + 16, cy + cardH - 22, textW, "dim", remaining)
-        local mx = cx + cardW - 12 - minisW
-        local my = cy + math.floor((cardH - miniH - 18) / 2)
-        for _, layout in ipairs(row.layouts) do
-            if not ui.shipMini(layout.name, mx, my, miniW, miniH, layout.unlocked and 1 or 0.3) then
-                rect(mx, my, miniW, miniH, layout.unlocked and "faint" or "card")
-            end
-            rect(mx, my + miniH + 2, miniW, 3, layout.unlocked and "good" or "faint")
-            textCenter(9, mx + miniW / 2, my + miniH + 7, miniW, layout.unlocked and "text" or "dim",
-                apT("dash.ships.type", { letter = layout.letter }))
-            mx = mx + miniW + miniGap
-        end
+        local line = math.floor((index - 1) / columns) + 1
+        lines[line] = lines[line] or {}
+        lines[line][#lines[line] + 1] = row
     end
+    -- A seed with few ships keeps cards of a normal height at the top instead of stretching them, and one
+    -- with many ships (Multiverse) scrolls instead of squeezing them.
+    local fitH = math.floor((h - 30 - GAP * (#lines - 1)) / math.max(1, #lines))
+    local cardH = math.max(SHIP_CARD_MIN_H, math.min(110, fitH))
+    scrollList("ships", { x = x, y = top, w = w, h = y + h - top }, lines, cardH + GAP, function(line, rx, ry, rw)
+        local lineW = math.floor((rw - GAP) / columns)
+        for column, row in ipairs(line) do
+            drawShipCard(row, rx + (column - 1) * (lineW + GAP), ry, lineW, cardH)
+        end
+    end)
 end
 
 -- FTL's own system icons, green when the system can be used, grey when it is still locked.
