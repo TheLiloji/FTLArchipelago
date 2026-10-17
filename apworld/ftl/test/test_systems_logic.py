@@ -239,3 +239,40 @@ class TestProgressiveUpgradesPerShipNeedTheSameShip(FTLTestBase):
         self.assertFalse(location.can_reach(state), "the Kestrel still needs the Cloaking blueprint")
         state.collect(self.world.create_item("Cloaking blueprint"), True)
         self.assertTrue(location.can_reach(state))
+
+
+class TestLevelChecksCountTheStartingLevels(FTLTestBase):
+    options = {"layout_count": 1, "start_ship": "kestrel_cruiser", "victories_required": 1,
+               "systemsanity": "every_level"}
+
+    def _reach(self, check: str, names=()) -> bool:
+        state = _fresh_state(self)
+        _collect(self, state, names)
+        return self.multiworld.get_location(check, self.player).can_reach(state)
+
+    def test_the_levels_the_kestrel_starts_with_are_free(self) -> None:
+        self.assertTrue(self._reach("Shields level 2"), "the Kestrel starts with shields 2")
+        self.assertTrue(self._reach("Engines level 2"), "and engines 2")
+        self.assertFalse(self._reach("Shields level 3"))
+
+    def test_each_upgrade_adds_one_level_on_top_of_the_start(self) -> None:
+        two = ["Progressive Shields"] * 2
+        self.assertTrue(self._reach("Shields level 4", two), "2 at the start, 2 received")
+        self.assertFalse(self._reach("Shields level 5", two))
+        self.assertTrue(self._reach("Engines level 3", ["Progressive Engines"]))
+
+    def test_a_system_that_starts_at_one_still_needs_every_level(self) -> None:
+        self.assertFalse(self._reach("Oxygen level 2"))
+        self.assertTrue(self._reach("Oxygen level 2", ["Progressive Oxygen"]))
+
+
+class TestLevelChecksCountTheStartingLevelsPerShip(FTLTestBase):
+    options = {"layout_count": 1, "start_ship": "kestrel_cruiser", "victories_required": 1,
+               "systemsanity": "every_level", "progressive_systems_per_ship": True}
+
+    def test_the_start_levels_count_on_the_ship_s_own_upgrades(self) -> None:
+        state = _fresh_state(self)
+        self.assertTrue(self.multiworld.get_location("Shields level 2", self.player).can_reach(state))
+        _collect(self, state, ["Kestrel Cruiser: Progressive Shields"] * 2)
+        self.assertTrue(self.multiworld.get_location("Shields level 4", self.player).can_reach(state))
+        self.assertFalse(self.multiworld.get_location("Shields level 5", self.player).can_reach(state))
