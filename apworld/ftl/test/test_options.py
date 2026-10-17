@@ -929,3 +929,17 @@ class TestExcludingAShipThatMustBeIn(FTLTestBase):
             self.world_setup()
         self.assertIn("Kestrel Cruiser A", str(raised.exception))
         self.assertIn("excluded_layouts", str(raised.exception))
+
+
+class TestEventBeaconsDefault(FTLTestBase):
+
+    def test_only_the_important_events_are_labelled_by_default(self) -> None:
+        self.assertEqual(self.world.fill_slot_data()["event_beacons"], "important")
+
+
+class TestEventBeaconsHidden(FTLTestBase):
+
+    options = {"event_beacons": "hidden"}
+
+    def test_the_mod_is_told(self) -> None:
+        self.assertEqual(self.world.fill_slot_data()["event_beacons"], "hidden")

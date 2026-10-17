@@ -162,6 +162,7 @@ function apApplySlotData(slotData, slotName, solo)
 
     state.goal = slotData.goal
     state.startShip = slotData.start_ship
+    if _G.apApplyEventBeacons then apApplyEventBeacons(slotData.event_beacons) end
     state.layouts = nil
     if type(slotData.layouts) == "table" then
         state.layouts = {}
@@ -503,6 +504,7 @@ function apContractResetForTesting()
 end
 
 function apContractUnload()
+    if _G.apApplyEventBeacons then apApplyEventBeacons("marked") end
     local identity = state.identity or state.lastIdentity
     apContractResetForTesting()
     state.lastIdentity = identity

@@ -3,9 +3,11 @@
 #include "Global.h"
 #include "ShipUnlocks.h"
 #include "CustomShipSelect.h"
+#include "CustomEvents.h"
 #include "Archipelago.h"
 
 #include <algorithm>
+#include <map>
 
 namespace ArchipelagoFTL
 {
@@ -79,6 +81,22 @@ int Client::LockShips(const std::vector<std::string>& blueprints)
     }
     if (locked > 0) scores->Save(false);
     return locked;
+}
+
+bool Client::HideBeaconLabel(const std::string& eventName, bool hidden)
+{
+    // The label belongs to the event's beaconType: kept aside while hidden, put back when shown again.
+    static std::map<std::string, BeaconType*> kept;
+    CustomEvent* event = CustomEventsParser::GetInstance()->GetCustomEvent(eventName);
+    if (event == nullptr) return false;
+    if (hidden && event->beacon != nullptr) {
+        kept[eventName] = event->beacon;
+        event->beacon = nullptr;
+    } else if (!hidden) {
+        auto found = kept.find(eventName);
+        if (found != kept.end()) event->beacon = found->second;
+    }
+    return true;
 }
 
 int Client::AchievementStatus(const std::string& name) const

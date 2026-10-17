@@ -390,6 +390,11 @@ local function resetWorld()
             return locked
         end,
         AchievementStatus = function(_, name) return sim.achievements[name] or -1 end,
+        HideBeaconLabel = function(_, name, hidden)
+            sim.hiddenBeacons = sim.hiddenBeacons or {}
+            sim.hiddenBeacons[name] = hidden == true or nil
+            return true
+        end,
         ScoutLocations = function(_, names)
             sim.net.calls[#sim.net.calls + 1] = { "ScoutLocations", count = #names }
             return true

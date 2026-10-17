@@ -234,6 +234,7 @@ class FTLWorld(World):
             "start_ship": self.start_ship.blueprint,
             "layouts": [layout.blueprint for layout in self.selected_layouts],
             "language": options.mod_language(self.options),
+            "event_beacons": self.options.event_beacons.current_key,
             "goal": self._goal_for_the_mod(),
             "loc": self._check_key_table(),
             "items": descriptors,

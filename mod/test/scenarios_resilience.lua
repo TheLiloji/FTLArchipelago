@@ -967,3 +967,18 @@ test("network: a reconnection to a room whose seed changed does not claim nothin
     check(not shownKey("net.reconnected"), "no 'signal back, nothing lost' before a refusal")
     apNetResetForTesting()
 end)
+
+test("event beacons: the seed's option hides the labels it should, and leaving the seed shows them all again", function()
+    sim.hiddenBeacons = {}
+    apContractResetForTesting()
+    applySeed({ seed_hash = "beacons", event_beacons = "important" })
+    check(sim.hiddenBeacons.AP_EVT_SLUG_WHISPER, "important: the Slug's hints look like any beacon")
+    check(not sim.hiddenBeacons.AP_EVT_PACKAGE, "but the package relay keeps its label")
+    applySeed({ seed_hash = "beacons2", event_beacons = "hidden" })
+    check(sim.hiddenBeacons.AP_EVT_PACKAGE and sim.hiddenBeacons.AP_EVT_HIJACK, "hidden: no event is labelled")
+    apContractUnload()
+    check(next(sim.hiddenBeacons) == nil, "every label is back once the seed is left")
+    applySeed({ seed_hash = "beacons3" })
+    check(next(sim.hiddenBeacons) == nil, "a seed from before the option keeps every label")
+    sim.hiddenBeacons = nil
+end)
