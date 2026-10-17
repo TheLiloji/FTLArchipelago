@@ -419,7 +419,7 @@ class SystemBlueprints(DefaultOnToggle):
     only capped.
 
     Turning this off also silences the five per-system blueprint logic options below, and leaves
-    Sector Logic with nothing to require.
+    Sector Logic with only the power milestones to require, if Progressive System Upgrades is on.
     """
 
     display_name = "System Blueprints"
@@ -520,9 +520,12 @@ class SectorLogic(Choice):
     that starts without shields may use Engines 5 for one layer before the Flagship. Lower with Victory
     Difficulty "any", higher with "hard" (4 layers for the Flagship).
 
+    With Progressive System Upgrades on, standard and strict also ask the power milestones on top of their
+    blueprints, and become power if System Blueprints is off.
+
     This never changes what the game allows, only what the generator considers fair. standard and strict
-    count blueprints without caring which, and do nothing if System Blueprints is off. power reads
-    upgrade levels, so it matters most with Progressive System Upgrades on.
+    count blueprints without caring which, and do nothing more if both System Blueprints and Progressive
+    System Upgrades are off. power reads upgrade levels, so it matters most with Progressive System Upgrades on.
     """
 
     display_name = "Sector Logic"
