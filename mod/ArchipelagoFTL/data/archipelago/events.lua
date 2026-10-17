@@ -6,6 +6,23 @@ end
 
 _G.apEventLog = {}
 
+-- event_beacons: which Archipelago events say ARCHIPELAGO on the map. The AP STORE beacons always do. "important"
+-- keeps the label on the events that carry a package (the relay and the pirates); the tolls, the Slug's hints and
+-- the surge from another world then look like any beacon. Seeds from before the option keep every label.
+local IMPORTANT_EVENTS = { "AP_EVT_PACKAGE", "AP_EVT_HIJACK", "AP_HIJACK_YIELD", "AP_HIJACK_WON", "AP_HIJACK_DEADCREW" }
+local OTHER_EVENTS = {
+    "AP_EVT_ZOLTAN_TITHE", "AP_EVT_ZOLTAN_TITHE_LINK", "AP_EVT_ZOLTAN_TOLL", "AP_EVT_SLUG_WHISPER",
+    "AP_EVT_ANOTHER_WORLD", "AP_EVT_ANOTHER_WORLD_LINK", "AP_EVT_ANOTHER_WORLD_PLAIN",
+}
+
+function apApplyEventBeacons(mode)
+    mode = mode or "marked"
+    if _G.apNetHideBeaconLabel == nil then return end
+    for _, name in ipairs(IMPORTANT_EVENTS) do apNetHideBeaconLabel(name, mode == "hidden") end
+    for _, name in ipairs(OTHER_EVENTS) do apNetHideBeaconLabel(name, mode ~= "marked") end
+    eventLog("event beacons: " .. mode)
+end
+
 local function record(name, detail)
     _G.apEventLog[#_G.apEventLog + 1] = { event = name, detail = detail }
     eventLog(name .. " : " .. detail)

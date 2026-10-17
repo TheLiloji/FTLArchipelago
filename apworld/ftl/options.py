@@ -888,6 +888,22 @@ class DeathLinkEffect(Choice):
     default = option_major_incident
 
 
+class EventBeacons(Choice):
+    """Which Archipelago event beacons say ARCHIPELAGO on the map. The AP STORE beacons always do.
+
+    marked: every Archipelago event is labelled.
+    important: only the events that carry a package (the package relay and the pirates) are labelled. The
+    Zoltan toll, the Slug's hints and the surge from another world look like any beacon until you visit them.
+    hidden: no Archipelago event is labelled: they all hide among the normal beacons.
+    """
+
+    display_name = "Event Beacons"
+    option_marked = 0
+    option_important = 1
+    option_hidden = 2
+    default = option_important
+
+
 class ModLanguage(Choice):
     """Language of the mod's messages, menus and shop.
 
@@ -928,6 +944,7 @@ class FTLOptions(PerGameCommonOptions):
     trap_link: TrapLink
 
     mod_language: ModLanguage
+    event_beacons: EventBeacons
 
     goal: Goal
     victories_required: VictoriesRequired
@@ -1003,7 +1020,7 @@ ftl_option_groups = [
     ),
     OptionGroup(
         "Advanced",
-        [StartShip, HeadStarts, ModLanguage, SectorsanityFirstSector, SectorsanityLastSector, VictoryCollectsLayout, LayoutUnlocks, CrossRunAchievementChecks,
+        [StartShip, HeadStarts, ModLanguage, EventBeacons, SectorsanityFirstSector, SectorsanityLastSector, VictoryCollectsLayout, LayoutUnlocks, CrossRunAchievementChecks,
          SystemBlueprints, ProgressiveSystems, FullSystemUpgrades, FreeUpgrades, SystemInstall, RunStartScrap, CrewMembers, ShopWeapons, ShopDrones, ShopAugments,
          WeaponBundleSize, DroneBundleSize, AugmentBundleSize,
          ShopUnlockMode, ShopItemDelivery, ShopBySector, ShopPerShip, SystemsanityPerShip,

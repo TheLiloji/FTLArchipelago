@@ -74,6 +74,8 @@ public:
     // FTL's own achievements (difficulty it was earned on, -1 if not), which Hyperspace's tracker of
     // custom achievements does not hold.
     int AchievementStatus(const std::string& name) const;
+    // Hides (or shows again) the map label an event's beaconType gives it. False when no such event.
+    bool HideBeaconLabel(const std::string& eventName, bool hidden);
 
     void Push(Event e);
 

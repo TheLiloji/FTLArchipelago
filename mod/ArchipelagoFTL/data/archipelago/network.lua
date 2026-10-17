@@ -894,6 +894,11 @@ function apNetLockShips(blueprints)
 end
 
 -- FTL's own achievements: difficulty earned on, -1 if not, nil when the module cannot tell.
+-- Hides or shows again an event's map label. Nil with a library older than 0.5.1.
+function apNetHideBeaconLabel(eventName, hidden)
+    return moduleCall("HideBeaconLabel", tostring(eventName), hidden == true)
+end
+
 function apNetAchievementStatus(name)
     return moduleCall("AchievementStatus", tostring(name))
 end
