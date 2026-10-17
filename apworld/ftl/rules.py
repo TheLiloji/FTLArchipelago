@@ -661,19 +661,13 @@ def _set_system_rules(world: "FTLWorld", layouts) -> None:
 
     for location in world.created_locations:
         upgrades = _upgrades_needed(options, location)
-        if upgrades and options.progressive_systems_per_ship:
-            add_rule(world.get_location(location.name), _per_ship_upgrade_rule(world, location, upgrades))
+        if upgrades:
+            add_rule(world.get_location(location.name), _upgrade_rule(world, location, upgrades))
             continue
 
         rule = _system_rule(world, location)
         if rule is not None:
             add_rule(world.get_location(location.name), rule)
-        for system, count in upgrades.items():
-            name = f"Progressive {data.SYSTEMS_BY_ID[system].display}"
-            if options.full_system_upgrades:
-                count = 1
-            add_rule(world.get_location(location.name),
-                     lambda state, name=name, count=count: state.has(name, player, count))
 
 
 def _upgrades_needed(options, location: data.Location) -> dict[str, int]:
@@ -697,24 +691,41 @@ def _upgrade_ships(world: "FTLWorld", location: data.Location, systems) -> tuple
     return tuple(other for other in room if all(system in room[other] for system in systems))
 
 
-def _per_ship_upgrade_rule(world: "FTLWorld", location: data.Location,
-                           upgrades: dict[str, int]) -> Callable[[CollectionState], bool]:
+def start_level(layout: data.Layout, system: str) -> int:
+    """The level a layout starts a system at: read from ftl.dat for the power systems, else 1 if aboard."""
+    known = data.LAYOUT_START_LEVELS[layout.blueprint].get(system)
+    if known is not None:
+        return known
+    return 1 if system in layout.start_systems else 0
+
+
+def _upgrade_rule(world: "FTLWorld", location: data.Location,
+                  upgrades: dict[str, int]) -> Callable[[CollectionState], bool]:
+    """In logic on one reachable layout holding the systems: the levels it starts with count, a bought system
+    starts at 1, and each Progressive item adds one (all of them with Full System Upgrades)."""
     player = world.player
-    gated = bool(world.options.system_blueprints)
-    ships = _upgrade_ships(world, location, upgrades)
+    options = world.options
+    gated = bool(options.system_blueprints)
+    per_ship = bool(options.progressive_systems_per_ship)
+    ships = _upgrade_ships(world, location, upgrades) if per_ship else None
     paths = []
-    for layout in _layouts_able_to_try(world.options, location):
-        if layout.ship not in ships:
+    for layout in _layouts_able_to_try(options, location):
+        if ships is not None and layout.ship not in ships:
             continue
         room = set(layout.start_systems) | set(layout.empty_slots)
         if not all(system in room for system in upgrades):
             continue
         missing = [system for system in upgrades if system not in layout.start_systems]
         blueprints = tuple(data.BLUEPRINT_ITEM_NAMES[system] for system in missing) if gated else ()
-        ship = data.SHIPS_BY_BLUEPRINT[layout.ship].display
-        needs = tuple((f"{ship}: Progressive {data.SYSTEMS_BY_ID[system].display}", count)
-                      for system, count in upgrades.items())
-        paths.append((region_name(layout), blueprints, needs))
+        prefix = f"{data.SHIPS_BY_BLUEPRINT[layout.ship].display}: " if per_ship else ""
+        needs = []
+        for system, count in upgrades.items():
+            count = max(0, count - max(0, start_level(layout, system) - 1))
+            if count and options.full_system_upgrades:
+                count = 1
+            if count:
+                needs.append((f"{prefix}Progressive {data.SYSTEMS_BY_ID[system].display}", count))
+        paths.append((region_name(layout), blueprints, tuple(needs)))
 
     if not paths:
         raise OptionError(
