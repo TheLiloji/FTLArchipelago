@@ -132,6 +132,27 @@ test("DeathLink: a seed without the clone option does not keep the last seed's",
     equals(_G.apDeathLink.cloned, false, "back to the default")
 end)
 
+test("DeathLink: a temporary crew member who fades away is not a death", function()
+    apDeathLinkConfigure({ enabled = true, trigger = "both", cloned = false, graceSeconds = 0 })
+    local sent = 0
+    local restore = stub("apNetSendDeath", function() sent = sent + 1 return true end)
+    sim.startRun(true)
+    local projection = sim.player:AddCrewMemberFromString("Projection", "human", false, 0, false, false)
+    projection.extend.deathTimer = {}
+    local hologram = sim.player:AddCrewMemberFromString("Hologram", "zoltan_osmian_hologram", false, 0, false, false)
+    hologram.extend.noSlot = true
+    hologram.extend.noClone = true
+    sim.tick(60)
+    projection.bDead = true
+    hologram.bDead = true
+    sim.tick(60)
+    table.remove(sim.player.vCrewList._store)
+    table.remove(sim.player.vCrewList._store)
+    sim.tick(60)
+    restore()
+    equals(sent, 0, "a projection or a hologram running out is not a crew member lost")
+end)
+
 test("DeathLink: without a Clone Bay, a crew member lying dead aboard is a death at once", function()
     apDeathLinkConfigure({ enabled = true, trigger = "both", cloned = false, graceSeconds = 0 })
     local sent = 0
