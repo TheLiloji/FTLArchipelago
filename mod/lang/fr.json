@@ -368,6 +368,7 @@
     "trap.fuel_leak": "Conduite sectionnée. {n} cellules perdues avant que quelqu'un s'en aperçoive.",
     "trap.fuel_leak.one": "Conduite sectionnée. {n} cellule perdue avant que quelqu'un s'en aperçoive.",
     "trap.hull_damage": "Intégrité de coque : -{n}. Aucun impact enregistré.",
+    "trap.power_surge": "Quelqu'un a équipé votre prochain ennemi d'une surcharge du vaisseau amiral.",
     "trap.named": "{name} : {effect}",
     "trap.sprung": "Piège : {what}",
     "trap.system_damage": "{system} : {n} de dégâts. Aucun tir enregistré.",

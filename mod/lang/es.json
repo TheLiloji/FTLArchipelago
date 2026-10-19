@@ -369,6 +369,7 @@
     "trap.fuel_leak": "Conducto roto. Se perdieron {n} celdas de combustible antes de que alguien lo notara.",
     "trap.fuel_leak.one": "Conducto roto. Se perdió {n} celda de combustible antes de que alguien lo notara.",
     "trap.hull_damage": "Integridad del casco: -{n}. No se registró ningún impacto.",
+    "trap.power_surge": "Alguien equipó a tu próximo enemigo con una sobrecarga de la nave insignia.",
     "trap.named": "{name}: {effect}",
     "trap.sprung": "Trampa: {what}",
     "trap.system_damage": "{system}: {n} de daño. No se registró ningún impacto.",

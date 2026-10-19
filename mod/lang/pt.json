@@ -369,6 +369,7 @@
     "trap.fuel_leak": "Duto cortado. {n} células perdidas antes que alguém notasse.",
     "trap.fuel_leak.one": "Duto cortado. {n} célula perdida antes que alguém notasse.",
     "trap.hull_damage": "Integridade do casco: -{n}. Nenhum impacto registrado.",
+    "trap.power_surge": "Alguém equipou o teu próximo inimigo com uma sobrecarga da nave-almirante.",
     "trap.named": "{name}: {effect}",
     "trap.sprung": "Armadilha: {what}",
     "trap.system_damage": "{system}: {n} de dano. Nenhum impacto registrado.",

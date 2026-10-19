@@ -369,6 +369,7 @@
     "trap.fuel_leak": "Leitung durchtrennt. {n} Zellen weg, bevor es jemand bemerkte.",
     "trap.fuel_leak.one": "Leitung durchtrennt. {n} Zelle weg, bevor es jemand bemerkte.",
     "trap.hull_damage": "Hüllenintegrität: -{n}. Kein Einschlag registriert.",
+    "trap.power_surge": "Jemand hat deinen nächsten Gegner mit einer Energiewelle des Flaggschiffs ausgestattet.",
     "trap.named": "{name}: {effect}",
     "trap.sprung": "Falle: {what}",
     "trap.system_damage": "{system}: {n} Schaden. Kein Treffer registriert.",

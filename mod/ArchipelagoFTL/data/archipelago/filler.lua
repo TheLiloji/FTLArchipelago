@@ -54,7 +54,7 @@ local TRAP_LIMITS = {
     systemFloor = 1,
     pursuitCeiling = 6,
     boardingCrewFloor = 2,
-    asbCeiling = 2,
+    fightTrapCeiling = 2,
 }
 
 _G.apTrapLimits = TRAP_LIMITS
@@ -150,18 +150,40 @@ local TRAP_DELIVERY = {
     end,
     -- Armed now, sprung at the next beacon with a hostile ship: an anti-ship battery joins that fight.
     asb = function()
-        local armed = apTrapAsbArmed()
-        if armed >= TRAP_LIMITS.asbCeiling then
-            return nil
-        end
-        pcall(function() Hyperspace.playerVariables.ap_trap_asb = armed + 1 end)
-        return "trap.asb"
+        return apArmFightTrap("asb") and "trap.asb" or nil
+    end,
+    -- Same wait: the enemy of the next fight unleashes a Flagship power surge, its lasers or its drones.
+    power_surge = function()
+        return apArmFightTrap("power_surge") and "trap.power_surge" or nil
     end,
 }
 
-function apTrapAsbArmed()
-    local ok, value = pcall(function() return Hyperspace.playerVariables.ap_trap_asb end)
+-- Fight traps wait in the run's save, at most fightTrapCeiling of each kind.
+local FIGHT_TRAPS = {
+    { name = "asb", events = { "AP_TRAP_ASB" } },
+    { name = "power_surge", events = { "AP_TRAP_SURGE_LASER", "AP_TRAP_SURGE_DRONES" } },
+}
+
+function apFightTrapArmed(name)
+    local ok, value = pcall(function() return Hyperspace.playerVariables["ap_trap_" .. name] end)
     return ok and math.floor(tonumber(value) or 0) or 0
+end
+
+local function setFightTrapArmed(name, n)
+    pcall(function() Hyperspace.playerVariables["ap_trap_" .. name] = n end)
+end
+
+function apArmFightTrap(name)
+    local armed = apFightTrapArmed(name)
+    if armed >= TRAP_LIMITS.fightTrapCeiling then
+        return false
+    end
+    setFightTrapArmed(name, armed + 1)
+    return true
+end
+
+function apTrapAsbArmed()
+    return apFightTrapArmed("asb")
 end
 
 _G.apTrapFleetPushes = 0
@@ -637,34 +659,55 @@ script.on_internal_event(Defines.InternalEvents.JUMP_ARRIVE, function(shipManage
     end
 end)
 
--- The battery comes as an event once the fight is on and no other event is open. A beacon that already has
--- one, or the Last Stand, keeps the trap for the next fight.
-local function springAsb()
-    if apTrapAsbArmed() <= 0 then
+-- A fight trap comes as an event once the fight is on and no other event is open, one per fight. The Last Stand
+-- keeps it for later, and so does a beacon that already has an anti-ship battery for that trap.
+local sprungHere = false
+
+local function springFightTrap()
+    if sprungHere then
         return
     end
-    local ready = false
+    local ready, pds = false, false
     pcall(function()
         local app = Hyperspace.App
         local gui = app.gui
         local enemy = Hyperspace.ships.enemy
         ready = app.world.bStartedGame and not (gui.choiceBoxOpen or gui.event_pause or gui.menu_pause)
             and enemy ~= nil and not enemy.bDestroyed and enemy._targetable.hostile == true
-            and not app.world.space.bPDS and not app.world.starMap.bossLevel
+            and not app.world.starMap.bossLevel
+        pds = app.world.space.bPDS == true
     end)
     if not ready then
         return
     end
-    local ok, err = pcall(function()
-        Hyperspace.CustomEventsParser.GetInstance():LoadEvent(Hyperspace.App.world, "AP_TRAP_ASB", false, -1)
-    end)
-    if not ok then
-        fillerLog("anti-ship battery trap not sprung: " .. tostring(err))
-        return
+    for _, trap in ipairs(FIGHT_TRAPS) do
+        local armed = apFightTrapArmed(trap.name)
+        if armed > 0 and not (trap.name == "asb" and pds) then
+            local event = trap.events[math.random(1, #trap.events)]
+            local ok, err = pcall(function()
+                Hyperspace.CustomEventsParser.GetInstance():LoadEvent(Hyperspace.App.world, event, false, -1)
+            end)
+            if not ok then
+                fillerLog("fight trap " .. trap.name .. " not sprung: " .. tostring(err))
+                return
+            end
+            setFightTrapArmed(trap.name, armed - 1)
+            sprungHere = true
+            fillerLog("fight trap sprung: " .. event)
+            return
+        end
     end
-    pcall(function() Hyperspace.playerVariables.ap_trap_asb = apTrapAsbArmed() - 1 end)
-    fillerLog("anti-ship battery trap sprung")
 end
+
+script.on_internal_event(Defines.InternalEvents.JUMP_ARRIVE, function(shipManager)
+    if shipManager.iShipId == 0 then
+        sprungHere = false
+    end
+end)
+
+script.on_init(function()
+    sprungHere = false
+end)
 
 local pollDivider = 0
 script.on_internal_event(Defines.InternalEvents.ON_TICK, function()
@@ -673,7 +716,7 @@ script.on_internal_event(Defines.InternalEvents.ON_TICK, function()
         apDeliverPending()
     end
     if pollDivider % 30 == 0 then
-        apTry(TAG, springAsb)
+        apTry(TAG, springFightTrap)
     end
 end)
 
