@@ -64,3 +64,5 @@
 <text name="ap_trap_asb_text" language="pt">Uma bateria de defesa planetária desperta e trava a mira na tua nave. Alguém lhes deu o teu código de transponder.</text>
 <text name="ap_trap_surge_text" language="pt">O reator da nave inimiga uiva. Alguém lhes enviou uma sobrecarga da nave-almirante.</text>
 <text name="ap_trap_asb_end_text" language="pt">A bateria de defesa planetária desliga-se. O combate terminou.</text>
+<text name="ap_trap_hazard_text" language="pt">Alguém passou uma correção de rumo falsa ao teu computador de navegação. Este farol não é tão calmo como diziam as cartas.</text>
+<text name="ap_trap_hazard_end_text" language="pt">Terminado o combate, o espaço à volta do farol acalma.</text>

@@ -64,3 +64,5 @@
 <text name="ap_trap_asb_text" language="it">Una batteria di difesa planetaria si attiva e aggancia la tua nave. Qualcuno ha dato loro il tuo codice transponder.</text>
 <text name="ap_trap_surge_text" language="it">Il reattore della nave nemica urla. Qualcuno ha mandato loro un sovraccarico dell'ammiraglia.</text>
 <text name="ap_trap_asb_end_text" language="it">La batteria di difesa planetaria si spegne. Il combattimento è finito.</text>
+<text name="ap_trap_hazard_text" language="it">Qualcuno ha passato una falsa correzione di rotta al tuo computer di navigazione. Questo segnale non è tranquillo come dicevano le mappe.</text>
+<text name="ap_trap_hazard_end_text" language="it">Finito il combattimento, lo spazio attorno al segnale si calma.</text>

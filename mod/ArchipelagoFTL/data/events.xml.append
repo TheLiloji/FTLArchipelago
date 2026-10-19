@@ -347,3 +347,40 @@
 <event name="AP_TRAP_RESTORE_STORM">
     <environment type="storm"/>
 </event>
+
+<!-- Hazard Trap: the fight's beacon gets a hazard it did not have; it clears when the fight is over. -->
+<event name="AP_TRAP_HAZARD_NEBULA">
+    <text id="ap_trap_hazard_text"/>
+    <environment type="nebula"/>
+</event>
+
+<event name="AP_TRAP_HAZARD_STORM">
+    <text id="ap_trap_hazard_text"/>
+    <environment type="storm"/>
+</event>
+
+<event name="AP_TRAP_HAZARD_ASTEROID">
+    <text id="ap_trap_hazard_text"/>
+    <environment type="asteroid"/>
+</event>
+
+<event name="AP_TRAP_HAZARD_SUN">
+    <text id="ap_trap_hazard_text"/>
+    <environment type="sun"/>
+</event>
+
+<event name="AP_TRAP_HAZARD_PULSAR">
+    <text id="ap_trap_hazard_text"/>
+    <environment type="pulsar"/>
+</event>
+
+<event name="AP_TRAP_HAZARD_END">
+    <text id="ap_trap_hazard_end_text"/>
+    <removeHazards/>
+</event>
+
+<event name="AP_TRAP_HAZARD_END_NEBULA">
+    <text id="ap_trap_hazard_end_text"/>
+    <removeHazards/>
+    <removeNebula/>
+</event>

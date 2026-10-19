@@ -64,3 +64,5 @@
 <text name="ap_trap_asb_text" language="fr">Une batterie de défense planétaire s'éveille et verrouille votre vaisseau. Quelqu'un leur a donné votre code de transpondeur.</text>
 <text name="ap_trap_surge_text" language="fr">Le réacteur du vaisseau ennemi hurle. Quelqu'un leur a envoyé une surcharge du vaisseau amiral.</text>
 <text name="ap_trap_asb_end_text" language="fr">La batterie de défense planétaire s'éteint. Le combat est terminé.</text>
+<text name="ap_trap_hazard_text" language="fr">Quelqu'un a glissé une mauvaise correction de cap à votre ordinateur de navigation. Cette balise n'est pas aussi calme que le disaient les cartes.</text>
+<text name="ap_trap_hazard_end_text" language="fr">Le combat terminé, l'espace autour de la balise se calme.</text>
