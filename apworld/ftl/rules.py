@@ -42,7 +42,7 @@ class _SectorLogicTier:
 
 
 SECTOR_LOGIC_TIERS: dict[int, _SectorLogicTier] = {
-    SectorLogic.option_relaxed: _SectorLogicTier(sectors=(), flagship=0),
+    SectorLogic.option_none: _SectorLogicTier(sectors=(), flagship=0),
     SectorLogic.option_standard: _SectorLogicTier(sectors=((4, 2), (6, 4)), flagship=5),
     SectorLogic.option_strict: _SectorLogicTier(sectors=((3, 3), (5, 6), (7, 9)), flagship=11),
     SectorLogic.option_power: _SectorLogicTier(sectors=(), flagship=0),
@@ -289,16 +289,16 @@ def plan(world: "FTLWorld") -> LogicPlan:
 
     asked = options.sector_logic.value
     if not options.system_blueprints and asked != SectorLogic.option_power:
-        # Nothing left to count, but capped levels still need their milestones. relaxed asked for none.
+        # Nothing left to count, but capped levels still need their milestones. none asked for nothing.
         milestones = options.progressive_systems and asked in (SectorLogic.option_standard, SectorLogic.option_strict)
-        asked = SectorLogic.option_power if milestones else SectorLogic.option_relaxed
+        asked = SectorLogic.option_power if milestones else SectorLogic.option_none
     warnings: list[str] = []
 
-    candidates = ((asked, SectorLogic.option_relaxed) if asked == SectorLogic.option_power
-                  else range(asked, SectorLogic.option_relaxed - 1, -1))
+    candidates = ((asked, SectorLogic.option_none) if asked == SectorLogic.option_power
+                  else range(asked, SectorLogic.option_none - 1, -1))
     level = next(
         (candidate for candidate in candidates if _fits(world, candidate, start_items)),
-        SectorLogic.option_relaxed,
+        SectorLogic.option_none,
     )
     if level != asked:
         warnings.append(
@@ -323,7 +323,7 @@ def plan(world: "FTLWorld") -> LogicPlan:
         for layout in layouts
         for name in blueprints_gating_layout(options, layout)
     }
-    if level in (SectorLogic.option_relaxed, SectorLogic.option_power):
+    if level in (SectorLogic.option_none, SectorLogic.option_power):
         progression = (frozenset(gating) | blueprints_the_system_rules_read(options)
                        | (power_upgrade_names(options) & frozenset(data.BLUEPRINT_ITEM_NAMES.values())))
     else:
@@ -433,7 +433,7 @@ def _fits(
 
 
 def _progression_item_count(world: "FTLWorld", level: int) -> int:
-    if level in (SectorLogic.option_relaxed, SectorLogic.option_power):
+    if level in (SectorLogic.option_none, SectorLogic.option_power):
         progression_blueprints = {
             name
             for layout in selected_layouts(world.options)
@@ -871,7 +871,7 @@ def _check() -> None:
         if thresholds != sorted(thresholds) or counts != sorted(counts):
             raise ValueError(f"the tiers of level {level} are not increasing: {tier}")
 
-    for level in (SectorLogic.option_relaxed, SectorLogic.option_standard,
+    for level in (SectorLogic.option_none, SectorLogic.option_standard,
                   SectorLogic.option_strict, SectorLogic.option_power):
         if level not in SECTOR_LOGIC_TIERS:
             raise ValueError(f"sector logic level {level} has no declared tiers")

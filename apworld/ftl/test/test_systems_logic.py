@@ -217,7 +217,7 @@ class TestProgressiveUpgradesPerShipOnABigSeed(FTLTestBase):
 
 class TestProgressiveUpgradesPerShipStayUseful(FTLTestBase):
     options = {"layout_count": 28, "start_ship": "kestrel_cruiser", "progressive_systems_per_ship": True,
-               "systemsanity": "every_level", "sector_logic": "relaxed"}
+               "systemsanity": "every_level", "sector_logic": "none"}
 
     def test_the_other_ships_upgrades_are_not_progression(self) -> None:
         from ..items import effective_classification

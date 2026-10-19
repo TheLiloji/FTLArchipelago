@@ -141,7 +141,7 @@ def run(name: str, plugin, seeds: int):
     # The option is set before generate_early: the plan and the item classifications read it.
     def generate_early(self):
         level = {"current standard": "option_standard", "current strict": "option_strict",
-                 "current power": "option_power"}.get(name, "option_relaxed")
+                 "current power": "option_power"}.get(name, "option_none")
         self.options.sector_logic.value = getattr(self.options.sector_logic, level)
         original_generate_early(self)
 
