@@ -468,7 +468,7 @@ class TestPlandoBeforeTheWorldHasPlanned(FTLTestBase):
 
 class TestThePlanDoesChangeClassifications(FTLTestBase):
 
-    options = {"sector_logic": "relaxed", "systemsanity": "disabled", "ship_achievements": False}
+    options = {"sector_logic": "none", "systemsanity": "disabled", "ship_achievements": False}
 
     def test_some_blueprint_is_useful_with_the_plan_and_progression_without(self) -> None:
         changed = [

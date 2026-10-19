@@ -521,7 +521,8 @@ class SystemInstall(Choice):
 
 class RunStartScrap(Range):
     """At the start of every run, you get this percentage of all the scrap items you received so far.
-    Scrap items still give their scrap once when they arrive. 0 turns it off; 10 to 25 is a good range.
+    Scrap items still give their scrap once when they arrive. Off by default (0). If you turn it on, 10 to 25
+    is a good range.
     """
 
     display_name = "Run Start Scrap (%)"
@@ -554,7 +555,9 @@ class TrapChance(Range):
 class SectorLogic(Choice):
     """What the logic expects of your ship before sending you deep into the sectors.
 
-    relaxed: nothing. Every sector and every victory is in logic as soon as the layout is.
+    none: no requirement at all. Every sector and every victory is in logic as soon as the layout is, so the
+    generator may expect you to reach the Flagship with little more than your starting ship. For experienced
+    players. ("relaxed", its old name, still works.)
     standard: 2 system blueprints received for sector 4, 4 for sector 6, 5 for the Flagship.
     strict: 3 blueprints for sector 3, 6 for sector 5, 9 for sector 7, 11 for the Flagship.
     power: milestones on the ship that does the check, from its real start. Sector 5 needs 2 shield
@@ -571,7 +574,8 @@ class SectorLogic(Choice):
     """
 
     display_name = "Sector Logic"
-    option_relaxed = 0
+    option_none = 0
+    alias_relaxed = 0
     option_standard = 1
     option_strict = 2
     option_power = 3

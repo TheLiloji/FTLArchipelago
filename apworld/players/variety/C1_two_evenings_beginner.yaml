@@ -1,5 +1,5 @@
 # Preset C1: FTL alone in a multiworld, played over two evenings. New to FTL.
-# Sector 1 skipped, two victories, no traps, relaxed logic.
+# Sector 1 skipped, two victories, no traps, no logic requirements.
 # Measured: 117 locations, 30 free shop slots, ~13.9 checks per hour,
 # ~5.1 h to the goal, ~13 minutes max wait with nothing to send.
 # Change the name line, then generate as usual.
@@ -38,7 +38,7 @@ accessibility: full
   shop_augments: 6
   shop_unlock_mode: rarity_boost
   shop_item_delivery: true
-  sector_logic: relaxed
+  sector_logic: none
   shields_blueprint_logic: start_with
   sensors_blueprint_logic: upgrade_only
   medbay_blueprint_logic: upgrade_only

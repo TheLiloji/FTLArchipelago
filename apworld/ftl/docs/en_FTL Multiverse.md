@@ -218,8 +218,9 @@ starts you have collected apply to the next one.
 
 Two families of options decide how much ship the generator assumes you have before it sends you deep.
 
-**Sector Logic** counts blueprints without caring which: `relaxed` puts every sector in logic as soon as the
-layout is, `standard` expects a couple of blueprints before the deep sectors, `strict` expects a real ship.
+**Sector Logic** counts blueprints without caring which: `none` puts every sector in logic as soon as the
+layout is (for experienced players: you may be expected to win with very little; `relaxed`, its old name, still
+works), `standard` expects a couple of blueprints before the deep sectors, `strict` expects a real ship.
 
 `power` looks at the ship instead: each check is judged on the ship that does it, from its real start. Sector 5
 needs 2 shield layers, sector 8 also Weapon Control 5, the Flagship 3 layers, Weapon Control 6 and Engines 4.

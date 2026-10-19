@@ -234,13 +234,13 @@ class TestStandardWithoutBlueprintsBecomesPower(FTLTestBase):
 
 
 class TestRelaxedWithoutBlueprintsStaysRelaxed(FTLTestBase):
-    """relaxed asks for nothing: no blueprints to count must not turn it into power (whose shields need a
-    blueprint the pool no longer has)."""
+    """none asks for nothing: no blueprints to count must not turn it into power (whose shields need a
+    blueprint the pool no longer has). Written with its old name, relaxed, which old YAMLs still use."""
 
     options = {"layout_count": 28, "sector_logic": "relaxed", "system_blueprints": False}
 
     def test_relaxed_is_kept(self) -> None:
-        self.assertEqual(self.world.sector_logic_level, rules.SectorLogic.option_relaxed)
+        self.assertEqual(self.world.sector_logic_level, rules.SectorLogic.option_none)
 
 
 MV_KESTREL = data.LAYOUTS_BY_BLUEPRINT["PLAYER_SHIP_MVKESTREL"]
