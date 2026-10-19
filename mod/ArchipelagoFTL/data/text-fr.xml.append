@@ -63,3 +63,4 @@
 <text name="ap_evt_hijack_deadcrew_text" language="fr">L'équipage pirate est mort. Vous envoyez le colis à son destinataire, puis vous dépouillez leur vaisseau.</text>
 <text name="ap_trap_asb_text" language="fr">Une batterie de défense planétaire s'éveille et verrouille votre vaisseau. Quelqu'un leur a donné votre code de transpondeur.</text>
 <text name="ap_trap_surge_text" language="fr">Le réacteur du vaisseau ennemi hurle. Quelqu'un leur a envoyé une surcharge du vaisseau amiral.</text>
+<text name="ap_trap_asb_end_text" language="fr">La batterie de défense planétaire s'éteint. Le combat est terminé.</text>

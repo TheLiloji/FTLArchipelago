@@ -8,6 +8,20 @@
 
 <multipleOverCapacity enabled="true"/>
 
+<!-- Power Surge Trap in sectors 1 and 2: a few basic lasers or two combat drones, not the Flagship's surge. -->
+<boss>
+    <surgeBarrage name="AP_SURGE_LIGHT_LASER">
+        <weapon difficulty="0" name="LASER_BURST_1" count="2"/>
+        <weapon difficulty="1" name="LASER_BURST_1" count="3"/>
+        <weapon difficulty="2" name="LASER_BURST_1" count="4"/>
+    </surgeBarrage>
+    <surgeDrones name="AP_SURGE_LIGHT_DRONES">
+        <drone difficulty="0" name="COMBAT_1" count="1"/>
+        <drone difficulty="1" name="COMBAT_1" count="2"/>
+        <drone difficulty="2" name="COMBAT_1" count="2"/>
+    </surgeDrones>
+</boss>
+
 <augments>
     <aug name="ENERGY_SHIELD"><locked/></aug>
     <aug name="SHIELD_RECHARGE"><locked/></aug>

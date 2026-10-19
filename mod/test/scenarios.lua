@@ -495,10 +495,53 @@ test("power surge trap: waits for a fight, one fight trap per fight", function()
     sim.jumpArrive()
     sim.tick(120)
     local event = sim.loadedEvents[2]
-    check(event == "AP_TRAP_SURGE_LASER" or event == "AP_TRAP_SURGE_DRONES",
-        "the next fight gets the surge, lasers or drones (" .. tostring(event) .. ")")
+    check(event == "AP_TRAP_SURGE_LASER_LIGHT" or event == "AP_TRAP_SURGE_DRONES_LIGHT",
+        "the next fight gets the surge, a light one in sector 1 (" .. tostring(event) .. ")")
     equals(apFightTrapArmed("power_surge"), 0, "and the trap is spent")
+    check(shownKey("trap.named", { name = apT("trap.title.power_surge"), effect = apT("trap.power_surge") }),
+        "the trap is named in the player's language")
+
+    apQueueItem({ kind = "trap", eff = "power_surge" })
     sim.enemy = nil
+    sim.jumpArrive()
+    drain()
+    sim.starMap.worldLevel = 4
+    sim.enemy = sim.makeShip(1)
+    sim.jumpArrive()
+    sim.tick(120)
+    event = sim.loadedEvents[3]
+    check(event == "AP_TRAP_SURGE_LASER" or event == "AP_TRAP_SURGE_DRONES",
+        "from sector 3, the Flagship's own surge (" .. tostring(event) .. ")")
+    sim.starMap.worldLevel = 0
+    sim.enemy = nil
+end)
+
+test("anti-ship battery trap: the battery stops once the enemy gives up", function()
+    sim.startRun(true)
+    sim.jumpArrive()
+    sim.loadedEvents = {}
+    sim.space.bPDS = false
+    apQueueItem({ kind = "trap", eff = "asb" })
+    drain()
+    sim.enemy = sim.makeShip(1)
+    sim.tick(120)
+    equals(sim.loadedEvents[1], "AP_TRAP_ASB", "the battery joins the fight")
+    sim.tick(120)
+    equals(#sim.loadedEvents, 1, "and keeps firing while the enemy fights")
+    sim.enemy._targetable.hostile = false
+    sim.tick(120)
+    equals(sim.loadedEvents[2], "AP_TRAP_ASB_END", "a surrender switches it off")
+    sim.tick(120)
+    equals(#sim.loadedEvents, 2, "once")
+    sim.enemy = nil
+end)
+
+test("a head start is announced with the system's name in the player's language", function()
+    sim.startRun(true)
+    sim.clearLog()
+    apQueueItem({ kind = "start", sys = "engines", n = 1, display = "Head Start: Engines" })
+    drain()
+    check(shownKey("start.received", { item = apSystemLabel("engines") }), "the game's name of the system")
 end)
 
 test("boarding trap: refused when only one crew member is left", function()

@@ -279,6 +279,8 @@ local function resetWorld()
     sim.player = makeShip(0)
     sim.cloneQueue = {}
     sim.space = {
+        sunLevel = false, pulsarLevel = false, bStorm = false, bPDS = false,
+        asteroidGenerator = { bRunning = false },
         currentPlanet = { tex = nil, x = 0, y = 0, w = 0, h = 0 },
         SwitchBackground = function(_, name)
             sim.decor.background = name

@@ -63,3 +63,4 @@
 <text name="ap_evt_hijack_deadcrew_text">The pirate crew is dead. You send the package on its way, then strip their ship.</text>
 <text name="ap_trap_asb_text">A planetary defense battery wakes up and locks onto your ship. Somebody gave them your transponder code.</text>
 <text name="ap_trap_surge_text">The enemy ship's reactor howls. Somebody sent them a Flagship power surge.</text>
+<text name="ap_trap_asb_end_text">The planetary defense battery powers down. The fight is over.</text>

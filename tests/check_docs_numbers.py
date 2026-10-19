@@ -66,7 +66,10 @@ WORDS = {
     "fifteen": 15, "sixteen": 16, "seventeen": 17, "eighteen": 18, "nineteen": 19, "twenty": 20, "thirty": 30, "forty": 40, "fifty": 50, "sixty": 60,
 }
 
-GAME_DOC_PAGE = "apworld/ftl/docs/en_FTL Faster Than Light.md"
+# The game's page is named after the game: "FTL Faster Than Light" here, "FTL Multiverse" on the Multiverse branch.
+GAME_DOC_PAGE = next(
+    str(page.relative_to(ROOT)) for page in sorted((ROOT / "apworld/ftl/docs").glob("en_FTL *.md"))
+)
 
 DESIGN_NUMBERS = (
     (GAME_DOC_PAGE, r"any number of layouts you like, (\w+) by default", "VictoriesRequired"),

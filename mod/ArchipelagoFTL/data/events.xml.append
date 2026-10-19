@@ -313,3 +313,20 @@
     <text id="ap_trap_surge_text"/>
     <superDrones player="false"/>
 </event>
+
+<!-- Lighter surges for sectors 1 and 2 (AP_SURGE_LIGHT_* in hyperspace.xml.append). -->
+<event name="AP_TRAP_SURGE_LASER_LIGHT">
+    <text id="ap_trap_surge_text"/>
+    <superBarrage player="false" name="AP_SURGE_LIGHT_LASER"/>
+</event>
+
+<event name="AP_TRAP_SURGE_DRONES_LIGHT">
+    <text id="ap_trap_surge_text"/>
+    <superDrones player="false" name="AP_SURGE_LIGHT_DRONES"/>
+</event>
+
+<!-- The trap's anti-ship battery powers down once the fight is over. -->
+<event name="AP_TRAP_ASB_END">
+    <text id="ap_trap_asb_end_text"/>
+    <removeHazards/>
+</event>
