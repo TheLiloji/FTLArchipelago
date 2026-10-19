@@ -896,6 +896,22 @@ class EventBeacons(Choice):
     default = option_important
 
 
+class CrewNames(Choice):
+    """Names given to the crew members who join you during a run. Your starting crew keeps its names.
+
+    vanilla: FTL's own names.
+    multiworld: the other players of the multiworld first, by their slot names, then FTL's own names once
+    each of them is aboard.
+    multiworld_and_team: the same, then the people who made and tested this mod.
+    """
+
+    display_name = "Crew Names"
+    option_vanilla = 0
+    option_multiworld = 1
+    option_multiworld_and_team = 2
+    default = option_multiworld
+
+
 class ModLanguage(Choice):
     """Language of the mod's messages, menus and shop.
 
@@ -937,6 +953,7 @@ class FTLOptions(PerGameCommonOptions):
 
     mod_language: ModLanguage
     event_beacons: EventBeacons
+    crew_names: CrewNames
 
     goal: Goal
     victories_required: VictoriesRequired
@@ -1006,7 +1023,8 @@ ftl_option_groups = [
     ),
     OptionGroup(
         "Playing with Others",
-        [DeathLink, DeathLinkTrigger, DeathLinkClonedCrew, DeathLinkEffect, EnergyLink, TrapLink, TrapChance],
+        [DeathLink, DeathLinkTrigger, DeathLinkClonedCrew, DeathLinkEffect, EnergyLink, TrapLink, TrapChance,
+         CrewNames],
     ),
     OptionGroup(
         "Advanced",

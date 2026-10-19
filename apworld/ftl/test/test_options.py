@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
+from unittest import mock
 
 from BaseClasses import CollectionState
 from Fill import distribute_items_restrictive
@@ -944,6 +945,28 @@ class TestEventBeaconsHidden(FTLTestBase):
 
     def test_the_mod_is_told(self) -> None:
         self.assertEqual(self.world.fill_slot_data()["event_beacons"], "hidden")
+
+
+class TestCrewNamesDefault(FTLTestBase):
+
+    def test_new_crew_is_named_after_the_multiworld_by_default(self) -> None:
+        slot_data = self.world.fill_slot_data()
+        self.assertEqual(slot_data["crew_names"], "multiworld")
+        self.assertEqual(slot_data["players"], [], "alone in the multiworld: no one else to name a crew after")
+
+
+class TestCrewNamesTeam(FTLTestBase):
+
+    options = {"crew_names": "multiworld_and_team"}
+
+    def test_the_mod_is_told(self) -> None:
+        self.assertEqual(self.world.fill_slot_data()["crew_names"], "multiworld_and_team")
+
+    def test_the_other_slots_are_listed_without_this_one(self) -> None:
+        names = {1: "Tester", 2: "Nina", 3: "Berserker"}
+        with mock.patch.object(type(self.multiworld), "player_ids", new=property(lambda _: (1, 2, 3))), \
+                mock.patch.object(self.multiworld, "get_player_name", side_effect=names.get):
+            self.assertEqual(self.world._other_player_names(), ["Nina", "Berserker"])
 
 
 class TestEarlyShipKeysDefault(FTLTestBase):

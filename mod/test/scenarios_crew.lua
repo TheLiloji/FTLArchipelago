@@ -238,3 +238,52 @@ test("crew: a race the text library lacks takes its name from its crew blueprint
     equals(apRaceLabel("nothing_known"), "nothing_known", "no title anywhere: the id itself")
     sim.crewTitles = nil
 end)
+
+local function joins(name)
+    local member = sim.player:AddCrewMemberFromString(name, "human", false, 0, false, false)
+    sim.tick(30)
+    return member
+end
+
+test("crew names: new crew is named after the other players, then keeps FTL's names", function()
+    apCrewNamesConfigure("multiworld", { "Nina", "Bérénice", "Berserker" })
+    sim.startRun(true)
+    sim.tick(30)
+    local captain = sim.player.vCrewList[0]
+    local starting = captain:GetName()
+    equals(joins("Ruwen"):GetName(), "Nina", "the first recruit takes a player's name")
+    equals(joins("Kazu"):GetName(), "Berserker", "the next one the next player's, skipping a name FTL cannot draw")
+    equals(joins("Hara"):GetName(), "Hara", "once every player is aboard, FTL's names come back")
+    equals(captain:GetName(), starting, "the starting crew keeps its names")
+    sim.startRun(false)
+    sim.tick(30)
+    equals(joins("Lio"):GetName(), "Lio", "after a Continue, the names aboard are still taken")
+end)
+
+test("crew names: the team comes after the players, only when asked", function()
+    apCrewNamesConfigure("multiworld_and_team", { "Nina" })
+    sim.startRun(true)
+    sim.tick(30)
+    equals(joins("Ruwen"):GetName(), "Nina", "players first")
+    equals(joins("Kazu"):GetName(), "Liloji", "then the team")
+    apCrewNamesConfigure("vanilla", { "Nina" })
+    sim.startRun(true)
+    sim.tick(30)
+    equals(joins("Hara"):GetName(), "Hara", "vanilla keeps FTL's names")
+    apCrewNamesConfigure("multiworld", {})
+end)
+
+test("crew names: a hologram or a drone keeps its name", function()
+    apCrewNamesConfigure("multiworld", { "Nina" })
+    sim.startRun(true)
+    sim.tick(30)
+    local hologram = sim.player:AddCrewMemberFromString("Hologram", "human", false, 0, false, false)
+    hologram.extend.deathTimer = {}
+    local drone = sim.player:AddCrewMemberFromString("Drone", "repair", false, 0, false, false)
+    drone.IsDrone = function() return true end
+    sim.tick(30)
+    equals(hologram:GetName(), "Hologram", "a projection is not a recruit")
+    equals(drone:GetName(), "Drone", "nor a drone")
+    equals(joins("Ruwen"):GetName(), "Nina", "the name waits for a real recruit")
+    apCrewNamesConfigure("multiworld", {})
+end)
