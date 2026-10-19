@@ -555,6 +555,62 @@ test("anti-ship battery trap: on an asteroid field, the asteroids stay once the 
     sim.enemy = nil
 end)
 
+test("hazard trap: the next fight's beacon gets a hazard it lacked, gone once the fight is over", function()
+    sim.startRun(true)
+    sim.jumpArrive()
+    sim.loadedEvents = {}
+    sim.space.bNebula = false
+    sim.space.asteroidGenerator.bRunning = true
+    apQueueItem({ kind = "trap", eff = "hazard" })
+    drain()
+    equals(apFightTrapArmed("hazard"), 1, "the hazard waits for a fight")
+    check(shownKey("trap.named", { name = apT("trap.title.hazard"), effect = apT("trap.hazard") }),
+        "and the player is warned, in their language")
+    sim.enemy = sim.makeShip(1)
+    sim.tick(120)
+    local event = sim.loadedEvents[1]
+    check(event ~= nil and event:find("^AP_TRAP_HAZARD_") ~= nil, "a hazard joins the fight (" .. tostring(event) .. ")")
+    check(event ~= "AP_TRAP_HAZARD_ASTEROID", "never one the beacon already has")
+    sim.enemy._targetable.hostile = false
+    sim.tick(120)
+    local nebula = event == "AP_TRAP_HAZARD_NEBULA" or event == "AP_TRAP_HAZARD_STORM"
+    equals(sim.loadedEvents[2], nebula and "AP_TRAP_HAZARD_END_NEBULA" or "AP_TRAP_HAZARD_END",
+        "the hazard clears with the fight")
+    equals(sim.loadedEvents[3], "AP_TRAP_RESTORE_ASTEROID", "and the beacon keeps its own asteroids")
+    sim.space.asteroidGenerator.bRunning = false
+    sim.enemy = nil
+end)
+
+test("hazard trap: a nebula brought by the trap is removed, the beacon's own nebula stays", function()
+    for _, hadNebula in ipairs({ false, true }) do
+        sim.startRun(true)
+        sim.jumpArrive()
+        sim.loadedEvents = {}
+        sim.space.bNebula = hadNebula
+        sim.space.bStorm = true
+        sim.space.asteroidGenerator.bRunning = true
+        sim.space.sunLevel = true
+        sim.space.pulsarLevel = not hadNebula
+        apQueueItem({ kind = "trap", eff = "hazard" })
+        drain()
+        sim.enemy = sim.makeShip(1)
+        sim.tick(120)
+        if hadNebula then
+            equals(#sim.loadedEvents, 1, "a beacon in a nebula: the pulsar is all that is left")
+            equals(sim.loadedEvents[1], "AP_TRAP_HAZARD_PULSAR", "")
+        else
+            equals(sim.loadedEvents[1], "AP_TRAP_HAZARD_NEBULA", "the only hazard this beacon lacks")
+            sim.enemy.bDestroyed = true
+            sim.tick(120)
+            equals(sim.loadedEvents[2], "AP_TRAP_HAZARD_END_NEBULA", "the trap's nebula goes away")
+        end
+        sim.space.bStorm, sim.space.sunLevel, sim.space.pulsarLevel = false, false, false
+        sim.space.asteroidGenerator.bRunning = false
+        sim.space.bNebula = false
+        sim.enemy = nil
+    end
+end)
+
 test("a head start is announced with the system's name in the player's language", function()
     sim.startRun(true)
     sim.clearLog()
@@ -4917,6 +4973,19 @@ test("event: the pirates hold another player's package and say whose", function(
     local box = sim.openChoiceBox("AP_EVT_HIJACK", 3)
     check(box.text:find("Axel", 1, true) ~= nil, "a friend's package before the player's own: " .. box.text)
     check(box.text:find("20 Scrap", 1, true) ~= nil, "and what's inside")
+    check(box.text:find(apT("event.hijack.hint.filler"), 1, true) ~= nil,
+        "with a word on what it is worth: junk here")
+end)
+
+test("event: the pirates' package hints at a trap, so the player can leave it", function()
+    sim.startRun(true)
+    _G.apShopSlotCount = 1
+    apShopGiftsConfigure({
+        { location = "shop:1", slot = "Axel", item = "Ice Trap", sphere = 1, kind = "trap", cost = 25 },
+    })
+    local box = sim.openChoiceBox("AP_EVT_HIJACK", 3)
+    check(box.text:find(apT("event.hijack.hint.trap"), 1, true) ~= nil, "something feels off: " .. box.text)
+    check(box.text:find(apT("event.hijack.hint.filler"), 1, true) == nil, "and only that")
 end)
 
 test("event: winning the fight frees the pirates' package for free", function()

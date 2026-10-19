@@ -62,3 +62,5 @@
 <text name="ap_trap_asb_text" language="es">Una batería de defensa planetaria se activa y fija tu nave como objetivo. Alguien les dio tu código de transpondedor.</text>
 <text name="ap_trap_surge_text" language="es">El reactor de la nave enemiga ruge. Alguien les envió una sobrecarga de la nave insignia.</text>
 <text name="ap_trap_asb_end_text" language="es">La batería de defensa planetaria se apaga. El combate ha terminado.</text>
+<text name="ap_trap_hazard_text" language="es">Alguien le pasó una corrección de rumbo falsa a tu ordenador de navegación. Esta baliza no es tan tranquila como decían las cartas.</text>
+<text name="ap_trap_hazard_end_text" language="es">Terminado el combate, el espacio alrededor de la baliza se calma.</text>

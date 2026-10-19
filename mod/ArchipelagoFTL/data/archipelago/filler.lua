@@ -156,6 +156,10 @@ local TRAP_DELIVERY = {
     power_surge = function()
         return apArmFightTrap("power_surge") and "trap.power_surge" or nil
     end,
+    -- Same wait: the next fight's beacon gets a hazard it did not have (nebula, ion storm, asteroids, sun, pulsar).
+    hazard = function()
+        return apArmFightTrap("hazard") and "trap.hazard" or nil
+    end,
 }
 
 -- Fight traps wait in the run's save, at most fightTrapCeiling of each kind.
@@ -163,6 +167,8 @@ local FIGHT_TRAPS = {
     { name = "asb", events = { "AP_TRAP_ASB" } },
     { name = "power_surge", events = { "AP_TRAP_SURGE_LASER", "AP_TRAP_SURGE_DRONES" },
       early = { "AP_TRAP_SURGE_LASER_LIGHT", "AP_TRAP_SURGE_DRONES_LIGHT" } },
+    -- Its events depend on the beacon: a hazard it does not have yet.
+    { name = "hazard" },
 }
 
 -- Sectors 1 and 2: a ship there cannot take a Flagship surge, it gets a lighter one.
@@ -196,7 +202,7 @@ local TRAP_TITLES = {
     fire = "trap.title.fire", breach = "trap.title.breach", fuel_leak = "trap.title.fuel_leak",
     system_damage = "trap.title.system_damage", fleet_advance = "trap.title.fleet_advance",
     hull_damage = "trap.title.hull_damage", boarding = "trap.title.boarding", asb = "trap.title.asb",
-    power_surge = "trap.title.power_surge",
+    power_surge = "trap.title.power_surge", hazard = "trap.title.hazard",
 }
 
 local TRAP_FALLBACK_ORDER = { "fire", "breach", "system_damage", "fuel_leak" }
@@ -681,23 +687,61 @@ script.on_internal_event(Defines.InternalEvents.JUMP_ARRIVE, function(shipManage
 end)
 
 -- A fight trap comes as an event once the fight is on and no other event is open, one per fight. The Last Stand
--- keeps it for later, and so does a beacon that already has an anti-ship battery for that trap.
+-- keeps it for later, and so does a beacon that already has what the trap would bring.
 local sprungHere = false
--- The battery the trap brought powers down with the fight. Switching it off clears every hazard, so the
--- beacon's own ones (asteroids, sun, pulsar, ion storm) are put back right after.
-local batteryHere = false
-local hazardsHere = {}
+-- An anti-ship battery or a hazard brought by a trap goes away with the fight. Switching it off clears every
+-- hazard, so the beacon's own ones (asteroids, sun, pulsar, ion storm) are put back right after.
+local cleanupHere = nil
 
-local HAZARD_EVENTS = {
+local RESTORE_EVENTS = {
     asteroid = "AP_TRAP_RESTORE_ASTEROID", sun = "AP_TRAP_RESTORE_SUN",
     pulsar = "AP_TRAP_RESTORE_PULSAR", storm = "AP_TRAP_RESTORE_STORM",
 }
+local HAZARD_EVENTS = {
+    nebula = "AP_TRAP_HAZARD_NEBULA", storm = "AP_TRAP_HAZARD_STORM", asteroid = "AP_TRAP_HAZARD_ASTEROID",
+    sun = "AP_TRAP_HAZARD_SUN", pulsar = "AP_TRAP_HAZARD_PULSAR",
+}
+
+-- What the beacon has on its own, before any trap.
+local function beaconHazards()
+    local hazards = {}
+    pcall(function()
+        local space = Hyperspace.App.world.space
+        hazards.pds = space.bPDS == true or nil
+        hazards.nebula = space.bNebula == true or nil
+        hazards.storm = space.bStorm == true or nil
+        hazards.asteroid = space.asteroidGenerator.bRunning == true or nil
+        hazards.sun = space.sunLevel == true or nil
+        hazards.pulsar = space.pulsarLevel == true or nil
+    end)
+    return hazards
+end
+
+local function trapEvents(trap, hazards)
+    if trap.name == "asb" then
+        return not hazards.pds and trap.events or {}
+    end
+    if trap.name == "hazard" then
+        local events = {}
+        for _, hazard in ipairs({ "nebula", "storm", "asteroid", "sun", "pulsar" }) do
+            if not hazards[hazard] then
+                events[#events + 1] = HAZARD_EVENTS[hazard]
+            end
+        end
+        return events
+    end
+    local ok, level = pcall(function() return Hyperspace.App.world.starMap.worldLevel end)
+    if trap.early and ok and tonumber(level) and level + 1 <= EARLY_SECTORS then
+        return trap.early
+    end
+    return trap.events
+end
 
 local function springFightTrap()
     if sprungHere then
         return
     end
-    local ready, pds = false, false
+    local ready = false
     pcall(function()
         local app = Hyperspace.App
         local gui = app.gui
@@ -705,19 +749,15 @@ local function springFightTrap()
         ready = app.world.bStartedGame and not (gui.choiceBoxOpen or gui.event_pause or gui.menu_pause)
             and enemy ~= nil and not enemy.bDestroyed and enemy._targetable.hostile == true
             and not app.world.starMap.bossLevel
-        pds = app.world.space.bPDS == true
     end)
     if not ready then
         return
     end
+    local hazards = beaconHazards()
     for _, trap in ipairs(FIGHT_TRAPS) do
         local armed = apFightTrapArmed(trap.name)
-        if armed > 0 and not (trap.name == "asb" and pds) then
-            local events = trap.events
-            local ok, level = pcall(function() return Hyperspace.App.world.starMap.worldLevel end)
-            if trap.early and ok and tonumber(level) and level + 1 <= EARLY_SECTORS then
-                events = trap.early
-            end
+        local events = trapEvents(trap, hazards)
+        if armed > 0 and #events > 0 then
             local event = events[math.random(1, #events)]
             local ok, err = pcall(function()
                 Hyperspace.CustomEventsParser.GetInstance():LoadEvent(Hyperspace.App.world, event, false, -1)
@@ -728,16 +768,10 @@ local function springFightTrap()
             end
             setFightTrapArmed(trap.name, armed - 1)
             sprungHere = true
-            if trap.name == "asb" then
-                batteryHere = true
-                hazardsHere = {}
-                pcall(function()
-                    local space = Hyperspace.App.world.space
-                    hazardsHere.asteroid = space.asteroidGenerator.bRunning == true or nil
-                    hazardsHere.sun = space.sunLevel == true or nil
-                    hazardsHere.pulsar = space.pulsarLevel == true or nil
-                    hazardsHere.storm = space.bStorm == true or nil
-                end)
+            if trap.name == "asb" or trap.name == "hazard" then
+                cleanupHere = { trap = trap.name, hazards = hazards,
+                                nebulaAdded = event == HAZARD_EVENTS.nebula
+                                    or (event == HAZARD_EVENTS.storm and not hazards.nebula) }
             end
             fillerLog("fight trap sprung: " .. event)
             return
@@ -745,7 +779,7 @@ local function springFightTrap()
     end
 end
 
--- The enemy surrendered, fled or is beaten: the battery stops, it was part of the trap, not of the beacon.
+-- The enemy surrendered, fled or is beaten: what the trap brought goes, it was not part of the beacon.
 local function fightOver()
     local enemy = Hyperspace.ships.enemy
     if enemy == nil or enemy.bDestroyed or enemy._targetable.hostile ~= true then
@@ -757,8 +791,8 @@ local function fightOver()
     return not enemy.bAutomated and enemy:CountCrew(false) == 0
 end
 
-local function stopBattery()
-    if not batteryHere then
+local function cleanUpTrap()
+    if cleanupHere == nil then
         return
     end
     local ready = false
@@ -769,29 +803,35 @@ local function stopBattery()
     if not ready then
         return
     end
-    batteryHere = false
+    local cleanup = cleanupHere
+    cleanupHere = nil
+    local ending = "AP_TRAP_ASB_END"
+    if cleanup.trap == "hazard" then
+        ending = cleanup.nebulaAdded and "AP_TRAP_HAZARD_END_NEBULA" or "AP_TRAP_HAZARD_END"
+    end
     local ok, err = pcall(function()
         local parser = Hyperspace.CustomEventsParser.GetInstance()
-        parser:LoadEvent(Hyperspace.App.world, "AP_TRAP_ASB_END", false, -1)
+        parser:LoadEvent(Hyperspace.App.world, ending, false, -1)
         for _, hazard in ipairs({ "asteroid", "sun", "pulsar", "storm" }) do
-            if hazardsHere[hazard] then
-                parser:LoadEvent(Hyperspace.App.world, HAZARD_EVENTS[hazard], false, -1)
+            if cleanup.hazards[hazard] then
+                parser:LoadEvent(Hyperspace.App.world, RESTORE_EVENTS[hazard], false, -1)
             end
         end
     end)
-    fillerLog(ok and "anti-ship battery stopped: the fight is over" or ("battery not stopped: " .. tostring(err)))
+    fillerLog(ok and ("trap " .. cleanup.trap .. " cleared: the fight is over")
+        or ("trap not cleared: " .. tostring(err)))
 end
 
 script.on_internal_event(Defines.InternalEvents.JUMP_ARRIVE, function(shipManager)
     if shipManager.iShipId == 0 then
         sprungHere = false
-        batteryHere = false
+        cleanupHere = nil
     end
 end)
 
 script.on_init(function()
     sprungHere = false
-    batteryHere = false
+    cleanupHere = nil
 end)
 
 local pollDivider = 0
@@ -802,7 +842,7 @@ script.on_internal_event(Defines.InternalEvents.ON_TICK, function()
     end
     if pollDivider % 30 == 0 then
         apTry(TAG, springFightTrap)
-        apTry(TAG, stopBattery)
+        apTry(TAG, cleanUpTrap)
     end
 end)
 

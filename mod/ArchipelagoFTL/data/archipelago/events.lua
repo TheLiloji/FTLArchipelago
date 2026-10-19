@@ -160,13 +160,23 @@ local function pickHijacked()
     return packages[1]
 end
 
+local HIJACK_HINTS = {
+    progression = "event.hijack.hint.progression", useful = "event.hijack.hint.useful",
+    filler = "event.hijack.hint.filler", trap = "event.hijack.hint.trap",
+}
+
 local function writeHijackText(event)
     hijacked = pickHijacked()
     if hijacked == nil then
         return
     end
     local key = hijacked.mine and "event.hijack.self" or "event.hijack.text"
-    event.text.data = apT(key, { slot = tostring(hijacked.slot), item = tostring(hijacked.item) })
+    local text = apT(key, { slot = tostring(hijacked.slot), item = tostring(hijacked.item) })
+    -- A vague word on what the package is worth, so a player can walk away from a trap.
+    if HIJACK_HINTS[hijacked.kind] then
+        text = text .. " " .. apT(HIJACK_HINTS[hijacked.kind])
+    end
+    event.text.data = text
     event.text.isLiteral = true
 end
 

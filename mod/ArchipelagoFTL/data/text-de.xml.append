@@ -64,3 +64,5 @@
 <text name="ap_trap_asb_text" language="de">Eine planetare Verteidigungsbatterie erwacht und erfasst dein Schiff. Jemand hat ihnen deinen Transpondercode gegeben.</text>
 <text name="ap_trap_surge_text" language="de">Der Reaktor des feindlichen Schiffs heult auf. Jemand hat ihnen eine Energiewelle des Flaggschiffs geschickt.</text>
 <text name="ap_trap_asb_end_text" language="de">Die planetare Verteidigungsbatterie schaltet ab. Der Kampf ist vorbei.</text>
+<text name="ap_trap_hazard_text" language="de">Jemand hat deinem Navigationscomputer eine falsche Kurskorrektur untergeschoben. Diese Bake ist nicht so ruhig, wie die Karten behaupten.</text>
+<text name="ap_trap_hazard_end_text" language="de">Nach dem Kampf beruhigt sich der Raum um die Bake.</text>

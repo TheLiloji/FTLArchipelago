@@ -64,3 +64,5 @@
 <text name="ap_trap_asb_text">A planetary defense battery wakes up and locks onto your ship. Somebody gave them your transponder code.</text>
 <text name="ap_trap_surge_text">The enemy ship's reactor howls. Somebody sent them a Flagship power surge.</text>
 <text name="ap_trap_asb_end_text">The planetary defense battery powers down. The fight is over.</text>
+<text name="ap_trap_hazard_text">Your nav computer took a bad course correction from someone. This beacon is not as quiet as the charts said.</text>
+<text name="ap_trap_hazard_end_text">With the fight over, the space around the beacon settles down.</text>
