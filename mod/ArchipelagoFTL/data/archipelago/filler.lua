@@ -683,8 +683,15 @@ end)
 -- A fight trap comes as an event once the fight is on and no other event is open, one per fight. The Last Stand
 -- keeps it for later, and so does a beacon that already has an anti-ship battery for that trap.
 local sprungHere = false
--- The battery the trap brought, when the beacon had no other hazard: it powers down with the fight.
+-- The battery the trap brought powers down with the fight. Switching it off clears every hazard, so the
+-- beacon's own ones (asteroids, sun, pulsar, ion storm) are put back right after.
 local batteryHere = false
+local hazardsHere = {}
+
+local HAZARD_EVENTS = {
+    asteroid = "AP_TRAP_RESTORE_ASTEROID", sun = "AP_TRAP_RESTORE_SUN",
+    pulsar = "AP_TRAP_RESTORE_PULSAR", storm = "AP_TRAP_RESTORE_STORM",
+}
 
 local function springFightTrap()
     if sprungHere then
@@ -722,10 +729,14 @@ local function springFightTrap()
             setFightTrapArmed(trap.name, armed - 1)
             sprungHere = true
             if trap.name == "asb" then
+                batteryHere = true
+                hazardsHere = {}
                 pcall(function()
                     local space = Hyperspace.App.world.space
-                    batteryHere = not (space.sunLevel or space.pulsarLevel or space.bStorm
-                        or space.asteroidGenerator.bRunning)
+                    hazardsHere.asteroid = space.asteroidGenerator.bRunning == true or nil
+                    hazardsHere.sun = space.sunLevel == true or nil
+                    hazardsHere.pulsar = space.pulsarLevel == true or nil
+                    hazardsHere.storm = space.bStorm == true or nil
                 end)
             end
             fillerLog("fight trap sprung: " .. event)
@@ -760,7 +771,13 @@ local function stopBattery()
     end
     batteryHere = false
     local ok, err = pcall(function()
-        Hyperspace.CustomEventsParser.GetInstance():LoadEvent(Hyperspace.App.world, "AP_TRAP_ASB_END", false, -1)
+        local parser = Hyperspace.CustomEventsParser.GetInstance()
+        parser:LoadEvent(Hyperspace.App.world, "AP_TRAP_ASB_END", false, -1)
+        for _, hazard in ipairs({ "asteroid", "sun", "pulsar", "storm" }) do
+            if hazardsHere[hazard] then
+                parser:LoadEvent(Hyperspace.App.world, HAZARD_EVENTS[hazard], false, -1)
+            end
+        end
     end)
     fillerLog(ok and "anti-ship battery stopped: the fight is over" or ("battery not stopped: " .. tostring(err)))
 end

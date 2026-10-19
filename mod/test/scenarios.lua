@@ -536,6 +536,25 @@ test("anti-ship battery trap: the battery stops once the enemy gives up", functi
     sim.enemy = nil
 end)
 
+test("anti-ship battery trap: on an asteroid field, the asteroids stay once the battery stops", function()
+    sim.startRun(true)
+    sim.jumpArrive()
+    sim.loadedEvents = {}
+    sim.space.asteroidGenerator.bRunning = true
+    apQueueItem({ kind = "trap", eff = "asb" })
+    drain()
+    sim.enemy = sim.makeShip(1)
+    sim.tick(120)
+    equals(sim.loadedEvents[1], "AP_TRAP_ASB", "the battery joins the fight")
+    sim.enemy.bDestroyed = true
+    sim.tick(120)
+    equals(sim.loadedEvents[2], "AP_TRAP_ASB_END", "the battery stops with the fight")
+    equals(sim.loadedEvents[3], "AP_TRAP_RESTORE_ASTEROID", "and the beacon gets its asteroids back")
+    equals(#sim.loadedEvents, 3, "nothing else")
+    sim.space.asteroidGenerator.bRunning = false
+    sim.enemy = nil
+end)
+
 test("a head start is announced with the system's name in the player's language", function()
     sim.startRun(true)
     sim.clearLog()
