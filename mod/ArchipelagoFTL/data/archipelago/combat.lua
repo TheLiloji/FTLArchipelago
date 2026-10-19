@@ -7,6 +7,13 @@ end
 -- Combat checks: with each ship, the first fights won in a run send "<ship>:fight:<n>". A fight that sends
 -- one gives part of its scrap only; missiles, fuel and drone parts stay as they are.
 local countedHere = false
+-- The enemy here fought us: an enemy that then stops being hostile while still alive accepted its surrender.
+local sawHostile = false
+
+local function isHostile(enemy)
+    local ok, hostile = pcall(function() return enemy._targetable.hostile end)
+    return ok and hostile == true
+end
 
 local function fightsWon()
     -- The game keeps run variables as floats: 1.0 would make the key "fight:1.0".
@@ -35,6 +42,10 @@ local function enemyBeaten(enemy)
     return ok and crew == 0
 end
 
+local function enemySurrendered(enemy)
+    return enemy ~= nil and sawHostile and not enemy.bDestroyed and not isHostile(enemy)
+end
+
 local function currentShip()
     local ok, name = pcall(function() return Hyperspace.ships.player.myBlueprint.blueprintName end)
     return ok and name and (tostring(name):gsub("_[23]$", "")) or nil
@@ -61,7 +72,8 @@ function apCombatStatus()
 end
 
 function apCombatReward(event)
-    if countedHere or not enemyBeaten(Hyperspace.ships.enemy) then
+    local enemy = Hyperspace.ships.enemy
+    if countedHere or not (enemyBeaten(enemy) or enemySurrendered(enemy)) then
         return false
     end
     countedHere = true
@@ -95,14 +107,29 @@ script.on_internal_event(Defines.InternalEvents.PRE_CREATE_CHOICEBOX, function(e
     apTry(TAG, function() apCombatReward(event) end)
 end)
 
+-- A surrender accepted with a reward counts on its choice box; one that only makes peace, on the next frame.
+script.on_internal_event(Defines.InternalEvents.ON_TICK, function()
+    local enemy = Hyperspace.ships.enemy
+    if enemy == nil or countedHere then
+        return
+    end
+    if isHostile(enemy) then
+        sawHostile = true
+    elseif sawHostile then
+        apTry(TAG, function() apCombatReward(nil) end)
+    end
+end)
+
 script.on_internal_event(Defines.InternalEvents.JUMP_ARRIVE, function(shipManager)
     if shipManager.iShipId == 0 then
         countedHere = false
+        sawHostile = false
     end
 end)
 
 script.on_init(function(newGame)
     countedHere = false
+    sawHostile = false
     if newGame then
         setFightsWon(0)
     end
