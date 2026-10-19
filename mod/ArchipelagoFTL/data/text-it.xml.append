@@ -63,3 +63,4 @@
 <text name="ap_evt_hijack_deadcrew_text" language="it">L'equipaggio pirata è morto. Mandi il pacco a destinazione, poi spogli la loro nave.</text>
 <text name="ap_trap_asb_text" language="it">Una batteria di difesa planetaria si attiva e aggancia la tua nave. Qualcuno ha dato loro il tuo codice transponder.</text>
 <text name="ap_trap_surge_text" language="it">Il reattore della nave nemica urla. Qualcuno ha mandato loro un sovraccarico dell'ammiraglia.</text>
+<text name="ap_trap_asb_end_text" language="it">La batteria di difesa planetaria si spegne. Il combattimento è finito.</text>

@@ -161,8 +161,12 @@ local TRAP_DELIVERY = {
 -- Fight traps wait in the run's save, at most fightTrapCeiling of each kind.
 local FIGHT_TRAPS = {
     { name = "asb", events = { "AP_TRAP_ASB" } },
-    { name = "power_surge", events = { "AP_TRAP_SURGE_LASER", "AP_TRAP_SURGE_DRONES" } },
+    { name = "power_surge", events = { "AP_TRAP_SURGE_LASER", "AP_TRAP_SURGE_DRONES" },
+      early = { "AP_TRAP_SURGE_LASER_LIGHT", "AP_TRAP_SURGE_DRONES_LIGHT" } },
 }
+
+-- Sectors 1 and 2: a ship there cannot take a Flagship surge, it gets a lighter one.
+local EARLY_SECTORS = 2
 
 function apFightTrapArmed(name)
     local ok, value = pcall(function() return Hyperspace.playerVariables["ap_trap_" .. name] end)
@@ -187,6 +191,13 @@ function apTrapAsbArmed()
 end
 
 _G.apTrapFleetPushes = 0
+
+local TRAP_TITLES = {
+    fire = "trap.title.fire", breach = "trap.title.breach", fuel_leak = "trap.title.fuel_leak",
+    system_damage = "trap.title.system_damage", fleet_advance = "trap.title.fleet_advance",
+    hull_damage = "trap.title.hull_damage", boarding = "trap.title.boarding", asb = "trap.title.asb",
+    power_surge = "trap.title.power_surge",
+}
 
 local TRAP_FALLBACK_ORDER = { "fire", "breach", "system_damage", "fuel_leak" }
 
@@ -349,6 +360,11 @@ local function deliverOne(descriptor)
         end
         if _G.apNotifyItem and not descriptor.isReplay then
             local name = descriptor.display
+            -- A Head Start's item name is English: the game's own name of the system reads in every language.
+            if descriptor.kind == "start" and descriptor.sys ~= nil and descriptor.sys ~= "reactor"
+                and _G.apSystemLabel then
+                name = apSystemLabel(descriptor.sys)
+            end
             if name == nil and descriptor.bp ~= nil then
                 name = _G.apShipLabel and _G.apShipLabel(descriptor.bp) or descriptor.bp
             end
@@ -456,8 +472,13 @@ local function deliverOne(descriptor)
         fillerLog("trap triggered: " .. key)
         if _G.apNotifyTrap then
             local effect = apT(key, params)
-            if descriptor.display ~= nil and descriptor.display ~= "" then
-                _G.apNotifyTrap(apT("trap.named", { name = descriptor.display, effect = effect }))
+            -- Our own traps are named in the player's language; one from Trap Link keeps its game's name.
+            local title = descriptor.display
+            if not descriptor.fromLink and TRAP_TITLES[descriptor.eff] then
+                title = apT(TRAP_TITLES[descriptor.eff])
+            end
+            if title ~= nil and title ~= "" then
+                _G.apNotifyTrap(apT("trap.named", { name = title, effect = effect }))
             else
                 _G.apNotifyTrap(effect)
             end
@@ -662,6 +683,8 @@ end)
 -- A fight trap comes as an event once the fight is on and no other event is open, one per fight. The Last Stand
 -- keeps it for later, and so does a beacon that already has an anti-ship battery for that trap.
 local sprungHere = false
+-- The battery the trap brought, when the beacon had no other hazard: it powers down with the fight.
+local batteryHere = false
 
 local function springFightTrap()
     if sprungHere then
@@ -683,7 +706,12 @@ local function springFightTrap()
     for _, trap in ipairs(FIGHT_TRAPS) do
         local armed = apFightTrapArmed(trap.name)
         if armed > 0 and not (trap.name == "asb" and pds) then
-            local event = trap.events[math.random(1, #trap.events)]
+            local events = trap.events
+            local ok, level = pcall(function() return Hyperspace.App.world.starMap.worldLevel end)
+            if trap.early and ok and tonumber(level) and level + 1 <= EARLY_SECTORS then
+                events = trap.early
+            end
+            local event = events[math.random(1, #events)]
             local ok, err = pcall(function()
                 Hyperspace.CustomEventsParser.GetInstance():LoadEvent(Hyperspace.App.world, event, false, -1)
             end)
@@ -693,20 +721,60 @@ local function springFightTrap()
             end
             setFightTrapArmed(trap.name, armed - 1)
             sprungHere = true
+            if trap.name == "asb" then
+                pcall(function()
+                    local space = Hyperspace.App.world.space
+                    batteryHere = not (space.sunLevel or space.pulsarLevel or space.bStorm
+                        or space.asteroidGenerator.bRunning)
+                end)
+            end
             fillerLog("fight trap sprung: " .. event)
             return
         end
     end
 end
 
+-- The enemy surrendered, fled or is beaten: the battery stops, it was part of the trap, not of the beacon.
+local function fightOver()
+    local enemy = Hyperspace.ships.enemy
+    if enemy == nil or enemy.bDestroyed or enemy._targetable.hostile ~= true then
+        return true
+    end
+    if enemy.ship.hullIntegrity.first <= 0 then
+        return true
+    end
+    return not enemy.bAutomated and enemy:CountCrew(false) == 0
+end
+
+local function stopBattery()
+    if not batteryHere then
+        return
+    end
+    local ready = false
+    pcall(function()
+        local gui = Hyperspace.App.gui
+        ready = not (gui.choiceBoxOpen or gui.event_pause or gui.menu_pause) and fightOver()
+    end)
+    if not ready then
+        return
+    end
+    batteryHere = false
+    local ok, err = pcall(function()
+        Hyperspace.CustomEventsParser.GetInstance():LoadEvent(Hyperspace.App.world, "AP_TRAP_ASB_END", false, -1)
+    end)
+    fillerLog(ok and "anti-ship battery stopped: the fight is over" or ("battery not stopped: " .. tostring(err)))
+end
+
 script.on_internal_event(Defines.InternalEvents.JUMP_ARRIVE, function(shipManager)
     if shipManager.iShipId == 0 then
         sprungHere = false
+        batteryHere = false
     end
 end)
 
 script.on_init(function()
     sprungHere = false
+    batteryHere = false
 end)
 
 local pollDivider = 0
@@ -717,6 +785,7 @@ script.on_internal_event(Defines.InternalEvents.ON_TICK, function()
     end
     if pollDivider % 30 == 0 then
         apTry(TAG, springFightTrap)
+        apTry(TAG, stopBattery)
     end
 end)
 
