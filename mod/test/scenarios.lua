@@ -4955,6 +4955,19 @@ test("event: the pirates hold another player's package and say whose", function(
     local box = sim.openChoiceBox("AP_EVT_HIJACK", 3)
     check(box.text:find("Axel", 1, true) ~= nil, "a friend's package before the player's own: " .. box.text)
     check(box.text:find("20 Scrap", 1, true) ~= nil, "and what's inside")
+    check(box.text:find(apT("event.hijack.hint.filler"), 1, true) ~= nil,
+        "with a word on what it is worth: junk here")
+end)
+
+test("event: the pirates' package hints at a trap, so the player can leave it", function()
+    sim.startRun(true)
+    _G.apShopSlotCount = 1
+    apShopGiftsConfigure({
+        { location = "shop:1", slot = "Axel", item = "Ice Trap", sphere = 1, kind = "trap", cost = 25 },
+    })
+    local box = sim.openChoiceBox("AP_EVT_HIJACK", 3)
+    check(box.text:find(apT("event.hijack.hint.trap"), 1, true) ~= nil, "something feels off: " .. box.text)
+    check(box.text:find(apT("event.hijack.hint.filler"), 1, true) == nil, "and only that")
 end)
 
 test("event: winning the fight frees the pirates' package for free", function()
