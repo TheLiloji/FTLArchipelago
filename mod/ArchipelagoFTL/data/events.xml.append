@@ -302,3 +302,14 @@
     <text id="ap_trap_asb_text"/>
     <environment type="PDS" target="player"/>
 </event>
+
+<!-- Power Surge Trap: the enemy of the fight unleashes a Flagship power surge. -->
+<event name="AP_TRAP_SURGE_LASER">
+    <text id="ap_trap_surge_text"/>
+    <superBarrage player="false"/>
+</event>
+
+<event name="AP_TRAP_SURGE_DRONES">
+    <text id="ap_trap_surge_text"/>
+    <superDrones player="false"/>
+</event>

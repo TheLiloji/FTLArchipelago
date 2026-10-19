@@ -478,6 +478,29 @@ test("anti-ship battery trap: at most two wait at once", function()
     check(sim.logged("trap asb impossible (floor reached), falling back to"), "the third becomes a gentler trap")
 end)
 
+test("power surge trap: waits for a fight, one fight trap per fight", function()
+    sim.startRun(true)
+    sim.jumpArrive()
+    sim.loadedEvents = {}
+    apQueueItem({ kind = "trap", eff = "power_surge" })
+    apQueueItem({ kind = "trap", eff = "asb" })
+    drain()
+    equals(apFightTrapArmed("power_surge"), 1, "the surge waits for a fight")
+    check(shownKey("trap.power_surge"), "and the player is warned")
+
+    sim.enemy = sim.makeShip(1)
+    sim.tick(240)
+    equals(#sim.loadedEvents, 1, "one trap per fight")
+    equals(sim.loadedEvents[1], "AP_TRAP_ASB", "the battery first")
+    sim.jumpArrive()
+    sim.tick(120)
+    local event = sim.loadedEvents[2]
+    check(event == "AP_TRAP_SURGE_LASER" or event == "AP_TRAP_SURGE_DRONES",
+        "the next fight gets the surge, lasers or drones (" .. tostring(event) .. ")")
+    equals(apFightTrapArmed("power_surge"), 0, "and the trap is spent")
+    sim.enemy = nil
+end)
+
 test("boarding trap: refused when only one crew member is left", function()
     sim.startRun(true)
     for i = 1, sim.player.vCrewList:size() - 1 do

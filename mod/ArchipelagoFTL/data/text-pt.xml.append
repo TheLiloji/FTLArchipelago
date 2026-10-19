@@ -62,3 +62,4 @@
 <text name="ap_evt_hijack_destroyed_text" language="pt">A nave pirata desfaz-se. Tiras o pacote dos destroços e envias-o ao destinatário.</text>
 <text name="ap_evt_hijack_deadcrew_text" language="pt">A tripulação pirata está morta. Envias o pacote ao destinatário e depois depenas a nave deles.</text>
 <text name="ap_trap_asb_text" language="pt">Uma bateria de defesa planetária desperta e trava a mira na tua nave. Alguém lhes deu o teu código de transponder.</text>
+<text name="ap_trap_surge_text" language="pt">O reator da nave inimiga uiva. Alguém lhes enviou uma sobrecarga da nave-almirante.</text>

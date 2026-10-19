@@ -367,6 +367,7 @@
     "trap.fuel_leak": "Fuel line cut. {n} cells gone before anyone noticed.",
     "trap.fuel_leak.one": "Fuel line cut. {n} cell gone before anyone noticed.",
     "trap.hull_damage": "Hull integrity down {n}. No impact registered.",
+    "trap.power_surge": "Someone wired the next enemy you fight with a Flagship power surge.",
     "trap.named": "{name}: {effect}",
     "trap.sprung": "Trap: {what}",
     "trap.system_damage": "{system} took {n} damage. Nothing hit it.",
