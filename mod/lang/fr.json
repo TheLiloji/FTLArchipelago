@@ -356,6 +356,7 @@
     "test.keys.on": "Touches de test armées",
     "test.skip_combat": "Touche de test : combat terminé, moteur FTL chargé.",
     "test.skip_combat.partial": "Touche de test : combat terminé, mais le moteur FTL n'a pas pu être chargé.",
+    "trap.asb": "Des défenses planétaires ouvriront le feu lors de votre prochain combat. Quelqu'un leur a donné votre code de transpondeur.",
     "trap.boarding": "Quelque chose est monté à bord, salle {room}. La porte du sas n'a jamais été ouverte.",
     "trap.breach": "Brèche dans la coque. Le blindage a lâché tout seul.",
     "trap.fire": "Incendie, salle {room}. Personne ne l'a allumé.",

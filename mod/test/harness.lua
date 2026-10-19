@@ -682,7 +682,12 @@ local function resetWorld()
                 end,
             },
         },
-        CustomEventsParser = { GetInstance = function() return nil end },
+        CustomEventsParser = { GetInstance = function()
+            return { LoadEvent = function(_, _, name)
+                sim.loadedEvents = sim.loadedEvents or {}
+                sim.loadedEvents[#sim.loadedEvents + 1] = name
+            end }
+        end },
     }
 
     sim.gameTexts = {

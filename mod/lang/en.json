@@ -357,6 +357,7 @@
     "test.keys.on": "Test keys armed",
     "test.skip_combat": "Test key: combat over, FTL drive charged.",
     "test.skip_combat.partial": "Test key: combat over, but the FTL drive could not be charged.",
+    "trap.asb": "Planetary defenses will open fire in your next fight. Somebody gave them your transponder code.",
     "trap.boarding": "Something came aboard in room {room}. The airlock never opened.",
     "trap.breach": "Hull breach. The plating gave on its own.",
     "trap.fire": "Fire in room {room}. Nobody lit it.",

@@ -296,3 +296,9 @@
         </event>
     </choice>
 </event>
+
+<!-- Anti-Ship Battery Trap: loaded by the mod in the middle of a fight, the enemy ship stays. -->
+<event name="AP_TRAP_ASB">
+    <text id="ap_trap_asb_text"/>
+    <environment type="PDS" target="player"/>
+</event>

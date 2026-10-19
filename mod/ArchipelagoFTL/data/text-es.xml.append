@@ -59,3 +59,4 @@
 <text name="ap_evt_hijack_yield_text" language="es">Expulsan el paquete por una esclusa. Lo recoges y lo envías a su destino.</text>
 <text name="ap_evt_hijack_destroyed_text" language="es">La nave pirata se rompe en pedazos. Sacas el paquete de los restos y lo envías a su destino.</text>
 <text name="ap_evt_hijack_deadcrew_text" language="es">La tripulación pirata ha muerto. Envías el paquete a su destino y luego desmantelas su nave.</text>
+<text name="ap_trap_asb_text" language="es">Una batería de defensa planetaria se activa y fija tu nave como objetivo. Alguien les dio tu código de transpondedor.</text>

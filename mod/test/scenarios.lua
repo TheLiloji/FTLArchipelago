@@ -442,6 +442,42 @@ test("boarding trap: an intruder comes aboard, on the enemy side", function()
     check(sim.logged("trap triggered: trap.boarding"), "the log names the effect, not the item")
 end)
 
+test("anti-ship battery trap: armed at a quiet beacon, sprung in the next fight", function()
+    sim.startRun(true)
+    sim.loadedEvents = {}
+    apQueueItem({ kind = "trap", eff = "asb" })
+    drain()
+    equals(apTrapAsbArmed(), 1, "the battery waits for a fight")
+    check(shownKey("trap.asb"), "and the player is warned")
+    sim.tick(120)
+    equals(#sim.loadedEvents, 0, "no fight, no battery")
+
+    sim.enemy = sim.makeShip(1)
+    sim.starMap.bossLevel = true
+    sim.tick(120)
+    equals(#sim.loadedEvents, 0, "never in the Last Stand")
+    sim.starMap.bossLevel = false
+    sim.space.bPDS = true
+    sim.tick(120)
+    equals(#sim.loadedEvents, 0, "a beacon that already has a battery keeps the trap for later")
+    sim.space.bPDS = false
+    sim.tick(120)
+    equals(sim.loadedEvents[1], "AP_TRAP_ASB", "the battery joins the fight")
+    equals(#sim.loadedEvents, 1, "once")
+    equals(apTrapAsbArmed(), 0, "and the trap is spent")
+    sim.enemy = nil
+end)
+
+test("anti-ship battery trap: at most two wait at once", function()
+    sim.startRun(true)
+    for _ = 1, 3 do
+        apQueueItem({ kind = "trap", eff = "asb" })
+    end
+    drain()
+    equals(apTrapAsbArmed(), 2, "two batteries wait")
+    check(sim.logged("trap asb impossible (floor reached), falling back to"), "the third becomes a gentler trap")
+end)
+
 test("boarding trap: refused when only one crew member is left", function()
     sim.startRun(true)
     for i = 1, sim.player.vCrewList:size() - 1 do

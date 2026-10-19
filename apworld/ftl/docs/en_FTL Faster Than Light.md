@@ -278,7 +278,9 @@ bitterness.
 **Traps wait for a safe beacon.** A fire or a hull breach is delivered at the next jump to a quiet beacon, not
 in the middle of the Flagship fight. So does everything else you receive: scrap, a weapon, a new crew member.
 An item that arrives mid-combat waits. Received deaths are the one exception - a death link that waited for a
-quiet moment would not be a death link.
+quiet moment would not be a death link. The Anti-Ship Battery Trap is armed at a quiet beacon too, then springs
+at the next beacon with a hostile ship: an anti-ship battery joins that fight (never in the Last Stand, and at
+most two can wait at once).
 
 **A weapon arrives in your cargo hold, not in a slot.** You still have to equip it, and if your cargo is full
 the mod holds the item and delivers it later rather than dropping it.

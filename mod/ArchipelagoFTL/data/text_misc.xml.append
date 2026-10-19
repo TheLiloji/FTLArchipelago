@@ -61,3 +61,4 @@
 <text name="ap_evt_hijack_yield_text">They push the package out of an airlock. You pick it up and send it on its way.</text>
 <text name="ap_evt_hijack_destroyed_text">The pirate ship breaks apart. You pull the package from the wreck and send it on its way.</text>
 <text name="ap_evt_hijack_deadcrew_text">The pirate crew is dead. You send the package on its way, then strip their ship.</text>
+<text name="ap_trap_asb_text">A planetary defense battery wakes up and locks onto your ship. Somebody gave them your transponder code.</text>
