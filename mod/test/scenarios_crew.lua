@@ -141,7 +141,6 @@ test("DeathLink: a temporary crew member who fades away is not a death", functio
     projection.extend.deathTimer = {}
     local hologram = sim.player:AddCrewMemberFromString("Hologram", "zoltan_osmian_hologram", false, 0, false, false)
     hologram.extend.noSlot = true
-    hologram.extend.noClone = true
     sim.tick(60)
     projection.bDead = true
     hologram.bDead = true
