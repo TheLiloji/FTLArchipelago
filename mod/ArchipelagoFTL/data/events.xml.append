@@ -330,3 +330,20 @@
     <text id="ap_trap_asb_end_text"/>
     <removeHazards/>
 </event>
+
+<!-- Put back the beacon's own hazard after AP_TRAP_ASB_END cleared them all. No text: no box opens. -->
+<event name="AP_TRAP_RESTORE_ASTEROID">
+    <environment type="asteroid"/>
+</event>
+
+<event name="AP_TRAP_RESTORE_SUN">
+    <environment type="sun"/>
+</event>
+
+<event name="AP_TRAP_RESTORE_PULSAR">
+    <environment type="pulsar"/>
+</event>
+
+<event name="AP_TRAP_RESTORE_STORM">
+    <environment type="storm"/>
+</event>
