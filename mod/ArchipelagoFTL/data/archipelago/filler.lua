@@ -54,6 +54,7 @@ local TRAP_LIMITS = {
     systemFloor = 1,
     pursuitCeiling = 6,
     boardingCrewFloor = 2,
+    asbCeiling = 2,
 }
 
 _G.apTrapLimits = TRAP_LIMITS
@@ -147,7 +148,21 @@ local TRAP_DELIVERY = {
         starMap:ModifyPursuit(1)
         return "trap.fleet_advance"
     end,
+    -- Armed now, sprung at the next beacon with a hostile ship: an anti-ship battery joins that fight.
+    asb = function()
+        local armed = apTrapAsbArmed()
+        if armed >= TRAP_LIMITS.asbCeiling then
+            return nil
+        end
+        pcall(function() Hyperspace.playerVariables.ap_trap_asb = armed + 1 end)
+        return "trap.asb"
+    end,
 }
+
+function apTrapAsbArmed()
+    local ok, value = pcall(function() return Hyperspace.playerVariables.ap_trap_asb end)
+    return ok and math.floor(tonumber(value) or 0) or 0
+end
 
 _G.apTrapFleetPushes = 0
 
@@ -622,11 +637,43 @@ script.on_internal_event(Defines.InternalEvents.JUMP_ARRIVE, function(shipManage
     end
 end)
 
+-- The battery comes as an event once the fight is on and no other event is open. A beacon that already has
+-- one, or the Last Stand, keeps the trap for the next fight.
+local function springAsb()
+    if apTrapAsbArmed() <= 0 then
+        return
+    end
+    local ready = false
+    pcall(function()
+        local app = Hyperspace.App
+        local gui = app.gui
+        local enemy = Hyperspace.ships.enemy
+        ready = app.world.bStartedGame and not (gui.choiceBoxOpen or gui.event_pause or gui.menu_pause)
+            and enemy ~= nil and not enemy.bDestroyed and enemy._targetable.hostile == true
+            and not app.world.space.bPDS and not app.world.starMap.bossLevel
+    end)
+    if not ready then
+        return
+    end
+    local ok, err = pcall(function()
+        Hyperspace.CustomEventsParser.GetInstance():LoadEvent(Hyperspace.App.world, "AP_TRAP_ASB", false, -1)
+    end)
+    if not ok then
+        fillerLog("anti-ship battery trap not sprung: " .. tostring(err))
+        return
+    end
+    pcall(function() Hyperspace.playerVariables.ap_trap_asb = apTrapAsbArmed() - 1 end)
+    fillerLog("anti-ship battery trap sprung")
+end
+
 local pollDivider = 0
 script.on_internal_event(Defines.InternalEvents.ON_TICK, function()
     pollDivider = (pollDivider + 1) % 120
     if pollDivider == 0 then
         apDeliverPending()
+    end
+    if pollDivider % 30 == 0 then
+        apTry(TAG, springAsb)
     end
 end)
 

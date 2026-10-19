@@ -359,6 +359,7 @@
     "test.keys.on": "Teclas de prueba activadas",
     "test.skip_combat": "Tecla de prueba: combate terminado, motor FTL cargado.",
     "test.skip_combat.partial": "Tecla de prueba: combate terminado, pero no se pudo cargar el motor FTL.",
+    "trap.asb": "Unas defensas planetarias abrirán fuego en tu próximo combate. Alguien les dio tu código de transpondedor.",
     "trap.boarding": "Algo entró a bordo, sala {room}. La esclusa nunca se abrió.",
     "trap.breach": "Brecha en el casco. El blindaje cedió por sí solo.",
     "trap.fire": "Incendio en la sala {room}. Nadie lo provocó.",

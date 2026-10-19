@@ -359,6 +359,7 @@
     "test.keys.on": "Testtasten aktiv",
     "test.skip_combat": "Testtaste: Kampf beendet, FTL-Antrieb geladen.",
     "test.skip_combat.partial": "Testtaste: Kampf beendet, aber der FTL-Antrieb konnte nicht geladen werden.",
+    "trap.asb": "Planetare Verteidigungsanlagen eröffnen in deinem nächsten Kampf das Feuer. Jemand hat ihnen deinen Transpondercode gegeben.",
     "trap.boarding": "Etwas ist an Bord gekommen, Raum {room}. Die Luftschleuse wurde nie geöffnet.",
     "trap.breach": "Hüllenbruch. Die Panzerung gab von selbst nach.",
     "trap.fire": "Feuer in Raum {room}. Niemand hat es gelegt.",

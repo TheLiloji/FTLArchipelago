@@ -359,6 +359,7 @@
     "test.keys.on": "Tasti di prova attivi",
     "test.skip_combat": "Tasto di prova: combattimento finito, motore FTL carico.",
     "test.skip_combat.partial": "Tasto di prova: combattimento finito, ma il motore FTL non si è potuto caricare.",
+    "trap.asb": "Le difese planetarie apriranno il fuoco nel tuo prossimo combattimento. Qualcuno ha dato loro il tuo codice transponder.",
     "trap.boarding": "Qualcosa è salito a bordo, stanza {room}. La camera di equilibrio non si è mai aperta.",
     "trap.breach": "Falla nello scafo. La corazza ha ceduto da sola.",
     "trap.fire": "Incendio nella sala {room}. Nessuno l'ha acceso.",

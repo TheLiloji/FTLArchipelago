@@ -569,11 +569,12 @@ TRAPS_RAW: tuple[tuple[int, str, str, int], ...] = (
     (4, "Rebel Fleet Trap", "fleet_advance", 2),
     (5, "Hull Damage Trap", "hull_damage", 3),
     (6, "Boarding Party Trap", "boarding", 2),
+    (7, "Anti-Ship Battery Trap", "asb", 2),
 )
 
 RESOURCES_IMPLEMENTED = ("scrap", "fuel", "missiles", "drone_parts", "hull", "crew")
 TRAP_EFFECTS_IMPLEMENTED = ("fire", "breach", "fuel_leak", "system_damage", "fleet_advance",
-                            "hull_damage", "boarding")
+                            "hull_damage", "boarding", "asb")
 
 BONUS_RAW: tuple[tuple[int, str, str, int, str], ...] = (
     (0, "Reactor Power", REACTOR_TARGET, 8, "useful"),

@@ -614,12 +614,52 @@ test("combat checks: the dashboard knows when the next fight sends a check", fun
     sim.enemy = nil
 end)
 
-test("combat checks: a living enemy, like a surrender, is not a won fight", function()
-    fightSeed(50)
+local function livingEnemy(hostile)
     sim.enemy = sim.makeShip(1)
+    sim.enemy._targetable.hostile = hostile
     sim.enemy.vCrewList = sim.vector({ sim.makeCrew("Rebel", "human", 1) })
+    sim.tick(1)
+end
+
+test("combat checks: a surrender offered is not a won fight yet", function()
+    fightSeed(50)
+    livingEnemy(true)
     fire("PRE_CREATE_CHOICEBOX", { stuff = { scrap = 10 } })
     check(not apCheckAlreadySent("PLAYER_SHIP_HARD:fight:1"), "nothing sent while the enemy lives")
+    sim.enemy = nil
+end)
+
+test("combat checks: an accepted surrender is a won fight, with less scrap", function()
+    fightSeed(50)
+    livingEnemy(true)
+    sim.enemy._targetable.hostile = false
+    local event = { stuff = { scrap = 30 } }
+    fire("PRE_CREATE_CHOICEBOX", event)
+    check(apCheckAlreadySent("PLAYER_SHIP_HARD:fight:1"), "the enemy gave up: fight 1 won")
+    equals(event.stuff.scrap, 15, "the surrender's reward is cut like any fight's")
+    sim.enemy = nil
+end)
+
+test("combat checks: an enemy that stops fighting without a reward box still counts", function()
+    fightSeed(50)
+    livingEnemy(true)
+    sim.enemy._targetable.hostile = false
+    sim.tick(1)
+    check(apCheckAlreadySent("PLAYER_SHIP_HARD:fight:1"), "peace made after a fight: fight 1 won")
+    sim.enemy = nil
+end)
+
+test("combat checks: a ship that was never hostile is not a fight", function()
+    fightSeed(50)
+    livingEnemy(false)
+    fire("PRE_CREATE_CHOICEBOX", { stuff = { scrap = 10 } })
+    sim.tick(1)
+    check(not apCheckAlreadySent("PLAYER_SHIP_HARD:fight:1"), "a trader or a quest giver sends nothing")
+    sim.jumpArrive()
+    livingEnemy(true)
+    sim.jumpArrive()
+    livingEnemy(false)
+    check(not apCheckAlreadySent("PLAYER_SHIP_HARD:fight:1"), "nor does a hostile ship met at the beacon before")
     sim.enemy = nil
 end)
 

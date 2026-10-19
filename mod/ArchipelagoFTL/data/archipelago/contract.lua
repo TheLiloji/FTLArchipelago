@@ -164,6 +164,7 @@ function apApplySlotData(slotData, slotName, solo)
     state.startShip = slotData.start_ship
     state.multiverse = slotData.multiverse == true
     if _G.apApplyEventBeacons then apApplyEventBeacons(slotData.event_beacons) end
+    if _G.apCrewNamesConfigure then apCrewNamesConfigure(slotData.crew_names, slotData.players) end
     state.layouts = nil
     state.layoutList = nil
     if type(slotData.layouts) == "table" then

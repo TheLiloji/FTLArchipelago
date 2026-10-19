@@ -132,6 +132,27 @@ test("DeathLink: a seed without the clone option does not keep the last seed's",
     equals(_G.apDeathLink.cloned, false, "back to the default")
 end)
 
+test("DeathLink: a temporary crew member who fades away is not a death", function()
+    apDeathLinkConfigure({ enabled = true, trigger = "both", cloned = false, graceSeconds = 0 })
+    local sent = 0
+    local restore = stub("apNetSendDeath", function() sent = sent + 1 return true end)
+    sim.startRun(true)
+    local projection = sim.player:AddCrewMemberFromString("Projection", "human", false, 0, false, false)
+    projection.extend.deathTimer = {}
+    local hologram = sim.player:AddCrewMemberFromString("Hologram", "zoltan_osmian_hologram", false, 0, false, false)
+    hologram.extend.noSlot = true
+    hologram.extend.noClone = true
+    sim.tick(60)
+    projection.bDead = true
+    hologram.bDead = true
+    sim.tick(60)
+    table.remove(sim.player.vCrewList._store)
+    table.remove(sim.player.vCrewList._store)
+    sim.tick(60)
+    restore()
+    equals(sent, 0, "a projection or a hologram running out is not a crew member lost")
+end)
+
 test("DeathLink: without a Clone Bay, a crew member lying dead aboard is a death at once", function()
     apDeathLinkConfigure({ enabled = true, trigger = "both", cloned = false, graceSeconds = 0 })
     local sent = 0
@@ -262,4 +283,53 @@ test("crew: a Multiverse unique crew member counts as its race", function()
     sim.player:AddCrewMemberFromString("Tully", "unique_tully", false, 0)
     sim.jumpArrive()
     check(apCheckAlreadySent("crew:human"), "Tully, a Human, sends First Human aboard")
+end)
+
+local function joins(name)
+    local member = sim.player:AddCrewMemberFromString(name, "human", false, 0, false, false)
+    sim.tick(30)
+    return member
+end
+
+test("crew names: new crew is named after the other players, then keeps FTL's names", function()
+    apCrewNamesConfigure("multiworld", { "Nina", "Bérénice", "Berserker" })
+    sim.startRun(true)
+    sim.tick(30)
+    local captain = sim.player.vCrewList[0]
+    local starting = captain:GetName()
+    equals(joins("Ruwen"):GetName(), "Nina", "the first recruit takes a player's name")
+    equals(joins("Kazu"):GetName(), "Berserker", "the next one the next player's, skipping a name FTL cannot draw")
+    equals(joins("Hara"):GetName(), "Hara", "once every player is aboard, FTL's names come back")
+    equals(captain:GetName(), starting, "the starting crew keeps its names")
+    sim.startRun(false)
+    sim.tick(30)
+    equals(joins("Lio"):GetName(), "Lio", "after a Continue, the names aboard are still taken")
+end)
+
+test("crew names: the team comes after the players, only when asked", function()
+    apCrewNamesConfigure("multiworld_and_team", { "Nina" })
+    sim.startRun(true)
+    sim.tick(30)
+    equals(joins("Ruwen"):GetName(), "Nina", "players first")
+    equals(joins("Kazu"):GetName(), "Liloji", "then the team")
+    apCrewNamesConfigure("vanilla", { "Nina" })
+    sim.startRun(true)
+    sim.tick(30)
+    equals(joins("Hara"):GetName(), "Hara", "vanilla keeps FTL's names")
+    apCrewNamesConfigure("multiworld", {})
+end)
+
+test("crew names: a hologram or a drone keeps its name", function()
+    apCrewNamesConfigure("multiworld", { "Nina" })
+    sim.startRun(true)
+    sim.tick(30)
+    local hologram = sim.player:AddCrewMemberFromString("Hologram", "human", false, 0, false, false)
+    hologram.extend.deathTimer = {}
+    local drone = sim.player:AddCrewMemberFromString("Drone", "repair", false, 0, false, false)
+    drone.IsDrone = function() return true end
+    sim.tick(30)
+    equals(hologram:GetName(), "Hologram", "a projection is not a recruit")
+    equals(drone:GetName(), "Drone", "nor a drone")
+    equals(joins("Ruwen"):GetName(), "Nina", "the name waits for a real recruit")
+    apCrewNamesConfigure("multiworld", {})
 end)

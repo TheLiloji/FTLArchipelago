@@ -78,6 +78,7 @@ local function makeCrew(name, species, shipId)
         bDead = false,
         health = pair(100, 100),
         GetName = function(self) return self._name end,
+        SetName = function(self, text) self._name = text.data end,
         CountForVictory = function(self) return not self.bDead end,
         IsDead = function(self) return self.bDead end,
         Kill = function(self) self.bDead = true end,
@@ -691,7 +692,13 @@ local function resetWorld()
                 end,
             },
         },
-        CustomEventsParser = { GetInstance = function() return nil end },
+        TextString = function() return { data = "", isLiteral = false } end,
+        CustomEventsParser = { GetInstance = function()
+            return { LoadEvent = function(_, _, name)
+                sim.loadedEvents = sim.loadedEvents or {}
+                sim.loadedEvents[#sim.loadedEvents + 1] = name
+            end }
+        end },
     }
 
     sim.gameTexts = {

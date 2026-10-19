@@ -61,3 +61,4 @@
 <text name="ap_evt_hijack_yield_text" language="de">Sie stoßen das Paket aus einer Luftschleuse. Du sammelst es ein und schickst es weiter.</text>
 <text name="ap_evt_hijack_destroyed_text" language="de">Das Piratenschiff bricht auseinander. Du ziehst das Paket aus dem Wrack und schickst es weiter.</text>
 <text name="ap_evt_hijack_deadcrew_text" language="de">Die Piratencrew ist tot. Du schickst das Paket weiter und nimmst dann ihr Schiff aus.</text>
+<text name="ap_trap_asb_text" language="de">Eine planetare Verteidigungsbatterie erwacht und erfasst dein Schiff. Jemand hat ihnen deinen Transpondercode gegeben.</text>

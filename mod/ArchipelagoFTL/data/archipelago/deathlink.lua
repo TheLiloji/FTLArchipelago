@@ -313,6 +313,16 @@ local function isDrone(member)
     return ok and drone == true
 end
 
+-- Temporary crew (Multiverse holograms and projections, technician drones, weapon clones) vanish on their own:
+-- a spawn with a lifetime gets a death timer, a hologram without one takes no slot and cannot be cloned.
+local function isTemporary(member)
+    local ok, temporary = pcall(function()
+        local extend = member.extend
+        return extend.deathTimer ~= nil or (extend.noSlot == true and extend.noClone == true)
+    end)
+    return ok and temporary == true
+end
+
 -- Hyperspace gives each crew member an id that stays when the player renames them; the name is the fallback.
 local function crewKey(member, name)
     local ok, id = pcall(function() return member.extend.selfId end)
@@ -330,7 +340,7 @@ local function livingCrew()
             local crew = ship.vCrewList
             for i = 0, crew:size() - 1 do
                 local member = crew[i]
-                if member ~= nil and member.iShipId == 0 and not isDrone(member) then
+                if member ~= nil and member.iShipId == 0 and not isDrone(member) and not isTemporary(member) then
                     local name = tostring(member.GetName and member:GetName() or ("crew" .. i))
                     local key = crewKey(member, name)
                     local health = member.health and tonumber(member.health.first) or 1
