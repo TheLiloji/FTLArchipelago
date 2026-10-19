@@ -48,11 +48,11 @@ local function memberIs(member, method)
     return ok and result == true
 end
 
--- Holograms, projections and other crew that fade away on their own keep FTL's name: see deathlink.lua.
+-- Holograms, projections, pets and other crew without a crew slot keep FTL's name: see deathlink.lua.
 local function temporary(member)
     local ok, result = pcall(function()
         local extend = member.extend
-        return extend.deathTimer ~= nil or (extend.noSlot == true and extend.noClone == true)
+        return extend.deathTimer ~= nil or extend.noSlot == true
     end)
     return ok and result == true
 end

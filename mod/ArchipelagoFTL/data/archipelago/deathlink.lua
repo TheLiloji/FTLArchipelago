@@ -314,11 +314,12 @@ local function isDrone(member)
 end
 
 -- Temporary crew (Multiverse holograms and projections, technician drones, weapon clones) vanish on their own:
--- a spawn with a lifetime gets a death timer, a hologram without one takes no slot and cannot be cloned.
+-- a spawn with a lifetime gets a death timer, a hologram without one takes no crew slot. So do pets like the
+-- gnome: none of them is a crew member lost.
 local function isTemporary(member)
     local ok, temporary = pcall(function()
         local extend = member.extend
-        return extend.deathTimer ~= nil or (extend.noSlot == true and extend.noClone == true)
+        return extend.deathTimer ~= nil or extend.noSlot == true
     end)
     return ok and temporary == true
 end
