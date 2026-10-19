@@ -49,6 +49,37 @@ local function startingLevel(name)
     return inventory.startingUpgrades[name] or 0
 end
 
+-- The Head Starts this run began with, kept in its save: one received during the run only comes with the next
+-- run, so it must not raise the cap now (an event would sell the level). A run from before this record keeps
+-- counting the inventory's.
+local function runStartingLevel(name)
+    local ok, value = pcall(function()
+        local variables = Hyperspace.playerVariables
+        if math.floor(tonumber(variables.ap_bonus_set) or 0) ~= 1 then
+            return nil
+        end
+        return math.floor(tonumber(variables["ap_bonus_" .. name]) or 0)
+    end)
+    if ok and value ~= nil then
+        return value
+    end
+    return startingLevel(name)
+end
+
+local function recordRunStartingLevels(names)
+    pcall(function()
+        local variables = Hyperspace.playerVariables
+        for _, name in ipairs(names) do
+            variables["ap_bonus_" .. name] = startingLevel(name)
+        end
+        variables.ap_bonus_set = 1
+    end)
+end
+
+local function forgetRunStartingLevels()
+    pcall(function() Hyperspace.playerVariables.ap_bonus_set = 0 end)
+end
+
 _G.apSystemCap = allowedCap
 
 function apShipCapBonus(name)
@@ -237,7 +268,7 @@ local function applyCap(system)
         cap = cap + (base - 1)
     end
 
-    cap = cap + startingLevel(name)
+    cap = cap + runStartingLevel(name)
 
     if cap > originalMaxLevel[name] then
         cap = originalMaxLevel[name]
@@ -307,6 +338,12 @@ local function applyStartingUpgrades()
 
         local granted = 0
         local systems = player.vSystemList
+        local names = {}
+        for i = 0, systems:size() - 1 do
+            names[#names + 1] = systemName(systems[i])
+        end
+        recordRunStartingLevels(names)
+        apApplySystemRules()
         for i = 0, systems:size() - 1 do
             local system = systems[i]
             local name = systemName(system)
@@ -594,6 +631,7 @@ script.on_init(function(newGame)
     -- A continued run's variables are loaded after on_init: its caps wait for the next tick.
     fromSave = newGame == false
     if not fromSave then
+        forgetRunStartingLevels()
         apApplySystemRules()
         if installMode() > 0 then
             pcall(installReceivedSystems, "start of the run")

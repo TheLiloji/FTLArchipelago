@@ -5530,7 +5530,33 @@ test("cap: a starting bonus opens its own notch, otherwise it's inert", function
 
     apInventoryAdd({ kind = "start", sys = "engines", n = 1 })
     apApplySystemRules()
-    equals(engines.maxLevel, 3, "the cap opens by one notch so the bonus can fit")
+    equals(engines.maxLevel, 2, "received during the run, the bonus waits for the next one")
+    engines.powerState.second = 2
+    sim.startRun(true)
+    engines = systemNamed("engines")
+    equals(engines.powerState.second, 3, "the next run gets the level")
+    equals(engines.maxLevel, 3, "the cap opens by one notch so the bonus fits")
+end)
+
+test("a head start received during a run waits for the next run, the cap with it", function()
+    _G.apInventory = { ships = {}, systemCaps = { engines = 2 }, startingUpgrades = {}, shopAvailability = {} }
+    sim.startRun(true)
+    local engines = systemNamed("engines")
+    local level = engines.powerState.second
+    apApplySystemRules()
+    local cap = engines.maxLevel
+    apQueueItem({ kind = "start", sys = "engines", n = 1, display = "Engines Head Start" })
+    drain()
+    apApplySystemRules()
+    equals(engines.maxLevel, cap, "no level an event or a store could sell before the run that gets it")
+    sim.startRun(false)
+    sim.tick(1)
+    apApplySystemRules()
+    equals(engines.maxLevel, cap, "nor after a Continue")
+    sim.startRun(true)
+    engines = systemNamed("engines")
+    equals(engines.powerState.second, level + 1, "the next run starts with it")
+    equals(engines.maxLevel, cap + 1, "and its cap counts it")
 end)
 
 test("cap: the game's maximum is never exceeded", function()
