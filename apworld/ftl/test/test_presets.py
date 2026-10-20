@@ -126,11 +126,11 @@ class TestPresetsKeepTheirPromises(TestCase):
 
     def test_the_shop_slot_counts_are_the_announced_ones(self) -> None:
         announced = {
-            "A1_multi_game_beginner.yaml": 32,
-            "A2_multi_game_veteran.yaml": 28,
+            "A1_multi_game_beginner.yaml": 36,
+            "A2_multi_game_veteran.yaml": 32,
             "B1_solo_beginner.yaml": 40,
             "B2_solo_veteran.yaml": 50,
-            "C1_two_evenings_beginner.yaml": 30,
+            "C1_two_evenings_beginner.yaml": 34,
             "C2_two_evenings_veteran.yaml": 30,
         }
         for name, count in announced.items():

@@ -34,6 +34,10 @@ def entrance_name(layout: data.Layout) -> str:
     return f"Fly the {layout.display}"
 
 
+# Systems every FTL layout starts with (Engines, Piloting...): their Install check would always be free.
+ON_EVERY_SHIP: frozenset[str] = frozenset.intersection(*(frozenset(layout.start_systems) for layout in data.LAYOUTS))
+
+
 def allowed_layouts(options) -> tuple[data.Layout, ...]:
     if options.ship_layouts == options.ship_layouts.option_type_a_only:
         highest_variant = 0
@@ -122,7 +126,7 @@ def selected_locations(options) -> tuple[data.Location, ...]:
             mode = options.systemsanity.value
             if mode == options.systemsanity.option_disabled or location.system not in systems:
                 continue
-            if location.level == 1 and per_ship:
+            if location.level == 1 and (per_ship or location.system in ON_EVERY_SHIP):
                 continue
             if location.level == 1 or mode == options.systemsanity.option_every_level:
                 kept.append(location)
