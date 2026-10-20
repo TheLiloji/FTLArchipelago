@@ -4,7 +4,7 @@ import json
 
 from BaseClasses import CollectionState
 
-from .. import data
+from .. import FTLWorld, data
 from .bases import FTLTestBase
 
 
@@ -156,3 +156,43 @@ class TestNoArchives(FTLTestBase):
         names = [item.name for item in self.multiworld.itempool]
         self.assertNotIn(data.ARCHIVE_ITEM_NAME, names)
         self.assertEqual(self.world.fill_slot_data()["goal"]["archives"], 0)
+
+
+class TestUniversalTrackerRebuildsTheSameWorld(FTLTestBase):
+    """Universal Tracker regenerates from slot_data alone, with default options and another seed."""
+
+    options = {"layout_count": 6, "ship_layouts": "up_to_type_b", "sectorsanity": "full",
+               "sectorsanity_first_sector": 3, "shop_weapons": 12, "weapon_bundle_size": 3,
+               "shop_by_sector": True, "victories_required": 3}
+
+    def _rebuild(self, slot_data):
+        from argparse import Namespace
+        from BaseClasses import MultiWorld
+        from worlds import AutoWorld
+        from worlds.AutoWorld import call_all
+
+        multiworld = MultiWorld(1)
+        multiworld.game[1] = self.game
+        multiworld.player_name = {1: "Tester"}
+        multiworld.set_seed(self.multiworld.seed + 1)
+        args = Namespace()
+        for name, option in AutoWorld.AutoWorldRegister.world_types[self.game].options_dataclass.type_hints.items():
+            setattr(args, name, {1: option.from_any(option.default)})
+        multiworld.set_options(args)
+        multiworld.state = CollectionState(multiworld)
+        multiworld.re_gen_passthrough = {self.game: FTLWorld.interpret_slot_data(slot_data)}
+        for step in ("generate_early", "create_regions", "create_items", "set_rules"):
+            call_all(multiworld, step)
+        return multiworld
+
+    def test_same_locations_layouts_and_shop(self) -> None:
+        import json
+        slot_data = json.loads(json.dumps(self.world.fill_slot_data()))
+        rebuilt = self._rebuild(slot_data)
+        tracker = rebuilt.worlds[1]
+        self.assertEqual({location.name for location in self.multiworld.get_locations(self.player)},
+                         {location.name for location in rebuilt.get_locations(1)})
+        self.assertEqual(self.world.selected_layouts, tracker.selected_layouts)
+        self.assertEqual(self.world.shop_items, tracker.shop_items)
+        self.assertEqual(self.world.bundles, tracker.bundles)
+        self.assertEqual(tracker.options.sectorsanity_first_sector.value, 3)

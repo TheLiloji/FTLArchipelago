@@ -58,15 +58,39 @@ class FTLWorld(World):
 
     goal_location_name = locations.GOAL_LOCATION
 
+    # Universal Tracker regenerates the world from slot_data["tracker"], without the player's YAML.
+    ut_can_gen_without_yaml = True
+
+    @staticmethod
+    def interpret_slot_data(slot_data: dict[str, Any]) -> dict[str, Any]:
+        return slot_data
+
+    def _tracker_slot_data(self) -> dict[str, Any] | None:
+        passthrough = getattr(self.multiworld, "re_gen_passthrough", None) or {}
+        return (passthrough.get(self.game) or {}).get("tracker")
+
     def generate_early(self) -> None:
+        tracker = self._tracker_slot_data()
+        if tracker is not None:
+            for name, value in tracker["options"].items():
+                setattr(self.options, name, type(getattr(self.options, name)).from_any(value))
         self._check_option_combinations()
         self.start_ship = self._resolve_start_ship()
         self._draw_layouts()
+        if tracker is not None:
+            self.options.drawn_layouts = frozenset(tracker["layouts"])
         self.selected_layouts = locations.selected_layouts(self.options)
         self.created_locations = locations.selected_locations(self.options)
-        self.shop_items = items.selected_shop_items(self.options, self.random)
+        if tracker is not None:
+            self.shop_items = tuple(data.SHOP_ITEMS_BY_BLUEPRINT[name] for name in tracker["shop_items"])
+        else:
+            self.shop_items = items.selected_shop_items(self.options, self.random)
         self.enabled_items = items.enabled_items(self.options, self.shop_items)
         self.bundles = items.bundled_families(self.options, self.shop_items, self.random)
+        if tracker is not None:
+            self.bundles = {family: [tuple(data.SHOP_ITEMS_BY_BLUEPRINT[name] for name in bundle)
+                                     for bundle in bundles]
+                            for family, bundles in tracker["bundles"].items()}
         self._balance_shop_and_filler()
 
         rules.validate_goal(self)
@@ -260,8 +284,20 @@ class FTLWorld(World):
             "options": self.options.as_dict("death_link", "sectorsanity", "trap_chance",
                                             "victory_collects_layout", "free_upgrades",
                                             "system_install", "run_start_scrap", "combat_check_scrap"),
+            "tracker": self._tracker_data(),
         }
         return slot_data
+
+    def _tracker_data(self) -> dict[str, Any]:
+        """What Universal Tracker needs to rebuild the same locations and logic: every option, and the random draws."""
+        names = [name for name in FTLOptions.type_hints if name not in PerGameCommonOptions.type_hints]
+        return {
+            "options": self.options.as_dict(*names),
+            "layouts": [layout.blueprint for layout in self.selected_layouts],
+            "shop_items": [item.blueprint for item in self.shop_items],
+            "bundles": {family: [[item.blueprint for item in bundle] for bundle in bundles]
+                        for family, bundles in self.bundles.items()},
+        }
 
     def _other_player_names(self) -> list[str]:
         # For the crew_names option: the mod names new crew after the other slots of the multiworld.
