@@ -779,6 +779,18 @@ class TestCrewChecks(FTLTestBase):
         self.assertFalse(any("Crystal" in name for name in crew))
 
 
+class TestCrewChecksFollowTheRun(FTLTestBase):
+
+    def test_a_rare_race_waits_for_a_deeper_run_and_a_human_does_not(self) -> None:
+        level = self.world.sector_logic_level
+        human = data.LOCATIONS_BY_NAME["First Human aboard"]
+        lanius = data.LOCATIONS_BY_NAME["First Lanius aboard"]
+        self.assertEqual(rules.blueprints_required(level, human), 0)
+        self.assertGreater(rules.blueprints_required(level, lanius), 0)
+        self.assertGreater(rules.location_depth(lanius), rules.location_depth(
+            data.LOCATIONS_BY_NAME["First Engi aboard"]))
+
+
 class TestCrewChecksOff(FTLTestBase):
     options = {"crew_checks": False}
 
