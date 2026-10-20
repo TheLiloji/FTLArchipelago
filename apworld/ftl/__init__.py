@@ -95,14 +95,26 @@ class FTLWorld(World):
                 "only knows letters a-z and A-Z, digits, spaces and : . - / ; _ ? >. Choose a name without "
                 "accents or other symbols."
             )
+        warn = logging.getLogger("FTL").warning
+        # Random or weighted options can roll these: corrected with a warning so the seed still generates.
         first = self.options.sectorsanity_first_sector.value
         last = self.options.sectorsanity_last_sector.value
         if self.options.sectorsanity != self.options.sectorsanity.option_disabled and first > last:
-            raise OptionError(
-                f"FTL: sectorsanity_first_sector ({first}) is higher than sectorsanity_last_sector ({last}), "
-                "which leaves no sector check at all. Swap them, or set sectorsanity to disabled."
-            )
-        warn = logging.getLogger("FTL").warning
+            warn("FTL (%s): sectorsanity_first_sector (%d) is higher than sectorsanity_last_sector (%d): swapped.",
+                 self.player_name, first, last)
+            self.options.sectorsanity_first_sector.value = last
+            self.options.sectorsanity_last_sector.value = first
+        if self.options.goal == options.Goal.option_victory_selection and not self.options.victory_layouts.value:
+            warn("FTL (%s): goal=victory_selection with no layout in victory_layouts: goal set to victory_count.",
+                 self.player_name)
+            self.options.goal.value = options.Goal.option_victory_count
+        reachable = len(locations.allowed_layouts(self.options))
+        if (self.options.goal == options.Goal.option_victory_count
+                and 0 < reachable < self.options.victories_required.value):
+            warn("FTL (%s): victories_required (%d) is higher than the %d layouts ship_layouts and "
+                 "excluded_layouts allow: lowered to %d.",
+                 self.player_name, self.options.victories_required.value, reachable, reachable)
+            self.options.victories_required.value = reachable
         if self.options.archives_required.value > self.options.archives.value:
             warn("FTL (%s): archives_required (%d) is higher than archives (%d): every Archive is needed.",
                  self.player_name, self.options.archives_required.value, self.options.archives.value)
