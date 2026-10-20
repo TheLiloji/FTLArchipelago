@@ -125,9 +125,16 @@ _MENTIONS_A_SYSTEM = re.compile(
 )
 
 
+# How deep a run usually goes before a first crew member of each race joins: Lanius are rare before sector 5.
+CREW_RACE_DEPTH: dict[str, int] = {"human": 0, "engi": 3, "energy": 3, "mantis": 3, "rock": 4, "slug": 4,
+                                   "anaerobic": 5}
+
+
 def location_depth(location: data.Location, shop_by_sector: bool = False) -> int:
     if shop_by_sector and location.shop_slot is not None:
         return data.shop_sector(location.shop_slot)
+    if location.group == data.GROUP_CREW:
+        return CREW_RACE_DEPTH[location.race]
     if location.group == data.GROUP_SECTORS:
         return location.sector or 0
     if location.group == data.GROUP_VICTORIES:
