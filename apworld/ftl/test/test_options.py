@@ -414,25 +414,19 @@ class TestVictorySelectionOutsideTheSeed(FTLTestBase):
 class TestGoalBeyondReach(FTLTestBase):
 
     options = {"ship_layouts": "type_a_only", "victories_required": len(data.SHIPS) + 1}
-    auto_construct = False
 
-    def test_generation_is_refused_with_a_readable_message(self) -> None:
-        with self.assertRaises(OptionError) as raised:
-            self.world_setup()
-        self.assertIn("victories_required", str(raised.exception))
+    def test_the_goal_is_lowered_to_the_layouts_the_seed_can_hold(self) -> None:
+        reachable = len(locations.allowed_layouts(self.world.options))
+        self.assertEqual(self.world.options.victories_required.value, reachable)
+        self.assertEqual(self.world.options.layout_count.value, reachable)
 
 
 class TestVictorySelectionWithoutAnyLayout(FTLTestBase):
 
     options = {"goal": "victory_selection", "victory_layouts": []}
-    auto_construct = False
 
-    def test_generation_is_refused_with_a_readable_message(self) -> None:
-        with self.assertRaises(OptionError) as raised:
-            self.world_setup()
-        message = str(raised.exception)
-        self.assertIn("victory_layouts", message)
-        self.assertIn("victory_count", message)
+    def test_the_goal_falls_back_to_victory_count(self) -> None:
+        self.assertEqual(self.world.options.goal.value, options.Goal.option_victory_count)
 
 
 class TestPlandoNamesAnItemThatDoesNotExist(FTLTestBase):
@@ -597,14 +591,10 @@ class TestSectorCeilingBelowFloor(FTLTestBase):
 
     options = {"sectorsanity": "full", "sectorsanity_first_sector": 6,
                "sectorsanity_last_sector": 3}
-    auto_construct = False
 
-    def test_generation_is_refused_with_a_readable_message(self) -> None:
-        with self.assertRaises(OptionError) as raised:
-            self.world_setup()
-        message = str(raised.exception)
-        self.assertIn("sectorsanity_first_sector", message)
-        self.assertIn("sectorsanity_last_sector", message)
+    def test_the_two_sectors_are_swapped(self) -> None:
+        self.assertEqual(self.world.options.sectorsanity_first_sector.value, 3)
+        self.assertEqual(self.world.options.sectorsanity_last_sector.value, 6)
 
 
 class TestSectorCeilingBelowFloorWithoutSectorChecks(FTLTestBase):
