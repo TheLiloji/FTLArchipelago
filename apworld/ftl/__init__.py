@@ -377,7 +377,8 @@ class FTLWorld(World):
                 depth = max(depth, data.shop_sector(location.shop_slot))
             offers[location.check_id] = {
                 "price": pricing.price(pricing.price_tier(placed.item), depth),
-                "sphere": sphere,
+                # get_spheres starts at the locations open from the start, which Archipelago calls sphere 1.
+                "sphere": None if sphere is None else sphere + 1,
                 "kind": kind,
             }
         return offers
