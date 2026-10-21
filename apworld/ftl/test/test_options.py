@@ -792,6 +792,24 @@ class TestCrewChecksFollowTheRun(FTLTestBase):
             data.LOCATIONS_BY_NAME["First Engi aboard"]))
 
 
+class TestFightChecksFollowTheRun(FTLTestBase):
+    options = {"sector_logic": "strict", "combat_checks": 10}
+
+    def test_the_tenth_fight_waits_for_a_deeper_run_and_the_first_does_not(self) -> None:
+        level = self.world.sector_logic_level
+        fights = sorted((location for location in data.LOCATIONS if location.group == data.GROUP_FIGHTS
+                         and location.ship == data.LOCATIONS_BY_NAME[self.any_fight()].ship),
+                        key=lambda location: location.fight)
+        self.assertEqual(rules.blueprints_required(level, fights[0]), 0)
+        self.assertGreater(rules.blueprints_required(level, fights[-1]), 0)
+        depths = [rules.location_depth(location) for location in fights]
+        self.assertEqual(depths, sorted(depths), "a later fight is never an earlier check")
+
+    def any_fight(self) -> str:
+        return next(location.name for location in self.addressed_locations()
+                    if data.LOCATIONS_BY_NAME[location.name].group == data.GROUP_FIGHTS)
+
+
 class TestCrewChecksOff(FTLTestBase):
     options = {"crew_checks": False}
 
