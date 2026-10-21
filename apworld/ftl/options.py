@@ -182,7 +182,8 @@ StartShip = type(
         "__qualname__": "StartShip",
         "__doc__": (
             "The ship you start with. The Kestrel Cruiser is always unlocked too.\n\n"
-            "    You get the Type A layout; Type B and C are found like the other ships'."
+            "    You get the Type A layout; Type B and C are found like the other ships'.\n"
+            "    Base game only: with Multiverse you always start with the MV Kestrel."
         ),
         "display_name": "Starting Ship",
         "default": _START_SHIP_DEFAULT.slot,
