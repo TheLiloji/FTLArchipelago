@@ -22,11 +22,6 @@
     </surgeDrones>
 </boss>
 
-<augments>
-    <aug name="ENERGY_SHIELD"><locked/></aug>
-    <aug name="SHIELD_RECHARGE"><locked/></aug>
-</augments>
-
 <ships>
     <ship name="PLAYER_SHIP_ANAEROBIC" noAppend="true">
         <unlock variant="a"><type>1</type><value>99</value><silent/></unlock>
