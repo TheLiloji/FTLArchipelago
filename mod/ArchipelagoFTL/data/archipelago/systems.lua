@@ -309,6 +309,11 @@ function apSystemInstallChoices()
     return left
 end
 
+function apSystemFreeSlots()
+    local player = Hyperspace.ships.player
+    return player ~= nil and (freeMainSlots(player) or 0) or 0
+end
+
 function apInstallChosenSystem(name)
     local player = Hyperspace.ships.player
     if player == nil then
