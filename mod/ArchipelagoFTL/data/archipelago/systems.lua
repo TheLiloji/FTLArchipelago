@@ -191,33 +191,141 @@ local function hullHasPlace(player, id)
     return ok and found == true
 end
 
-local function installReceivedSystems(reason)
-    local player = Hyperspace.ships.player
-    local caps = (_G.apInventory or {}).systemCaps
-    if player == nil or caps == nil then
-        return 0
-    end
-    local installed = {}
+-- What could come aboard for free: received blueprints the hull has a room for, not a Medbay/Clone Bay swap.
+local function installCandidates(player, caps)
+    local candidates = {}
     for _, name in ipairs(INSTALL_ORDER) do
         local id = systemId(name)
         if id ~= nil and caps[name] ~= nil and hasBlueprint(name) and not player:HasSystem(id)
             and hullHasPlace(player, id) then
             local replaces = (name == "medbay" and player:HasSystem(systemId("clonebay")))
                 or (name == "clonebay" and player:HasSystem(systemId("medbay")))
-            local fits = SUBSYSTEMS[name] and player:CanFitSubsystem(id) or player:CanFitSystem(id)
-            if fits and not replaces then
-                player:AddSystem(id)
-                if player:HasSystem(id) then
-                    installed[#installed + 1] = apSystemLabel(name)
-                    sysLog(name .. ": installed for free (" .. reason .. ")")
-                end
+            if not replaces then
+                candidates[#candidates + 1] = name
             end
         end
+    end
+    return candidates
+end
+
+-- Free main system slots: the ship's limit (Hyperspace, 8 unless a ship says otherwise) minus what it powers.
+local function freeMainSlots(player)
+    local ok, free = pcall(function()
+        local limit = Hyperspace.CustomShipSelect.GetInstance():GetDefinition(player.myBlueprint.blueprintName)
+            .systemLimit
+        local used = 0
+        local systems = player.vSystemList
+        for i = 0, systems:size() - 1 do
+            if systems[i].bNeedsPower then
+                used = used + 1
+            end
+        end
+        return math.max(0, math.floor(limit) - used)
+    end)
+    return ok and free or nil
+end
+
+local function installOne(player, name, reason)
+    local id = systemId(name)
+    local fits = SUBSYSTEMS[name] and player:CanFitSubsystem(id) or player:CanFitSystem(id)
+    if not fits then
+        return false
+    end
+    player:AddSystem(id)
+    if player:HasSystem(id) then
+        sysLog(name .. ": installed for free (" .. reason .. ")")
+        return true
+    end
+    return false
+end
+
+-- Main systems left for the player to choose in the start-of-run menu, when they do not all fit. Kept in the
+-- run's save, so a Continue before choosing still offers them.
+local function setChoice(name, on)
+    pcall(function() Hyperspace.playerVariables["ap_choose_" .. name] = on and 1 or 0 end)
+end
+
+local function isChoice(name)
+    local ok, value = pcall(function() return Hyperspace.playerVariables["ap_choose_" .. name] end)
+    return ok and math.floor(tonumber(value) or 0) == 1
+end
+
+local function installReceivedSystems(reason)
+    local player = Hyperspace.ships.player
+    local caps = (_G.apInventory or {}).systemCaps
+    if player == nil or caps == nil then
+        return 0
+    end
+    local candidates = installCandidates(player, caps)
+    local mains = 0
+    for _, name in ipairs(candidates) do
+        if not SUBSYSTEMS[name] then
+            mains = mains + 1
+        end
+    end
+    -- At the start of a run, more systems than free slots: the fixed order would decide, so the player does.
+    local free = freeMainSlots(player)
+    local starting = reason == "start of the run"
+    local choose = starting and free ~= nil and mains > free and free > 0
+    if starting then
+        for _, name in ipairs(INSTALL_ORDER) do
+            setChoice(name, false)
+        end
+    end
+    local installed = {}
+    for _, name in ipairs(candidates) do
+        if choose and not SUBSYSTEMS[name] then
+            setChoice(name, true)
+        elseif installOne(player, name, reason) then
+            installed[#installed + 1] = apSystemLabel(name)
+        end
+    end
+    if choose then
+        sysLog(mains .. " system(s) for " .. free .. " free slot(s): the player chooses in the menu")
     end
     if #installed > 0 and _G.apNotifyStatus then
         _G.apNotifyStatus(apT("system.installed_free", { list = table.concat(installed, ", ") }))
     end
     return #installed
+end
+
+-- The start-of-run menu: the systems still to choose from, while a slot is free.
+function apSystemInstallChoices()
+    local player = Hyperspace.ships.player
+    if player == nil then
+        return {}
+    end
+    local free = freeMainSlots(player)
+    if free ~= nil and free <= 0 then
+        return {}
+    end
+    local left = {}
+    for _, name in ipairs(INSTALL_ORDER) do
+        local id = systemId(name)
+        if isChoice(name) and id ~= nil and not player:HasSystem(id) then
+            left[#left + 1] = name
+        end
+    end
+    return left
+end
+
+function apInstallChosenSystem(name)
+    local player = Hyperspace.ships.player
+    if player == nil then
+        return false
+    end
+    for _, choice in ipairs(apSystemInstallChoices()) do
+        if choice == name then
+            local ok, installed = pcall(installOne, player, name, "chosen in the start-of-run menu")
+            if ok and installed then
+                -- Put aboard at level 1 like any start system, before its cap is applied.
+                apApplySystemRules()
+                return true
+            end
+            return false
+        end
+    end
+    return false
 end
 
 function apInstallReceivedSystems(reason)

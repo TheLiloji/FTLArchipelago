@@ -17,11 +17,15 @@ local LIST_OFFSET = 44
 local PAGER_H = 24
 local DONE_BUTTON = { w = 220, h = 34 }
 local CATEGORIES = { "weapon", "drone", "crew" }
+-- With System Install, received systems that do not all fit get a fourth column: the player picks.
+local ALL_CATEGORIES = { "weapon", "drone", "crew", "system" }
 local COLUMN_KEYS = {
     weapon = "loadout.column.weapon", drone = "loadout.column.drone", crew = "loadout.column.crew",
+    system = "loadout.column.system",
 }
 local EMPTY_KEYS = {
     weapon = "loadout.empty.weapon", drone = "loadout.empty.drone", crew = "loadout.empty.crew",
+    system = "loadout.empty.system",
 }
 local SKILL_KEYS = {
     pilot = "crew.skill.pilot", engines = "crew.skill.engines", shields = "crew.skill.shields",
@@ -79,8 +83,11 @@ local function crewLabel(entry)
 end
 
 local function receivedCatalog()
-    local catalog = { weapon = {}, drone = {}, crew = {} }
+    local catalog = { weapon = {}, drone = {}, crew = {}, system = {} }
     local inventory = _G.apInventory or {}
+    for _, name in ipairs(_G.apSystemInstallChoices and apSystemInstallChoices() or {}) do
+        catalog.system[#catalog.system + 1] = { system = name, label = apSystemLabel(name) }
+    end
     for name, count in pairs(inventory.shopAvailability or {}) do
         if (tonumber(count) or 0) >= 2 then
             local family = _G.apBlueprintFamily and _G.apBlueprintFamily(name)
@@ -109,14 +116,21 @@ local function receivedCatalog()
             }
         end
     end
-    for _, category in ipairs(CATEGORIES) do
+    for _, category in ipairs(ALL_CATEGORIES) do
         table.sort(catalog[category], function(a, b) return a.label < b.label end)
     end
     return catalog
 end
 
 local function catalogEmpty(catalog)
-    return #catalog.weapon == 0 and #catalog.drone == 0 and #catalog.crew == 0
+    return #catalog.weapon == 0 and #catalog.drone == 0 and #catalog.crew == 0 and #catalog.system == 0
+end
+
+local function categoriesShown(catalog)
+    if #catalog.system > 0 or taken.system then
+        return ALL_CATEGORIES
+    end
+    return CATEGORIES
 end
 
 local function uiFree()
@@ -137,12 +151,13 @@ local function close(reason)
     remember("open", 0)
 end
 
-local function geometry()
+local function geometry(categories)
+    categories = categories or CATEGORIES
     local g = { columns = {} }
-    local columnW = math.floor((PANEL.w - 40 - COLUMN_GAP * (#CATEGORIES - 1)) / #CATEGORIES)
+    local columnW = math.floor((PANEL.w - 40 - COLUMN_GAP * (#categories - 1)) / #categories)
     local columnH = PANEL.h - COLUMN_TOP - COLUMN_BOTTOM
     local perPage = math.floor((columnH - LIST_OFFSET - PAGER_H - 16) / (ROW_H + ROW_GAP))
-    for index, category in ipairs(CATEGORIES) do
+    for index, category in ipairs(categories) do
         local x = PANEL.x + 20 + (index - 1) * (columnW + COLUMN_GAP)
         local y = PANEL.y + COLUMN_TOP
         local pagerY = y + columnH - PAGER_H - 10
@@ -167,7 +182,7 @@ local function rowArea(column, row)
 end
 
 function apLoadoutPoint(target, category, row)
-    local g = geometry()
+    local g = geometry(categoriesShown(receivedCatalog()))
     if target == "done" then
         return g.done.x + g.done.w / 2, g.done.y + g.done.h / 2
     end
@@ -178,7 +193,20 @@ end
 
 local function take(category, entry)
     local succeeded, reason
-    if category == "crew" then
+    if category == "system" then
+        succeeded = _G.apInstallChosenSystem ~= nil and apInstallChosenSystem(entry.system)
+        if succeeded then
+            menuLog("installed for this run: " .. entry.label)
+            if _G.apNotifyStatus then
+                _G.apNotifyStatus(apT("loadout.taken", { name = entry.label }))
+            end
+            -- Several systems can come aboard: the column closes once no slot is left.
+            if #(apSystemInstallChoices()) == 0 then
+                taken.system = entry.label
+            end
+            return
+        end
+    elseif category == "crew" then
         succeeded, reason = _G.apRecruitCrew and _G.apRecruitCrew(entry.race, entry.skill)
     else
         succeeded = _G.apDeliverEquipment and _G.apDeliverEquipment(
@@ -197,14 +225,16 @@ local function take(category, entry)
     if _G.apNotifyStatus then
         _G.apNotifyStatus(apT("loadout.taken", { name = entry.label }))
     end
-    if taken.weapon and taken.drone and taken.crew then
+    local systemsLeft = _G.apSystemInstallChoices and #(apSystemInstallChoices()) or 0
+    if taken.weapon and taken.drone and taken.crew and systemsLeft == 0 then
         close("all three categories are taken")
     end
 end
 
 local function draw()
     local catalog = receivedCatalog()
-    local g = geometry()
+    local categories = categoriesShown(catalog)
+    local g = geometry(categories)
     ui.hideGameTooltip()
     ui.shade()
     ui.window(PANEL.x, PANEL.y, PANEL.w, PANEL.h)
@@ -221,7 +251,7 @@ local function draw()
     ui.text(24, titleX, PANEL.y + 14, PANEL.x + PANEL.w - 20 - titleX, "title", apT("loadout.title"))
     ui.text(10, PANEL.x + 20, PANEL.y + 56, PANEL.w - 40, "dim", apT("loadout.hint"))
 
-    for _, category in ipairs(CATEGORIES) do
+    for _, category in ipairs(categories) do
         local column = g.columns[category]
         local list = catalog[category]
         local chosen = taken[category]
@@ -252,6 +282,8 @@ local function draw()
                     ui.weaponArt(entry.bp, iconX, iconY, ICON_W, iconH, alpha)
                 elseif category == "drone" then
                     ui.droneArt(entry.bp, iconX, iconY, ICON_W, iconH, alpha)
+                elseif category == "system" then
+                    ui.systemIcon(entry.system, iconX, iconY, ICON_W, iconH, alpha)
                 else
                     ui.raceSprite(entry.race, iconX + (ICON_W - 70) / 2, area.y + (area.h - 70) / 2, 70, alpha)
                 end
@@ -276,12 +308,13 @@ end
 
 local function handleClick(x, y)
     local catalog = receivedCatalog()
-    local g = geometry()
+    local categories = categoriesShown(catalog)
+    local g = geometry(categories)
     if ui.inside(g.done, x, y) then
         close("finished by the player")
         return true
     end
-    for _, category in ipairs(CATEGORIES) do
+    for _, category in ipairs(categories) do
         local column = g.columns[category]
         local list = catalog[category]
         local total = math.max(1, math.ceil(#list / g.perPage))

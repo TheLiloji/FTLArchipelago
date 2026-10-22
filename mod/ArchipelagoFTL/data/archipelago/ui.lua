@@ -274,4 +274,13 @@ function ui.droneArt(blueprint, x, y, w, h, alpha)
     return true
 end
 
+-- A system's green icon from the game (64 pixels with a wide margin), drawn at its own size.
+function ui.systemIcon(id, x, y, w, h, alpha)
+    local texture = ui.image("icons/s_" .. tostring(id) .. "_green1.png")
+    if texture == nil or not texture then return false end
+    local size = math.min(64, w, h * 1.5)
+    ui.blit(texture, x + (w - size) / 2, y + (h - size) / 2, size, size, alpha)
+    return true
+end
+
 _G.apUi = ui
