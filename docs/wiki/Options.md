@@ -68,15 +68,21 @@ Three things players often get wrong:
 
 The Options Creator shows them in groups:
 
-- **Goal**: how many victories, on which difficulty, and how many Archives. Archives can be anywhere in the
-  multiworld, in your own world too.
-- **Game Size**: which ship layouts are in the game and how many, and what sends checks: sectors, systems,
-  achievements, crew, fights won, the Archipelago shop.
-  **Excluded Ships and Layouts** leaves out the ships or layouts you never want to fly.
+- **Goal**: how many victories, on which difficulty, how many Archives, and what a victory also sends.
+  Archives can be anywhere in the multiworld, in your own world too.
+- **Ships**: your first ship, which layouts are in the game and how many, how Type B and C unlock, and the
+  early ship keys. **Excluded Ships and Layouts** leaves out the ships or layouts you never want to fly.
+- **Checks**: what sends checks: sectors, systems, achievements, crew, fights won.
+- **Systems and Upgrades** (closed at first): system blueprints, progressive levels, free upgrades and how
+  received systems come aboard.
+- **Weapons, Drones, Augments, Crew** (closed at first): what is locked in FTL's stores, bundles, and crew
+  members as items.
+- **Archipelago Shop** (closed at first): how many packages, and whether they are split by sector or by ship.
+- **Runs** (closed at first): the Head Start items, scrap at the start of a run, which event beacons are
+  marked, how hard the logic is, and the language of the mod (it follows FTL by itself).
 - **Playing with Others**: Death Link, Energy Link (a shared fuel reserve), Trap Link, and how many traps.
-- **Advanced** (closed at first): you do not need to touch these. Your first ship, the Head Start items, the
-  language of the mod (it follows FTL by itself), the range of sectors that count, how Type B and C unlock,
-  what is locked in stores, the options below, and how hard the logic is.
+
+You do not need to touch the closed groups for a first game.
 
 Two kinds of shop appear in the names. **Shop Weapons**, **Shop Drones**, **Shop Augments** and **Shop Unlock
 Mode** are about FTL's own stores. **Archipelago Shop** options are about the Archipelago shop: the
