@@ -106,6 +106,11 @@ local function statsLine(entry, family)
     return line
 end
 
+-- On the row there is only room for the power: the rest shows on hover.
+local function shortStats(entry)
+    return entry.info and apT("loadout.power", { n = entry.info.power }) or nil
+end
+
 local function crewLabel(entry)
     local race = _G.apRaceLabel and _G.apRaceLabel(entry.race) or entry.race
     if entry.skill ~= nil and SKILL_KEYS[entry.skill] ~= nil then
@@ -301,7 +306,8 @@ local function draw()
         titleX = titleX + LOGO_SIZE + 10
     end
     ui.text(24, titleX, PANEL.y + 14, PANEL.x + PANEL.w - 20 - titleX, "title", apT("loadout.title"))
-    ui.text(10, PANEL.x + 20, PANEL.y + 56, PANEL.w - 40, "dim", apT("loadout.hint"))
+    ui.wrapped(10, PANEL.x + 20, PANEL.y + 54, PANEL.w - 40, "dim",
+        apT(#categories > #CATEGORIES and "loadout.hint.systems" or "loadout.hint"))
 
     for _, category in ipairs(categories) do
         local column = g.columns[category]
@@ -310,6 +316,12 @@ local function draw()
         ui.rect(column.x, column.y, column.w, column.h, "card")
         ui.rect(column.x, column.y, column.w, 2, chosen and "good" or "border")
         local badge = chosen and apT("loadout.chosen") or apT("loadout.count", { n = #list })
+        if category == "system" and not chosen then
+            badge = apT("loadout.free_slots", { n = apSystemFreeSlots and apSystemFreeSlots() or 0 })
+        elseif #categories > #CATEGORIES and not chosen then
+            -- Four columns leave no room for "N received": the number says it.
+            badge = tostring(#list)
+        end
         local badgeW = ui.width(9, badge)
         ui.text(13, column.x + 12, column.y + 14, column.w - 36 - badgeW, "title", apT(COLUMN_KEYS[category]))
         ui.textRight(9, column.x + column.w - 12, column.y + 18, badgeW, chosen and "good" or "dim", badge)
@@ -343,7 +355,7 @@ local function draw()
                 if stats then
                     ui.text(10, area.x + ICON_W + 16, area.y + 9, area.w - ICON_W - 24,
                         isChosen and "good" or (available and "text" or "dim"), entry.label)
-                    ui.text(9, area.x + ICON_W + 16, area.y + 27, area.w - ICON_W - 24, "dim", stats)
+                    ui.text(9, area.x + ICON_W + 16, area.y + 27, area.w - ICON_W - 24, "dim", shortStats(entry))
                 else
                     ui.textTwoLines(10, area.x + ICON_W + 16, area.y + 17, area.w - ICON_W - 24, 14,
                         isChosen and "good" or (available and "text" or "dim"), entry.label)

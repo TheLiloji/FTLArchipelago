@@ -367,15 +367,21 @@ test("start-of-run menu: each weapon says its power and numbers, the store's tex
     sim.rarityFor("LASER_BURST_3", 5).description = sim.textString("Fires three shots.")
     sim.startRun(true)
     check(menuShown(), "the menu is open")
-    check(sim.drawnText(apT("loadout.power", { n = 2 }) .. ", "
-        .. apT("loadout.weapon.stats", { damage = 1, shots = 3, cooldown = 12 })), "the burst laser's numbers")
-    check(sim.drawnText(apT("loadout.power", { n = 1 }) .. ", "
-        .. apT("loadout.weapon.missile", { damage = 2, shots = 1, cooldown = 14 })), "a missile launcher says it uses missiles")
+    check(sim.drawnText(apT("loadout.power", { n = 2 })), "the burst laser's power on its row")
+    check(sim.drawnText(apT("loadout.power", { n = 1 })), "and the missile launcher's")
     local x, y = apLoadoutPoint("row", "weapon", 1)
     local mouse = Hyperspace.Mouse
     Hyperspace.Mouse = { position = { x = x, y = y } }
     sim.renderGui()
     Hyperspace.Mouse = mouse
     check(sim.drawnText("Fires three shots."), "hovering shows the store's description")
+    check(sim.drawnText(apT("loadout.power", { n = 2 }) .. ", "
+        .. apT("loadout.weapon.stats", { damage = 1, shots = 3, cooldown = 12 })), "and all its numbers")
+    x, y = apLoadoutPoint("row", "weapon", 2)
+    Hyperspace.Mouse = { position = { x = x, y = y } }
+    sim.renderGui()
+    Hyperspace.Mouse = mouse
+    check(sim.drawnText(apT("loadout.power", { n = 1 }) .. ", "
+        .. apT("loadout.weapon.missile", { damage = 2, shots = 1, cooldown = 14 })), "a missile launcher says it uses missiles")
     sim.blueprintStats = nil
 end)
