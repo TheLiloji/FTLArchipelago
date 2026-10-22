@@ -1050,25 +1050,43 @@ class FTLOptions(PerGameCommonOptions):
 
 ftl_option_groups = [
     OptionGroup("Multiverse", [Multiverse, MultiverseAchievementChecks]),
-    OptionGroup("Goal", [VictoriesRequired, VictoryDifficulty, Archives, ArchivesRequired]),
+    OptionGroup("Goal", [VictoriesRequired, VictoryDifficulty, Archives, ArchivesRequired, VictoryCollectsLayout]),
     OptionGroup(
-        "Game Size",
-        [ShipLayouts, LayoutCount, ExcludedLayouts, Sectorsanity, Systemsanity, ShipAchievementChecks, GeneralAchievementChecks,
-         CrewChecks, CombatChecks, CombatCheckScrap, ShopChecks],
+        "Ships",
+        [StartShip, ShipLayouts, LayoutCount, ExcludedLayouts, LayoutUnlocks, EarlyShipKeys],
+    ),
+    OptionGroup(
+        "Checks",
+        [Sectorsanity, SectorsanityFirstSector, SectorsanityLastSector, Systemsanity, SystemsanityPerShip,
+         ShipAchievementChecks, GeneralAchievementChecks, CrossRunAchievementChecks, CrewChecks, CombatChecks,
+         CombatCheckScrap],
+    ),
+    OptionGroup(
+        "Systems and Upgrades",
+        [SystemBlueprints, ProgressiveSystems, ProgressiveSystemsPerShip, FullSystemUpgrades, FreeUpgrades,
+         SystemInstall],
+        start_collapsed=True,
+    ),
+    OptionGroup(
+        "Weapons, Drones, Augments, Crew",
+        [ShopWeapons, ShopDrones, ShopAugments, WeaponBundleSize, DroneBundleSize, AugmentBundleSize,
+         ShopUnlockMode, ShopItemDelivery, CrewMembers],
+        start_collapsed=True,
+    ),
+    OptionGroup(
+        "Archipelago Shop",
+        [ShopChecks, ShopBySector, ShopPerShip],
+        start_collapsed=True,
+    ),
+    OptionGroup(
+        "Runs",
+        [HeadStarts, RunStartScrap, EventBeacons, SectorLogic, ModLanguage],
+        start_collapsed=True,
     ),
     OptionGroup(
         "Playing with Others",
         [DeathLink, DeathLinkTrigger, DeathLinkClonedCrew, DeathLinkEffect, EnergyLink, TrapLink, TrapChance,
          CrewNames],
-    ),
-    OptionGroup(
-        "Advanced",
-        [StartShip, HeadStarts, ModLanguage, EventBeacons, SectorsanityFirstSector, SectorsanityLastSector, VictoryCollectsLayout, LayoutUnlocks, EarlyShipKeys, CrossRunAchievementChecks,
-         SystemBlueprints, ProgressiveSystems, FullSystemUpgrades, FreeUpgrades, SystemInstall, RunStartScrap, CrewMembers, ShopWeapons, ShopDrones, ShopAugments,
-         WeaponBundleSize, DroneBundleSize, AugmentBundleSize,
-         ShopUnlockMode, ShopItemDelivery, ShopBySector, ShopPerShip, SystemsanityPerShip,
-         ProgressiveSystemsPerShip, SectorLogic],
-        start_collapsed=True,
     ),
     OptionGroup(
         "Expert (YAML only)",

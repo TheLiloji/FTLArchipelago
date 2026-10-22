@@ -70,16 +70,23 @@ Trois pièges fréquents :
 
 Le créateur d'options les range en groupes :
 
-- **Goal** : combien de victoires, dans quelle difficulté, et combien d'Archives. Les Archives peuvent être
-  n'importe où dans le multiworld, chez toi aussi.
-- **Game Size** : quels layouts sont dans la partie et combien, et ce qui envoie des checks : secteurs,
-  systèmes, succès, équipage, combats gagnés, boutique Archipelago.
-  **Excluded Ships and Layouts** retire les vaisseaux ou les layouts que tu ne veux jamais piloter.
+- **Goal** : combien de victoires, dans quelle difficulté, combien d'Archives, et ce qu'une victoire envoie en
+  plus. Les Archives peuvent être n'importe où dans le multiworld, chez toi aussi.
+- **Ships** : ton premier vaisseau, quels layouts sont dans la partie et combien, le déblocage des types B et C,
+  et les clés de vaisseau du début. **Excluded Ships and Layouts** retire les vaisseaux ou les layouts que tu ne
+  veux jamais piloter.
+- **Checks** : ce qui envoie des checks : secteurs, systèmes, succès, équipage, combats gagnés.
+- **Systems and Upgrades** (fermé au départ) : les plans de systèmes, les niveaux progressifs, les améliorations
+  gratuites et la façon dont les systèmes reçus arrivent à bord.
+- **Weapons, Drones, Augments, Crew** (fermé au départ) : ce qui est verrouillé dans les magasins de FTL, les
+  lots, et l'équipage comme objets.
+- **Archipelago Shop** (fermé au départ) : combien de paquets, et s'ils sont répartis par secteur ou par vaisseau.
+- **Runs** (fermé au départ) : les Head Starts, la ferraille en début de partie, les balises d'événement
+  marquées, la sévérité de la logique, et la langue du mod (elle suit FTL toute seule).
 - **Playing with Others** : Death Link, Energy Link (une réserve de carburant partagée), Trap Link, et combien
   de pièges.
-- **Advanced** (fermé au départ) : tu n'as pas besoin d'y toucher. Ton premier vaisseau, les Head Starts, la
-  langue du mod (elle suit FTL toute seule), les secteurs qui comptent, le déblocage des types B et C, ce qui est
-  verrouillé en magasin, les options ci-dessous, et la sévérité de la logique.
+
+Pas besoin de toucher aux groupes fermés pour une première partie.
 
 Deux sortes de boutiques apparaissent dans les noms. **Shop Weapons**, **Shop Drones**, **Shop Augments** et
 **Shop Unlock Mode** parlent des magasins de FTL. Les options **Archipelago Shop** parlent de la boutique
