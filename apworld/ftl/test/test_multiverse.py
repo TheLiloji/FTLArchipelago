@@ -92,11 +92,22 @@ class TestBaseGameBundlesKeepBaseNames(FTLTestBase):
 class TestBaseGameRangesUnchanged(FTLTestBase):
     run_default_tests = False
 
-    def test_multiverse_does_not_widen_the_base_game_options(self) -> None:
-        from ..options import LayoutCount, ShopAugments, ShopDrones, ShopWeapons, VictoriesRequired
-        self.assertEqual(VictoriesRequired.range_end, 28)
-        self.assertEqual(LayoutCount.range_end, 28)
+    def test_multiverse_does_not_widen_the_base_game_shop_options(self) -> None:
+        from ..options import ShopAugments, ShopDrones, ShopWeapons
         self.assertEqual((ShopWeapons.range_end, ShopDrones.range_end, ShopAugments.range_end), (37, 14, 23))
+
+    def test_ftl_multiverse_offers_every_multiverse_layout(self) -> None:
+        from ..options import LayoutCount, VictoriesRequired
+        self.assertEqual(VictoriesRequired.range_end, len(data.MV_LAYOUTS))
+        self.assertEqual(LayoutCount.range_end, len(data.MV_LAYOUTS))
+
+
+class TestTooManyLayoutsWithoutMultiverse(FTLTestBase):
+    options = {"multiverse": False, "layout_count": 100, "victories_required": 50}
+
+    def test_the_counts_come_down_to_the_base_game(self) -> None:
+        self.assertLessEqual(self.world.options.layout_count.value, len(data.LAYOUTS))
+        self.assertLessEqual(self.world.options.victories_required.value, len(data.LAYOUTS))
 
 
 class TestMultiverseAchievements(FTLTestBase):

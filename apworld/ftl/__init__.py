@@ -58,15 +58,39 @@ class FTLWorld(World):
 
     goal_location_name = locations.GOAL_LOCATION
 
+    # Universal Tracker regenerates the world from slot_data["tracker"], without the player's YAML.
+    ut_can_gen_without_yaml = True
+
+    @staticmethod
+    def interpret_slot_data(slot_data: dict[str, Any]) -> dict[str, Any]:
+        return slot_data
+
+    def _tracker_slot_data(self) -> dict[str, Any] | None:
+        passthrough = getattr(self.multiworld, "re_gen_passthrough", None) or {}
+        return (passthrough.get(self.game) or {}).get("tracker")
+
     def generate_early(self) -> None:
+        tracker = self._tracker_slot_data()
+        if tracker is not None:
+            for name, value in tracker["options"].items():
+                setattr(self.options, name, type(getattr(self.options, name)).from_any(value))
         self._check_option_combinations()
         self.start_ship = self._resolve_start_ship()
         self._draw_layouts()
+        if tracker is not None:
+            self.options.drawn_layouts = frozenset(tracker["layouts"])
         self.selected_layouts = locations.selected_layouts(self.options)
         self.created_locations = locations.selected_locations(self.options)
-        self.shop_items = items.selected_shop_items(self.options, self.random)
+        if tracker is not None:
+            self.shop_items = tuple(data.SHOP_ITEMS_BY_BLUEPRINT[name] for name in tracker["shop_items"])
+        else:
+            self.shop_items = items.selected_shop_items(self.options, self.random)
         self.enabled_items = items.enabled_items(self.options, self.shop_items)
         self.bundles = items.bundled_families(self.options, self.shop_items, self.random)
+        if tracker is not None:
+            self.bundles = {family: [tuple(data.SHOP_ITEMS_BY_BLUEPRINT[name] for name in bundle)
+                                     for bundle in bundles]
+                            for family, bundles in tracker["bundles"].items()}
         self._balance_shop_and_filler()
 
         rules.validate_goal(self)
@@ -95,14 +119,26 @@ class FTLWorld(World):
                 "only knows letters a-z and A-Z, digits, spaces and : . - / ; _ ? >. Choose a name without "
                 "accents or other symbols."
             )
+        warn = logging.getLogger("FTL").warning
+        # Random or weighted options can roll these: corrected with a warning so the seed still generates.
         first = self.options.sectorsanity_first_sector.value
         last = self.options.sectorsanity_last_sector.value
         if self.options.sectorsanity != self.options.sectorsanity.option_disabled and first > last:
-            raise OptionError(
-                f"FTL: sectorsanity_first_sector ({first}) is higher than sectorsanity_last_sector ({last}), "
-                "which leaves no sector check at all. Swap them, or set sectorsanity to disabled."
-            )
-        warn = logging.getLogger("FTL").warning
+            warn("FTL (%s): sectorsanity_first_sector (%d) is higher than sectorsanity_last_sector (%d): swapped.",
+                 self.player_name, first, last)
+            self.options.sectorsanity_first_sector.value = last
+            self.options.sectorsanity_last_sector.value = first
+        if self.options.goal == options.Goal.option_victory_selection and not self.options.victory_layouts.value:
+            warn("FTL (%s): goal=victory_selection with no layout in victory_layouts: goal set to victory_count.",
+                 self.player_name)
+            self.options.goal.value = options.Goal.option_victory_count
+        reachable = len(locations.allowed_layouts(self.options))
+        if (self.options.goal == options.Goal.option_victory_count
+                and 0 < reachable < self.options.victories_required.value):
+            warn("FTL (%s): victories_required (%d) is higher than the %d layouts ship_layouts and "
+                 "excluded_layouts allow: lowered to %d.",
+                 self.player_name, self.options.victories_required.value, reachable, reachable)
+            self.options.victories_required.value = reachable
         if self.options.archives_required.value > self.options.archives.value:
             warn("FTL (%s): archives_required (%d) is higher than archives (%d): every Archive is needed.",
                  self.player_name, self.options.archives_required.value, self.options.archives.value)
@@ -257,8 +293,20 @@ class FTLWorld(World):
             "options": self.options.as_dict("death_link", "sectorsanity", "trap_chance",
                                             "victory_collects_layout", "free_upgrades",
                                             "system_install", "run_start_scrap", "combat_check_scrap"),
+            "tracker": self._tracker_data(),
         }
         return slot_data
+
+    def _tracker_data(self) -> dict[str, Any]:
+        """What Universal Tracker needs to rebuild the same locations and logic: every option, and the random draws."""
+        names = [name for name in FTLOptions.type_hints if name not in PerGameCommonOptions.type_hints]
+        return {
+            "options": self.options.as_dict(*names),
+            "layouts": [layout.blueprint for layout in self.selected_layouts],
+            "shop_items": [item.blueprint for item in self.shop_items],
+            "bundles": {family: [[item.blueprint for item in bundle] for bundle in bundles]
+                        for family, bundles in self.bundles.items()},
+        }
 
     def _other_player_names(self) -> list[str]:
         # For the crew_names option: the mod names new crew after the other slots of the multiworld.
@@ -339,7 +387,8 @@ class FTLWorld(World):
                 depth = max(depth, data.shop_sector(location.shop_slot))
             offers[location.check_id] = {
                 "price": pricing.price(pricing.price_tier(placed.item), depth),
-                "sphere": sphere,
+                # get_spheres starts at the locations open from the start, which Archipelago calls sphere 1.
+                "sphere": None if sphere is None else sphere + 1,
                 "kind": kind,
             }
         return offers

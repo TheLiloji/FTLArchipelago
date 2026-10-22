@@ -276,3 +276,13 @@ class TestLevelChecksCountTheStartingLevelsPerShip(FTLTestBase):
         _collect(self, state, ["Kestrel Cruiser: Progressive Shields"] * 2)
         self.assertTrue(self.multiworld.get_location("Shields level 4", self.player).can_reach(state))
         self.assertFalse(self.multiworld.get_location("Shields level 5", self.player).can_reach(state))
+
+
+class TestNoFreeInstallCheck(FTLTestBase):
+    options = {"layout_count": 28, "systemsanity": "first_install"}
+
+    def test_systems_every_ship_starts_with_have_no_install_check(self) -> None:
+        names = {location.name for location in self.addressed_locations()}
+        self.assertNotIn("Install Engines", names)
+        self.assertNotIn("Install Piloting", names)
+        self.assertIn("Install Cloaking", names)

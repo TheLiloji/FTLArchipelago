@@ -185,8 +185,9 @@ class TestEverythingEnabled(FTLTestBase):
                          if location.layout in {layout.blueprint for layout in data.MV_LAYOUTS}
                          or location.group in (data.GROUP_MV_ACHIEVEMENTS, data.GROUP_MV_CREW, data.GROUP_MV_CREW_RARE)
                          or (location.group == data.GROUP_FIGHTS and location.ship in mv_ships))
+        always_free = len(locations.ON_EVERY_SHIP)
         self.assertEqual(len(self.addressed_locations()),
-                         len(data.LOCATIONS) - unused_shop_slots - per_ship - multiverse)
+                         len(data.LOCATIONS) - unused_shop_slots - per_ship - multiverse - always_free)
 
     def test_pool_size_still_matches(self) -> None:
         self.assertEqual(len(self.multiworld.itempool), len(self.addressed_locations()))
@@ -419,25 +420,19 @@ class TestVictorySelectionOutsideTheSeed(FTLTestBase):
 class TestGoalBeyondReach(FTLTestBase):
 
     options = {"ship_layouts": "type_a_only", "victories_required": len(data.SHIPS) + 1}
-    auto_construct = False
 
-    def test_generation_is_refused_with_a_readable_message(self) -> None:
-        with self.assertRaises(OptionError) as raised:
-            self.world_setup()
-        self.assertIn("victories_required", str(raised.exception))
+    def test_the_goal_is_lowered_to_the_layouts_the_seed_can_hold(self) -> None:
+        reachable = len(locations.allowed_layouts(self.world.options))
+        self.assertEqual(self.world.options.victories_required.value, reachable)
+        self.assertEqual(self.world.options.layout_count.value, reachable)
 
 
 class TestVictorySelectionWithoutAnyLayout(FTLTestBase):
 
     options = {"goal": "victory_selection", "victory_layouts": []}
-    auto_construct = False
 
-    def test_generation_is_refused_with_a_readable_message(self) -> None:
-        with self.assertRaises(OptionError) as raised:
-            self.world_setup()
-        message = str(raised.exception)
-        self.assertIn("victory_layouts", message)
-        self.assertIn("victory_count", message)
+    def test_the_goal_falls_back_to_victory_count(self) -> None:
+        self.assertEqual(self.world.options.goal.value, options.Goal.option_victory_count)
 
 
 class TestPlandoNamesAnItemThatDoesNotExist(FTLTestBase):
@@ -602,14 +597,10 @@ class TestSectorCeilingBelowFloor(FTLTestBase):
 
     options = {"sectorsanity": "full", "sectorsanity_first_sector": 6,
                "sectorsanity_last_sector": 3}
-    auto_construct = False
 
-    def test_generation_is_refused_with_a_readable_message(self) -> None:
-        with self.assertRaises(OptionError) as raised:
-            self.world_setup()
-        message = str(raised.exception)
-        self.assertIn("sectorsanity_first_sector", message)
-        self.assertIn("sectorsanity_last_sector", message)
+    def test_the_two_sectors_are_swapped(self) -> None:
+        self.assertEqual(self.world.options.sectorsanity_first_sector.value, 3)
+        self.assertEqual(self.world.options.sectorsanity_last_sector.value, 6)
 
 
 class TestSectorCeilingBelowFloorWithoutSectorChecks(FTLTestBase):
@@ -792,6 +783,46 @@ class TestCrewChecks(FTLTestBase):
         self.assertEqual(len(crew), 7)
         self.assertIn("First Zoltan aboard", crew)
         self.assertFalse(any("Crystal" in name for name in crew))
+
+
+class TestCrewChecksFollowTheRun(FTLTestBase):
+
+    def test_a_rare_race_waits_for_a_deeper_run_and_a_human_does_not(self) -> None:
+        level = self.world.sector_logic_level
+        human = data.LOCATIONS_BY_NAME["First Human aboard"]
+        lanius = data.LOCATIONS_BY_NAME["First Lanius aboard"]
+        self.assertEqual(rules.blueprints_required(level, human), 0)
+        self.assertGreater(rules.blueprints_required(level, lanius), 0)
+        self.assertGreater(rules.location_depth(lanius), rules.location_depth(
+            data.LOCATIONS_BY_NAME["First Engi aboard"]))
+
+
+class TestFightChecksFollowTheRun(FTLTestBase):
+    options = {"sector_logic": "strict", "combat_checks": 10}
+
+    def test_the_tenth_fight_waits_for_a_deeper_run_and_the_first_does_not(self) -> None:
+        level = self.world.sector_logic_level
+        fights = sorted((location for location in data.LOCATIONS if location.group == data.GROUP_FIGHTS
+                         and location.ship == data.LOCATIONS_BY_NAME[self.any_fight()].ship),
+                        key=lambda location: location.fight)
+        self.assertEqual(rules.blueprints_required(level, fights[0]), 0)
+        self.assertGreater(rules.blueprints_required(level, fights[-1]), 0)
+        depths = [rules.location_depth(location) for location in fights]
+        self.assertEqual(depths, sorted(depths), "a later fight is never an earlier check")
+
+    def any_fight(self) -> str:
+        return next(location.name for location in self.addressed_locations()
+                    if data.LOCATIONS_BY_NAME[location.name].group == data.GROUP_FIGHTS)
+
+
+class TestMultiverseCrewChecksFollowTheRun(FTLTestBase):
+
+    def test_every_multiverse_race_has_a_depth_and_the_rare_ones_are_deepest(self) -> None:
+        for _, race, label, rare in data.MV_CREW_RACES:
+            depth = rules.location_depth(data.LOCATIONS_BY_NAME[f"First {label} aboard"])
+            self.assertGreater(depth, 0, label)
+            if rare:
+                self.assertGreaterEqual(depth, rules.CREW_RACE_DEPTH["anaerobic"], label)
 
 
 class TestCrewChecksOff(FTLTestBase):

@@ -126,11 +126,25 @@ _MENTIONS_A_SYSTEM = re.compile(
 )
 
 
+# How deep a run usually goes before a first crew member of each race joins: Lanius are rare before sector 5.
+CREW_RACE_DEPTH: dict[str, int] = {"human": 0, "engi": 3, "energy": 3, "mantis": 3, "rock": 4, "slug": 4,
+                                   "anaerobic": 5,
+                                   # Multiverse: the common races of its sectors first, the rarer ones deeper.
+                                   "orchid": 3, "shell": 3, "lizard": 3, "leech": 4, "spider": 4,
+                                   "crystal": 5, "phantom": 5,
+                                   "cognitive": 6, "siren": 6, "pony": 6, "obelisk": 6}
+
+
 def location_depth(location: data.Location, shop_by_sector: bool = False) -> int:
     if shop_by_sector and location.shop_slot is not None:
         return data.shop_sector(location.shop_slot)
+    if location.group in (data.GROUP_CREW, data.GROUP_MV_CREW, data.GROUP_MV_CREW_RARE):
+        return CREW_RACE_DEPTH[location.race]
     if location.group == data.GROUP_SECTORS:
         return location.sector or 0
+    if location.group == data.GROUP_FIGHTS:
+        # A run wins about four fights per sector: the tenth one is a third-sector check.
+        return (location.fight + 3) // 4
     if location.group == data.GROUP_VICTORIES:
         return data.SECTOR_COUNT
     found = _REACH_SECTOR.search(location.description)

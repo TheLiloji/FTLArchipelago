@@ -55,7 +55,8 @@ class VictoriesRequired(Range):
 
     display_name = "Victories Required"
     range_start = 1
-    range_end = len(data.LAYOUTS)
+    # FTL Multiverse: every Multiverse layout. A seed without Multiverse lowers it to the layouts it allows.
+    range_end = len(data.MV_LAYOUTS)
     default = 5
 
 
@@ -238,7 +239,8 @@ class LayoutCount(Range):
 
     display_name = "Layouts in the Seed"
     range_start = 1
-    range_end = len(data.LAYOUTS)
+    # FTL Multiverse: every Multiverse layout. A seed without Multiverse lowers it to the layouts it allows.
+    range_end = len(data.MV_LAYOUTS)
     default = 7
 
 
@@ -397,8 +399,9 @@ class Systemsanity(Choice):
     """Installing a system sends a check.
 
     disabled: never. The default: most ships start with half of the systems.
-    first_install: once per system, 16 checks.
-    every_level: every upgrade level too, 68 checks. A much longer game.
+    first_install: once per system, 12 checks. Engines, Oxygen, Piloting and Weapon Control have none: every
+    ship starts with them, so the check would be free.
+    every_level: every upgrade level too, 64 checks. A much longer game.
     """
 
     display_name = "Systemsanity"

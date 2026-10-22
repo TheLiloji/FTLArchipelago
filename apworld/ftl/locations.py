@@ -42,6 +42,16 @@ def always_unlocked(options) -> tuple[str, ...]:
     return data.MV_ALWAYS_UNLOCKED_LAYOUTS if multiverse(options) else data.ALWAYS_UNLOCKED_LAYOUTS
 
 
+# Systems every FTL layout starts with (Engines, Piloting...): their Install check would always be free.
+ON_EVERY_SHIP: frozenset[str] = frozenset.intersection(*(frozenset(layout.start_systems) for layout in data.LAYOUTS))
+MV_ON_EVERY_SHIP: frozenset[str] = frozenset.intersection(
+    *(frozenset(layout.start_systems) for layout in data.MV_LAYOUTS))
+
+
+def on_every_ship(options) -> frozenset[str]:
+    return MV_ON_EVERY_SHIP if multiverse(options) else ON_EVERY_SHIP
+
+
 def allowed_layouts(options) -> tuple[data.Layout, ...]:
     if options.ship_layouts == options.ship_layouts.option_type_a_only:
         highest_variant = 0
@@ -116,6 +126,7 @@ def selected_locations(options) -> tuple[data.Location, ...]:
     tiers = set(_ACHIEVEMENT_TIERS_BY_LEVEL[options.general_achievements.value])
     cross_run = bool(options.cross_run_achievements)
 
+    every_ship = on_every_ship(options)
     kept: list[data.Location] = []
     for location in data.LOCATIONS:
         if location.group == data.GROUP_SECTORS:
@@ -131,7 +142,7 @@ def selected_locations(options) -> tuple[data.Location, ...]:
             mode = options.systemsanity.value
             if mode == options.systemsanity.option_disabled or location.system not in systems:
                 continue
-            if location.level == 1 and per_ship:
+            if location.level == 1 and (per_ship or location.system in every_ship):
                 continue
             if location.level == 1 or mode == options.systemsanity.option_every_level:
                 kept.append(location)
