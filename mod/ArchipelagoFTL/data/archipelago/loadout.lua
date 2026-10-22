@@ -41,6 +41,7 @@ local open = false
 local resumed = false
 local taken = {}
 local pages = {}
+local hoveredEntry = nil
 
 -- Kept in the run's save, so quitting to the main menu before choosing does not lose the menu.
 local function remember(key, value)
@@ -74,6 +75,37 @@ local function blueprintTitle(name, family)
     return _G.apHumaniseId and _G.apHumaniseId(name) or tostring(name)
 end
 
+-- What the game tells about a weapon or a drone: its power, and for a weapon its damage, shots, charge time
+-- and missile use, plus the store's description. Read from the blueprint, nil when it cannot be read.
+local function blueprintInfo(name, family)
+    local ok, info = pcall(function()
+        local blueprints = Hyperspace.Blueprints
+        local bp = family == "weapon" and blueprints:GetWeaponBlueprint(name) or blueprints:GetDroneBlueprint(name)
+        local result = { power = math.floor(tonumber(bp.power) or 0), text = bp.desc.description:GetText() }
+        if family == "weapon" then
+            result.damage = math.floor(tonumber(bp.damage.iDamage) or 0)
+            result.shots = math.floor(tonumber(bp.shots) or 1)
+            result.cooldown = math.floor((tonumber(bp.cooldown) or 0) + 0.5)
+            result.missiles = math.floor(tonumber(bp.missiles) or 0)
+        end
+        return result
+    end)
+    return ok and info or nil
+end
+
+local function statsLine(entry, family)
+    local info = entry.info
+    if info == nil then
+        return nil
+    end
+    local line = apT("loadout.power", { n = info.power })
+    if family == "weapon" then
+        line = line .. ", " .. apT(info.missiles > 0 and "loadout.weapon.missile" or "loadout.weapon.stats",
+            { damage = info.damage, shots = info.shots, cooldown = info.cooldown })
+    end
+    return line
+end
+
 local function crewLabel(entry)
     local race = _G.apRaceLabel and _G.apRaceLabel(entry.race) or entry.race
     if entry.skill ~= nil and SKILL_KEYS[entry.skill] ~= nil then
@@ -93,7 +125,8 @@ local function receivedCatalog()
             local family = _G.apBlueprintFamily and _G.apBlueprintFamily(name)
             if family == "weapon" or family == "drone" then
                 local list = catalog[family]
-                list[#list + 1] = { bp = name, label = blueprintTitle(name, family) }
+                list[#list + 1] = { bp = name, label = blueprintTitle(name, family),
+                                    info = blueprintInfo(name, family) }
             end
         end
     end
@@ -231,7 +264,26 @@ local function take(category, entry)
     end
 end
 
+-- The store's description of the weapon or drone under the mouse, with its numbers, next to the pointer.
+local INFO_W = 300
+
+local function drawInfo(hovered)
+    local x, y = ui.mouse()
+    local text = hovered.entry.info and hovered.entry.info.text or ""
+    local lines = text ~= "" and ui.lines(9, text, INFO_W - 20, 12) or {}
+    local h = 40 + #lines * 13 + (#lines > 0 and 8 or 0)
+    x = math.min(x + 16, 1280 - INFO_W - 8)
+    y = math.min(y + 16, 720 - h - 8)
+    ui.window(x, y, INFO_W, h)
+    ui.text(10, x + 10, y + 8, INFO_W - 20, "title", hovered.entry.label)
+    ui.text(9, x + 10, y + 26, INFO_W - 20, "good", hovered.stats)
+    for index, line in ipairs(lines) do
+        ui.text(9, x + 10, y + 40 + (index - 1) * 13, INFO_W - 20, "text", line)
+    end
+end
+
 local function draw()
+    hoveredEntry = nil
     local catalog = receivedCatalog()
     local categories = categoriesShown(catalog)
     local g = geometry(categories)
@@ -287,8 +339,18 @@ local function draw()
                 else
                     ui.raceSprite(entry.race, iconX + (ICON_W - 70) / 2, area.y + (area.h - 70) / 2, 70, alpha)
                 end
-                ui.textTwoLines(10, area.x + ICON_W + 16, area.y + 17, area.w - ICON_W - 24, 14,
-                    isChosen and "good" or (available and "text" or "dim"), entry.label)
+                local stats = (category == "weapon" or category == "drone") and statsLine(entry, category) or nil
+                if stats then
+                    ui.text(10, area.x + ICON_W + 16, area.y + 9, area.w - ICON_W - 24,
+                        isChosen and "good" or (available and "text" or "dim"), entry.label)
+                    ui.text(9, area.x + ICON_W + 16, area.y + 27, area.w - ICON_W - 24, "dim", stats)
+                else
+                    ui.textTwoLines(10, area.x + ICON_W + 16, area.y + 17, area.w - ICON_W - 24, 14,
+                        isChosen and "good" or (available and "text" or "dim"), entry.label)
+                end
+                if ui.hovered(area) and stats then
+                    hoveredEntry = { entry = entry, stats = stats }
+                end
             end
             if total > 1 then
                 ui.button(column.previous, apT("loadout.previous"), "secondary", page <= 1)
@@ -300,6 +362,9 @@ local function draw()
     end
 
     ui.button(g.done, apT("loadout.done"), "primary")
+    if hoveredEntry then
+        drawInfo(hoveredEntry)
+    end
 end
 
 function apLoadoutOpen()

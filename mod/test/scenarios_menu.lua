@@ -357,3 +357,25 @@ test("system install: the choice is still there after a Continue", function()
     equals(#apSystemInstallChoices(), 3, "the run's save keeps the systems to choose from")
     sim.systemLimit, sim.mainSystemsUsed, sim.hullPlaces = nil, nil, nil
 end)
+
+test("start-of-run menu: each weapon says its power and numbers, the store's text on hover", function()
+    catalog({ LASER_BURST_3 = 2, MISSILES_2 = 2 })
+    sim.blueprintStats = {
+        LASER_BURST_3 = { power = 2, shots = 3, cooldown = 12, missiles = 0, damage = { iDamage = 1 } },
+        MISSILES_2 = { power = 1, shots = 1, cooldown = 14, missiles = 1, damage = { iDamage = 2 } },
+    }
+    sim.rarityFor("LASER_BURST_3", 5).description = sim.textString("Fires three shots.")
+    sim.startRun(true)
+    check(menuShown(), "the menu is open")
+    check(sim.drawnText(apT("loadout.power", { n = 2 }) .. ", "
+        .. apT("loadout.weapon.stats", { damage = 1, shots = 3, cooldown = 12 })), "the burst laser's numbers")
+    check(sim.drawnText(apT("loadout.power", { n = 1 }) .. ", "
+        .. apT("loadout.weapon.missile", { damage = 2, shots = 1, cooldown = 14 })), "a missile launcher says it uses missiles")
+    local x, y = apLoadoutPoint("row", "weapon", 1)
+    local mouse = Hyperspace.Mouse
+    Hyperspace.Mouse = { position = { x = x, y = y } }
+    sim.renderGui()
+    Hyperspace.Mouse = mouse
+    check(sim.drawnText("Fires three shots."), "hovering shows the store's description")
+    sim.blueprintStats = nil
+end)

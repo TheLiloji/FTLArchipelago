@@ -773,7 +773,11 @@ function sim.blueprintOrEmpty(name, family)
     if family[name] == nil then
         return { name = "", type = -1, desc = { rarity = 0, baseRarity = 0, locked = false, title = "" } }
     end
-    return { name = name, type = 0, desc = sim.rarityFor(name, family[name]), droneImage = name:lower() }
+    local bp = { name = name, type = 0, desc = sim.rarityFor(name, family[name]), droneImage = name:lower() }
+    for key, value in pairs((sim.blueprintStats or {})[name] or {}) do
+        bp[key] = value
+    end
+    return bp
 end
 
 local function textString(value, literal)
