@@ -349,7 +349,7 @@
     "solo.restart": "Recomeçar",
     "solo.resumed": "Partida solo retomada: {done} de {total} itens recebidos.",
     "solo.resumed.one": "Partida solo retomada: 1 de {total} itens recebidos.",
-    "solo.started": "Run solo. {count} itens lá fora, todos a merecer. TAB para ver onde.",
+    "solo.started": "Modo solo iniciado: uma seed de demonstração fixa, não o teu YAML. {count} objetos a desbloquear, um por check. TAB para o estado.",
     "start.received": "Bónus inicial: {item}",
     "start.summary": "Bónus inicial: {list}",
     "status.prefix": "Archipelago: {message}",

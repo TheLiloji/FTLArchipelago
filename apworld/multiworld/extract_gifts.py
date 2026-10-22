@@ -71,22 +71,43 @@ def write_solo_order(data, slot_info, ftl_slot, datapackage) -> None:
     item_names = {code: name for name, code in table.get("item_name_to_id", {}).items()}
     location_names = {code: name for name, code in table.get("location_name_to_id", {}).items()}
 
+    slot_data = data.get("slot_data", {}).get(ftl_slot, {})
+
+    # Solo mode plays this seed alone: every check gives something. A location that held another player's
+    # item gives a filler of the seed instead, in the proportions FTL's own filler uses.
+    from worlds.ftl import data as ftl_data
+    known = slot_data.get("items", {})
+    weights = [(name, weight) for _, name, _, _, weight in ftl_data.FILLER_RAW if name in known]
+    if not weights:
+        weights = [(ftl_data.FILLER_ITEM_NAME, 1)]
+    credit = {name: 0 for name, _ in weights}
+    total = sum(weight for _, weight in weights)
+
+    def next_filler() -> str:
+        for name, weight in weights:
+            credit[name] += weight
+        chosen = max(weights, key=lambda pair: credit[pair[0]])[0]
+        credit[chosen] -= total
+        return chosen
+
     ordered = []
+    fillers = 0
     for location_id, (item_id, receiving_slot, flags) in _LOCATIONS[ftl_slot].items():
-        if receiving_slot != ftl_slot:
-            continue
-        ordered.append((location_id, item_id))
+        if receiving_slot == ftl_slot:
+            name = item_names.get(item_id, f"item {item_id}")
+        else:
+            name = next_filler()
+            fillers += 1
+        ordered.append((location_id, name, _SPHERES.get(location_id, 0)))
 
     lines = [
         "_G.apSoloOrder = {",
     ]
-    for location_id, item_id in ordered:
-        name = item_names.get(item_id, f"item {item_id}")
+    for location_id, name, sphere in ordered:
         where = location_names.get(location_id, f"location {location_id}")
-        lines.append(f'    {{ item = {lua_string(name)}, location = {lua_string(where)} }},')
+        lines.append(f'    {{ item = {lua_string(name)}, location = {lua_string(where)}, sphere = {sphere} }},')
     lines += ["}", ""]
 
-    slot_data = data.get("slot_data", {}).get(ftl_slot, {})
     keep = ("contract", "kinds", "kinds_required", "items", "loc", "start_ship", "goal",
             "seed_name", "seed_hash", "shop", "links", "language")
     trimmed = {key: slot_data[key] for key in keep if key in slot_data}
@@ -96,11 +117,12 @@ def write_solo_order(data, slot_info, ftl_slot, datapackage) -> None:
     ]
 
     SOLO_OUT.write_text("\n".join(lines), encoding="utf-8")
-    print(f"written: {SOLO_OUT.relative_to(ROOT)} ({len(ordered)} items to receive, "
-          f"slot_data of {len(trimmed.get('items', {}))} items)")
+    print(f"written: {SOLO_OUT.relative_to(ROOT)} ({len(ordered)} items to receive, {fillers} of them filler "
+          f"in place of other players' items, slot_data of {len(trimmed.get('items', {}))} items)")
 
 
 _LOCATIONS = {}
+_SPHERES: dict[int, int] = {}
 
 
 def main() -> int:
@@ -128,6 +150,7 @@ def main() -> int:
         for location_id in sphere.get(ftl_slot, ()):
             sphere_of[location_id] = index
 
+    _SPHERES.update(sphere_of)
     datapackage = data["datapackage"]
 
     def reverse(table: dict) -> dict:

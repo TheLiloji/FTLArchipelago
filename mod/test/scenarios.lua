@@ -7050,8 +7050,12 @@ test("network: the scout passes a real vector, not a table", function()
 end)
 
 test("filler: an item whose delivery raises is retried, not dropped", function()
+    apSoloResetForTesting()
+    apInventoryClear()
     sim.startRun(true)
     apFillerResetForTesting()
+    -- An arrival delivery left due by an earlier test would make one more attempt.
+    sim.tick(1)
     local raising = true
     local restore = stub("apInventoryAdd", function()
         if raising then error("item not ready yet") end

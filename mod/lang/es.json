@@ -349,7 +349,7 @@
     "solo.restart": "Empezar de nuevo",
     "solo.resumed": "Partida en solitario reanudada: {done} de {total} items recibidos.",
     "solo.resumed.one": "Partida en solitario reanudada: 1 de {total} items recibidos.",
-    "solo.started": "Modo en solitario. Hay {count} items por conseguir. Presiona TAB para ver dónde encontrarlos.",
+    "solo.started": "Modo solo iniciado: una seed de demostración fija, no tu YAML. {count} objetos por desbloquear, uno por check. TAB para el estado.",
     "start.received": "Bonificación inicial: {item}",
     "start.summary": "Bonificación inicial: {list}",
     "status.prefix": "Archipelago: {message}",

@@ -136,7 +136,7 @@ local function soloGifts()
         local key = checkKey(entry)
         if isShop(key) and not state.given[index] then
             local descriptor = descriptors[entry.item] or {}
-            gifts[#gifts + 1] = { mine = true, item = entry.item, location = key,
+            gifts[#gifts + 1] = { mine = true, item = entry.item, location = key, sphere = entry.sphere,
                                   kind = GIFT_KIND[descriptor.k] or "useful" }
         end
     end

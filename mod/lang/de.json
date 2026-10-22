@@ -349,7 +349,7 @@
     "solo.restart": "Neu beginnen",
     "solo.resumed": "Solo-Lauf fortgesetzt: {done} von {total} Items erhalten.",
     "solo.resumed.one": "Solo-Lauf fortgesetzt: 1 von {total} Items erhalten.",
-    "solo.started": "Solo-Lauf. {count} Items da draußen, alle zu verdienen. TAB zeigt wo.",
+    "solo.started": "Solomodus gestartet: ein festes Demo-Seed, nicht dein YAML. {count} Gegenstände, einer pro Check. TAB für den Stand.",
     "start.received": "Startbonus: {item}",
     "start.summary": "Startbonus: {list}",
     "status.prefix": "Archipelago: {message}",

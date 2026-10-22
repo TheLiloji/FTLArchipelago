@@ -349,7 +349,7 @@
     "solo.restart": "Start over",
     "solo.resumed": "Solo run resumed: {done} of {total} items received.",
     "solo.resumed.one": "Solo run resumed: 1 of {total} items received.",
-    "solo.started": "Solo mode started: {count} items to unlock. TAB for status.",
+    "solo.started": "Solo mode started: a fixed demo seed, not your YAML. {count} items to unlock, one per check. TAB for status.",
     "start.received": "Head start: {item}",
     "start.summary": "Head start: {list}",
     "status.prefix": "Archipelago: {message}",

@@ -348,7 +348,7 @@
     "solo.restart": "Recommencer",
     "solo.resumed": "Partie solo reprise : {done} items reçus sur {total}.",
     "solo.resumed.one": "Partie solo reprise : 1 item reçu sur {total}.",
-    "solo.started": "Mode solo lancé : {count} items à débloquer. TAB pour l'état.",
+    "solo.started": "Mode solo lancé : une seed de démo fixe, pas ton YAML. {count} objets à débloquer, un par check. TAB pour le suivi.",
     "start.received": "Bonus de départ : {item}",
     "start.summary": "Bonus de départ : {list}",
     "status.prefix": "Archipelago : {message}",
