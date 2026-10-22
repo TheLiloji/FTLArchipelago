@@ -114,9 +114,9 @@ Four options make received items count right away, all off by default:
   the checks live. It can be cut down to the two sectors FTL itself celebrates (5 and 8), trimmed from the
   shallow end with Sectorsanity First Sector, or turned off.
 - **Systems.** Off by default: most ships start with half of the systems, so those checks would go out on the
-  first jump. Turned on (`first_install`), installing a system is a check, twelve in all: the run where you
-  finally buy Cloaking pays for itself. Engines, Oxygen, Piloting and Weapon Control have no Install check, since
-  every ship starts with them. With `every_level`, each level of each system is its own check as well -
+  first jump. Turned on (`first_install`), installing a system is a check, fourteen in all: the run where you
+  finally buy Cloaking pays for itself. Engines and Piloting have no Install check, since every ship starts with
+  them (some Multiverse ships have no Oxygen or no Weapon Control). With `every_level`, each level of each system is its own check as well -
   sixty-four in all, and every upgrade you buy sends something out.
   With **Systemsanity per Ship**, each ship has its own Install checks ("Kestrel Cruiser: Install Cloaking"),
   never for a system that ship can start with.
