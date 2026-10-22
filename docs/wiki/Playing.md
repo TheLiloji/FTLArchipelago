@@ -142,7 +142,8 @@ Some seeds ask for Normal or Hard wins. An easier win still sends its check, but
 ## Solo mode
 
 No server? Click **Solo mode** in the connection panel. It uses a real generated seed and gives you one of its
-items per check. Your progress is saved in the profile, so you can stop and come back later. **Stop solo** puts
+items per check. It is always the same demo seed shipped with the mod, not your YAML, so your options do not
+apply. Your progress is saved in the profile, so you can stop and come back later. **Stop solo** puts
 it aside, and clicking **Solo mode** again asks whether to continue or start over.
 
 ## Things worth knowing

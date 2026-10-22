@@ -80,7 +80,8 @@ Le créateur d'options les range en groupes :
   gratuites et la façon dont les systèmes reçus arrivent à bord.
 - **Weapons, Drones, Augments, Crew** (fermé au départ) : ce qui est verrouillé dans les magasins de FTL, les
   lots, et l'équipage comme objets.
-- **Archipelago Shop** (fermé au départ) : combien de paquets, et s'ils sont répartis par secteur ou par vaisseau.
+- **Archipelago Shop** (fermé au départ) : combien de paquets, s'ils sont répartis par secteur ou par vaisseau,
+  et si les colis que tu vois deviennent des indices pour leurs propriétaires.
 - **Runs** (fermé au départ) : les Head Starts, la ferraille en début de partie, les balises d'événement
   marquées, la sévérité de la logique, et la langue du mod (elle suit FTL toute seule).
 - **Playing with Others** : Death Link, Energy Link (une réserve de carburant partagée), Trap Link, et combien
@@ -102,6 +103,15 @@ Archipelago : les colis vendus aux balises BOUTIQUE AP, qui contiennent les obje
 | **Combat Checks per Ship** | Avec chaque vaisseau, les premiers combats gagnés d'une run envoient des checks. Ces combats rapportent moins de ferraille (**Combat Check Scrap**) |
 | **Victory Collects the Layout** | Ce qu'une victoire envoie en plus : `sectors` (par défaut) les checks de secteur du layout encore à faire, `everything` aussi les succès, les checks de systèmes et de combats de son vaisseau |
 | **Sector Logic** | Nouvelle valeur `power` : avant les secteurs lointains et le vaisseau amiral, la logique attend des couches de bouclier, des armes et des moteurs sur le vaisseau qui fait le check |
+
+## Nouveau en 0.6
+
+| Option | Ce qu'elle fait |
+|---|---|
+| **Crew Names** | Les équipiers qui te rejoignent pendant une run prennent les noms des autres joueurs : `multiworld` (par défaut), `multiworld_and_team` (puis les noms des gens qui ont fait et testé le mod), ou `vanilla` (les noms de FTL) |
+| **Archipelago Shop Hints** | `seen` (par défaut) : les colis que tu vois à une balise Archipelago deviennent des indices, pour que leurs propriétaires sachent où leur objet attend. `off` garde la boutique secrète |
+| **Trap Chance** | Trois nouveaux pièges qui attendent ton prochain combat : une batterie anti-vaisseau, une surcharge du vaisseau amiral (plus légère aux secteurs 1 et 2), ou un danger (nébuleuse, tempête ionique, astéroïdes, soleil ou pulsar). La batterie et le danger s'en vont à la fin du combat |
+| **Sector Logic** | `relaxed` s'appelle maintenant `none` : la logique n'attend rien, tu devras peut-être gagner avec très peu. Pour les joueurs expérimentés. `relaxed` marche toujours dans les anciens YAML |
 
 ## Options expertes
 

@@ -656,10 +656,14 @@ test("run end: the Flagship's second phase is not a victory", function()
     check(not sim.logged("RUN END"), "reaching the Flagship or meeting a Knight does not end the run")
 end)
 
-local function ctrlV()
+local function ctrlKey(key)
     sim.keyDown(Defines.SDL.KEY_LCTRL)
-    sim.keyDown(Defines.SDL.KEY_v)
+    sim.keyDown(key)
     sim.keyUp(Defines.SDL.KEY_LCTRL)
+end
+
+local function ctrlV()
+    ctrlKey(Defines.SDL.KEY_v)
 end
 
 test("connection panel: Ctrl+V pastes, and an address with its port fills both fields", function()
@@ -677,8 +681,9 @@ test("connection panel: Ctrl+V pastes, and an address with its port fills both f
     equals(apConnectState().port, "54321", "and its port")
     sim.keyDown(Defines.SDL.KEY_DOWN)
     sim.clipboard = "port 38 281"
+    ctrlKey(Defines.SDL.KEY_a)
     ctrlV()
-    equals(apConnectState().port, "38281", "the port keeps only digits")
+    equals(apConnectState().port, "38281", "Ctrl+A then Ctrl+V replaces the field, the port keeps only digits")
     sim.clipboard = ""
     ctrlV()
     equals(apConnectState().message, apT("connect.paste_empty"), "an empty clipboard says so")
@@ -700,6 +705,39 @@ test("connection panel: Ctrl+V pastes, and an address with its port fills both f
     sim.keyDown(Defines.SDL.KEY_DOWN)
     sim.keyDown(Defines.SDL.KEY_v)
     equals(apConnectState().port, "38281", "v alone is still a letter, not a paste (and the port refuses it)")
+    sim.clipboard = nil
+end)
+
+test("connection panel: paste at the cursor, arrows, Ctrl+A and a held Backspace", function()
+    apConnectResetForTesting()
+    apNetResetForTesting()
+    sim.renderMenu()
+    for _, letter in ipairs({ "t", "e", "r" }) do sim.keyDown(Defines.SDL["KEY_" .. letter]) end
+    sim.keyDown(Defines.SDL.KEY_LEFT)
+    sim.keyDown(Defines.SDL.KEY_LEFT)
+    sim.clipboard = "est"
+    ctrlV()
+    equals(apConnectState().slot, "tester", "pasted at the cursor, not in place of the field")
+    sim.keyDown(Defines.SDL.KEY_HOME)
+    sim.keyDown(Defines.SDL.KEY_DELETE)
+    equals(apConnectState().slot, "ester", "Delete removes the character after the cursor")
+    sim.keyDown(Defines.SDL.KEY_END)
+    sim.keyDown(Defines.SDL.KEY_BACKSPACE)
+    equals(apConnectState().slot, "este", "Backspace removes the one before")
+    for _ = 1, 40 do sim.renderMenu() end
+    equals(apConnectState().slot, "", "held down, it keeps going")
+    sim.keyUp(Defines.SDL.KEY_BACKSPACE)
+    sim.clipboard = "Navigator"
+    ctrlV()
+    ctrlKey(Defines.SDL.KEY_a)
+    sim.keyDown(Defines.SDL.KEY_BACKSPACE)
+    sim.keyUp(Defines.SDL.KEY_BACKSPACE)
+    equals(apConnectState().slot, "", "Ctrl+A then Backspace empties the field")
+    sim.clipboard = "Navigator"
+    ctrlV()
+    ctrlKey(Defines.SDL.KEY_a)
+    sim.keyDown(Defines.SDL.KEY_x)
+    equals(apConnectState().slot, "x", "Ctrl+A then a letter replaces it")
     sim.clipboard = nil
 end)
 

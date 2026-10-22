@@ -248,12 +248,21 @@ local function makeShip(shipId)
         end
         return nil
     end })
-    function ship:CanFitSystem(id) return (sim.systemSlotsFree or 8) > 0 end
+    function ship:CanFitSystem(id)
+        if sim.systemLimit ~= nil then
+            return (sim.mainSystemsUsed or 0) < sim.systemLimit
+        end
+        return (sim.systemSlotsFree or 8) > 0
+    end
     function ship:CanFitSubsystem(id) return (sim.systemSlotsFree or 8) > 0 end
     function ship:AddSystem(id)
         self._systemsHeld = self._systemsHeld or {}
         self._systemsHeld[id] = true
         sim.systemsAdded = (sim.systemsAdded or 0) + 1
+        -- With a system limit set, a main system takes a slot like in Hyperspace.
+        if sim.systemLimit ~= nil then
+            sim.mainSystemsUsed = (sim.mainSystemsUsed or 0) + 1
+        end
         return 1
     end
 
@@ -616,6 +625,11 @@ local function resetWorld()
         CustomShipSelect = {
             GetInstance = function()
                 return {
+                    -- systemLimit counts against sim.mainSystemsUsed: the ship's own systems are not modelled.
+                    GetDefinition = function()
+                        return { systemLimit = sim.systemLimit and (sim.systemLimit - (sim.mainSystemsUsed or 0))
+                            or 8 }
+                    end,
                     IsOpen = function() return sim.shipList.open end,
                     FirstPage = function() return sim.shipList.page == 0 end,
                     shipSelect = { currentType = sim.shipList.variant },
@@ -769,7 +783,11 @@ function sim.blueprintOrEmpty(name, family)
     if family[name] == nil then
         return { name = "", type = -1, desc = { rarity = 0, baseRarity = 0, locked = false, title = "" } }
     end
-    return { name = name, type = 0, desc = sim.rarityFor(name, family[name]), droneImage = name:lower() }
+    local bp = { name = name, type = 0, desc = sim.rarityFor(name, family[name]), droneImage = name:lower() }
+    for key, value in pairs((sim.blueprintStats or {})[name] or {}) do
+        bp[key] = value
+    end
+    return bp
 end
 
 local function textString(value, literal)

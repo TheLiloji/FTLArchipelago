@@ -3798,6 +3798,45 @@ test("a system given by an event is NOT removed", function()
     check(sim.logged("GIVEN by an event"), "and the mod says so")
 end)
 
+test("a store the beacon does not show (Multiverse store button): an allowed system, then a locked one", function()
+    sim.startRun(true)
+    _G.apInventory.systemCaps.battery = 1
+    _G.apInventory.systemCaps.drones = nil
+    local blueprints = _G.apInventory.blueprints
+    if blueprints then blueprints.battery, blueprints.drones = true, nil end
+    sim.jumpArrive()
+    sim.setStore(false)
+    sim.player.currentScrap = 200
+    sim.tick(1)
+    sim.clearLog()
+
+    sim.player.currentScrap = 165
+    sim.constructSystem("battery", 0, 35)
+    sim.tick(1)
+    sim.player.currentScrap = 115
+    sim.constructSystem("drones", 0, 50)
+    sim.tick(5)
+
+    equals(#sim.player._removed, 1, "only the locked system goes")
+    check(sim.logged("PURCHASE REFUSED: drones"), "Drone Control was bought, so it is refused")
+    equals(sim.player.currentScrap, 165, "and its 50 scrap come back")
+    check(not sim.logged("GIVEN by an event"), "a paid system is never taken for an event's gift")
+    _G.apInventory.systemCaps.battery = nil
+    if blueprints then blueprints.battery = nil end
+end)
+
+test("a store opened by a choice of the beacon's event counts as a store", function()
+    sim.startRun(true)
+    _G.apInventory.systemCaps.cloaking = nil
+    sim.jumpArrive()
+    sim.setStore(false)
+    sim.tick(1)
+    fire("PRE_CREATE_CHOICEBOX", { store = true, eventName = "STORE_LOAD_GENERIC", stuff = {} })
+    sim.constructSystem("cloaking", 0, 0)
+    sim.tick(5)
+    equals(#sim.player._removed, 1, "even when the scrap did not move, a store purchase is refused")
+end)
+
 test("an Archipelago event sets its backdrop, even on a beacon already drawn", function()
     sim.startRun(true)
     equals(sim.decor.background, nil, "no backdrop before")
@@ -4986,6 +5025,42 @@ test("event: the pirates' package hints at a trap, so the player can leave it", 
     local box = sim.openChoiceBox("AP_EVT_HIJACK", 3)
     check(box.text:find(apT("event.hijack.hint.trap"), 1, true) ~= nil, "something feels off: " .. box.text)
     check(box.text:find(apT("event.hijack.hint.filler"), 1, true) == nil, "and only that")
+end)
+
+local function hintSeed(shopHints)
+    apContractResetForTesting()
+    apForgetChecksForTesting()
+    applySeed({ loc = { ["shop:1"] = "Archipelago Shop 1", ["shop:2"] = "Archipelago Shop 2" },
+                options = { shop_hints = shopHints } })
+    sim.startRun(true)
+    _G.apShopSlotCount = 2
+    apShopGiftsConfigure({
+        { location = "shop:1", slot = "Axel", item = "Ice Trap", sphere = 1, kind = "trap", cost = 25 },
+        { location = "shop:2", slot = "Nina", item = "Hookshot", sphere = 1, kind = "progression", cost = 40 },
+    })
+end
+
+test("shop hints: the packages seen at an Archipelago beacon become hints, once each", function()
+    hintSeed(1)
+    local hinted = {}
+    local restore = stub("apNetHintLocation", function(name) hinted[#hinted + 1] = name; return true end)
+    sim.jumpArrive()
+    equals(#hinted, 0, "nothing before the player reaches an Archipelago beacon")
+    sim.gameEvent("AP_STORE_EVENT_3")
+    check(#hinted >= 1 and hinted[1] == "Archipelago Shop 1", "the package on display is hinted: " .. tostring(hinted[1]))
+    local count = #hinted
+    apApplyShopGifts()
+    equals(#hinted, count, "a package already hinted is not hinted again")
+    restore()
+end)
+
+test("shop hints: off keeps the shop a secret", function()
+    hintSeed(0)
+    local hinted = 0
+    local restore = stub("apNetHintLocation", function() hinted = hinted + 1; return true end)
+    sim.gameEvent("AP_STORE_EVENT_3")
+    restore()
+    equals(hinted, 0, "no hint")
 end)
 
 test("event: winning the fight frees the pirates' package for free", function()
@@ -6993,8 +7068,12 @@ test("network: the scout passes a real vector, not a table", function()
 end)
 
 test("filler: an item whose delivery raises is retried, not dropped", function()
+    apSoloResetForTesting()
+    apInventoryClear()
     sim.startRun(true)
     apFillerResetForTesting()
+    -- An arrival delivery left due by an earlier test would make one more attempt.
+    sim.tick(1)
     local raising = true
     local restore = stub("apInventoryAdd", function()
         if raising then error("item not ready yet") end

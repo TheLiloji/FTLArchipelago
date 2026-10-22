@@ -313,3 +313,69 @@ test("start-of-run menu: a drone picture the game lacks falls back to the drone 
     sim.droneBlueprints.TEST_MOVED_DRONE = nil
     sim.missingImages = nil
 end)
+
+local function systemsThatDoNotAllFit(limit)
+    sim.hullPlaces = { [9] = true, [10] = true, [15] = true }
+    _G.apInventory = { ships = {}, systemCaps = {}, blueprints = {}, startingUpgrades = {}, shopAvailability = {} }
+    applySeed({ kinds = { "cap" }, options = { system_install = 1 } })
+    for _, name in ipairs({ "teleporter", "cloaking", "hacking" }) do
+        apQueueItem({ kind = "cap", sys = name, n = 0, display = name .. " blueprint" })
+    end
+    drain()
+    sim.systemLimit, sim.mainSystemsUsed = limit, 0
+    sim.startRun(true)
+end
+
+test("system install: more received systems than free slots, the player picks them in the start menu", function()
+    systemsThatDoNotAllFit(2)
+    equals(sim.player:HasSystem(9) or sim.player:HasSystem(10) or sim.player:HasSystem(15), false,
+        "no fixed order decides: nothing comes aboard by itself")
+    check(menuShown(), "the start-of-run menu opens with them")
+    check(sim.drawnText(apT("loadout.column.system")), "in a column of their own")
+    local labels = {}
+    for _, name in ipairs(apSystemInstallChoices()) do labels[#labels + 1] = apSystemLabel(name) end
+    table.sort(labels)
+    sim.click(apLoadoutPoint("row", "system", 2))
+    equals(#apSystemInstallChoices(), 2, "one picked, a slot is still free")
+    sim.click(apLoadoutPoint("row", "system", 1))
+    equals(#apSystemInstallChoices(), 0, "the second slot taken, nothing more to pick")
+    equals(sim.mainSystemsUsed, 2, "two systems came aboard, the third waits for a store")
+    sim.systemLimit, sim.mainSystemsUsed, sim.hullPlaces = nil, nil, nil
+end)
+
+test("system install: when they all fit, they all come aboard without asking", function()
+    systemsThatDoNotAllFit(8)
+    check(sim.player:HasSystem(9) and sim.player:HasSystem(10) and sim.player:HasSystem(15), "all three aboard")
+    equals(#apSystemInstallChoices(), 0, "nothing to choose")
+    sim.systemLimit, sim.mainSystemsUsed, sim.hullPlaces = nil, nil, nil
+end)
+
+test("system install: the choice is still there after a Continue", function()
+    systemsThatDoNotAllFit(1)
+    sim.startRun(false)
+    sim.tick(1)
+    equals(#apSystemInstallChoices(), 3, "the run's save keeps the systems to choose from")
+    sim.systemLimit, sim.mainSystemsUsed, sim.hullPlaces = nil, nil, nil
+end)
+
+test("start-of-run menu: each weapon says its power and numbers, the store's text on hover", function()
+    catalog({ LASER_BURST_3 = 2, MISSILES_2 = 2 })
+    sim.blueprintStats = {
+        LASER_BURST_3 = { power = 2, shots = 3, cooldown = 12, missiles = 0, damage = { iDamage = 1 } },
+        MISSILES_2 = { power = 1, shots = 1, cooldown = 14, missiles = 1, damage = { iDamage = 2 } },
+    }
+    sim.rarityFor("LASER_BURST_3", 5).description = sim.textString("Fires three shots.")
+    sim.startRun(true)
+    check(menuShown(), "the menu is open")
+    check(sim.drawnText(apT("loadout.power", { n = 2 }) .. ", "
+        .. apT("loadout.weapon.stats", { damage = 1, shots = 3, cooldown = 12 })), "the burst laser's numbers")
+    check(sim.drawnText(apT("loadout.power", { n = 1 }) .. ", "
+        .. apT("loadout.weapon.missile", { damage = 2, shots = 1, cooldown = 14 })), "a missile launcher says it uses missiles")
+    local x, y = apLoadoutPoint("row", "weapon", 1)
+    local mouse = Hyperspace.Mouse
+    Hyperspace.Mouse = { position = { x = x, y = y } }
+    sim.renderGui()
+    Hyperspace.Mouse = mouse
+    check(sim.drawnText("Fires three shots."), "hovering shows the store's description")
+    sim.blueprintStats = nil
+end)

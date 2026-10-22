@@ -292,7 +292,8 @@ class FTLWorld(World):
             "links": self._links_for_the_mod(),
             "options": self.options.as_dict("death_link", "sectorsanity", "trap_chance",
                                             "victory_collects_layout", "free_upgrades",
-                                            "system_install", "run_start_scrap", "combat_check_scrap"),
+                                            "system_install", "run_start_scrap", "combat_check_scrap",
+                                            "shop_hints"),
             "tracker": self._tracker_data(),
         }
         return slot_data

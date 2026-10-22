@@ -34,6 +34,56 @@ local shiftHeld = false
 local ctrlHeld = false
 -- Fields the last refusal blames, drawn in red until they are edited.
 local blamed = {}
+-- Editing: the cursor of the focused field (nil = at the end), Ctrl+A's selection of the whole field, and
+-- Backspace held down, which repeats like in any text box.
+local selectAll = false
+local backspaceFrames = nil
+local BACKSPACE_DELAY, BACKSPACE_EVERY = 24, 3
+
+local function cursorOf(field)
+    if field.cursor == nil or field.cursor > #field.value then
+        return #field.value
+    end
+    return field.cursor
+end
+
+local function insertText(field, text)
+    if selectAll then
+        field.value, field.cursor, selectAll = "", 0, false
+    end
+    local at = cursorOf(field)
+    text = text:sub(1, math.max(0, field.max - #field.value))
+    field.value = field.value:sub(1, at) .. text .. field.value:sub(at + 1)
+    field.cursor = at + #text
+end
+
+local function deleteBack(field)
+    if selectAll then
+        field.value, field.cursor, selectAll = "", 0, false
+        return
+    end
+    local at = cursorOf(field)
+    if at > 0 then
+        field.value = field.value:sub(1, at - 1) .. field.value:sub(at + 1)
+        field.cursor = at - 1
+    end
+end
+
+local function deleteForward(field)
+    if selectAll then
+        field.value, field.cursor, selectAll = "", 0, false
+        return
+    end
+    local at = cursorOf(field)
+    field.value = field.value:sub(1, at) .. field.value:sub(at + 2)
+    field.cursor = at
+end
+
+local function setFocus(index)
+    focus = index
+    selectAll = false
+    backspaceFrames = nil
+end
 
 local onMenu = false
 
@@ -270,10 +320,14 @@ local function drawForm()
         ui.rect(box.x, box.y, box.w, box.h, focused and "hover" or "card")
         ui.outline(box.x, box.y, box.w, box.h, wrong and "bad" or (focused and "border" or "faint"), 1)
         local value = displayValue(field)
-        if focused then
-            value = value .. "_"
+        if focused and selectAll and value ~= "" then
+            ui.rect(box.x + 6, box.y + 3, math.min(box.w - 12, ui.width(10, value) + 4), box.h - 6, "border")
         end
         ui.text(10, box.x + 8, box.y + 5, box.w - 16, focused and "title" or "text", value)
+        if focused and not selectAll then
+            local caret = ui.width(10, value:sub(1, cursorOf(field)))
+            ui.rect(box.x + 8 + math.min(caret, box.w - 18), box.y + 4, 1, box.h - 8, "title")
+        end
     end
 
     ui.checkbox(g.auto.x, g.auto.y, autoActive(), apT("connect.auto"), g.auto.w)
@@ -440,6 +494,8 @@ function apConnectResetForTesting()
         field.value = DEFAULTS[index]
     end
     focus, message, messageTone, shiftHeld, ctrlHeld, blamed = FOCUS_INITIAL, nil, "dim", false, false, {}
+    selectAll, backspaceFrames = false, nil
+    for _, field in ipairs(FIELDS) do field.cursor = nil end
     onMenu = false
     autoTried = false
     soloTried = false
@@ -513,7 +569,8 @@ local function paste()
         if field.key == "uri" then text = bare end
     end
     if field.digitsOnly then text = text:gsub("%D", "") end
-    field.value = text:sub(1, field.max)
+    -- At the cursor, like any text box; with Ctrl+A first, in place of the whole field.
+    insertText(field, text)
     blamed[focus] = nil
 end
 
@@ -523,6 +580,9 @@ script.on_internal_event(Defines.InternalEvents.ON_KEY_UP, function(key)
     end
     if key == Defines.SDL.KEY_LCTRL or key == Defines.SDL.KEY_RCTRL then
         ctrlHeld = false
+    end
+    if key == Defines.SDL.KEY_BACKSPACE then
+        backspaceFrames = nil
     end
     return Defines.Chain.CONTINUE
 end)
@@ -543,13 +603,37 @@ script.on_internal_event(Defines.InternalEvents.ON_KEY_DOWN, function(key)
         paste()
         return Defines.Chain.PREEMPT
     end
+    if ctrlHeld and key == Defines.SDL.KEY_a then
+        selectAll = true
+        return Defines.Chain.PREEMPT
+    end
 
     if key == Defines.SDL.KEY_TAB or key == Defines.SDL.KEY_DOWN then
-        focus = focus % #FIELDS + 1
+        setFocus(focus % #FIELDS + 1)
         return Defines.Chain.PREEMPT
     end
     if key == Defines.SDL.KEY_UP then
-        focus = (focus - 2) % #FIELDS + 1
+        setFocus((focus - 2) % #FIELDS + 1)
+        return Defines.Chain.PREEMPT
+    end
+    local field = FIELDS[focus]
+    if key == Defines.SDL.KEY_LEFT or key == Defines.SDL.KEY_RIGHT then
+        local at = selectAll and (key == Defines.SDL.KEY_LEFT and 0 or #field.value) or cursorOf(field)
+        if not selectAll then
+            at = at + (key == Defines.SDL.KEY_LEFT and -1 or 1)
+        end
+        field.cursor = math.max(0, math.min(#field.value, at))
+        selectAll = false
+        return Defines.Chain.PREEMPT
+    end
+    if key == Defines.SDL.KEY_HOME or key == Defines.SDL.KEY_END then
+        field.cursor = key == Defines.SDL.KEY_HOME and 0 or #field.value
+        selectAll = false
+        return Defines.Chain.PREEMPT
+    end
+    if key == Defines.SDL.KEY_DELETE then
+        blamed[focus] = nil
+        deleteForward(field)
         return Defines.Chain.PREEMPT
     end
     if key == Defines.SDL.KEY_RETURN or key == Defines.SDL.KEY_KP_ENTER then
@@ -558,14 +642,13 @@ script.on_internal_event(Defines.InternalEvents.ON_KEY_DOWN, function(key)
     end
     if key == Defines.SDL.KEY_BACKSPACE then
         blamed[focus] = nil
-        local field = FIELDS[focus]
-        field.value = field.value:sub(1, -2)
+        deleteBack(field)
+        backspaceFrames = 0
         return Defines.Chain.PREEMPT
     end
 
     local c = character(key)
     if c ~= nil then
-        local field = FIELDS[focus]
         -- On a French keyboard the dot is Shift and the ";" key, which reads as ":" here. An address has no
         -- use for a colon (the port has its own field), so there it is a dot.
         if field.key == "uri" and c == ":" and key == Defines.SDL.KEY_SEMICOLON then
@@ -574,9 +657,7 @@ script.on_internal_event(Defines.InternalEvents.ON_KEY_DOWN, function(key)
         if field.digitsOnly and not c:match("%d") then
             return Defines.Chain.PREEMPT
         end
-        if #field.value < field.max then
-            field.value = field.value .. c
-        end
+        insertText(field, c)
         blamed[focus] = nil
         return Defines.Chain.PREEMPT
     end
@@ -609,7 +690,7 @@ script.on_internal_event(Defines.InternalEvents.ON_MOUSE_L_BUTTON_DOWN, function
     end
     for index, box in ipairs(g.fields) do
         if inside(box, x, y) then
-            focus = index
+            setFocus(index)
             return Defines.Chain.PREEMPT
         end
     end
@@ -664,6 +745,14 @@ script.on_render_event(
             return
         end
         onMenu = true
+
+        -- Backspace held: after a short wait, one more character goes every few frames.
+        if backspaceFrames ~= nil then
+            backspaceFrames = backspaceFrames + 1
+            if backspaceFrames >= BACKSPACE_DELAY and (backspaceFrames - BACKSPACE_DELAY) % BACKSPACE_EVERY == 0 then
+                deleteBack(FIELDS[focus])
+            end
+        end
 
         local question = currentQuestion()
         if seedActive() then

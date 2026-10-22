@@ -153,6 +153,9 @@ local function alreadyGone(key)
 end
 
 local assignment = {}
+-- shop_hints: the packages already hinted, and whether the player is at an Archipelago beacon now.
+local hintedGifts = {}
+local atApShop = false
 
 local dealsSigned = {}
 
@@ -406,7 +409,47 @@ function apApplyShopGifts()
     if applied > 0 then
         giftLog(applied .. " gift(s) displayed in the Archipelago shop")
     end
+    if atApShop then
+        apShopGiftsHintSeen()
+    end
     return applied
+end
+
+-- shop_hints "seen": the packages on display at an Archipelago beacon become hints, once each, so their owners
+-- know where their item waits. A seed from before the option hints nothing.
+
+local function shopHintsOn()
+    local value = _G.apSeedOption and apSeedOption("shop_hints")
+    return value == 1 or value == "seen"
+end
+
+function apShopGiftsHintSeen()
+    if not shopHintsOn() or _G.apSoloEnabled or _G.apNetHintLocation == nil then
+        return 0
+    end
+    local hinted = 0
+    for rank, blueprintName in ipairs(GIFT_BLUEPRINTS) do
+        local gift = assignment[blueprintName]
+        local key = gift and gift.location
+        if rank <= visibleGifts() and key ~= nil and not hintedGifts[key] and not alreadyGone(key) then
+            local name = _G.apLocationNameFor and apLocationNameFor(key)
+            if name ~= nil and apNetHintLocation(name) then
+                hintedGifts[key] = true
+                hinted = hinted + 1
+            end
+        end
+    end
+    if hinted > 0 then
+        giftLog(hinted .. " package(s) seen in the Archipelago shop, hinted on the server")
+    end
+    return hinted
+end
+
+function apShopGiftsAtApShop(here)
+    atApShop = here == true
+    if atApShop then
+        apShopGiftsHintSeen()
+    end
 end
 
 _G.apShopSlotCount = 0
@@ -445,6 +488,7 @@ function apShopGiftsForgetSeed()
 end
 
 function apShopGiftsConfigure(gifts, source)
+    hintedGifts = {}
     if type(gifts) ~= "table" then
         return false
     end
@@ -729,6 +773,7 @@ script.on_internal_event(Defines.InternalEvents.JUMP_ARRIVE, function(shipManage
         return
     end
     dealsSigned = {}
+    atApShop = false
     apApplyShopGifts()
 end)
 

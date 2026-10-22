@@ -649,6 +649,59 @@ test("combat checks: an enemy that stops fighting without a reward box still cou
     sim.enemy = nil
 end)
 
+test("combat checks: an enemy that jumps away was not beaten", function()
+    fightSeed(50)
+    livingEnemy(true)
+    sim.enemy.bJumping = true
+    sim.tick(1)
+    sim.enemy._targetable.hostile = false
+    sim.tick(1)
+    fire("PRE_CREATE_CHOICEBOX", { stuff = { scrap = 10 } })
+    check(not apCheckAlreadySent("PLAYER_SHIP_HARD:fight:1"), "it escaped: no fight won")
+    sim.jumpArrive()
+    winFight(30)
+    check(apCheckAlreadySent("PLAYER_SHIP_HARD:fight:1"), "the next beacon's fight still counts")
+    sim.enemy = nil
+end)
+
+test("combat checks: a dead crew counts, whatever drone or hologram they leave behind", function()
+    fightSeed(50)
+    livingEnemy(true)
+    local drone = sim.makeCrew("Combat drone", "battle", 1)
+    drone.IsDrone = function() return true end
+    local hologram = sim.makeCrew("Hologram", "zoltan_osmian_hologram", 1)
+    hologram.extend.noSlot = true
+    sim.enemy.vCrewList = sim.vector({ sim.makeCrew("Rebel", "human", 1), drone, hologram })
+    sim.enemy.vCrewList[0].bDead = true
+    local event = { stuff = { scrap = 30 } }
+    fire("PRE_CREATE_CHOICEBOX", event)
+    check(apCheckAlreadySent("PLAYER_SHIP_HARD:fight:1"), "the crew is dead: fight 1 won")
+    equals(event.stuff.scrap, 15, "with the usual scrap cut")
+    sim.enemy = nil
+end)
+
+test("combat checks: a dead crew still counts when no reward box comes", function()
+    fightSeed(50)
+    livingEnemy(true)
+    sim.enemy.vCrewList[0].bDead = true
+    sim.tick(60)
+    check(not apCheckAlreadySent("PLAYER_SHIP_HARD:fight:1"), "the box gets a moment to come first")
+    sim.tick(200)
+    check(apCheckAlreadySent("PLAYER_SHIP_HARD:fight:1"), "then the fight counts on its own")
+    sim.enemy = nil
+end)
+
+test("combat checks: a boarder of theirs still alive on our ship keeps the fight going", function()
+    fightSeed(50)
+    livingEnemy(true)
+    sim.enemy.vCrewList[0].bDead = true
+    sim.player.vCrewList:push_back(sim.makeCrew("Boarder", "mantis", 1))
+    fire("PRE_CREATE_CHOICEBOX", { stuff = { scrap = 10 } })
+    check(not apCheckAlreadySent("PLAYER_SHIP_HARD:fight:1"), "one of them is still fighting aboard")
+    table.remove(sim.player.vCrewList._store)
+    sim.enemy = nil
+end)
+
 test("combat checks: a ship that was never hostile is not a fight", function()
     fightSeed(50)
     livingEnemy(false)

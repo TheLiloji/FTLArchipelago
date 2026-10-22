@@ -815,6 +815,20 @@ class ShopBySector(Toggle):
     display_name = "Archipelago Shop by Sector"
 
 
+class ShopHints(Choice):
+    """What the other players learn from your Archipelago shop.
+
+    seen (default): the packages you see in the Archipelago shop become hints on the server, so their owners
+    know where their item waits and that you saw it.
+    off: nothing is hinted, the shop stays your secret.
+    """
+
+    display_name = "Archipelago Shop Hints"
+    option_off = 0
+    option_seen = 1
+    default = option_seen
+
+
 class ShopPerShip(Choice):
     """Each package of the Archipelago shop belongs to one ship, and is only sold while you fly it.
     This adds no packages: the shop's packages are split between the ships.
@@ -1037,6 +1051,7 @@ class FTLOptions(PerGameCommonOptions):
     shop_checks: ShopChecks
     shop_by_sector: ShopBySector
     shop_per_ship: ShopPerShip
+    shop_hints: ShopHints
     minimum_filler: MinimumFiller
 
     sector_logic: SectorLogic
@@ -1075,7 +1090,7 @@ ftl_option_groups = [
     ),
     OptionGroup(
         "Archipelago Shop",
-        [ShopChecks, ShopBySector, ShopPerShip],
+        [ShopChecks, ShopBySector, ShopPerShip, ShopHints],
         start_collapsed=True,
     ),
     OptionGroup(
