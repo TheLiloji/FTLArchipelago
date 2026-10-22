@@ -5009,6 +5009,42 @@ test("event: the pirates' package hints at a trap, so the player can leave it", 
     check(box.text:find(apT("event.hijack.hint.filler"), 1, true) == nil, "and only that")
 end)
 
+local function hintSeed(shopHints)
+    apContractResetForTesting()
+    apForgetChecksForTesting()
+    applySeed({ loc = { ["shop:1"] = "Archipelago Shop 1", ["shop:2"] = "Archipelago Shop 2" },
+                options = { shop_hints = shopHints } })
+    sim.startRun(true)
+    _G.apShopSlotCount = 2
+    apShopGiftsConfigure({
+        { location = "shop:1", slot = "Axel", item = "Ice Trap", sphere = 1, kind = "trap", cost = 25 },
+        { location = "shop:2", slot = "Nina", item = "Hookshot", sphere = 1, kind = "progression", cost = 40 },
+    })
+end
+
+test("shop hints: the packages seen at an Archipelago beacon become hints, once each", function()
+    hintSeed(1)
+    local hinted = {}
+    local restore = stub("apNetHintLocation", function(name) hinted[#hinted + 1] = name; return true end)
+    sim.jumpArrive()
+    equals(#hinted, 0, "nothing before the player reaches an Archipelago beacon")
+    sim.gameEvent("AP_STORE_EVENT_3")
+    check(#hinted >= 1 and hinted[1] == "Archipelago Shop 1", "the package on display is hinted: " .. tostring(hinted[1]))
+    local count = #hinted
+    apApplyShopGifts()
+    equals(#hinted, count, "a package already hinted is not hinted again")
+    restore()
+end)
+
+test("shop hints: off keeps the shop a secret", function()
+    hintSeed(0)
+    local hinted = 0
+    local restore = stub("apNetHintLocation", function() hinted = hinted + 1; return true end)
+    sim.gameEvent("AP_STORE_EVENT_3")
+    restore()
+    equals(hinted, 0, "no hint")
+end)
+
 test("event: winning the fight frees the pirates' package for free", function()
     for _, ending in ipairs({ "AP_HIJACK_WON", "AP_HIJACK_DEADCREW", "AP_HIJACK_YIELD" }) do
         sim.startRun(true)

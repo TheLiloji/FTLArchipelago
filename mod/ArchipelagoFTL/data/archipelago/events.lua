@@ -364,6 +364,9 @@ for _, name in ipairs(SHOP_EVENTS) do
         if not ok then
             eventLog("shop decor not applied: " .. tostring(err))
         end
+        if _G.apShopGiftsAtApShop then
+            apTry(TAG, apShopGiftsAtApShop, true)
+        end
     end)
 end
 

@@ -77,7 +77,8 @@ The Options Creator shows them in groups:
   received systems come aboard.
 - **Weapons, Drones, Augments, Crew** (closed at first): what is locked in FTL's stores, bundles, and crew
   members as items.
-- **Archipelago Shop** (closed at first): how many packages, and whether they are split by sector or by ship.
+- **Archipelago Shop** (closed at first): how many packages, whether they are split by sector or by ship, and
+  whether the packages you see become hints for their owners.
 - **Runs** (closed at first): the Head Start items, scrap at the start of a run, which event beacons are
   marked, how hard the logic is, and the language of the mod (it follows FTL by itself).
 - **Playing with Others**: Death Link, Energy Link (a shared fuel reserve), Trap Link, and how many traps.
@@ -98,6 +99,15 @@ packages sold at the AP STORE beacons, which hold other players' items.
 | **Combat Checks per Ship** | With each ship, the first fights you win in a run send checks. Those fights give less scrap (**Combat Check Scrap**) |
 | **Victory Collects the Layout** | What a victory also sends: `sectors` (the default) sends the layout's sector checks still due, `everything` also its ship's achievements, system checks and fight checks |
 | **Sector Logic** | New value `power`: before deep sectors and the Flagship, the logic expects shield layers, weapons and engines on the ship that does the check |
+
+## New in 0.6
+
+| Option | What it does |
+|---|---|
+| **Crew Names** | Crew who join you during a run take the other players' names: `multiworld` (the default), `multiworld_and_team` (then the names of the people who made and tested the mod), or `vanilla` (FTL's names) |
+| **Archipelago Shop Hints** | `seen` (the default): the packages you see at an Archipelago beacon become hints, so their owners know where their item waits. `off` keeps the shop secret |
+| **Trap Chance** | Three new traps that wait for your next fight: an anti-ship battery, a Flagship power surge (lighter in sectors 1 and 2), or a hazard (nebula, ion storm, asteroids, sun or pulsar). The battery and the hazard go away when the fight is over |
+| **Sector Logic** | `relaxed` is now called `none`: the logic expects nothing, you may have to win with very little. For experienced players. `relaxed` still works in old YAMLs |
 
 ## Expert options
 
