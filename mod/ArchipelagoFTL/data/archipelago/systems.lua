@@ -428,6 +428,8 @@ end
 local atAStore = apAtAStore
 
 local lastScrap = nil
+-- A store opened at this beacon by an event the location does not show (a choice, a Multiverse store button).
+local storeSeenHere = false
 
 -- Stores never sell these, every ship has them: removing one would break the ship.
 local NEVER_SOLD = { pilot = true, oxygen = true, shields = true, engines = true, weapons = true }
@@ -544,20 +546,16 @@ script.on_internal_event(Defines.InternalEvents.CONSTRUCT_SHIP_SYSTEM, function(
             return
         end
 
-        if not atAStore() then
-            startingSystems[name] = true
-            sysLog("system GIVEN by an event, accepted: " .. name)
-            if _G.apNotifyStatus then
-                _G.apNotifyStatus(apT("system.from_event", { name = apSystemLabel(name) }))
-            end
-            return
-        end
+        -- Away from a known store, the next tick decides: paid for, it was bought (Multiverse opens its store from
+        -- a button or a nested event, the beacon does not always say it has one); free, an event gave it.
+        local maybeGift = not (atAStore() or storeSeenHere)
 
         pendingRefusal[#pendingRefusal + 1] = {
             name = name,
             systemType = system.iSystemType,
             system = system,
             scrapBefore = lastScrap,
+            maybeGift = maybeGift,
             cargoBefore = lastCargo,
             partnerLevel = EXCLUSIVE[name] and exclusiveLevels[EXCLUSIVE[name]],
         }
@@ -565,6 +563,25 @@ script.on_internal_event(Defines.InternalEvents.CONSTRUCT_SHIP_SYSTEM, function(
 end)
 
 local function processRefusals()
+    if #pendingRefusal == 0 then
+        return
+    end
+    local player = Hyperspace.ships.player
+    local okNow, scrapNow = pcall(function() return tonumber(player.currentScrap) end)
+    local kept = {}
+    for _, refusal in ipairs(pendingRefusal) do
+        local paid = okNow and scrapNow ~= nil and refusal.scrapBefore ~= nil and scrapNow < refusal.scrapBefore
+        if refusal.maybeGift and not paid then
+            startingSystems[refusal.name] = true
+            sysLog("system GIVEN by an event, accepted: " .. refusal.name)
+            if _G.apNotifyStatus then
+                _G.apNotifyStatus(apT("system.from_event", { name = apSystemLabel(refusal.name) }))
+            end
+        else
+            kept[#kept + 1] = refusal
+        end
+    end
+    pendingRefusal = kept
     if #pendingRefusal == 0 then
         return
     end
@@ -577,7 +594,6 @@ local function processRefusals()
         return
     end
 
-    local player = Hyperspace.ships.player
     if player == nil then
         pendingRefusal = {}
         return
@@ -624,6 +640,8 @@ local function processRefusals()
 end
 
 script.on_init(function(newGame)
+    lastScrap = nil
+    storeSeenHere = false
     capWarned = {}
     startingPower = {}
     startingSystems = {}
@@ -711,6 +729,9 @@ end
 
 script.on_internal_event(Defines.InternalEvents.PRE_CREATE_CHOICEBOX, function(event)
     apTry(TAG, function() cancelLockedUpgrade(event) end)
+    if event ~= nil and event.store == true then
+        storeSeenHere = true
+    end
 end)
 
 script.on_internal_event(Defines.InternalEvents.MAIN_MENU, function()
@@ -719,6 +740,8 @@ end)
 
 script.on_internal_event(Defines.InternalEvents.JUMP_ARRIVE, function(shipManager)
     if shipManager.iShipId == 0 then
+        storeSeenHere = false
+        recordScrap()
         if not purchaseGuardArmed then
             purchaseGuardArmed = true
             sysLog("anti-purchase guard armed")

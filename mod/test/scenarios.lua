@@ -3780,6 +3780,45 @@ test("a system given by an event is NOT removed", function()
     check(sim.logged("GIVEN by an event"), "and the mod says so")
 end)
 
+test("a store the beacon does not show (Multiverse store button): an allowed system, then a locked one", function()
+    sim.startRun(true)
+    _G.apInventory.systemCaps.battery = 1
+    _G.apInventory.systemCaps.drones = nil
+    local blueprints = _G.apInventory.blueprints
+    if blueprints then blueprints.battery, blueprints.drones = true, nil end
+    sim.jumpArrive()
+    sim.setStore(false)
+    sim.player.currentScrap = 200
+    sim.tick(1)
+    sim.clearLog()
+
+    sim.player.currentScrap = 165
+    sim.constructSystem("battery", 0, 35)
+    sim.tick(1)
+    sim.player.currentScrap = 115
+    sim.constructSystem("drones", 0, 50)
+    sim.tick(5)
+
+    equals(#sim.player._removed, 1, "only the locked system goes")
+    check(sim.logged("PURCHASE REFUSED: drones"), "Drone Control was bought, so it is refused")
+    equals(sim.player.currentScrap, 165, "and its 50 scrap come back")
+    check(not sim.logged("GIVEN by an event"), "a paid system is never taken for an event's gift")
+    _G.apInventory.systemCaps.battery = nil
+    if blueprints then blueprints.battery = nil end
+end)
+
+test("a store opened by a choice of the beacon's event counts as a store", function()
+    sim.startRun(true)
+    _G.apInventory.systemCaps.cloaking = nil
+    sim.jumpArrive()
+    sim.setStore(false)
+    sim.tick(1)
+    fire("PRE_CREATE_CHOICEBOX", { store = true, eventName = "STORE_LOAD_GENERIC", stuff = {} })
+    sim.constructSystem("cloaking", 0, 0)
+    sim.tick(5)
+    equals(#sim.player._removed, 1, "even when the scrap did not move, a store purchase is refused")
+end)
+
 test("an Archipelago event sets its backdrop, even on a beacon already drawn", function()
     sim.startRun(true)
     equals(sim.decor.background, nil, "no backdrop before")
