@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
+import importlib.util
 import re
 import subprocess
 import sys
+import types
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -96,9 +98,23 @@ def _count_in_data(pattern: str) -> int:
     return len(re.findall(r"^    \(", text[start:end], re.MULTILINE))
 
 
+def _systems_with_an_install_check() -> int:
+    """Systems minus those every layout of the game starts with (locations.ON_EVERY_SHIP), read from data.py alone."""
+    package = types.ModuleType("_ftl_docs_check")
+    package.__path__ = [str(ROOT / "apworld" / "ftl")]
+    sys.modules["_ftl_docs_check"] = package
+    spec = importlib.util.spec_from_file_location("_ftl_docs_check.data", ROOT / "apworld" / "ftl" / "data.py")
+    data = importlib.util.module_from_spec(spec)
+    sys.modules["_ftl_docs_check.data"] = data
+    spec.loader.exec_module(data)
+    layouts = data.MV_LAYOUTS if "Multiverse" in GAME_DOC_PAGE else data.LAYOUTS
+    on_every_ship = frozenset.intersection(*(frozenset(layout.start_systems) for layout in layouts))
+    return _count_in_data("\nSYSTEMS_RAW: ") - len(on_every_ship)
+
+
 def design_numbers() -> list[str]:
     actual = {
-        "systems": _count_in_data("\nSYSTEMS_RAW: "),
+        "systems": _systems_with_an_install_check(),
         "shop_items": _count_in_data("\nSHOP_ITEMS_RAW: "),
     }
     issues: list[str] = []
