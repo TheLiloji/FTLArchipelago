@@ -530,13 +530,32 @@ test("run start scrap: a share of every scrap item received comes back at each n
     apQueueItem({ kind = "filler", res = "scrap", n = 20, display = "20 Scrap", isReplay = true })
     drain()
     equals(apRunStartScrap(), 10, "25% of the 40 scrap of the seed, a replayed item counting too")
+    apInventoryMarkSynced()
     local before = sim.player.currentScrap
     sim.startRun(true)
+    sim.tick(1)
     equals(sim.player.currentScrap - before, 10, "given at the start of the next run")
     check(sim.shown("+10"), "the player is told")
     before = sim.player.currentScrap
+    sim.tick(60)
+    equals(sim.player.currentScrap, before, "once")
     sim.startRun(false)
+    sim.tick(60)
     equals(sim.player.currentScrap, before, "not again when a saved run is continued")
+end)
+
+test("run start scrap: a run started before the items are all in gets its scrap once they are", function()
+    _G.apInventory = { ships = {}, systemCaps = {}, startingUpgrades = {}, shopAvailability = {} }
+    applySeed({ kinds = { "filler" }, options = { run_start_scrap = 50 } })
+    apInventoryClear()
+    sim.startRun(true)
+    local before = sim.player.currentScrap
+    sim.tick(60)
+    equals(sim.player.currentScrap, before, "the replay is not in yet: nothing")
+    apQueueItem({ kind = "filler", res = "scrap", n = 30, display = "30 Scrap", isReplay = true })
+    apInventoryMarkSynced()
+    sim.tick(60)
+    equals(sim.player.currentScrap - before, 15, "half of the 30 scrap of the seed, once the replay is in")
 end)
 
 test("run start scrap: off by default", function()
