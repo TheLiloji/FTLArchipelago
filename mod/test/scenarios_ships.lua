@@ -656,3 +656,14 @@ test("checks: every check of the seed is scouted, without a hint", function()
     equals(sim.netCalls("HintLocation"), 0, "a scout is not a hint")
     shipDone()
 end)
+
+test("ships: a ship is named by its class, a B or C layout adds its letter", function()
+    sim.shipClasses = { PLAYER_SHIP_FED = "Federation Cruiser" }
+    local before = sim.shipNames.PLAYER_SHIP_FED
+    sim.shipNames.PLAYER_SHIP_FED = "The Osprey"
+    equals(apShipLabel("PLAYER_SHIP_FED"), "Federation Cruiser", "not the Type A's own name")
+    equals(apShipLabel("PLAYER_SHIP_FED_2"), "Federation Cruiser B", "the B layout")
+    equals(apShipLabel("PLAYER_SHIP_FED_3"), "Federation Cruiser C", "the C layout")
+    sim.shipClasses = nil
+    sim.shipNames.PLAYER_SHIP_FED = before
+end)
