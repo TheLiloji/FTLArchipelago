@@ -2040,6 +2040,21 @@ test("network: a refusal with no reason is still reported", function()
     check(shownKey("net.refused.unknown"), "the player isn't left staring at a silent screen")
 end)
 
+test("network: the share of checks done counts only this seed's locations, never past 100 %", function()
+    sim.startRun(true)
+    apForgetChecksForTesting()
+    apSendCheck("PLAYER_SHIP_HARD:sector:9", "done offline before the seed was known")
+    sim.net.checked = { "Archipelago Shop 1" }
+    apNetConnect("ws://localhost:38281", "Navigator", "")
+    sim.netEvent("connected", { name = "Navigator", extra = {
+        contract = CONTRACT, kinds = { "filler" }, kinds_required = {},
+        items = {}, loc = { ["shop:1"] = "Archipelago Shop 1" },
+    } })
+    sim.tick(1)
+    equals(apCheckCount().sent, 1, "the key the seed does not have is not counted")
+    equals(apCheckCount().total, 1, "out of the seed's one location")
+end)
+
 test("network: checks already done are recovered from the server on reconnect", function()
     sim.startRun(true)
     apForgetChecksForTesting()

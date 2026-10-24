@@ -310,20 +310,26 @@ function apCheckAlreadySent(id)
     return sent[id] == true
 end
 
+-- Only this slot's own locations count, each once: a key done offline that the seed does not have, or two keys
+-- for the same location, would push the share past 100 %.
 function apCheckCount()
-    local sentCount = 0
-    for _ in pairs(sent) do
-        sentCount = sentCount + 1
+    local names = (_G.apContractState and _G.apContractState.locNames) or {}
+    local total = 0
+    for _ in pairs(names) do
+        total = total + 1
     end
 
-    local total = 0
-    if _G.apContractState and _G.apContractState.locNames then
-        for _ in pairs(_G.apContractState.locNames) do
-            total = total + 1
+    local done = {}
+    local sentCount = 0
+    for key in pairs(sent) do
+        local name = names[key]
+        if name ~= nil and not done[name] then
+            done[name] = true
+            sentCount = sentCount + 1
         end
     end
 
-    return { sent = sentCount, total = total }
+    return { sent = math.min(sentCount, total), total = total }
 end
 
 function apAdoptCheckedLocations(names)
