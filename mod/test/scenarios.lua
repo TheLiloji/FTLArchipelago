@@ -3726,6 +3726,7 @@ test("online, a deal always promises someone else will pay", function()
         _G.apTrapLink.enabled = true
         sim.startRun(true)
         _G.apNetSendTrap = function() return true end
+        _G.apTrapLinkState.received = 1
         sim.clearLog()
 
         sim.sign("AP_DEAL_2")
@@ -3735,6 +3736,26 @@ test("online, a deal always promises someone else will pay", function()
         if shownKey("deal.other") then outward = outward + 1 end
     end
     check(outward > 0, "and most do go outward (" .. outward .. "/20)")
+    _G.apNetSendTrap = previous
+end)
+
+test("alone on Trap Link, a deal's trap always hits the player", function()
+    local previous = _G.apNetSendTrap
+    local sends = 0
+    for attempt = 1, 20 do
+        sim.reset()
+        apShopGiftsConfigure(DEMO)
+        _G.apTrapLink.enabled = true
+        _G.apTrapLinkState.received = 0
+        sim.startRun(true)
+        _G.apNetSendTrap = function() sends = sends + 1 return true end
+        sim.clearLog()
+
+        sim.sign("AP_DEAL_2")
+        sim.tick(120)
+        check(not shownKey("deal.other"), "attempt " .. attempt .. ": no trap seen from anyone else yet")
+    end
+    equals(sends, 0, "nothing goes out while no other slot showed up on the link")
     _G.apNetSendTrap = previous
 end)
 
