@@ -822,7 +822,8 @@ class MinimumFiller(Range):
     """The minimum number of filler items (scrap, fuel, missiles, drone parts) in your seed.
 
     The seed balances itself: when your options create more checks than items, filler is added until
-    every check holds something. This number is the floor.
+    every check holds something. This number is the floor. With Crew Members, the first crew member of
+    each race counts as filler.
     """
 
     display_name = "Minimum Filler"
