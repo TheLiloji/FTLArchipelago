@@ -2048,11 +2048,11 @@ test("network: the share of checks done counts only this seed's locations, never
     apNetConnect("ws://localhost:38281", "Navigator", "")
     sim.netEvent("connected", { name = "Navigator", extra = {
         contract = CONTRACT, kinds = { "filler" }, kinds_required = {},
-        items = {}, loc = { ["shop:1"] = "Archipelago Shop 1" },
+        items = {}, loc = { ["shop:1"] = "Archipelago Shop 1", ["shop:2"] = "Archipelago Shop 2" },
     } })
     sim.tick(1)
     equals(apCheckCount().sent, 1, "the key the seed does not have is not counted")
-    equals(apCheckCount().total, 1, "out of the seed's one location")
+    equals(apCheckCount().total, 2, "out of the seed's two locations")
 end)
 
 test("network: checks already done are recovered from the server on reconnect", function()
