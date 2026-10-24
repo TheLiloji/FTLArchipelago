@@ -101,6 +101,16 @@ test("hints: an already found hint does not stay displayed", function()
     equals(#apHintsForDisplay(5), 0, "the item already arrived: nothing to look for")
 end)
 
+test("hints: a hint at one of our locations leaves the list once we do that check", function()
+    seedWithTwoLocations()
+    sim.netEvent("hint", { name = "Burst Laser II", sender = "Axel", other = "Navigator",
+                           extra = "Kestrel Cruiser A: Reach sector 3", value = 0, index = 0 })
+    sim.tick(1)
+    equals(#apHintsForDisplay(5), 1, "still to find")
+    apSendCheck("PLAYER_SHIP_HARD:sector:3", "Sector 3")
+    equals(#apHintsForDisplay(5), 0, "found here, before the server says so on the next connection")
+end)
+
 test("hints: the answer to a hint scout does not fall into the shop", function()
     apContractResetForTesting()
     apForgetChecksForTesting()
