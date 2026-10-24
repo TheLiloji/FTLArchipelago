@@ -94,6 +94,8 @@ shields, a Mantis fighter, a Rock repairman and a Slug gunner. Lanius and Crysta
 On top of that, "Head Start" items give you one free level of a system, or one extra bar of reactor power, at
 the beginning of *every future run*. This is what makes a roguelike work in an Archipelago: an item that
 arrives during a run you are about to lose is not wasted, because it makes the next run start stronger.
+They are extras, placed only in checks left over once every other item has its place: with the default
+options there are more items than checks, so turn on more checks or raise Archipelago Shop Checks to get them.
 
 Four options make received items count right away, all off by default:
 

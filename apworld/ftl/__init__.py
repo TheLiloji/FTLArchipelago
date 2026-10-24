@@ -322,6 +322,11 @@ class FTLWorld(World):
         reserved = items.reserved_filler(self)
         room = non_shop_checks + self.options.shop_checks.value - reserved
         dropped = min(items.spare_items(self), max(0, items_needed - room))
+        if dropped:
+            logging.getLogger("FTL").warning(
+                "FTL (%s): %d Head Start, Reactor Power or extra crew item(s) left out: the seed has more "
+                "items than checks. Turn on more checks or raise shop_checks to keep them.",
+                self.player_name, dropped)
         wanted_slots = max(self.options.shop_checks.value,
                     items_needed - dropped + reserved - non_shop_checks)
         if wanted_slots > data.MAX_SHOP_SLOTS and self.options.progressive_systems_per_ship:

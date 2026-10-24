@@ -538,6 +538,10 @@ class RunStartScrap(Range):
 class HeadStarts(DefaultOnToggle):
     """Head Start items give a free system level, or a reactor bar, at the start of every
     future run. They make each new run a little stronger.
+
+    They are extras: they only take checks left over once every other item has its place. With the
+    default options there are more items than checks, so few or none come. Turn on more checks
+    (sectorsanity, achievements) or raise Archipelago Shop Checks to get more of them.
     """
 
     display_name = "Head Starts"
@@ -849,7 +853,8 @@ class MinimumFiller(Range):
     """The minimum number of filler items (scrap, fuel, missiles, drone parts) in your seed.
 
     The seed balances itself: when your options create more checks than items, filler is added until
-    every check holds something. This number is the floor.
+    every check holds something. This number is the floor. With Crew Members, the first crew member of
+    each race counts as filler.
     """
 
     display_name = "Minimum Filler"
