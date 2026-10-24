@@ -286,3 +286,39 @@ test("crew names: a hologram or a drone keeps its name", function()
     equals(joins("Ruwen"):GetName(), "Nina", "the name waits for a real recruit")
     apCrewNamesConfigure("multiworld", {})
 end)
+
+local function deathLinkRun()
+    apDeathLinkConfigure({ enabled = true, trigger = "both", cloned = false, graceSeconds = 0 })
+    local sent = { n = 0 }
+    sent.restore = stub("apNetSendDeath", function() sent.n = sent.n + 1 return true end)
+    sim.startRun(true)
+    sim.tick(60)
+    return sent
+end
+
+test("DeathLink: an event that takes a crew member away (the Engi virus) is not a death", function()
+    local sent = deathLinkRun()
+    table.remove(sim.player.vCrewList._store, 1)
+    sim.tick(60)
+    sent.restore()
+    equals(sent.n, 0, "gone from the list without dying first")
+end)
+
+test("DeathLink: a Multiverse crew member turned into another race is not a death", function()
+    local sent = deathLinkRun()
+    local old = table.remove(sim.player.vCrewList._store, 1)
+    sim.player:AddCrewMemberFromString(old._name, "rock", false, 0, false, false)
+    sim.tick(60)
+    sent.restore()
+    equals(sent.n, 0, "the same crew member under a new race")
+end)
+
+test("DeathLink: a crew member left on the enemy ship when it goes is a death", function()
+    local sent = deathLinkRun()
+    sim.player.vCrewList[0].currentShipId = 1
+    sim.tick(60)
+    table.remove(sim.player.vCrewList._store, 1)
+    sim.tick(60)
+    sent.restore()
+    equals(sent.n, 1, "boarders lost with the enemy ship")
+end)
