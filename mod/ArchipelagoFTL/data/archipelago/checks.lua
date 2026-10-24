@@ -114,6 +114,9 @@ local SHIP_REFUSALS = { [1] = "not_received", [2] = "not_in_seed" }
 local SHIP_CODES = { not_received = 1, not_in_seed = 2 }
 local SHIP_MESSAGES = { not_received = "check.run_ship_not_received", not_in_seed = "check.run_ship_not_in_seed" }
 local shipRefusal = nil
+-- The layout already judged fine in this run: a key or a layout received later (waiting in the queue a moment)
+-- must not make it "unknown" again, or a purchase made meanwhile would be refused.
+local shipAccepted = nil
 local shipWarned = false
 local held, heldIds, heldVictory = {}, {}, nil
 
@@ -146,6 +149,9 @@ local function shipStatus()
     if shipRefusal ~= nil then
         return shipRefusal
     end
+    if shipAccepted ~= nil and shipAccepted == currentLayout() then
+        return "ok"
+    end
     if not (_G.apInventorySynced and apInventorySynced()) then
         return "unknown"
     end
@@ -154,6 +160,9 @@ local function shipStatus()
         return "unknown"
     end
     local status = _G.apShipReceived and apShipReceived(layout) or "ok"
+    if status == "ok" then
+        shipAccepted = layout
+    end
     if SHIP_CODES[status] then
         shipRefusal = status
         saveShipRefusal(SHIP_CODES[status])
@@ -630,6 +639,7 @@ script.on_init(function(newGame)
     startingCrew = nil
     seedlessWarned = false
     shipRefusal = nil
+    shipAccepted = nil
     shipWarned = false
     held, heldIds, heldVictory = {}, {}, nil
     runFromSave = newGame == false
@@ -659,6 +669,7 @@ function apRunSeedForTesting(value)
     runFromSave = false
     seedlessWarned = false
     shipRefusal = nil
+    shipAccepted = nil
     shipWarned = false
     held, heldIds, heldVictory = {}, {}, nil
 end
