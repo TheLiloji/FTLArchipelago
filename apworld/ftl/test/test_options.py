@@ -853,8 +853,10 @@ class TestWeaponsComeTwice(FTLTestBase):
 
 
 def _filler_count(test: FTLTestBase) -> int:
+    # The first crew member of each race counts as filler (MinimumFiller).
     return len([item for item in test.multiworld.itempool
-                if data.ITEMS_BY_NAME[item.name].group in (data.GROUP_FILLER, data.GROUP_TRAPS)])
+                if data.ITEMS_BY_NAME[item.name].group in (data.GROUP_FILLER, data.GROUP_TRAPS)]
+               ) + items.filler_like_items(test.world)
 
 
 def _real_items_expected(test: FTLTestBase) -> int:
@@ -879,11 +881,19 @@ class TestMoreItemsThanChecksGrowsTheShop(FTLTestBase):
                 self.assertIn(item.name, places, "every item has its place")
 
     def test_head_starts_and_crew_go_first_instead_of_growing_the_shop(self) -> None:
+        crew = [item for item in self.world.enabled_items if item.count and item.group == data.GROUP_CREW_MEMBERS]
         kept = [item for item in self.multiworld.itempool
                 if data.ITEMS_BY_NAME[item.name].group in items.SPARE_GROUPS and not item.advancement]
-        self.assertLessEqual(len(kept), len(self.world.precollected_item_names),
-                             "only the slots freed by items given at the start keep one")
+        self.assertLessEqual(len(kept), len(crew) + len(self.world.precollected_item_names),
+                             "only the first crew member of each race and the slots freed by items "
+                             "given at the start keep one")
         self.assertLess(len(kept), items.spare_items(self.world), "the others left the pool")
+
+    def test_every_race_keeps_its_first_crew_member(self) -> None:
+        names = [item.name for item in self.multiworld.itempool]
+        for item in self.world.enabled_items:
+            if item.count and item.group == data.GROUP_CREW_MEMBERS:
+                self.assertIn(item.name, names, "crew_members on must bring each race at least once")
 
 
 class TestMoreChecksThanItemsAddsFiller(FTLTestBase):

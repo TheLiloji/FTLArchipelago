@@ -340,6 +340,12 @@ def plan(world: "FTLWorld") -> LogicPlan:
         progression = frozenset(data.BLUEPRINT_ITEM_NAMES.values())
 
     early_keys = _early_ship_keys(world, level, start_items)
+    if len(early_keys) < options.early_ship_keys.value and len(early_keys) < len(_early_key_candidates(world, start_items)):
+        warnings.append(
+            f"early_ship_keys lowered from {options.early_ship_keys.value} to {len(early_keys)}: "
+            "only that many checks can be reached from the very start. "
+            "Enable sectorsanity or ship achievements to place more keys early."
+        )
 
     return LogicPlan(
         sector_logic=level,
@@ -477,13 +483,17 @@ def _progression_item_count(world: "FTLWorld", level: int) -> int:
     return count
 
 
-def _early_ship_keys(world: "FTLWorld", level: int, start_items: set[str]) -> tuple[str, ...]:
-    """Type A keys put in the player's own first checks, so a second ship does not hang on the luck of the fill."""
-    candidates = sorted(
+def _early_key_candidates(world: "FTLWorld", start_items: set[str]) -> list[str]:
+    return sorted(
         data.SHIP_KEY_NAMES[layout.blueprint]
         for layout in selected_layouts(world.options)
         if layout.variant == 0 and data.SHIP_KEY_NAMES[layout.blueprint] not in start_items
     )
+
+
+def _early_ship_keys(world: "FTLWorld", level: int, start_items: set[str]) -> tuple[str, ...]:
+    """Type A keys put in the player's own first checks, so a second ship does not hang on the luck of the fill."""
+    candidates = _early_key_candidates(world, start_items)
     wanted = min(world.options.early_ship_keys.value, len(candidates), _sphere_zero_room(world, level, start_items))
     return tuple(sorted(world.random.sample(candidates, wanted)))
 

@@ -152,11 +152,31 @@ def enabled_items(options, shop_items: tuple[data.ShopItem, ...] = ()) -> tuple[
 SPARE_GROUPS = (data.GROUP_HEAD_STARTS, data.GROUP_BONUSES, data.GROUP_CREW_MEMBERS)
 
 
+def _is_spare(item: data.Item, rank: int) -> bool:
+    # The first crew member of each race always stays: with crew_members on, a run must meet some.
+    return item.group in SPARE_GROUPS and not (item.group == data.GROUP_CREW_MEMBERS and rank == 0)
+
+
+def filler_like_items(world: "FTLWorld") -> int:
+    """The crew members kept by _is_spare: extras like filler, they take filler slots before growing the shop."""
+    return sum(
+        1 for item in world.enabled_items
+        if item.count and item.group == data.GROUP_CREW_MEMBERS
+        and not effective_classification(world, item).startswith("progression")
+    )
+
+
+def filler_floor(world: "FTLWorld") -> int:
+    return max(0, world.options.minimum_filler.value - filler_like_items(world))
+
+
 def spare_items(world: "FTLWorld") -> int:
     return sum(
-        ftl_options.item_copies(world.options, item) for item in world.enabled_items
+        1 for item in world.enabled_items
         if item.count and item.group in SPARE_GROUPS
         and not effective_classification(world, item).startswith("progression")
+        for rank in range(ftl_options.item_copies(world.options, item))
+        if _is_spare(item, rank)
     )
 
 
@@ -192,8 +212,7 @@ def build_item_pool(world: "FTLWorld") -> list[FTLItem]:
         if effective_classification(world, item).startswith("progression"):
             required.extend([item.name] * copies)
         else:
-            spare = item.group in SPARE_GROUPS
-            optional.extend((spare, rank, item.name) for rank in range(copies))
+            optional.extend((_is_spare(item, rank), rank, item.name) for rank in range(copies))
 
     # Filler-only locations (rare Multiverse checks) take no progression: they do not count as room for it.
     capacity_for_progression = capacity - sum(
@@ -208,7 +227,7 @@ def build_item_pool(world: "FTLWorld") -> list[FTLItem]:
     world.random.shuffle(optional)
     optional.sort(key=lambda entry: (entry[0], entry[1]))
     room = capacity - len(required)
-    room -= min(options.minimum_filler.value, room)
+    room -= min(filler_floor(world), room)
     kept_optional = [name for _, _, name in optional[:room]]
 
     filler_needed = capacity - len(required) - len(kept_optional)

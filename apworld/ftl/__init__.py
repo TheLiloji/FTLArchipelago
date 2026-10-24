@@ -310,10 +310,11 @@ class FTLWorld(World):
         non_shop_checks = sum(
             1 for location in self.created_locations if location.shop_slot is None
         )
-        room = non_shop_checks + self.options.shop_checks.value - self.options.minimum_filler.value
+        floor = items.filler_floor(self)
+        room = non_shop_checks + self.options.shop_checks.value - floor
         dropped = min(items.spare_items(self), max(0, items_needed - room))
         wanted_slots = max(self.options.shop_checks.value,
-                    items_needed - dropped + self.options.minimum_filler.value - non_shop_checks)
+                    items_needed - dropped + floor - non_shop_checks)
         if wanted_slots > data.MAX_SHOP_SLOTS and self.options.progressive_systems_per_ship:
             left_out = items_needed - non_shop_checks - data.MAX_SHOP_SLOTS
             if left_out > 0:
