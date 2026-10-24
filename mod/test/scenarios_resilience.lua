@@ -582,6 +582,24 @@ test("combat checks: the first fights won in a run send their checks, with less 
     sim.enemy = nil
 end)
 
+test("combat checks: fights won before a crash, never received by the server, go out once connected", function()
+    fightSeed(50)
+    sim.runVariables.ap_fights_won = 2
+    local sentNames = {}
+    local restoreSend = stub("apNetSendCheck", function(name) sentNames[#sentNames + 1] = name return true end)
+    local restoreNet = stub("apNetConnected", function() return false end)
+    sim.jumpArrive()
+    equals(#sentNames, 0, "offline: nothing to send yet")
+    restoreNet()
+    restoreNet = stub("apNetConnected", function() return true end)
+    sim.jumpArrive()
+    equals(#sentNames, 2, "both fights the save counted go out")
+    sim.jumpArrive()
+    restoreNet()
+    restoreSend()
+    equals(#sentNames, 2, "and only once")
+end)
+
 test("combat checks: a new run counts from fight 1 again, and an already sent check costs nothing", function()
     fightSeed(50)
     winFight(30)

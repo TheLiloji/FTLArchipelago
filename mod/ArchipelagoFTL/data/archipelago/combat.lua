@@ -135,6 +135,34 @@ function apCombatReward(event)
     return true
 end
 
+local function runStarted()
+    local ok, started = pcall(function() return Hyperspace.App.world.bStartedGame == true end)
+    return ok and started == true
+end
+
+-- Fights the run counted but the server never got: won offline before a crash, the counter comes back with the
+-- save while the check was only in memory. Sent on connecting and at each beacon.
+function apCombatCatchUp()
+    local ship = currentShip()
+    if ship == nil or not runStarted() or not (_G.apNetConnected and apNetConnected()) then
+        return 0
+    end
+    local caught = 0
+    for n = 1, fightsWon() do
+        local key = ship .. ":fight:" .. n
+        if _G.apLocationNameFor and apLocationNameFor(key) and not apCheckAlreadySent(key) then
+            local label = apT("check.label.fight", { n = n, ship = (_G.apShipLabel and apShipLabel(ship)) or ship })
+            if apSendCheck(key, label) then
+                caught = caught + 1
+            end
+        end
+    end
+    if caught > 0 then
+        combatLog(caught .. " fight(s) won earlier in the run sent now")
+    end
+    return caught
+end
+
 script.on_internal_event(Defines.InternalEvents.PRE_CREATE_CHOICEBOX, function(event)
     apTry(TAG, function() apCombatReward(event) end)
 end)
@@ -178,6 +206,7 @@ script.on_internal_event(Defines.InternalEvents.JUMP_ARRIVE, function(shipManage
         sawHostile = false
         escapedHere = false
         beatenTicks = 0
+        apTry(TAG, apCombatCatchUp)
     end
 end)
 
