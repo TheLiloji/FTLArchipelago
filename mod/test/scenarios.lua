@@ -4993,7 +4993,7 @@ test("event: the pirates hold another player's package and say whose", function(
     })
     local box = sim.openChoiceBox("AP_EVT_HIJACK", 3)
     check(box.text:find("Axel", 1, true) ~= nil, "a friend's package before the player's own: " .. box.text)
-    check(box.text:find("20 Scrap", 1, true) ~= nil, "and what's inside")
+    check(box.text:find("20 Scrap", 1, true) == nil, "not what's inside, only a vague word on it")
     check(box.text:find(apT("event.hijack.hint.filler"), 1, true) ~= nil,
         "with a word on what it is worth: junk here")
 end)
