@@ -210,12 +210,29 @@ script.on_internal_event(Defines.InternalEvents.JUMP_ARRIVE, function(shipManage
     end
 end)
 
+-- A continued run loads its variables after on_init: the catch-up waits a moment, then runs once.
+local CATCH_UP_DELAY_TICKS = 60
+local catchUpIn = nil
+
+script.on_internal_event(Defines.InternalEvents.ON_TICK, function()
+    if catchUpIn == nil then
+        return
+    end
+    catchUpIn = catchUpIn - 1
+    if catchUpIn <= 0 then
+        catchUpIn = nil
+        apTry(TAG, apCombatCatchUp)
+    end
+end)
+
 script.on_init(function(newGame)
     countedHere = false
     sawHostile = false
     escapedHere = false
     if newGame then
         setFightsWon(0)
+    else
+        catchUpIn = CATCH_UP_DELAY_TICKS
     end
 end)
 

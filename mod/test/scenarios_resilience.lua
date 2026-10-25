@@ -619,6 +619,20 @@ test("combat checks: fights won before a crash, never received by the server, go
     equals(#sentNames, 2, "and only once")
 end)
 
+test("combat checks: after a crash, a continued run sends its missing fights without waiting for a jump", function()
+    fightSeed(50)
+    local sentNames = {}
+    local restoreSend = stub("apNetSendCheck", function(name) sentNames[#sentNames + 1] = name return true end)
+    local restoreNet = stub("apNetConnected", function() return true end)
+    apForgetChecksForTesting()
+    sim.startRun(false)
+    sim.runVariables.ap_fights_won = 2
+    sim.tick(90)
+    restoreNet()
+    restoreSend()
+    equals(#sentNames, 2, "both fights go out a moment after Continue")
+end)
+
 test("combat checks: a new run counts from fight 1 again, and an already sent check costs nothing", function()
     fightSeed(50)
     winFight(30)

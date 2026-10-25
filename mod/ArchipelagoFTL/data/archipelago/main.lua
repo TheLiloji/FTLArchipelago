@@ -1,5 +1,5 @@
 local MOD_NAME = "ArchipelagoFTL"
-local MOD_VERSION = "0.5.0"
+local MOD_VERSION = "0.6.0"
 local TAG = "[AP] "
 
 local function apLog(message)
