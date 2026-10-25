@@ -85,7 +85,7 @@ local function categoryOf(key)
     if key:sub(1, 5) == "shop:" then return "shop" end
     if key:sub(1, 4) == "sys:" or key:find(":sys:", 1, true) then return "system" end
     if key:sub(1, 5) == "crew:" then return "crew" end
-    if key:find(":fight:", 1, true) then return "fight" end
+    if key:find(":fight:", 1, true) or key:find(":sfight:", 1, true) then return "fight" end
     if key:sub(1, 4) == "ach:" then return "achievement" end
     if key:find(":sector:", 1, true) then return "sector" end
     if key:sub(-8) == ":victory" then return "victory" end
@@ -794,6 +794,11 @@ local function placeOf(key, name, category)
         local base = baseOf(layout)
         return { row = base, ship = base, label = shipLabel(base), box = index,
                  text = apT("dash.ships.type", { letter = string.char(64 + index) }), named = true }
+    end
+    local sship, sector, sfight = key:match("^([%u_%d]+):sfight:(%d+):(%d+)$")
+    if sship ~= nil then
+        local box = (tonumber(sector) - 1) * 5 + tonumber(sfight)
+        return { row = sship, ship = sship, label = shipLabel(sship), box = box, text = sector .. "." .. sfight }
     end
     local ship, fight = key:match("^([%u_%d]+):fight:(%d+)$")
     if ship then

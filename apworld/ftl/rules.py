@@ -135,7 +135,7 @@ def location_depth(location: data.Location, shop_by_sector: bool = False) -> int
         return data.shop_sector(location.shop_slot)
     if location.group == data.GROUP_CREW:
         return CREW_RACE_DEPTH[location.race]
-    if location.group == data.GROUP_SECTORS:
+    if location.group in (data.GROUP_SECTORS, data.GROUP_SECTOR_FIGHTS):
         return location.sector or 0
     if location.group == data.GROUP_FIGHTS:
         # A run wins about four fights per sector: the tenth one is a third-sector check.

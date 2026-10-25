@@ -407,6 +407,7 @@
     "connect.button.busy": "Connessione...",
     "connect.paste_hint": "Copia l'indirizzo dalla pagina della tua stanza, poi premi Ctrl+V in un campo per incollarlo.",
     "connect.paste_empty": "Niente da incollare: gli appunti sono vuoti.",
-    "connect.paste_empty.linux": "Appunti vuoti o illeggibili: su Linux, installa wl-clipboard o xclip."
+    "connect.paste_empty.linux": "Appunti vuoti o illeggibili: su Linux, installa wl-clipboard o xclip.",
+    "check.label.sector_fight": "Combattimento {n} del settore {sector} vinto con {ship}"
   }
 }

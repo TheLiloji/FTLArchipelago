@@ -103,6 +103,30 @@ function apCombatStatus()
     return { won = won, total = total, left = left, nextSends = nextSends }
 end
 
+-- combat_checks_mode per_sector: the fights won in the current sector, counted again from 1 in each sector.
+local function perSector()
+    local mode = _G.apSeedOption and apSeedOption("combat_checks_mode")
+    return mode == 1 or mode == "per_sector"
+end
+
+local function currentSector()
+    local ok, level = pcall(function() return Hyperspace.App.world.starMap.worldLevel end)
+    return ok and tonumber(level) and math.floor(level) + 1 or 1
+end
+
+local function sectorFightsWon(sector)
+    local ok, value = pcall(function() return Hyperspace.playerVariables["ap_fights_sector_" .. sector] end)
+    return ok and math.floor(tonumber(value) or 0) or 0
+end
+
+local function fightKey(ship, n)
+    if perSector() then
+        local sector = currentSector()
+        return ship .. ":sfight:" .. sector .. ":" .. n, sector
+    end
+    return ship .. ":fight:" .. n, nil
+end
+
 function apCombatReward(event)
     local enemy = Hyperspace.ships.enemy
     if countedHere or escapedHere or not (enemyBeaten(enemy) or enemySurrendered(enemy)) then
@@ -111,15 +135,22 @@ function apCombatReward(event)
     countedHere = true
     local n = fightsWon() + 1
     setFightsWon(n)
+    if perSector() then
+        local sector = currentSector()
+        n = sectorFightsWon(sector) + 1
+        pcall(function() Hyperspace.playerVariables["ap_fights_sector_" .. sector] = n end)
+    end
     local ship = currentShip()
     if ship == nil then
         return false
     end
-    local key = ship .. ":fight:" .. n
+    local key, sector = fightKey(ship, n)
     if not (_G.apLocationNameFor and apLocationNameFor(key)) or apCheckAlreadySent(key) then
         return false
     end
-    local label = apT("check.label.fight", { n = n, ship = (_G.apShipLabel and apShipLabel(ship)) or ship })
+    local shipName = (_G.apShipLabel and apShipLabel(ship)) or ship
+    local label = sector and apT("check.label.sector_fight", { n = n, sector = sector, ship = shipName })
+        or apT("check.label.fight", { n = n, ship = shipName })
     if not apSendCheck(key, label) then
         return false
     end
@@ -148,6 +179,20 @@ function apCombatCatchUp()
         return 0
     end
     local caught = 0
+    if perSector() then
+        for sector = 1, 8 do
+            for n = 1, sectorFightsWon(sector) do
+                local key = ship .. ":sfight:" .. sector .. ":" .. n
+                if _G.apLocationNameFor and apLocationNameFor(key) and not apCheckAlreadySent(key) then
+                    local label = apT("check.label.sector_fight", { n = n, sector = sector,
+                        ship = (_G.apShipLabel and apShipLabel(ship)) or ship })
+                    if apSendCheck(key, label) then
+                        caught = caught + 1
+                    end
+                end
+            end
+        end
+    end
     for n = 1, fightsWon() do
         local key = ship .. ":fight:" .. n
         if _G.apLocationNameFor and apLocationNameFor(key) and not apCheckAlreadySent(key) then

@@ -406,6 +406,7 @@
     "connect.button.busy": "Connexion...",
     "connect.paste_hint": "Copiez l'adresse depuis la page de votre room, puis Ctrl+V dans un champ pour la coller.",
     "connect.paste_empty": "Rien à coller : le presse-papiers est vide.",
-    "connect.paste_empty.linux": "Presse-papiers vide ou illisible : sous Linux, installez wl-clipboard ou xclip."
+    "connect.paste_empty.linux": "Presse-papiers vide ou illisible : sous Linux, installez wl-clipboard ou xclip.",
+    "check.label.sector_fight": "Combat {n} du secteur {sector} gagné avec {ship}"
   }
 }

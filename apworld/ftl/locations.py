@@ -140,7 +140,13 @@ def selected_locations(options) -> tuple[data.Location, ...]:
             if options.crew_checks:
                 kept.append(location)
         elif location.group == data.GROUP_FIGHTS:
-            if location.ship in ships and (location.fight or 0) <= options.combat_checks.value:
+            per_run = options.combat_checks_mode == options.combat_checks_mode.option_per_run
+            if per_run and location.ship in ships and (location.fight or 0) <= options.combat_checks.value:
+                kept.append(location)
+        elif location.group == data.GROUP_SECTOR_FIGHTS:
+            per_sector = options.combat_checks_mode == options.combat_checks_mode.option_per_sector
+            if (per_sector and options.combat_checks.value > 0 and location.ship in ships
+                    and (location.fight or 0) <= options.fights_per_sector.value):
                 kept.append(location)
         elif location.group == data.GROUP_SHIP_ACHIEVEMENTS:
             needed = data.ACHIEVEMENT_LAYOUT.get(location.achievement or "")

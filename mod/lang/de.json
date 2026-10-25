@@ -407,6 +407,7 @@
     "connect.button.busy": "Verbinde...",
     "connect.paste_hint": "Kopiere die Adresse von deiner Raumseite und drücke Strg+V in einem Feld, um sie einzufügen.",
     "connect.paste_empty": "Nichts zum Einfügen: Die Zwischenablage ist leer.",
-    "connect.paste_empty.linux": "Zwischenablage leer oder unlesbar: unter Linux wl-clipboard oder xclip installieren."
+    "connect.paste_empty.linux": "Zwischenablage leer oder unlesbar: unter Linux wl-clipboard oder xclip installieren.",
+    "check.label.sector_fight": "Kampf {n} in Sektor {sector} gewonnen mit {ship}"
   }
 }
