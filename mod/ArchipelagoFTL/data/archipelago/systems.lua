@@ -289,6 +289,20 @@ local function installReceivedSystems(reason)
     return #installed
 end
 
+-- Every base ship starts with Oxygen, but some Multiverse ships do not, though their hull has a room for it (Lanius,
+-- Caretaker, the automated ones). Their crew may still need air: the start-of-run menu offers it for free, and the
+-- player is free to leave it.
+local function offerMissingOxygen()
+    local player = Hyperspace.ships.player
+    local id = systemId("oxygen")
+    if player == nil or id == nil or player:HasSystem(id) or not hullHasPlace(player, id) then
+        return false
+    end
+    setChoice("oxygen", true)
+    sysLog("oxygen: the ship starts without it, offered in the start-of-run menu")
+    return true
+end
+
 -- The start-of-run menu: the systems still to choose from, while a slot is free.
 function apSystemInstallChoices()
     local player = Hyperspace.ships.player
@@ -770,6 +784,7 @@ script.on_init(function(newGame)
             -- would count twice in its cap.
             apApplySystemRules()
         end
+        pcall(offerMissingOxygen)
         applyStartingUpgrades()
         apApplySystemRules()
     end
