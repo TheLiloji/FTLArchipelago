@@ -78,6 +78,17 @@ Hyperspace. Tu dois voir :
 
 Si le panneau n'est pas là, ou si la connexion ne marche jamais, regarde la [FAQ](FAQ.md) (en anglais).
 
+Si le jeu s'arrête au lancement avec **« Failed to install hook for WeaponControl::RenderAiming: Failed to make
+copy of original code executable »** (Fedora et les autres distributions avec SELinux), SELinux empêche Hyperspace
+de modifier le jeu en mémoire. Autorise-le, puis relance :
+
+```
+sudo setsebool -P selinuxuser_execheap 1
+```
+
+Si l'erreur reste, lance aussi `sudo setsebool -P selinuxuser_execmem 1`. `sudo ausearch -m avc -ts recent` montre
+quelle règle a refusé. Désactiver SELinux marche aussi, mais ce n'est pas nécessaire.
+
 ## Passer à une nouvelle version
 
 Mets le nouveau `ArchipelagoFTL.ftl` dans `ftlman/mods/`, relance la ligne `patch` de l'étape 3, puis refais
