@@ -336,6 +336,18 @@ class CombatChecks(Range):
     default = 0
 
 
+class EventChecks(Range):
+    """The packages handed out by the Archipelago events (the relay, the pirates) become checks of their own,
+    "Archipelago Event 1", "Archipelago Event 2"... up to this number. The events give these first, then fall
+    back on the Archipelago shop's packages. 0 keeps the old way: every event package comes from the shop.
+    """
+
+    display_name = "Archipelago Event Checks"
+    range_start = 0
+    range_end = 20
+    default = 5
+
+
 class CombatChecksMode(Choice):
     """How Combat Checks per Ship count the fights won.
     per_run: the first fights won in a run send "Fight 1 won", "Fight 2 won"... up to Combat Checks per Ship.
@@ -1034,6 +1046,7 @@ class FTLOptions(PerGameCommonOptions):
     free_upgrades: FreeUpgrades
     system_install: SystemInstall
     run_start_scrap: RunStartScrap
+    event_checks: EventChecks
     combat_checks: CombatChecks
     combat_checks_mode: CombatChecksMode
     fights_per_sector: FightsPerSector
@@ -1073,7 +1086,7 @@ ftl_option_groups = [
     OptionGroup(
         "Checks",
         [Sectorsanity, SectorsanityFirstSector, SectorsanityLastSector, Systemsanity, SystemsanityPerShip,
-         ShipAchievementChecks, GeneralAchievementChecks, CrossRunAchievementChecks, CrewChecks, CombatChecks,
+         ShipAchievementChecks, GeneralAchievementChecks, CrossRunAchievementChecks, CrewChecks, EventChecks, CombatChecks,
          CombatChecksMode, FightsPerSector, CombatCheckScrap],
     ),
     OptionGroup(

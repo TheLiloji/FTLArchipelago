@@ -46,6 +46,7 @@ class TestMinimalSeed(FTLTestBase):
         "system_blueprints": False,
         "progressive_systems": False,
         "shop_checks": 0,
+        "event_checks": 0,
         "victories_required": 3,
     }
 
@@ -175,6 +176,7 @@ class TestEverythingEnabled(FTLTestBase):
         "sector_logic": "strict",
         "victories_required": 3,
         "combat_checks": 10,
+        "event_checks": 20,
     }
 
     def test_every_location_of_the_table_exists(self) -> None:

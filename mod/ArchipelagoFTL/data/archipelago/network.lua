@@ -580,7 +580,8 @@ local function onScout(event)
     if tostring(key):sub(1, 5) ~= "shop:" then
         state.checkItems = state.checkItems or {}
         state.checkItems[key] = { item = tostring(event.extra), slot = tostring(event.sender),
-                                  mine = state.ownAlias ~= nil and tostring(event.sender) == state.ownAlias }
+                                  mine = state.ownAlias ~= nil and tostring(event.sender) == state.ownAlias,
+                                  kind = classify(event.value) }
         return
     end
     state.scouted[#state.scouted + 1] = {

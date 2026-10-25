@@ -140,6 +140,9 @@ def location_depth(location: data.Location, shop_by_sector: bool = False) -> int
     if location.group == data.GROUP_FIGHTS:
         # A run wins about four fights per sector: the tenth one is a third-sector check.
         return (location.fight + 3) // 4
+    if location.group == data.GROUP_EVENTS:
+        # Archipelago events show up about twice a sector.
+        return min(data.SECTOR_COUNT, (location.fight + 1) // 2)
     if location.group == data.GROUP_VICTORIES:
         return data.SECTOR_COUNT
     found = _REACH_SECTOR.search(location.description)

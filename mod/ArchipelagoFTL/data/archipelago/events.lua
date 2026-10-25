@@ -111,9 +111,62 @@ local function buyHint(eventName)
     end
 end
 
+-- event_checks: the events' own checks ("event:1"...) hand out their packages before the Archipelago shop's.
+local MAX_EVENT_CHECKS = 20
+
+local function eventPackages(count)
+    local found = {}
+    if not (_G.apLocationNameFor and _G.apCheckAlreadySent) then
+        return found
+    end
+    for n = 1, MAX_EVENT_CHECKS do
+        local key = "event:" .. n
+        if apLocationNameFor(key) ~= nil and not apCheckAlreadySent(key) then
+            local scouted = (_G.apNetScoutedItem and apNetScoutedItem(key)) or {}
+            found[#found + 1] = { location = key, event = true, item = scouted.item or apT("gift.something"),
+                                  slot = scouted.slot or apT("gift.someone"), kind = scouted.kind,
+                                  mine = scouted.mine == true }
+            if #found >= count then
+                break
+            end
+        end
+    end
+    return found
+end
+
+local function peekPackages(count)
+    local packages = eventPackages(count)
+    if #packages < count and _G.apShopGiftPeekMany then
+        for _, package in ipairs(apShopGiftPeekMany(count - #packages) or {}) do
+            packages[#packages + 1] = package
+        end
+    end
+    return packages
+end
+
+local function giveEventPackage(package)
+    if not (_G.apSendCheck and apSendCheck(package.location, apLocationNameFor(package.location))) then
+        return nil
+    end
+    return package
+end
+
 local function givePackage(package)
+    if package ~= nil and package.event then
+        local sent = giveEventPackage(package)
+        if sent ~= nil then
+            return sent
+        end
+    end
+    local first = eventPackages(1)[1]
+    if (package == nil or package.event) and first ~= nil then
+        local sent = giveEventPackage(first)
+        if sent ~= nil then
+            return sent
+        end
+    end
     local sent = nil
-    if package ~= nil and _G.apShopGiftGiveAt ~= nil then
+    if package ~= nil and not package.event and _G.apShopGiftGiveAt ~= nil then
         sent = _G.apShopGiftGiveAt(package.location)
     end
     if sent == nil and _G.apShopGiftGiveNext ~= nil then
@@ -151,7 +204,7 @@ end
 local hijacked = nil
 
 local function pickHijacked()
-    local packages = (_G.apShopGiftPeekMany and _G.apShopGiftPeekMany(3)) or {}
+    local packages = peekPackages(3)
     for _, package in ipairs(packages) do
         if not package.mine then
             return package
@@ -192,7 +245,7 @@ end
 
 local function writePackageChoices(event)
     offeredPackages.a, offeredPackages.b = nil, nil
-    local packages = (_G.apShopGiftPeekMany and _G.apShopGiftPeekMany(2)) or {}
+    local packages = peekPackages(2)
     if packages[1] == nil then
         return
     end

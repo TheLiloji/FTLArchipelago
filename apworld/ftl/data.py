@@ -16,6 +16,7 @@ SYSTEM_LEVEL_CHECK_FORMAT = "sys:{system}:{level}"
 SHIP_SYSTEM_CHECK_FORMAT = "{ship}:sys:{system}"
 FIGHT_CHECK_FORMAT = "{ship}:fight:{n}"
 SECTOR_FIGHT_CHECK_FORMAT = "{ship}:sfight:{sector}:{n}"
+EVENT_CHECK_FORMAT = "event:{n}"
 
 KIND_SHIP = "ship"
 KIND_CAP = "cap"
@@ -88,11 +89,14 @@ LOCATION_OFFSET_SHIP_SYSTEM = 70_000
 LOCATION_OFFSET_MV_ACH = 80_000
 LOCATION_OFFSET_FIGHT = 90_000
 LOCATION_OFFSET_SECTOR_FIGHT = 100_000
+LOCATION_OFFSET_EVENT = 105_000
 
 # Combat checks: the first fights a ship wins in a run, at most this many per ship.
 MAX_FIGHTS_PER_SHIP = 10
 # Combat checks per sector: the first fights won in each sector of a run, at most this many per sector.
 MAX_FIGHTS_PER_SECTOR = 5
+# Archipelago events: the packages the relay and pirate events hand out, their own checks before the shop's.
+MAX_EVENT_CHECKS = 20
 
 MAX_ACHIEVEMENTS_PER_SHIP = 10
 
@@ -594,6 +598,7 @@ GROUP_GENERAL_ACHIEVEMENTS = "General achievements"
 GROUP_SHOP_SLOTS = "Archipelago shop"
 GROUP_FIGHTS = "Fights won"
 GROUP_SECTOR_FIGHTS = "Fights won per sector"
+GROUP_EVENTS = "Archipelago events"
 # Location groups that only ever hold filler: the logic does not count them as room for the items it needs.
 FILLER_ONLY_GROUPS: frozenset[str] = frozenset()
 
@@ -1075,6 +1080,16 @@ def _build_locations() -> tuple[Location, ...]:
                     description=f"Win {n} fight(s) in sector {sector} of a run with the {ship.display}.",
                 ))
 
+    for n in range(1, MAX_EVENT_CHECKS + 1):
+        locations.append(Location(
+            name=f"Archipelago Event {n}",
+            code=LOCATION_ID_BASE + LOCATION_OFFSET_EVENT + n,
+            check_id=EVENT_CHECK_FORMAT.format(n=n),
+            group=GROUP_EVENTS,
+            fight=n,
+            description=f"Free the package of the {n}th Archipelago event (a relay or the pirates).",
+        ))
+
     for slot, race, label in CREW_RACES:
         locations.append(Location(
             name=f"First {label} aboard",
@@ -1268,7 +1283,8 @@ def _check_vanilla_totals() -> None:
         "sellable items": (len(SHOP_ITEMS), 74),
         "locations": (len(LOCATIONS), 28 * SECTOR_COUNT + 28 + 30 + 21 + MAX_SHOP_SLOTS
                       + sum(system.max_level for system in SYSTEMS) + len(CREW_RACES)
-                      + 10 * 16 + 10 * MAX_FIGHTS_PER_SHIP + 10 * SECTOR_COUNT * MAX_FIGHTS_PER_SECTOR),
+                      + 10 * 16 + 10 * MAX_FIGHTS_PER_SHIP + 10 * SECTOR_COUNT * MAX_FIGHTS_PER_SECTOR
+                      + MAX_EVENT_CHECKS),
     }
     wrong = {label: pair for label, pair in expected.items() if pair[0] != pair[1]}
     if wrong:
