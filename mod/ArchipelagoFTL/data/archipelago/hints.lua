@@ -71,11 +71,22 @@ function apHintReceived(hint)
     return existing == nil
 end
 
+-- The server marks a hint found only when it is read again on connecting: a check done here since, at one of
+-- our own locations, finds it already.
+local function foundHere(hint)
+    local own = _G.apOwnSlotName and _G.apOwnSlotName() or nil
+    if own == nil or tostring(hint.finder) ~= tostring(own) or not _G.apCheckKeyFor then
+        return false
+    end
+    local checkKey = apCheckKeyFor(hint.location)
+    return checkKey ~= nil and _G.apCheckAlreadySent ~= nil and apCheckAlreadySent(checkKey) == true
+end
+
 function apHintsForDisplay(limit)
     local openHints = {}
     for i = #order, 1, -1 do
         local hint = known[order[i]]
-        if hint ~= nil and not hint.found then
+        if hint ~= nil and not hint.found and not foundHere(hint) then
             openHints[#openHints + 1] = hint
             if #openHints >= (limit or 4) then
                 break

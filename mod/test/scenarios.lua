@@ -2040,6 +2040,21 @@ test("network: a refusal with no reason is still reported", function()
     check(shownKey("net.refused.unknown"), "the player isn't left staring at a silent screen")
 end)
 
+test("network: the share of checks done counts only this seed's locations, never past 100 %", function()
+    sim.startRun(true)
+    apForgetChecksForTesting()
+    sim.net.checked = { "Archipelago Shop 1" }
+    apNetConnect("ws://localhost:38281", "Navigator", "")
+    sim.netEvent("connected", { name = "Navigator", extra = {
+        contract = CONTRACT, kinds = { "filler" }, kinds_required = {},
+        items = {}, loc = { ["shop:1"] = "Archipelago Shop 1", ["shop:2"] = "Archipelago Shop 2" },
+    } })
+    sim.tick(1)
+    apRestoreSentChecks({ "PLAYER_SHIP_HARD:sector:9" })
+    equals(apCheckCount().sent, 1, "the key the seed does not have is not counted")
+    equals(apCheckCount().total, 2, "out of the seed's two locations")
+end)
+
 test("network: checks already done are recovered from the server on reconnect", function()
     sim.startRun(true)
     apForgetChecksForTesting()
@@ -3744,6 +3759,7 @@ test("online, a deal always promises someone else will pay", function()
         _G.apTrapLink.enabled = true
         sim.startRun(true)
         _G.apNetSendTrap = function() return true end
+        _G.apTrapLinkState.received = 1
         sim.clearLog()
 
         sim.sign("AP_DEAL_2")
@@ -3753,6 +3769,26 @@ test("online, a deal always promises someone else will pay", function()
         if shownKey("deal.other") then outward = outward + 1 end
     end
     check(outward > 0, "and most do go outward (" .. outward .. "/20)")
+    _G.apNetSendTrap = previous
+end)
+
+test("alone on Trap Link, a deal's trap always hits the player", function()
+    local previous = _G.apNetSendTrap
+    local sends = 0
+    for attempt = 1, 20 do
+        sim.reset()
+        apShopGiftsConfigure(DEMO)
+        _G.apTrapLink.enabled = true
+        _G.apTrapLinkState.received = 0
+        sim.startRun(true)
+        _G.apNetSendTrap = function() sends = sends + 1 return true end
+        sim.clearLog()
+
+        sim.sign("AP_DEAL_2")
+        sim.tick(120)
+        check(not shownKey("deal.other"), "attempt " .. attempt .. ": no trap seen from anyone else yet")
+    end
+    equals(sends, 0, "nothing goes out while no other slot showed up on the link")
     _G.apNetSendTrap = previous
 end)
 
@@ -5011,7 +5047,7 @@ test("event: the pirates hold another player's package and say whose", function(
     })
     local box = sim.openChoiceBox("AP_EVT_HIJACK", 3)
     check(box.text:find("Axel", 1, true) ~= nil, "a friend's package before the player's own: " .. box.text)
-    check(box.text:find("20 Scrap", 1, true) ~= nil, "and what's inside")
+    check(box.text:find("20 Scrap", 1, true) == nil, "not what's inside, only a vague word on it")
     check(box.text:find(apT("event.hijack.hint.filler"), 1, true) ~= nil,
         "with a word on what it is worth: junk here")
 end)

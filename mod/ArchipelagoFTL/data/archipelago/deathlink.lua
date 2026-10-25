@@ -348,7 +348,8 @@ local function livingCrew()
                     if member.bDead then
                         dead[key] = health
                     else
-                        living[key] = { name = name, species = member.species or "crew", health = health }
+                        living[key] = { name = name, species = member.species or "crew", health = health,
+                                        onEnemy = member.currentShipId == 1 }
                     end
                 end
             end
@@ -388,6 +389,13 @@ local function dismissed(key, dead)
     local crewScreenRecent = state.crewScreenAt ~= nil
         and state.ticks - state.crewScreenAt <= CREW_SCREEN_SECONDS * TICKS_PER_SECOND
     return crewScreenRecent and dead[key] ~= nil and dead[key] <= 0 and not state.dying[key]
+end
+
+-- Events take crew away without killing them (the Engi virus, a Multiverse crew member turned into another
+-- race): they leave the list at once. A death shows first, marked dead or lying at zero health. Crew left on
+-- the enemy ship die with it, or when we jump away, without that moment.
+local function seenDying(key, last, dead)
+    return dead[key] ~= nil or state.dying[key] == true or last.onEnemy == true
 end
 
 -- The hangar keeps bStartedGame on while you browse ships, and each ship shown comes with its own crew.
@@ -446,6 +454,8 @@ local function sampleCrew()
             if current[key] == nil then
                 if dismissed(key, dead) then
                     deathLog(tostring(last.name) .. " was dismissed: no DeathLink")
+                elseif not seenDying(key, last, dead) then
+                    deathLog(tostring(last.name) .. " left the crew without dying (an event or a new race): no DeathLink")
                 elseif queued[key] then
                     deathLog(tostring(last.name) .. " waits for the Clone Bay")
                     state.cloning[key] = last

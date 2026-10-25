@@ -686,8 +686,10 @@ local function signDeal(index, blueprintName)
         end
     else
         local sent = false
-        -- Only a slot that joined Trap Link sends traps to the others.
+        -- Only a slot that joined Trap Link sends traps to the others, and only once a trap from another slot
+        -- showed someone else is on the link this session: alone on it, the trap would vanish.
         local linked = _G.apTrapLink ~= nil and _G.apTrapLink.enabled == true
+            and _G.apTrapLinkState ~= nil and (_G.apTrapLinkState.received or 0) > 0
         if linked and _G.apNetSendTrap then
             local ok, result = pcall(_G.apNetSendTrap, "Archipelago Deal")
             sent = ok and result ~= false

@@ -549,6 +549,9 @@ local function onConnected(event)
     if _G.apResendPendingChecks then
         pcall(_G.apResendPendingChecks)
     end
+    if _G.apCombatCatchUp and not state.seedRefused then
+        pcall(_G.apCombatCatchUp)
+    end
 
     if _G.apDeclareGoal then
         pcall(_G.apDeclareGoal)

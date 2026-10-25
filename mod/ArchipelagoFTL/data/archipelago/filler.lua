@@ -619,21 +619,38 @@ function apRunStartScrap()
     return math.floor(received * percent / 100)
 end
 
-script.on_init(function(newGame)
-    if not newGame then
+-- Given once the run is under way, not in on_init: the ship may not exist yet, the start events (Multiverse's)
+-- come first, and the items of the seed may not all be in. The run's save says it is still owed.
+local function giveRunStartScrap()
+    if math.floor(tonumber(Hyperspace.playerVariables.ap_run_scrap_owed) or 0) ~= 1 then
         return
     end
+    if not (_G.apInventorySynced and apInventorySynced()) then
+        return
+    end
+    if Hyperspace.ships.player == nil or noRunStarted() then
+        return
+    end
+    Hyperspace.playerVariables.ap_run_scrap_owed = 0
     local amount = apRunStartScrap()
     if amount <= 0 then
         return
     end
-    local ok = pcall(function() Hyperspace.ships.player:ModifyScrapCount(amount, false) end)
-    if ok then
-        fillerLog("run start scrap: +" .. amount)
-        if _G.apNotifyStatus then
-            _G.apNotifyStatus(apT("filler.run_start_scrap", { n = amount }))
-        end
+    Hyperspace.ships.player:ModifyScrapCount(amount, false)
+    fillerLog("run start scrap: +" .. amount)
+    if _G.apNotifyStatus then
+        _G.apNotifyStatus(apT("filler.run_start_scrap", { n = amount }))
     end
+end
+
+script.on_init(function(newGame)
+    if newGame then
+        pcall(function() Hyperspace.playerVariables.ap_run_scrap_owed = 1 end)
+    end
+end)
+
+script.on_internal_event(Defines.InternalEvents.ON_TICK, function()
+    apTry(TAG, giveRunStartScrap)
 end)
 
 function apFillerForgetSeed()

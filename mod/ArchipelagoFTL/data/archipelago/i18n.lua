@@ -193,11 +193,22 @@ function apRaceLabel(name)
     end
     return tostring(name)
 end
+-- A ship by its class ("Federation Cruiser"), never by the name of its Type A ("The Osprey"): B and C layouts
+-- add their letter. The ship's own name is the fallback when it has no class text.
 function apShipLabel(name)
     if name == nil or name == "" then
         return "?"
     end
-    local ok, text = pcall(function()
+    local base, variant = tostring(name):match("^(.-)_([23])$")
+    base = base or tostring(name)
+    local ok, class = pcall(function()
+        local bp = Hyperspace.Global.GetInstance():GetBlueprints():GetShipBlueprint(base, -1)
+        return bp ~= nil and bp.shipClass:GetText() or nil
+    end)
+    if ok and type(class) == "string" and class ~= "" then
+        return class .. (variant == "2" and " B" or variant == "3" and " C" or "")
+    end
+    local okOwn, text = pcall(function()
         local bp = Hyperspace.Global.GetInstance():GetBlueprints():GetShipBlueprint(name, -1)
         if bp == nil then
             return nil
@@ -206,7 +217,7 @@ function apShipLabel(name)
         local class = _G.apSeedIsMultiverse and apSeedIsMultiverse() and bp.shipClass:GetText() or ""
         return class ~= "" and class or bp.name:GetText()
     end)
-    if ok and type(text) == "string" and text ~= "" then
+    if okOwn and type(text) == "string" and text ~= "" then
         return text
     end
     return tostring(name)

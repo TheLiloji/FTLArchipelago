@@ -530,13 +530,32 @@ test("run start scrap: a share of every scrap item received comes back at each n
     apQueueItem({ kind = "filler", res = "scrap", n = 20, display = "20 Scrap", isReplay = true })
     drain()
     equals(apRunStartScrap(), 10, "25% of the 40 scrap of the seed, a replayed item counting too")
+    apInventoryMarkSynced()
     local before = sim.player.currentScrap
     sim.startRun(true)
+    sim.tick(1)
     equals(sim.player.currentScrap - before, 10, "given at the start of the next run")
     check(sim.shown("+10"), "the player is told")
     before = sim.player.currentScrap
+    sim.tick(60)
+    equals(sim.player.currentScrap, before, "once")
     sim.startRun(false)
+    sim.tick(60)
     equals(sim.player.currentScrap, before, "not again when a saved run is continued")
+end)
+
+test("run start scrap: a run started before the items are all in gets its scrap once they are", function()
+    _G.apInventory = { ships = {}, systemCaps = {}, startingUpgrades = {}, shopAvailability = {} }
+    applySeed({ kinds = { "filler" }, options = { run_start_scrap = 50 } })
+    apInventoryClear()
+    sim.startRun(true)
+    local before = sim.player.currentScrap
+    sim.tick(60)
+    equals(sim.player.currentScrap, before, "the replay is not in yet: nothing")
+    apQueueItem({ kind = "filler", res = "scrap", n = 30, display = "30 Scrap", isReplay = true })
+    apInventoryMarkSynced()
+    sim.tick(60)
+    equals(sim.player.currentScrap - before, 15, "half of the 30 scrap of the seed, once the replay is in")
 end)
 
 test("run start scrap: off by default", function()
@@ -580,6 +599,24 @@ test("combat checks: the first fights won in a run send their checks, with less 
     local third = winFight(30)
     equals(third.stuff.scrap, 30, "a fight beyond the seed's checks keeps its full scrap")
     sim.enemy = nil
+end)
+
+test("combat checks: fights won before a crash, never received by the server, go out once connected", function()
+    fightSeed(50)
+    sim.runVariables.ap_fights_won = 2
+    local sentNames = {}
+    local restoreSend = stub("apNetSendCheck", function(name) sentNames[#sentNames + 1] = name return true end)
+    local restoreNet = stub("apNetConnected", function() return false end)
+    sim.jumpArrive()
+    equals(#sentNames, 0, "offline: nothing to send yet")
+    restoreNet()
+    restoreNet = stub("apNetConnected", function() return true end)
+    sim.jumpArrive()
+    equals(#sentNames, 2, "both fights the save counted go out")
+    sim.jumpArrive()
+    restoreNet()
+    restoreSend()
+    equals(#sentNames, 2, "and only once")
 end)
 
 test("combat checks: a new run counts from fight 1 again, and an already sent check costs nothing", function()

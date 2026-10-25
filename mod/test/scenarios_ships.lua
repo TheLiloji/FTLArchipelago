@@ -122,6 +122,19 @@ test("ships: a received ship counts", function()
     shipDone()
 end)
 
+test("ships: a ship already judged fine stays fine while a key received waits in the queue", function()
+    shipConnect({ "Kestrel Cruiser Key", "Rock Cruiser Key" })
+    startRunWith("PLAYER_SHIP_ROCK")
+    reachSector(2)
+    equals(sentChecks(), "PLAYER_SHIP_ROCK: Reach sector 2", "judged fine")
+    local restore = stub("apFillerShipsWaiting", function() return true end)
+    reachSector(3)
+    restore()
+    equals(sentChecks(), "PLAYER_SHIP_ROCK: Reach sector 2,PLAYER_SHIP_ROCK: Reach sector 3",
+        "a layout bought a moment ago does not hold the next check (Tom's lost Shield Upgrade)")
+    shipDone()
+end)
+
 test("ships: the start ship and the Kestrel A count even without their item (solo)", function()
     shipConnect({ "20 Scrap" })
     startRunWith("PLAYER_SHIP_ROCK")
@@ -671,4 +684,15 @@ test("start-of-run menu: a Multiverse weapon has its art too", function()
     check(art ~= nil and tostring(art[1]):match("%.png$") ~= nil, "BEAM_4: its sheet comes from Multiverse's animations")
     check(art ~= nil and art[4] > 0 and art[5] > 0, "with a frame size")
     check(apGameData.weaponArt.LASER_BURST_3 ~= nil, "the base game's weapons keep theirs")
+end)
+
+test("ships: a ship is named by its class, a B or C layout adds its letter", function()
+    sim.shipClasses = { PLAYER_SHIP_FED = "Federation Cruiser" }
+    local before = sim.shipNames.PLAYER_SHIP_FED
+    sim.shipNames.PLAYER_SHIP_FED = "The Osprey"
+    equals(apShipLabel("PLAYER_SHIP_FED"), "Federation Cruiser", "not the Type A's own name")
+    equals(apShipLabel("PLAYER_SHIP_FED_2"), "Federation Cruiser B", "the B layout")
+    equals(apShipLabel("PLAYER_SHIP_FED_3"), "Federation Cruiser C", "the C layout")
+    sim.shipClasses = nil
+    sim.shipNames.PLAYER_SHIP_FED = before
 end)
