@@ -410,6 +410,8 @@
     "connect.paste_empty.linux": "Portapapeles vacío o ilegible: en Linux, instala wl-clipboard o xclip.",
     "check.label.sector_fight": "Combate {n} del sector {sector} ganado con {ship}",
     "flagship.sabotaged": "La nave insignia llega saboteada por el multiworld (nivel {n}).",
-    "check.label.reactor": "Reactor con {n} de energía"
+    "check.label.reactor": "Reactor con {n} de energía",
+    "sector_skip.offered": "Sector {n} ya cruzado con esta nave: esta baliza es una salida. Salta al siguiente sector ya por {scrap} de chatarra, o explora como siempre.",
+    "sector_skip.done": "Sector {n} saltado: +{scrap} de chatarra."
   }
 }

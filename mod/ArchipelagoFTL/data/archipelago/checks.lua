@@ -1011,3 +1011,70 @@ function apCheckStatus()
 end
 
 checkLog("check detection module loaded")
+
+-- sector_skip: a layout that already reached the next sector in an earlier run may skip sectors 1 to 4. Their
+-- first beacon becomes an exit: jump on at once for some scrap, or explore as usual. Each layout's deepest sector
+-- is kept in the profile.
+local SKIP_LAST_SECTOR = 4
+local SKIP_SCRAP = 30
+
+local function skipOn()
+    local value = _G.apSeedOption and apSeedOption("sector_skip")
+    return value == 1 or value == true
+end
+
+local function runVariable(name)
+    local ok, value = pcall(function() return Hyperspace.playerVariables[name] end)
+    return ok and math.floor(tonumber(value) or 0) or 0
+end
+
+local function deepestReached(layout)
+    local ok, value = pcall(function() return Hyperspace.metaVariables["ap_reached_" .. layout] end)
+    return ok and math.floor(tonumber(value) or 0) or 0
+end
+
+function apSectorSkipArrive()
+    local layout = currentLayout()
+    if layout == nil then
+        return
+    end
+    local sector = math.floor(Hyperspace.App.world.starMap.worldLevel) + 1
+    if sector > deepestReached(layout) then
+        Hyperspace.metaVariables["ap_reached_" .. layout] = sector
+    end
+    local previous = runVariable("ap_skip_sector")
+    if sector == previous then
+        Hyperspace.playerVariables.ap_skip_jumps = runVariable("ap_skip_jumps") + 1
+        return
+    end
+    -- A new sector: the last one was skipped if the exit was taken from its first beacon.
+    if runVariable("ap_skip_offered") == previous and previous > 0 and runVariable("ap_skip_jumps") == 0 then
+        Hyperspace.ships.player:ModifyScrapCount(SKIP_SCRAP, false)
+        checkLog("sector " .. previous .. " skipped, reward: " .. SKIP_SCRAP)
+        if _G.apNotifyStatus then
+            _G.apNotifyStatus(apT("sector_skip.done", { n = previous, scrap = SKIP_SCRAP }))
+        end
+    end
+    Hyperspace.playerVariables.ap_skip_sector = sector
+    Hyperspace.playerVariables.ap_skip_jumps = 0
+    if not skipOn() or sector > SKIP_LAST_SECTOR then
+        return
+    end
+    local done = deepestReached(layout) > sector
+        or apCheckAlreadySent(layout .. ":sector:" .. (sector + 1))
+    if not done then
+        return
+    end
+    Hyperspace.App.world.starMap.currentLoc.beacon = true
+    Hyperspace.playerVariables.ap_skip_offered = sector
+    checkLog("sector " .. sector .. " can be skipped: its first beacon is an exit")
+    if _G.apNotifyStatus then
+        _G.apNotifyStatus(apT("sector_skip.offered", { n = sector, scrap = SKIP_SCRAP }))
+    end
+end
+
+script.on_internal_event(Defines.InternalEvents.JUMP_ARRIVE, function(shipManager)
+    if shipManager.iShipId == 0 then
+        apTry(TAG, apSectorSkipArrive)
+    end
+end)

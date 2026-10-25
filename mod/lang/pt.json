@@ -410,6 +410,8 @@
     "connect.paste_empty.linux": "Área de transferência vazia ou ilegível: no Linux, instale wl-clipboard ou xclip.",
     "check.label.sector_fight": "Combate {n} do setor {sector} vencido com {ship}",
     "flagship.sabotaged": "A nave-almirante chega sabotada pelo multiworld (nível {n}).",
-    "check.label.reactor": "Reator com {n} de energia"
+    "check.label.reactor": "Reator com {n} de energia",
+    "sector_skip.offered": "Setor {n} já atravessado com esta nave: este farol é uma saída. Salta já para o setor seguinte por {scrap} de sucata, ou explora como de costume.",
+    "sector_skip.done": "Setor {n} saltado: +{scrap} de sucata."
   }
 }

@@ -409,6 +409,8 @@
     "connect.paste_empty.linux": "Presse-papiers vide ou illisible : sous Linux, installez wl-clipboard ou xclip.",
     "check.label.sector_fight": "Combat {n} du secteur {sector} gagné avec {ship}",
     "flagship.sabotaged": "Le vaisseau amiral arrive saboté par le multiworld (niveau {n}).",
-    "check.label.reactor": "Réacteur à {n} de puissance"
+    "check.label.reactor": "Réacteur à {n} de puissance",
+    "sector_skip.offered": "Secteur {n} déjà traversé avec ce vaisseau : cette balise est une sortie. Sautez au secteur suivant tout de suite pour {scrap} ferraille, ou explorez comme d'habitude.",
+    "sector_skip.done": "Secteur {n} passé : +{scrap} ferraille."
   }
 }
