@@ -385,3 +385,27 @@ test("start-of-run menu: each weapon says its power and numbers, the store's tex
         .. apT("loadout.weapon.missile", { damage = 2, shots = 1, cooldown = 14 })), "a missile launcher says it uses missiles")
     sim.blueprintStats = nil
 end)
+
+test("Multiverse ship without Oxygen: the start menu offers it for free, even without System Install", function()
+    _G.apInventory = { ships = {}, systemCaps = {}, blueprints = {}, startingUpgrades = {}, shopAvailability = {} }
+    applySeed({ kinds = { "cap" } })
+    sim.hullPlaces = { [2] = true }
+    sim.systemLimit, sim.mainSystemsUsed = 8, 0
+    sim.startRun(true)
+    equals(sim.player:HasSystem(2), false, "not put aboard by itself: the player may leave it")
+    equals(table.concat(apSystemInstallChoices(), ","), "oxygen", "offered in the start-of-run menu")
+    check(menuShown(), "the menu opens for it")
+    sim.click(apLoadoutPoint("row", "system", 1))
+    check(sim.player:HasSystem(2), "picked: Oxygen comes aboard")
+    sim.systemLimit, sim.mainSystemsUsed, sim.hullPlaces = nil, nil, nil
+end)
+
+test("a ship that starts with Oxygen is offered nothing", function()
+    _G.apInventory = { ships = {}, systemCaps = {}, blueprints = {}, startingUpgrades = {}, shopAvailability = {} }
+    applySeed({ kinds = { "cap" } })
+    sim.hullPlaces = { [2] = true }
+    sim.player._systemsHeld = { [2] = true }
+    sim.startRun(true)
+    equals(#apSystemInstallChoices(), 0, "Oxygen is already aboard")
+    sim.hullPlaces = nil
+end)
