@@ -409,6 +409,7 @@
     "connect.paste_empty": "Nothing to paste: the clipboard is empty.",
     "connect.paste_empty.linux": "Clipboard empty or unreadable: on Linux, install wl-clipboard or xclip.",
     "check.label.sector_fight": "Sector {sector} fight {n} won with {ship}",
-    "flagship.sabotaged": "The Flagship arrives sabotaged by the multiworld (level {n})."
+    "flagship.sabotaged": "The Flagship arrives sabotaged by the multiworld (level {n}).",
+    "check.label.reactor": "Reactor power {n}"
   }
 }

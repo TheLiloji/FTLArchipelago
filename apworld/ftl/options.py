@@ -348,6 +348,14 @@ class EventChecks(Range):
     default = 5
 
 
+class ReactorChecks(Toggle):
+    """Upgrading the reactor sends checks: Reactor Power 10, 15, 20 and 25, reached in any run.
+    The logic expects them around sectors 2, 4, 6 and 7.
+    """
+
+    display_name = "Reactor Checks"
+
+
 class FlagshipSabotage(Range):
     """The multiworld sabotages the Flagship: each of its phases arrives weakened, more with each level.
     1: hull -10 %. 2: and shields -1. 3: hull -20 %. 4: and weapons -1. 5: hull -30 %. 0 turns it off.
@@ -1059,6 +1067,7 @@ class FTLOptions(PerGameCommonOptions):
     system_install: SystemInstall
     run_start_scrap: RunStartScrap
     event_checks: EventChecks
+    reactor_checks: ReactorChecks
     combat_checks: CombatChecks
     combat_checks_mode: CombatChecksMode
     fights_per_sector: FightsPerSector
@@ -1099,7 +1108,7 @@ ftl_option_groups = [
     OptionGroup(
         "Checks",
         [Sectorsanity, SectorsanityFirstSector, SectorsanityLastSector, Systemsanity, SystemsanityPerShip,
-         ShipAchievementChecks, GeneralAchievementChecks, CrossRunAchievementChecks, CrewChecks, EventChecks, CombatChecks,
+         ShipAchievementChecks, GeneralAchievementChecks, CrossRunAchievementChecks, CrewChecks, EventChecks, ReactorChecks, CombatChecks,
          CombatChecksMode, FightsPerSector, CombatCheckScrap],
     ),
     OptionGroup(

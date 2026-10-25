@@ -17,6 +17,7 @@ SHIP_SYSTEM_CHECK_FORMAT = "{ship}:sys:{system}"
 FIGHT_CHECK_FORMAT = "{ship}:fight:{n}"
 SECTOR_FIGHT_CHECK_FORMAT = "{ship}:sfight:{sector}:{n}"
 EVENT_CHECK_FORMAT = "event:{n}"
+REACTOR_CHECK_FORMAT = "reactor:{n}"
 
 KIND_SHIP = "ship"
 KIND_CAP = "cap"
@@ -90,6 +91,7 @@ LOCATION_OFFSET_MV_ACH = 80_000
 LOCATION_OFFSET_FIGHT = 90_000
 LOCATION_OFFSET_SECTOR_FIGHT = 100_000
 LOCATION_OFFSET_EVENT = 105_000
+LOCATION_OFFSET_REACTOR = 106_000
 
 # Combat checks: the first fights a ship wins in a run, at most this many per ship.
 MAX_FIGHTS_PER_SHIP = 10
@@ -97,6 +99,8 @@ MAX_FIGHTS_PER_SHIP = 10
 MAX_FIGHTS_PER_SECTOR = 5
 # Archipelago events: the packages the relay and pirate events hand out, their own checks before the shop's.
 MAX_EVENT_CHECKS = 20
+# Reactor checks: the reactor power reached in a run, and the sector a run usually has it by.
+REACTOR_THRESHOLDS = ((10, 2), (15, 4), (20, 6), (25, 7))
 
 MAX_ACHIEVEMENTS_PER_SHIP = 10
 
@@ -599,6 +603,7 @@ GROUP_SHOP_SLOTS = "Archipelago shop"
 GROUP_FIGHTS = "Fights won"
 GROUP_SECTOR_FIGHTS = "Fights won per sector"
 GROUP_EVENTS = "Archipelago events"
+GROUP_REACTOR = "Reactor power"
 # Location groups that only ever hold filler: the logic does not count them as room for the items it needs.
 FILLER_ONLY_GROUPS: frozenset[str] = frozenset()
 
@@ -1080,6 +1085,17 @@ def _build_locations() -> tuple[Location, ...]:
                     description=f"Win {n} fight(s) in sector {sector} of a run with the {ship.display}.",
                 ))
 
+    for power, sector in REACTOR_THRESHOLDS:
+        locations.append(Location(
+            name=f"Reactor Power {power}",
+            code=LOCATION_ID_BASE + LOCATION_OFFSET_REACTOR + power,
+            check_id=REACTOR_CHECK_FORMAT.format(n=power),
+            group=GROUP_REACTOR,
+            sector=sector,
+            level=power,
+            description=f"Have a reactor of {power} power in a run.",
+        ))
+
     for n in range(1, MAX_EVENT_CHECKS + 1):
         locations.append(Location(
             name=f"Archipelago Event {n}",
@@ -1284,7 +1300,7 @@ def _check_vanilla_totals() -> None:
         "locations": (len(LOCATIONS), 28 * SECTOR_COUNT + 28 + 30 + 21 + MAX_SHOP_SLOTS
                       + sum(system.max_level for system in SYSTEMS) + len(CREW_RACES)
                       + 10 * 16 + 10 * MAX_FIGHTS_PER_SHIP + 10 * SECTOR_COUNT * MAX_FIGHTS_PER_SECTOR
-                      + MAX_EVENT_CHECKS),
+                      + MAX_EVENT_CHECKS + len(REACTOR_THRESHOLDS)),
     }
     wrong = {label: pair for label, pair in expected.items() if pair[0] != pair[1]}
     if wrong:

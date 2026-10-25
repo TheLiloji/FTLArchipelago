@@ -1198,3 +1198,18 @@ test("flagship sabotage: off by default, and an ordinary enemy is never touched"
     equals(boss.ship.hullIntegrity.first, 30, "no sabotage without the option")
     sim.enemy = nil
 end)
+
+test("reactor checks: each threshold the reactor reaches sends its check", function()
+    apContractResetForTesting()
+    apForgetChecksForTesting()
+    applySeed({ loc = { ["reactor:10"] = "Reactor Power 10", ["reactor:15"] = "Reactor Power 15" } })
+    sim.startRun(true)
+    sim.powerManager.currentPower.second = 9
+    sim.tick(61)
+    check(not apCheckAlreadySent("reactor:10"), "9 power: not yet")
+    sim.powerManager.currentPower.second = 12
+    sim.tick(61)
+    check(apCheckAlreadySent("reactor:10"), "10 reached")
+    check(not apCheckAlreadySent("reactor:15"), "15 not yet")
+    sim.powerManager.currentPower.second = 8
+end)

@@ -177,6 +177,7 @@ class TestEverythingEnabled(FTLTestBase):
         "victories_required": 3,
         "combat_checks": 10,
         "event_checks": 20,
+        "reactor_checks": True,
     }
 
     def test_every_location_of_the_table_exists(self) -> None:

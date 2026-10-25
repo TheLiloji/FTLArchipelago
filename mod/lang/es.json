@@ -409,6 +409,7 @@
     "connect.paste_empty": "Nada que pegar: el portapapeles está vacío.",
     "connect.paste_empty.linux": "Portapapeles vacío o ilegible: en Linux, instala wl-clipboard o xclip.",
     "check.label.sector_fight": "Combate {n} del sector {sector} ganado con {ship}",
-    "flagship.sabotaged": "La nave insignia llega saboteada por el multiworld (nivel {n})."
+    "flagship.sabotaged": "La nave insignia llega saboteada por el multiworld (nivel {n}).",
+    "check.label.reactor": "Reactor con {n} de energía"
   }
 }

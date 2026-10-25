@@ -409,6 +409,7 @@
     "connect.paste_empty": "Nichts zum Einfügen: Die Zwischenablage ist leer.",
     "connect.paste_empty.linux": "Zwischenablage leer oder unlesbar: unter Linux wl-clipboard oder xclip installieren.",
     "check.label.sector_fight": "Kampf {n} in Sektor {sector} gewonnen mit {ship}",
-    "flagship.sabotaged": "Das Flaggschiff kommt sabotiert vom Multiworld an (Stufe {n})."
+    "flagship.sabotaged": "Das Flaggschiff kommt sabotiert vom Multiworld an (Stufe {n}).",
+    "check.label.reactor": "Reaktorleistung {n}"
   }
 }
