@@ -29,6 +29,7 @@ CREW_CHECK_FORMAT = "crew:{race}"
 SYSTEM_LEVEL_CHECK_FORMAT = "sys:{system}:{level}"
 SHIP_SYSTEM_CHECK_FORMAT = "{ship}:sys:{system}"
 FIGHT_CHECK_FORMAT = "{ship}:fight:{n}"
+SECTOR_FIGHT_CHECK_FORMAT = "{ship}:sfight:{sector}:{n}"
 
 KIND_SHIP = "ship"
 KIND_CAP = "cap"
@@ -104,9 +105,12 @@ LOCATION_OFFSET_SHIP_SYSTEM = 70_000
 # Taken by the Multiverse achievements on the Multiverse branch, already released there: never reuse it.
 LOCATION_OFFSET_MV_ACH = 80_000
 LOCATION_OFFSET_FIGHT = 90_000
+LOCATION_OFFSET_SECTOR_FIGHT = 100_000
 
 # Combat checks: the first fights a ship wins in a run, at most this many per ship.
 MAX_FIGHTS_PER_SHIP = 10
+# Combat checks per sector: the first fights won in each sector of a run, at most this many per sector.
+MAX_FIGHTS_PER_SECTOR = 5
 
 MAX_ACHIEVEMENTS_PER_SHIP = 10
 
@@ -631,6 +635,7 @@ GROUP_GENERAL_ACHIEVEMENTS = "General achievements"
 GROUP_MV_ACHIEVEMENTS = "Multiverse achievements"
 GROUP_SHOP_SLOTS = "Archipelago shop"
 GROUP_FIGHTS = "Fights won"
+GROUP_SECTOR_FIGHTS = "Fights won per sector"
 # Location groups that only ever hold filler: the logic does not count them as room for the items it needs.
 FILLER_ONLY_GROUPS: frozenset[str] = frozenset({GROUP_MV_ACHIEVEMENTS, GROUP_MV_CREW_RARE})
 
@@ -1125,6 +1130,21 @@ def _build_locations() -> tuple[Location, ...]:
                 description=f"Win {n} fight(s) in a single run with the {ship.display}.",
             ))
 
+    for ship in ALL_SHIPS:
+        for sector in range(1, SECTOR_COUNT + 1):
+            for n in range(1, MAX_FIGHTS_PER_SECTOR + 1):
+                locations.append(Location(
+                    name=f"{ship.display}: Sector {sector} fight {n} won",
+                    code=(LOCATION_ID_BASE + LOCATION_OFFSET_SECTOR_FIGHT + ship.slot * 40
+                          + (sector - 1) * MAX_FIGHTS_PER_SECTOR + n),
+                    check_id=SECTOR_FIGHT_CHECK_FORMAT.format(ship=ship.blueprint, sector=sector, n=n),
+                    group=GROUP_SECTOR_FIGHTS,
+                    ship=ship.blueprint,
+                    sector=sector,
+                    fight=n,
+                    description=f"Win {n} fight(s) in sector {sector} of a run with the {ship.display}.",
+                ))
+
     for slot, race, label in CREW_RACES:
         locations.append(Location(
             name=f"First {label} aboard",
@@ -1337,7 +1357,8 @@ def _check_vanilla_totals() -> None:
         "locations": (len(LOCATIONS), 28 * SECTOR_COUNT + 28 + 30 + 21 + MAX_SHOP_SLOTS
                       + sum(system.max_level for system in SYSTEMS) + len(CREW_RACES) + len(MV_CREW_RACES)
                       + 10 * 16 + len(MV_LAYOUTS) * (SECTOR_COUNT + 1) + len(MV_SHIPS) * 16
-                      + len(MV_ACHIEVEMENTS_RAW) + len(ALL_SHIPS) * MAX_FIGHTS_PER_SHIP),
+                      + len(MV_ACHIEVEMENTS_RAW) + len(ALL_SHIPS) * MAX_FIGHTS_PER_SHIP
+                      + len(ALL_SHIPS) * SECTOR_COUNT * MAX_FIGHTS_PER_SECTOR),
     }
     wrong = {label: pair for label, pair in expected.items() if pair[0] != pair[1]}
     if wrong:

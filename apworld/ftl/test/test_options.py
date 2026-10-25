@@ -186,8 +186,10 @@ class TestEverythingEnabled(FTLTestBase):
                          or location.group in (data.GROUP_MV_ACHIEVEMENTS, data.GROUP_MV_CREW, data.GROUP_MV_CREW_RARE)
                          or (location.group == data.GROUP_FIGHTS and location.ship in mv_ships))
         always_free = len(locations.ON_EVERY_SHIP)
+        # Per-run and per-sector fight checks exclude each other: this seed counts per run.
+        per_sector = len(data.LOCATION_NAME_GROUPS[data.GROUP_SECTOR_FIGHTS])
         self.assertEqual(len(self.addressed_locations()),
-                         len(data.LOCATIONS) - unused_shop_slots - per_ship - multiverse - always_free)
+                         len(data.LOCATIONS) - unused_shop_slots - per_ship - multiverse - always_free - per_sector)
 
     def test_pool_size_still_matches(self) -> None:
         self.assertEqual(len(self.multiworld.itempool), len(self.addressed_locations()))
@@ -212,6 +214,26 @@ class TestEverythingEnabled(FTLTestBase):
             if data.LOCATIONS_BY_NAME[location.name].sector == data.SECTOR_COUNT
         )
         self.assertFalse(deep.can_reach(self.multiworld.state), deep.name)
+
+
+class TestCombatChecksPerSector(FTLTestBase):
+
+    options = {"combat_checks": 1, "combat_checks_mode": "per_sector", "fights_per_sector": 2,
+               "ship_layouts": "all_layouts", "layout_count": 28}
+
+    def test_each_ship_gets_its_fights_in_every_sector_and_no_per_run_ones(self) -> None:
+        names = {location.name for location in self.addressed_locations()}
+        per_sector = [location for location in data.LOCATIONS if location.group == data.GROUP_SECTOR_FIGHTS
+                      and location.fight <= 2 and location.ship == "PLAYER_SHIP_HARD"]
+        self.assertEqual(len(per_sector), 2 * data.SECTOR_COUNT)
+        self.assertTrue(all(location.name in names for location in per_sector))
+        self.assertFalse(any(location.group == data.GROUP_FIGHTS and location.name in names
+                             for location in data.LOCATIONS))
+        self.assertNotIn("Kestrel Cruiser: Sector 1 fight 3 won", names)
+
+    def test_a_sector_fight_is_as_deep_as_its_sector(self) -> None:
+        location = data.LOCATIONS_BY_NAME["Kestrel Cruiser: Sector 6 fight 1 won"]
+        self.assertEqual(rules.location_depth(location), 6)
 
 
 class TestVanillaLayoutUnlocks(FTLTestBase):

@@ -633,6 +633,32 @@ test("combat checks: after a crash, a continued run sends its missing fights wit
     equals(#sentNames, 2, "both fights go out a moment after Continue")
 end)
 
+test("combat checks per sector: each sector counts its own fights from 1", function()
+    _G.apInventory = { ships = {}, systemCaps = {}, startingUpgrades = {}, shopAvailability = {} }
+    apContractResetForTesting()
+    apForgetChecksForTesting()
+    applySeed({ loc = { ["PLAYER_SHIP_HARD:sfight:1:1"] = "Kestrel Cruiser: Sector 1 fight 1 won",
+                        ["PLAYER_SHIP_HARD:sfight:1:2"] = "Kestrel Cruiser: Sector 1 fight 2 won",
+                        ["PLAYER_SHIP_HARD:sfight:2:1"] = "Kestrel Cruiser: Sector 2 fight 1 won" },
+                options = { combat_check_scrap = 50, combat_checks_mode = 1 } })
+    sim.startRun(true)
+    sim.starMap.worldLevel = 0
+    sim.jumpArrive()
+    winFight(30)
+    sim.jumpArrive()
+    winFight(30)
+    sim.jumpArrive()
+    local third = winFight(30)
+    check(apCheckAlreadySent("PLAYER_SHIP_HARD:sfight:1:2"), "the second fight of sector 1")
+    equals(third.stuff.scrap, 30, "a third fight in sector 1 sends nothing: full scrap")
+    sim.starMap.worldLevel = 1
+    sim.jumpArrive()
+    winFight(30)
+    check(apCheckAlreadySent("PLAYER_SHIP_HARD:sfight:2:1"), "sector 2 starts again from fight 1")
+    sim.starMap.worldLevel = 0
+    sim.enemy = nil
+end)
+
 test("combat checks: a new run counts from fight 1 again, and an already sent check costs nothing", function()
     fightSeed(50)
     winFight(30)

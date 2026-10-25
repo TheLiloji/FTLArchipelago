@@ -360,6 +360,29 @@ class CombatChecks(Range):
     default = 0
 
 
+class CombatChecksMode(Choice):
+    """How Combat Checks per Ship count the fights won.
+    per_run: the first fights won in a run send "Fight 1 won", "Fight 2 won"... up to Combat Checks per Ship.
+    per_sector: in each sector of a run, the first fights won send "Sector 3 fight 1 won"... up to Fights per
+    Sector, so a run that reaches sector 8 can send checks in every sector. Combat Checks per Ship only needs
+    to be above 0 to turn them on.
+    """
+
+    display_name = "Combat Checks Mode"
+    option_per_run = 0
+    option_per_sector = 1
+    default = option_per_run
+
+
+class FightsPerSector(Range):
+    """With Combat Checks Mode on per_sector: how many fights in each sector send a check, for each ship."""
+
+    display_name = "Fights per Sector"
+    range_start = 1
+    range_end = 5
+    default = 2
+
+
 class CombatCheckScrap(Range):
     """The percentage of a fight's scrap you still get when that fight sends a combat check.
     Fights that send nothing keep their full reward.
@@ -1041,6 +1064,8 @@ class FTLOptions(PerGameCommonOptions):
     system_install: SystemInstall
     run_start_scrap: RunStartScrap
     combat_checks: CombatChecks
+    combat_checks_mode: CombatChecksMode
+    fights_per_sector: FightsPerSector
     combat_check_scrap: CombatCheckScrap
     progressive_systems_per_ship: ProgressiveSystemsPerShip
     head_starts: HeadStarts
@@ -1079,7 +1104,7 @@ ftl_option_groups = [
         "Checks",
         [Sectorsanity, SectorsanityFirstSector, SectorsanityLastSector, Systemsanity, SystemsanityPerShip,
          ShipAchievementChecks, GeneralAchievementChecks, CrossRunAchievementChecks, CrewChecks, CombatChecks,
-         CombatCheckScrap],
+         CombatChecksMode, FightsPerSector, CombatCheckScrap],
     ),
     OptionGroup(
         "Systems and Upgrades",

@@ -85,6 +85,9 @@ class TestIdentifiersAreWellFormed(unittest.TestCase):
                 expected = data.CREW_CHECK_FORMAT.format(race=location.race)
             elif location.group == data.GROUP_FIGHTS:
                 expected = data.FIGHT_CHECK_FORMAT.format(ship=location.ship, n=location.fight)
+            elif location.group == data.GROUP_SECTOR_FIGHTS:
+                expected = data.SECTOR_FIGHT_CHECK_FORMAT.format(ship=location.ship, sector=location.sector,
+                                                                 n=location.fight)
             else:
                 expected = data.ACHIEVEMENT_CHECK_FORMAT.format(
                     achievement=location.achievement
