@@ -410,6 +410,8 @@
     "connect.paste_hint": "Copy the address from your room page, then press Ctrl+V in a field to paste it.",
     "connect.paste_empty": "Nothing to paste: the clipboard is empty.",
     "connect.paste_empty.linux": "Clipboard empty or unreadable: on Linux, install wl-clipboard or xclip.",
-    "check.label.sector_fight": "Sector {sector} fight {n} won with {ship}"
+    "check.label.sector_fight": "Sector {sector} fight {n} won with {ship}",
+    "flagship.sabotaged": "The Flagship arrives sabotaged by the multiworld (level {n}).",
+    "check.label.reactor": "Reactor power {n}"
   }
 }

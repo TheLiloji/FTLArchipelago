@@ -879,3 +879,36 @@ script.on_internal_event(Defines.InternalEvents.JUMP_ARRIVE, function(shipManage
 end)
 
 sysLog("systems module loaded (console: LUA apSystemStatus())")
+
+-- reactor_checks: the reactor power reached in a run sends "Reactor Power 10/15/20/25".
+local REACTOR_THRESHOLDS = { 10, 15, 20, 25 }
+local reactorDivider = 0
+
+function apCheckReactor()
+    if not inRun() then
+        return 0
+    end
+    local ok, power = pcall(function() return Hyperspace.PowerManager.GetPowerManager(0).currentPower.second end)
+    power = ok and tonumber(power) or nil
+    if power == nil then
+        return 0
+    end
+    local sent = 0
+    for _, threshold in ipairs(REACTOR_THRESHOLDS) do
+        local key = "reactor:" .. threshold
+        if power >= threshold and _G.apLocationNameFor and apLocationNameFor(key) ~= nil
+            and not apCheckAlreadySent(key) then
+            if apSendCheck(key, apT("check.label.reactor", { n = threshold })) then
+                sent = sent + 1
+            end
+        end
+    end
+    return sent
+end
+
+script.on_internal_event(Defines.InternalEvents.ON_TICK, function()
+    reactorDivider = (reactorDivider + 1) % 60
+    if reactorDivider == 0 then
+        apTry(TAG, apCheckReactor)
+    end
+end)

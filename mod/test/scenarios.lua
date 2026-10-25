@@ -5052,6 +5052,28 @@ test("event: the pirates hold another player's package and say whose", function(
         "with a word on what it is worth: junk here")
 end)
 
+test("event checks: the events hand out their own checks before the shop's packages", function()
+    sim.startRun(true)
+    apContractResetForTesting()
+    apForgetChecksForTesting()
+    applySeed({ loc = { ["event:1"] = "Archipelago Event 1", ["shop:1"] = "Archipelago Shop 1" } })
+    _G.apShopSlotCount = 1
+    apShopGiftsConfigure({
+        { location = "shop:1", slot = "Axel", item = "20 Scrap", sphere = 1, kind = "filler", cost = 25 },
+    })
+    local restore = stub("apNetScoutedItem", function(key)
+        if key == "event:1" then return { item = "Burst Laser II", slot = "Nina", kind = "useful" } end
+    end)
+    local box = sim.openChoiceBox("AP_EVT_HIJACK", 3)
+    check(box.text:find("Nina", 1, true) ~= nil, "the pirates hold the event's own package: " .. box.text)
+    check(box.text:find(apT("event.hijack.hint.useful"), 1, true) ~= nil, "with its worth")
+    sim.player.currentScrap = 100
+    _G.apEventBranchEffects["AP_EVT_HIJACK_B"]("AP_EVT_HIJACK_B")
+    restore()
+    check(apCheckAlreadySent("event:1"), "paying frees the event check")
+    check(not apCheckAlreadySent("shop:1"), "the shop keeps its package")
+end)
+
 test("event: the pirates' package hints at a trap, so the player can leave it", function()
     sim.startRun(true)
     _G.apShopSlotCount = 1

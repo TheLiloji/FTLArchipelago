@@ -162,6 +162,12 @@ def selected_locations(options) -> tuple[data.Location, ...]:
             per_run = options.combat_checks_mode == options.combat_checks_mode.option_per_run
             if per_run and location.ship in ships and (location.fight or 0) <= options.combat_checks.value:
                 kept.append(location)
+        elif location.group == data.GROUP_REACTOR:
+            if options.reactor_checks:
+                kept.append(location)
+        elif location.group == data.GROUP_EVENTS:
+            if (location.fight or 0) <= options.event_checks.value:
+                kept.append(location)
         elif location.group == data.GROUP_SECTOR_FIGHTS:
             per_sector = options.combat_checks_mode == options.combat_checks_mode.option_per_sector
             if (per_sector and options.combat_checks.value > 0 and location.ship in ships

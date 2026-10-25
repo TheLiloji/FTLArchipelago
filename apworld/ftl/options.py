@@ -360,6 +360,37 @@ class CombatChecks(Range):
     default = 0
 
 
+class EventChecks(Range):
+    """The packages handed out by the Archipelago events (the relay, the pirates) become checks of their own,
+    "Archipelago Event 1", "Archipelago Event 2"... up to this number. The events give these first, then fall
+    back on the Archipelago shop's packages. 0 keeps the old way: every event package comes from the shop.
+    """
+
+    display_name = "Archipelago Event Checks"
+    range_start = 0
+    range_end = 20
+    default = 5
+
+
+class ReactorChecks(Toggle):
+    """Upgrading the reactor sends checks: Reactor Power 10, 15, 20 and 25, reached in any run.
+    The logic expects them around sectors 2, 4, 6 and 7.
+    """
+
+    display_name = "Reactor Checks"
+
+
+class FlagshipSabotage(Range):
+    """The multiworld sabotages the Flagship: each of its phases arrives weakened, more with each level.
+    1: hull -10 %. 2: and shields -1. 3: hull -20 %. 4: and weapons -1. 5: hull -30 %. 0 turns it off.
+    """
+
+    display_name = "Flagship Sabotage"
+    range_start = 0
+    range_end = 5
+    default = 0
+
+
 class CombatChecksMode(Choice):
     """How Combat Checks per Ship count the fights won.
     per_run: the first fights won in a run send "Fight 1 won", "Fight 2 won"... up to Combat Checks per Ship.
@@ -1032,6 +1063,7 @@ class FTLOptions(PerGameCommonOptions):
     goal: Goal
     victories_required: VictoriesRequired
     victory_difficulty: VictoryDifficulty
+    flagship_sabotage: FlagshipSabotage
     archives: Archives
     archives_required: ArchivesRequired
     victory_layouts: VictoryLayouts
@@ -1063,6 +1095,8 @@ class FTLOptions(PerGameCommonOptions):
     free_upgrades: FreeUpgrades
     system_install: SystemInstall
     run_start_scrap: RunStartScrap
+    event_checks: EventChecks
+    reactor_checks: ReactorChecks
     combat_checks: CombatChecks
     combat_checks_mode: CombatChecksMode
     fights_per_sector: FightsPerSector
@@ -1095,7 +1129,8 @@ class FTLOptions(PerGameCommonOptions):
 
 ftl_option_groups = [
     OptionGroup("Multiverse", [Multiverse, MultiverseAchievementChecks]),
-    OptionGroup("Goal", [VictoriesRequired, VictoryDifficulty, Archives, ArchivesRequired, VictoryCollectsLayout]),
+    OptionGroup("Goal", [VictoriesRequired, VictoryDifficulty, FlagshipSabotage, Archives, ArchivesRequired,
+                         VictoryCollectsLayout]),
     OptionGroup(
         "Ships",
         [StartShip, ShipLayouts, LayoutCount, ExcludedLayouts, LayoutUnlocks, EarlyShipKeys],
@@ -1103,7 +1138,7 @@ ftl_option_groups = [
     OptionGroup(
         "Checks",
         [Sectorsanity, SectorsanityFirstSector, SectorsanityLastSector, Systemsanity, SystemsanityPerShip,
-         ShipAchievementChecks, GeneralAchievementChecks, CrossRunAchievementChecks, CrewChecks, CombatChecks,
+         ShipAchievementChecks, GeneralAchievementChecks, CrossRunAchievementChecks, CrewChecks, EventChecks, ReactorChecks, CombatChecks,
          CombatChecksMode, FightsPerSector, CombatCheckScrap],
     ),
     OptionGroup(
