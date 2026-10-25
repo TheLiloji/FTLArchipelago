@@ -219,8 +219,8 @@ class TestCombatChecksPerSector(FTLTestBase):
     def test_each_ship_gets_its_fights_in_every_sector_and_no_per_run_ones(self) -> None:
         names = {location.name for location in self.addressed_locations()}
         per_sector = [location for location in data.LOCATIONS if location.group == data.GROUP_SECTOR_FIGHTS
-                      and location.fight <= 2]
-        self.assertTrue(per_sector)
+                      and location.fight <= 2 and location.ship == "PLAYER_SHIP_HARD"]
+        self.assertEqual(len(per_sector), 2 * data.SECTOR_COUNT)
         self.assertTrue(all(location.name in names for location in per_sector))
         self.assertFalse(any(location.group == data.GROUP_FIGHTS and location.name in names
                              for location in data.LOCATIONS))
