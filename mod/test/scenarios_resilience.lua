@@ -1162,3 +1162,39 @@ test("network: a build that names its own Archipelago game sends it before conne
     equals(sim.net.game, "FTL Multiverse", "the module is told the game name")
     apNetResetForTesting()
 end)
+
+test("flagship sabotage: each phase arrives weakened once, by the seed's level", function()
+    applySeed({ options = { flagship_sabotage = 3 } })
+    sim.startRun(true)
+    local boss = sim.makeShip(1)
+    boss.myBlueprint = { blueprintName = "BOSS_1" }
+    boss.ship.hullIntegrity = { first = 30, second = 30 }
+    local capped = {}
+    boss.GetSystem = function(_, id)
+        return { GetMaxPower = function() return 4 end, SetPowerCap = function(_, cap) capped[id] = cap end }
+    end
+    sim.enemy = boss
+    sim.tick(2)
+    equals(boss.ship.hullIntegrity.first, 24, "level 3: hull -20 %")
+    equals(capped[0], 3, "and shields -1")
+    equals(capped[3], nil, "weapons only from level 4")
+    sim.tick(60)
+    equals(boss.ship.hullIntegrity.first, 24, "once per phase")
+    sim.enemy = nil
+end)
+
+test("flagship sabotage: off by default, and an ordinary enemy is never touched", function()
+    applySeed({ options = { flagship_sabotage = 5 } })
+    sim.startRun(true)
+    local pirate = sim.makeShip(1)
+    sim.enemy = pirate
+    sim.tick(2)
+    equals(pirate.ship.hullIntegrity.first, 30, "not the Flagship")
+    applySeed({})
+    local boss = sim.makeShip(1)
+    boss.myBlueprint = { blueprintName = "BOSS_2" }
+    sim.enemy = boss
+    sim.tick(2)
+    equals(boss.ship.hullIntegrity.first, 30, "no sabotage without the option")
+    sim.enemy = nil
+end)

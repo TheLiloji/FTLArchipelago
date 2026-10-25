@@ -281,4 +281,65 @@ script.on_init(function(newGame)
     end
 end)
 
+-- flagship_sabotage 0-5: each phase of the Flagship arrives weakened, step by step: hull -10 %, shields -1,
+-- hull -10 % more, weapons -1, hull -10 % more. Once per phase and per run, kept in the run's save.
+local SABOTAGE_STEPS = { "hull", "shields", "hull", "weapons", "hull" }
+local SHIELDS, WEAPONS = 0, 3
+
+local function sabotageLevel()
+    local value = _G.apSeedOption and apSeedOption("flagship_sabotage")
+    return math.max(0, math.min(#SABOTAGE_STEPS, math.floor(tonumber(value) or 0)))
+end
+
+local function lowerSystem(enemy, id)
+    local system = enemy:GetSystem(id)
+    if system == nil then
+        return false
+    end
+    system:SetPowerCap(math.max(0, system:GetMaxPower() - 1))
+    return true
+end
+
+function apSabotageFlagship(enemy)
+    local level = sabotageLevel()
+    if enemy == nil or level == 0 then
+        return false
+    end
+    local name = tostring(enemy.myBlueprint.blueprintName)
+    if not name:find("BOSS", 1, true) then
+        return false
+    end
+    local variable = "ap_sabotage_" .. name
+    if math.floor(tonumber(Hyperspace.playerVariables[variable]) or 0) == 1 then
+        return false
+    end
+    Hyperspace.playerVariables[variable] = 1
+    local hullCut, done = 0, {}
+    for step = 1, level do
+        local what = SABOTAGE_STEPS[step]
+        if what == "hull" then
+            hullCut = hullCut + 10
+        elseif what == "shields" and lowerSystem(enemy, SHIELDS) then
+            done[#done + 1] = "shields"
+        elseif what == "weapons" and lowerSystem(enemy, WEAPONS) then
+            done[#done + 1] = "weapons"
+        end
+    end
+    if hullCut > 0 then
+        local hull = enemy.ship.hullIntegrity
+        enemy:DamageHull(math.floor(hull.second * hullCut / 100), true)
+    end
+    combatLog(string.format("flagship %s sabotaged: hull -%d%%, %s", name, hullCut, table.concat(done, ", ")))
+    if _G.apNotifyStatus then
+        _G.apNotifyStatus(apT("flagship.sabotaged", { n = level }))
+    end
+    return true
+end
+
+script.on_internal_event(Defines.InternalEvents.ON_TICK, function()
+    if Hyperspace.ships.enemy ~= nil then
+        apTry(TAG, apSabotageFlagship, Hyperspace.ships.enemy)
+    end
+end)
+
 combatLog("combat module loaded")
