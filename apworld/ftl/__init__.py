@@ -286,8 +286,26 @@ class FTLWorld(World):
                                             "system_install", "run_start_scrap", "combat_check_scrap",
                                             "shop_hints"),
             "tracker": self._tracker_data(),
+            "logic": self._logic_for_the_mod(),
         }
         return slot_data
+
+    def _logic_for_the_mod(self) -> dict[str, Any]:
+        """A light copy of the logic for the dashboard's "in logic" marker: what each layout needs, and how many
+        system blueprints each check needs. Power and system needs are left out: the marker is a hint."""
+        level = self.sector_logic_level
+        by_sector = bool(self.options.shop_by_sector)
+        blueprints = {}
+        for location in self.created_locations:
+            count = rules.blueprints_required(level, location, by_sector)
+            if count:
+                blueprints[location.check_id] = count
+        return {
+            "layouts": {layout.blueprint: list(rules.layout_requirements(self, layout))
+                        for layout in self.selected_layouts},
+            "blueprints": blueprints,
+            "blueprint_items": sorted(item.name for item in data.ITEMS if item.group == data.GROUP_BLUEPRINTS),
+        }
 
     def _tracker_data(self) -> dict[str, Any]:
         """What Universal Tracker needs to rebuild the same locations and logic: every option, and the random draws."""

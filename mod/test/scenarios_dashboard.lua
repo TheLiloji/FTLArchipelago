@@ -643,3 +643,21 @@ test("dashboard: the This run card only promises what the seed's settings let an
     check(not sim.drawnText(apT("dash.run.free_upgrades")), "and nothing without the options")
     closeDashboard()
 end)
+
+test("in logic: a check is in logic once its layout's items and its blueprints are received", function()
+    apContractResetForTesting()
+    applySeed({ loc = { ["PLAYER_SHIP_ROCK:sector:3"] = "Rock Cruiser A: Reach sector 3" },
+                items = { ["Rock Cruiser Key"] = { k = "ship", bp = "PLAYER_SHIP_ROCK" },
+                          ["Shields blueprint"] = { k = "cap", sys = "shields" } },
+                logic = { layouts = { PLAYER_SHIP_ROCK = { "Rock Cruiser Key" } },
+                          blueprints = { ["PLAYER_SHIP_ROCK:sector:3"] = 1 },
+                          blueprint_items = { "Shields blueprint" } } })
+    equals(apInLogic("PLAYER_SHIP_ROCK:sector:3"), false, "nothing received yet")
+    apReceiveItem("Rock Cruiser Key", "Nina", false, 0)
+    equals(apInLogic("PLAYER_SHIP_ROCK:sector:3"), false, "the ship, not the blueprint")
+    apReceiveItem("Shields blueprint", "Nina", false, 1)
+    equals(apInLogic("PLAYER_SHIP_ROCK:sector:3"), true, "both: in logic")
+    apContractResetForTesting()
+    applySeed({})
+    equals(apInLogic("PLAYER_SHIP_ROCK:sector:3"), nil, "a seed without the logic copy says nothing")
+end)

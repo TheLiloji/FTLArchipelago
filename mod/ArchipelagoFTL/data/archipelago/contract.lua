@@ -173,6 +173,8 @@ function apApplySlotData(slotData, slotName, solo)
     end
     state.seedName = slotData.seed_name
     state.options = slotData.options or {}
+    state.logic = type(slotData.logic) == "table" and slotData.logic or nil
+    state.receivedByIndex = {}
 
     state.itemDescriptors = slotData.items or {}
     state.capTotals = slotData.caps or {}
@@ -256,7 +258,52 @@ local function announceLostItem(itemName)
     end
 end
 
+-- The "in logic" marker (seeds from 0.6 on): a light copy of the logic, what each layout needs and how many
+-- system blueprints each check needs, against the items received so far. Power and system needs are left out.
+local function receivedCounts()
+    local counts = {}
+    for _, name in pairs(state.receivedByIndex or {}) do
+        counts[name] = (counts[name] or 0) + 1
+    end
+    return counts
+end
+
+function apInLogic(checkKey)
+    local logic = state.logic
+    if logic == nil then
+        return nil
+    end
+    local counts = receivedCounts()
+    local layout = tostring(checkKey):match("^(PLAYER_SHIP_[%u%d_]+):")
+    local needs = layout and (logic.layouts or {})[layout] or nil
+    if needs ~= nil then
+        local wanted = {}
+        for _, name in ipairs(needs) do
+            wanted[name] = (wanted[name] or 0) + 1
+        end
+        for name, count in pairs(wanted) do
+            if (counts[name] or 0) < count then
+                return false
+            end
+        end
+    end
+    local required = (logic.blueprints or {})[checkKey]
+    if required ~= nil then
+        local have = 0
+        for _, name in ipairs(logic.blueprint_items or {}) do
+            have = have + (counts[name] or 0)
+        end
+        if have < required then
+            return false
+        end
+    end
+    return true
+end
+
 function apReceiveItem(itemName, sender, isReplay, index)
+    if index ~= nil and index >= 0 and state.receivedByIndex ~= nil then
+        state.receivedByIndex[index] = tostring(itemName)
+    end
     -- A refused seed still sends its items; they come again once it is accepted.
     if state.refusal ~= nil then
         contractLog("item ignored, the seed is refused: " .. tostring(itemName))
@@ -498,6 +545,8 @@ function apContractResetForTesting()
     state.startShip = nil
     state.seedName = nil
     state.options = {}
+    state.logic = nil
+    state.receivedByIndex = {}
     state.identity = nil
     state.lastIdentity = nil
     state.systemCapsActive = true
