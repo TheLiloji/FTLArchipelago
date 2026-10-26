@@ -441,6 +441,8 @@
     "sector_locks.closed": "Questa uscita è chiusa: questa nave ha bisogno del Sector Pass {n} per lasciare il settore {sector}. Si apre appena arriva il pass.",
     "sector_locks.open": "Sector Pass ricevuto: l'uscita è aperta.",
     "reset.kept.profile": "Tenuto: questo salvataggio resta con il suo seed. Carica un altro salvataggio o collegati al seed di questo.",
-    "deal.off": "In questo seed non ci sono patti"
+    "deal.off": "In questo seed non ci sono patti",
+    "loadout.hint.extra": "Una scelta in più per il settore saltato: prendi un'arma, un drone o un membro dell'equipaggio tra ciò che hai ricevuto.",
+    "loadout.no_room": "Non c'è posto a bordo per {name}: libera prima uno slot arma o di stiva."
   }
 }

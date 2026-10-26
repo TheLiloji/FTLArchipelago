@@ -610,3 +610,34 @@ test("sector skip: a skipped sector opens the start-of-run menu again for one mo
     sim.starMap.worldLevel = 0
     sim.meta["ap_reached_PLAYER_SHIP_HARD"] = nil
 end)
+
+test("sector skip: the extra pick says so, waits when there is no room, and comes back at the next beacon", function()
+    apInventoryClear()
+    apInventory.shopAvailability.LASER_BURST_3 = 2
+    apContractResetForTesting()
+    applySeed({ options = { sector_skip = 1 } })
+    sim.startRun(true)
+    sim.renderGui()
+    sim.click(apLoadoutPoint("done"))
+    _G.apLoadoutExtraPick = true
+    sim.jumpArrive()
+    sim.renderGui()
+    check(sim.drawnText(apT("loadout.hint.extra")), "the menu says it is the extra pick")
+    local restore = stub("apEquipmentHasRoom", function() return false end)
+    sim.clearLog()
+    sim.click(apLoadoutPoint("row", "weapon", 1))
+    check(sim.logged("cannot take") == false and apLoadoutOpen(), "no room: nothing taken, the menu stays")
+    local said = false
+    for _, line in ipairs(sim.screen) do
+        if line:find(apT("loadout.no_room", { name = "" }):sub(1, 12), 1, true) then said = true end
+    end
+    check(said, "and the player is told why")
+    restore()
+    sim.jumpArrive()
+    sim.renderGui()
+    check(apLoadoutOpen(), "the pick not made comes back at the next beacon")
+    sim.click(apLoadoutPoint("row", "weapon", 1))
+    sim.jumpArrive()
+    sim.renderGui()
+    check(not apLoadoutOpen(), "once made, it is gone")
+end)

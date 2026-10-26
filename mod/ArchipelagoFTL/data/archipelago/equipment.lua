@@ -48,8 +48,16 @@ local function atAStore()
     return _G.apAtAStore ~= nil and apAtAStore()
 end
 
+local noRoom
+
+-- The start-of-run menu: whether a weapon or a drone has a place aboard right now (slot or cargo).
+function apEquipmentHasRoom(family)
+    local ok, why = pcall(noRoom, family)
+    return not ok or why == nil
+end
+
 -- nil when the item fits, else why it waits.
-local function noRoom(family)
+noRoom = function(family)
     local ok, why = pcall(function()
         local player = Hyperspace.ships.player
         local system = family == "weapon" and player.weaponSystem or player.droneSystem
