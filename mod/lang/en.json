@@ -414,7 +414,7 @@
     "flagship.sabotaged": "The Flagship arrives sabotaged by the multiworld (level {n}).",
     "check.label.reactor": "Reactor power {n}",
     "sector_skip.offered": "Sector {n} already crossed with this ship: this beacon is an exit. Jump to the next sector now for {scrap} scrap, or explore as usual.",
-    "sector_skip.done": "Sector {n} skipped: +{scrap} scrap.",
+    "sector_skip.done": "Sector {n} skipped: +{scrap} scrap, and one more pick from what you received.",
     "saves.button": "Saves",
     "saves.title": "Archipelago saves",
     "saves.intro": "Each seed, and solo mode, keeps its own FTL save: unlocked ships, achievements and the run in progress. Your FTL save without Archipelago is never touched. Loading a save restarts FTL.",

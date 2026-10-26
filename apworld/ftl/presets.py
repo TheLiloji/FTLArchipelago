@@ -5,6 +5,7 @@ PRESET_FILES = {
     "Short, about 5 h": "short_game.yaml",
     "Medium, about 10 h (recommended)": "medium_game.yaml",
     "Long, 20 h or more": "long_game.yaml",
+    "Solo, about 7 h": "solo_game.yaml",
 }
 
 OPTIONS_PRESETS = {
@@ -51,5 +52,21 @@ OPTIONS_PRESETS = {
         "archives": 20,
         "archives_required": 16,
         "systemsanity": "first_install",
+    },
+    "Solo, about 7 h": {
+        "victories_required": 3,
+        "victory_difficulty": "normal",
+        "layout_count": 5,
+        "archives": 8,
+        "archives_required": 6,
+        "full_system_upgrades": True,
+        "combat_checks": 1,
+        "combat_checks_mode": "per_sector",
+        "fights_per_sector": 2,
+        "event_checks": 10,
+        "reactor_checks": True,
+        "sector_skip": True,
+        "sector_locks": True,
+        "shop_deal_scrap": 120,
     },
 }

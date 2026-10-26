@@ -587,3 +587,26 @@ test("sector locks: the same pass sent again is still one pass", function()
     equals(_G.apInventory.passes.PLAYER_SHIP_HARD, 1, "one pass, not two")
     _G.apInventory.passes, _G.apInventory.passIndices = nil, nil
 end)
+
+test("sector skip: a skipped sector opens the start-of-run menu again for one more pick", function()
+    apInventoryClear()
+    apInventory.shopAvailability.LASER_BURST_3 = 2
+    apContractResetForTesting()
+    applySeed({ options = { sector_skip = 1 } })
+    sim.meta["ap_reached_PLAYER_SHIP_HARD"] = 3
+    sim.startRun(true)
+    sim.starMap.worldLevel = 0
+    sim.starMap.currentLoc = sim.makeLocation()
+    sim.jumpArrive()
+    sim.renderGui()
+    sim.click(apLoadoutPoint("row", "weapon", 1))
+    sim.click(apLoadoutPoint("done"))
+    check(not apLoadoutOpen(), "first pick made, menu closed")
+    sim.starMap.worldLevel = 1
+    sim.starMap.currentLoc = sim.makeLocation()
+    sim.jumpArrive()
+    sim.renderGui()
+    check(apLoadoutOpen(), "the skip gives one more pick")
+    sim.starMap.worldLevel = 0
+    sim.meta["ap_reached_PLAYER_SHIP_HARD"] = nil
+end)

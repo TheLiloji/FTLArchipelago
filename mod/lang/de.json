@@ -414,7 +414,7 @@
     "flagship.sabotaged": "Das Flaggschiff kommt sabotiert vom Multiworld an (Stufe {n}).",
     "check.label.reactor": "Reaktorleistung {n}",
     "sector_skip.offered": "Sektor {n} mit diesem Schiff schon durchquert: dieses Leuchtfeuer ist ein Ausgang. Spring jetzt in den nächsten Sektor für {scrap} Schrott, oder erkunde wie gewohnt.",
-    "sector_skip.done": "Sektor {n} übersprungen: +{scrap} Schrott.",
+    "sector_skip.done": "Sektor {n} übersprungen: +{scrap} Schrott und eine weitere Wahl aus dem, was du erhalten hast.",
     "saves.button": "Spielstände",
     "saves.title": "Archipelago-Spielstände",
     "saves.intro": "Jeder Seed und der Solomodus haben ihren eigenen FTL-Spielstand: freigeschaltete Schiffe, Erfolge und der laufende Run. Dein FTL-Spielstand ohne Archipelago wird nie angefasst. Einen Spielstand laden startet FTL neu.",
