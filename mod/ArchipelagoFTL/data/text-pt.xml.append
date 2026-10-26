@@ -66,3 +66,19 @@
 <text name="ap_trap_asb_end_text" language="pt">A bateria de defesa planetária desliga-se. O combate terminou.</text>
 <text name="ap_trap_hazard_text" language="pt">Alguém passou uma correção de rumo falsa ao teu computador de navegação. Este farol não é tão calmo como diziam as cartas.</text>
 <text name="ap_trap_hazard_end_text" language="pt">Terminado o combate, o espaço à volta do farol acalma.</text>
+<text name="ap_evt_overclock_text" language="pt">Um técnico engi chama-te de um módulo oficina apertado. «O teu reator anda cauteloso. Podíamos pô-lo a cantar. Ou a derreter. Normalmente, a cantar.» Diz um preço e uma aposta.</text>
+<text name="ap_evt_overclock_c1" language="pt">Apostar 30 de sucata no overclock.</text>
+<text name="ap_evt_overclock_c1_text" language="pt">O técnico liga-se com um entusiasmo preocupante. O reator zumbe cada vez mais agudo.</text>
+<text name="ap_evt_overclock_c2" language="pt">Deixá-lo testar nos motores, em vez disso.</text>
+<text name="ap_evt_overclock_c2_text" language="pt">O teste corre a meias: os motores tossem e soltam faíscas, mas o técnico dá-te três células de combustível pelo incómodo.</text>
+<text name="ap_evt_overclock_c3" language="pt">Agradecer e partir.</text>
+<text name="ap_evt_overclock_c3_text" language="pt">O técnico parece desiludido, depois acena-te e volta aos seus cabos.</text>
+<text name="ap_evt_overclock_win" language="pt">O overclock aguenta. O técnico grita de alegria, não ganha nada e paga-te o dobro graças a uma aposta paralela na tua nave.</text>
+<text name="ap_evt_overclock_lose" language="pt">Algo rebenta. Depois outra coisa. O reator volta ao normal, mas partes da nave não gostaram da viagem.</text>
+<text name="ap_evt_arms_text" language="pt">Um cargueiro muito armado espera no farol. O capitão sorri demais. «Boas armas, preços justos, sem perguntas. Só hoje.»</text>
+<text name="ap_evt_arms_c1" language="pt">Comprar uma arma por 45 de sucata.</text>
+<text name="ap_evt_arms_c1_text" language="pt">O capitão escolhe uma caixa sem olhar e manda passá-la. Sem reembolsos.</text>
+<text name="ap_evt_arms_c2" language="pt">Trocar 4 de combustível por um dos seus aparelhos.</text>
+<text name="ap_evt_arms_c2_text" language="pt">O combustível vai, volta uma caixinha selada. Muito rara, jura ele.</text>
+<text name="ap_evt_arms_c3" language="pt">Recusar e seguir caminho.</text>
+<text name="ap_evt_arms_c3_text" language="pt">«Azar o seu», diz o capitão, já à procura do próximo cliente.</text>

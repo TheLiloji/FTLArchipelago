@@ -66,3 +66,19 @@
 <text name="ap_trap_asb_end_text" language="it">La batteria di difesa planetaria si spegne. Il combattimento è finito.</text>
 <text name="ap_trap_hazard_text" language="it">Qualcuno ha passato una falsa correzione di rotta al tuo computer di navigazione. Questo segnale non è tranquillo come dicevano le mappe.</text>
 <text name="ap_trap_hazard_end_text" language="it">Finito il combattimento, lo spazio attorno al segnale si calma.</text>
+<text name="ap_evt_overclock_text" language="it">Un tecnico engi ti chiama da un angusto modulo officina. «Il tuo reattore va con prudenza. Potremmo farlo cantare. O fondere. Di solito cantare.» Ti dice un prezzo e una scommessa.</text>
+<text name="ap_evt_overclock_c1" language="it">Scommettere 30 rottami sull'overclock.</text>
+<text name="ap_evt_overclock_c1_text" language="it">Il tecnico si collega con un entusiasmo preoccupante. Il reattore ronza sempre più acuto.</text>
+<text name="ap_evt_overclock_c2" language="it">Fargli provare sui motori, invece.</text>
+<text name="ap_evt_overclock_c2_text" language="it">La prova riesce a metà: i motori tossiscono e sputano scintille, ma il tecnico ti dà tre celle di carburante per il disturbo.</text>
+<text name="ap_evt_overclock_c3" language="it">Ringraziarlo e andarsene.</text>
+<text name="ap_evt_overclock_c3_text" language="it">Il tecnico sembra deluso, poi ti saluta con la mano e torna ai suoi cavi.</text>
+<text name="ap_evt_overclock_win" language="it">L'overclock regge. Il tecnico esulta, non vince niente e ti ripaga il doppio con una scommessa parallela sulla tua nave.</text>
+<text name="ap_evt_overclock_lose" language="it">Qualcosa scoppia. Poi un'altra cosa. Il reattore torna normale, ma parti della nave non hanno gradito il viaggio.</text>
+<text name="ap_evt_arms_text" language="it">Un cargo pesantemente armato aspetta al faro. Il suo capitano sorride troppo. «Belle armi, prezzi onesti, niente domande. Solo oggi.»</text>
+<text name="ap_evt_arms_c1" language="it">Comprare un'arma per 45 rottami.</text>
+<text name="ap_evt_arms_c1_text" language="it">Il capitano sceglie una cassa senza guardarla e la fa trasbordare. Niente rimborsi.</text>
+<text name="ap_evt_arms_c2" language="it">Scambiare 4 di carburante con uno dei suoi aggeggi.</text>
+<text name="ap_evt_arms_c2_text" language="it">Il carburante va, torna una scatolina sigillata. Rarissima, giura.</text>
+<text name="ap_evt_arms_c3" language="it">Rifiutare e proseguire.</text>
+<text name="ap_evt_arms_c3_text" language="it">«Peggio per te», dice il capitano, già in cerca del prossimo cliente.</text>
