@@ -137,6 +137,11 @@ def enabled_items(options, shop_items: tuple[data.ShopItem, ...] = ()) -> tuple[
         elif group in (data.GROUP_SHOP_WEAPONS, data.GROUP_SHOP_DRONES, data.GROUP_SHOP_AUGMENTS):
             if item.name in shop_names and ftl_options.bundle_size(options, item.family) == 1:
                 kept.append(item)
+        elif group == data.GROUP_MAGIC_HAT:
+            mode = options.magic_hat
+            wanted = {mode.option_by_group: "by_group", mode.option_by_sector: "by_sector"}.get(mode.value)
+            if locations.multiverse(options) and item.family == wanted:
+                kept.append(item)
         elif group == data.GROUP_BUNDLES:
             if int(item.name.rsplit(" ", 1)[1]) <= bundle_counts.get(item.family, 0):
                 kept.append(item)

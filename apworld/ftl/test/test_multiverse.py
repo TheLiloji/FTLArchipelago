@@ -227,3 +227,33 @@ class TestMultiverseLevelChecksCountTheStartingLevels(FTLTestBase):
         self.assertTrue(reach("Shields level 4"), "2 at the start, 2 received")
         self.assertFalse(reach("Shields level 5"))
         self.assertTrue(reach("Engines level 3"), "2 at the start, 1 received")
+
+
+class TestMagicHatByGroup(FTLTestBase):
+    options = {"multiverse": True, "magic_hat": "by_group", "layout_count": 20}
+
+    def test_nine_family_items_cover_every_destination_once(self) -> None:
+        hats = [item for item in self.multiworld.itempool if data.ITEMS_BY_NAME[item.name].group == data.GROUP_MAGIC_HAT]
+        self.assertEqual(len(hats), 9)
+        keys = [key for item in hats for key in data.ITEMS_BY_NAME[item.name].hat]
+        self.assertEqual(sorted(keys), sorted(key for key, *_ in data.MAGIC_HAT_DESTINATIONS))
+        self.assertTrue(all(item.useful for item in hats))
+        descriptor = self.world.fill_slot_data()["items"]["Magic Hat: Hostile Sectors"]
+        self.assertEqual(descriptor["k"], "hat")
+        self.assertIn("rebel_generic", descriptor["hat"])
+
+
+class TestMagicHatBySector(FTLTestBase):
+    options = {"multiverse": True, "magic_hat": "by_sector", "layout_count": 40}
+
+    def test_one_item_per_destination(self) -> None:
+        hats = [item for item in self.multiworld.itempool if data.ITEMS_BY_NAME[item.name].group == data.GROUP_MAGIC_HAT]
+        self.assertEqual(len(hats), len(data.MAGIC_HAT_DESTINATIONS))
+
+
+class TestMagicHatWithoutMultiverse(FTLTestBase):
+    options = {"multiverse": False, "magic_hat": "by_sector"}
+
+    def test_no_hat_item_in_the_base_game(self) -> None:
+        self.assertFalse(any(data.ITEMS_BY_NAME[item.name].group == data.GROUP_MAGIC_HAT
+                             for item in self.multiworld.itempool))

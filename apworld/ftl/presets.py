@@ -24,6 +24,7 @@ OPTIONS_PRESETS = {
         "shop_weapons": 15,
         "shop_drones": 6,
         "shop_augments": 10,
+        "magic_hat": "disabled",
     },
     "Short, about 5 h": {
         "victories_required": 2,

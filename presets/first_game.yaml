@@ -27,3 +27,4 @@ requires:
   shop_weapons: 15
   shop_drones: 6
   shop_augments: 10
+  magic_hat: disabled

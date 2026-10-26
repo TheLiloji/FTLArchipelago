@@ -230,6 +230,24 @@ class MultiverseAchievementChecks(Toggle):
     display_name = "Multiverse Achievement Checks"
 
 
+class MagicHat(Choice):
+    """With Multiverse, the Magic Hat's sector jumps become Archipelago items: once one is received, the reroute
+    menu offers the destinations it opens, in this run and the next ones.
+
+    disabled: no item, the Magic Hat works the way Multiverse does it.
+    by_group: 9 items, each opening a family of sectors (for example "Magic Hat: Hostile Sectors").
+    by_sector: one item per destination, 65 items. For long seeds.
+
+    Based on ArchiHat by Trapper444. Ignored without Multiverse.
+    """
+
+    display_name = "Magic Hat"
+    option_disabled = 0
+    option_by_group = 1
+    option_by_sector = 2
+    default = option_by_group
+
+
 class LayoutCount(Range):
     """How many ship layouts are in the seed, drawn at random among those Ship Layouts allows.
 
@@ -1072,6 +1090,7 @@ class FTLOptions(PerGameCommonOptions):
 
     multiverse: Multiverse
     multiverse_achievements: MultiverseAchievementChecks
+    magic_hat: MagicHat
     ship_layouts: ShipLayouts
     layout_count: LayoutCount
     layout_unlocks: LayoutUnlocks
@@ -1128,7 +1147,7 @@ class FTLOptions(PerGameCommonOptions):
 
 
 ftl_option_groups = [
-    OptionGroup("Multiverse", [Multiverse, MultiverseAchievementChecks]),
+    OptionGroup("Multiverse", [Multiverse, MultiverseAchievementChecks, MagicHat]),
     OptionGroup("Goal", [VictoriesRequired, VictoryDifficulty, FlagshipSabotage, Archives, ArchivesRequired,
                          VictoryCollectsLayout]),
     OptionGroup(

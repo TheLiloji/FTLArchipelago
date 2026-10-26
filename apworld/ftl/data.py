@@ -49,11 +49,13 @@ KIND_BUNDLE = "bundle"
 KIND_LAYOUT = "layout"
 # A ship key that comes once per layout (layout_unlocks: progressive): "bps" lists what each copy gives, in order.
 KIND_PROGRESSIVE_SHIP = "progressive_ship"
+# A Magic Hat item: "hat" lists the destinations it opens (Multiverse).
+KIND_HAT = "hat"
 
 KINDS_IMPLEMENTED = (
     KIND_SHIP, KIND_CAP, KIND_START, KIND_FILLER, KIND_TRAP,
     KIND_SHOP, KIND_WEAPON, KIND_DRONE, KIND_AUGMENT, KIND_ARCHIVE, KIND_CREW, KIND_BUNDLE, KIND_LAYOUT,
-    KIND_PROGRESSIVE_SHIP,
+    KIND_PROGRESSIVE_SHIP, KIND_HAT,
 )
 
 REACTOR_TARGET = "reactor"
@@ -95,6 +97,7 @@ ITEM_OFFSET_BUNDLE = 16_000
 ITEM_OFFSET_MV_SHOP_WEAPON = 20_000
 ITEM_OFFSET_MV_SHOP_DRONE = 21_000
 ITEM_OFFSET_MV_SHOP_AUGMENT = 22_000
+ITEM_OFFSET_MV_MAGIC_HAT = 23_000
 
 LOCATION_OFFSET_SECTOR = 0
 LOCATION_OFFSET_VICTORY = 10_000
@@ -610,6 +613,7 @@ GROUP_SHOP_DRONES = "Drones"
 GROUP_SHOP_AUGMENTS = "Augmentations"
 GROUP_ARCHIVES = "Archives"
 GROUP_BUNDLES = "Bundles"
+GROUP_MAGIC_HAT = "Magic Hat"
 
 SHOP_FAMILIES: tuple[str, ...] = ("weapon", "drone", "augment")
 SHOP_FAMILY_GROUPS: dict[str, str] = {
@@ -710,6 +714,7 @@ class Item:
     race: str | None = None
     skill: str | None = None
     tiers: int = 0
+    hat: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -771,6 +776,8 @@ def item_descriptor(item: Item) -> dict[str, object]:
         descriptor["tiers"] = item.tiers
     if item.kind == KIND_CAP and item.ship is not None:
         descriptor["ship"] = item.ship
+    if item.hat:
+        descriptor["hat"] = list(item.hat)
     return descriptor
 
 
@@ -860,6 +867,90 @@ ALL_LAYOUTS: tuple[Layout, ...] = LAYOUTS + MV_LAYOUTS
 LAYOUTS_BY_BLUEPRINT: dict[str, Layout] = {layout.blueprint: layout for layout in ALL_LAYOUTS}
 SYSTEMS: tuple[System, ...] = _build_systems()
 SYSTEMS_BY_ID: dict[str, System] = {system.system_id: system for system in SYSTEMS}
+
+
+# The Magic Hat's destinations, after ArchiHat by Trapper444: (key, menu, sector id, text). Slots never move
+# once published: new destinations go at the end.
+MAGIC_HAT_DESTINATIONS: tuple[tuple[str, str, str, str], ...] = (
+    ('union_generic', 'generic', 'SECTOR_UNION', 'Go to a Union sector.'),
+    ('federation_generic', 'generic', 'SECTOR_FEDERATION', 'Go to a Federation sector.'),
+    ('engi_generic', 'generic', 'SECTOR_HARMONY', 'Go to a Harmony sector.'),
+    ('zoltan_generic', 'generic', 'SECTOR_MINISTRY', 'Go to a Ministry sector.'),
+    ('orchid_generic', 'generic', 'SECTOR_GATHERING', 'Go to a Gathering sector.'),
+    ('vampweed_generic', 'generic', 'SECTOR_CONFEDERATE', 'Go to a Confederate sector.'),
+    ('freemantis_generic', 'generic', 'SECTOR_FREEMANTIS', 'Go to a Free Mantis sector.'),
+    ('crystal_generic', 'generic', 'SECTOR_IMPERIAL', 'Go to an Imperial sector.'),
+    ('outcast_generic', 'generic', 'SECTOR_OUTCAST', 'Go to an Outcast sector.'),
+    ('separatist_generic', 'generic', 'SECTOR_SEPARATIST', 'Go to a Separatist sector.'),
+    ('abandoned_generic', 'generic', 'SECTOR_ABANDONED_GENERIC', 'Go to an Abandoned sector.'),
+    ('pirate_generic', 'generic', 'SECTOR_PIRATE', 'Go to a Pirate sector.'),
+    ('rebel_generic', 'generic', 'SECTOR_REBEL', 'Go to a Rebel sector.'),
+    ('auto_generic', 'generic', 'SECTOR_AUTO', 'Go to an Auto sector.'),
+    ('hive_generic', 'generic', 'SECTOR_HIVE', 'Go to a Hive sector.'),
+    ('rock_generic', 'generic', 'SECTOR_THEOCRACY', 'Go to a Theocracy sector.'),
+    ('dusk_generic', 'generic', 'SECTOR_DUSKBRINGER', 'Go to a Duskbringer sector.'),
+    ('slug_generic', 'generic', 'SECTOR_KLEPTOCRACY', 'Go to a Kleptocracy sector.'),
+    ('shell_generic', 'generic', 'SECTOR_GENIOCRACY', 'Go to a Geniocracy sector.'),
+    ('leech_generic', 'generic', 'SECTOR_REPUBLIC', 'Go to an Eargen sector.'),
+    ('ghost_generic', 'generic', 'SECTOR_VAGABOND', 'Go to a Vagabond sector.'),
+    ('dynasty_generic', 'generic', 'SECTOR_DYNASTY', 'Go to a Dynasty sector.'),
+    ('coalition_generic', 'generic', 'SECTOR_COALITION', 'Go to a Coalition sector.'),
+    ('mining_generic', 'generic', 'SECTOR_ASTEROID_GENERIC', 'Go to a Mining sector.'),
+    ('unexplored_generic', 'generic', 'SECTOR_UNEXPLORED_GENERIC', 'Go to an Unexplored sector.'),
+    ('abandoned_sale', 'generic', 'SECTOR_ABANDONED_GENERIC_HEKTAR', 'Go to an Abandoned Sale sector.'),
+    ('pirate_sale', 'generic', 'SECTOR_PIRATE_HEKTAR', 'Go to a Pirate Sale sector.'),
+    ('slug_sale', 'generic', 'SECTOR_KLEPTOCRACY_HEKTAR', 'Go to a Kleptocracy Sale sector.'),
+    ('leech_sale', 'generic', 'SECTOR_REPUBLIC_HEKTAR', 'Go to an Eargen Sale sector.'),
+    ('union_unique', 'unique', 'SECTOR_UNION_UNIQUE', 'Go to the Union Coreworlds.'),
+    ('militia_unique', 'unique', 'SECTOR_MILITIA_UNIQUE', 'Go to the Militia Encampment.'),
+    ('fed_unique', 'unique', 'SECTOR_FEDERATION_UNIQUE', 'Go to the Federation Sector.'),
+    ('engi_unique', 'unique', 'SECTOR_HARMONY_UNIQUE', 'Go to the Harmony Coreworlds.'),
+    ('zoltan_unique', 'unique', 'SECTOR_MINISTRY_UNIQUE', 'Go to the Ministry Capital.'),
+    ('orchid_unique', 'unique', 'SECTOR_GATHERING_UNIQUE', 'Go to the Gathering Gardenworlds.'),
+    ('vampweed_unique', 'unique', 'SECTOR_CONFEDERATE_UNIQUE', 'Go to the Confederate Coreworlds.'),
+    ('freemantis_unique', 'unique', 'SECTOR_FREEMANTIS_UNIQUE', 'Go to the Free Mantis Hunting Grounds.'),
+    ('crystal_unique', 'unique', 'SECTOR_IMPERIAL_UNIQUE', 'Go to the Imperial New-Homelands.'),
+    ('outcast_unique', 'unique', 'SECTOR_OUTCAST_UNIQUE', 'Go to the Theocracy Badlands.'),
+    ('lostsun_unique', 'unique', 'SECTOR_LOSTSUN_UNIQUE', 'Go to the Lost Sun Stronghold.'),
+    ('lanius_unique', 'unique', 'SECTOR_LANIUS_UNIQUE', 'Go to the Lanius Swarmlands.'),
+    ('pirate_unique', 'unique', 'SECTOR_PIRATE_UNIQUE', 'Go to the Black Market.'),
+    ('hacked_unique', 'unique', 'SECTOR_HACKER_UNIQUE', 'Go to the Hacked Union Sector.'),
+    ('rebel_unique', 'unique', 'SECTOR_REBEL_UNIQUE', 'Go to the Rebel Stronghold.'),
+    ('auto_unique', 'unique', 'SECTOR_AUTO_UNIQUE', 'Go to the Central Shipyards.'),
+    ('hive_unique', 'unique', 'SECTOR_HIVE_UNIQUE', 'Go to the Hive Broodworlds.'),
+    ('rock_unique', 'unique', 'SECTOR_THEOCRACY_UNIQUE', 'Go to the Theocracy Homeworlds.'),
+    ('dusk_unique', 'unique', 'SECTOR_DUSKBRINGER_UNIQUE', 'Go to the Duskbringer Stronghold.'),
+    ('slug_unique', 'unique', 'SECTOR_KLEPTOCRACY_UNIQUE', 'Go to the Kleptocracy Capital.'),
+    ('clan_unique', 'unique', 'SECTOR_CLAN_UNIQUE', 'Go to the Guild Territory.'),
+    ('stargrove', 'unique', 'SECTOR_STARGROVE_UNIQUE', 'Go to the Stargrove.'),
+    ('shell_unique', 'unique', 'SECTOR_GENIOCRACY_UNIQUE', 'Go to the Geniocracy Coreworlds.'),
+    ('morph_unique', 'unique', 'SECTOR_MORPH_UNIQUE', 'Go to the Geniocracy Science District.'),
+    ('leech_unique', 'unique', 'SECTOR_REPUBLIC_UNIQUE', 'Go to the Eargen Republic Capital.'),
+    ('monk_unique', 'unique', 'SECTOR_MONK_UNIQUE', 'Go to the Illesctrian Oasis.'),
+    ('ghost_unique', 'unique', 'SECTOR_VAGABOND_UNIQUE', 'Go to the Spectral Wastelands.'),
+    ('dynasty_unique', 'unique', 'SECTOR_DYNASTY_UNIQUE', 'Go to the Spectral Capital.'),
+    ('coalition_unique', 'unique', 'SECTOR_COALITION_UNIQUE', 'Go to the Coalition Stronghold.'),
+    ('spider_secret', 'secret', 'SECRET_SPIDER', 'Go to the Infested Sector.'),
+    ('jerry_secret', 'secret', 'SECRET_JERRY', 'Go to the Jerome Protectorate.'),
+    ('nights_secret', 'secret', 'SECRET_NIGHTS', 'Go to the Royal Nebula.'),
+    ('hektar_secret', 'secret', 'SECRET_HEKTAR', 'Go to the Hektar Mega-Market.'),
+    ('estate_secret', 'secret', 'SECRET_ESTATE', 'Go to the Wentworth Innovations HQ.'),
+    ('origins_secret', 'secret', 'SECRET_ORIGINS', 'Go to the Crystalline Origins.'),
+    ('augmented_secret', 'secret', 'SECRET_AUGMENTED', 'Go to the Ancient Recovery Site.'),
+)
+
+# The by_group items, each opening a family of destinations.
+MAGIC_HAT_GROUPS: tuple[tuple[str, tuple[str, ...]], ...] = (
+    ('Allied Sectors', ('union_generic', 'federation_generic', 'engi_generic', 'zoltan_generic', 'orchid_generic', 'freemantis_generic', 'crystal_generic', 'outcast_generic')),
+    ('Neutral Sectors', ('vampweed_generic', 'separatist_generic', 'abandoned_generic', 'pirate_generic', 'abandoned_sale', 'pirate_sale')),
+    ('Hostile Sectors', ('rebel_generic', 'auto_generic', 'hive_generic', 'rock_generic', 'dusk_generic', 'coalition_generic')),
+    ('Hazard Sectors', ('slug_generic', 'shell_generic', 'leech_generic', 'ghost_generic', 'dynasty_generic', 'mining_generic', 'unexplored_generic', 'slug_sale', 'leech_sale')),
+    ('Allied Homeworlds', ('union_unique', 'militia_unique', 'fed_unique', 'engi_unique', 'zoltan_unique', 'orchid_unique', 'freemantis_unique', 'crystal_unique', 'outcast_unique', 'hacked_unique')),
+    ('Neutral Homeworlds', ('vampweed_unique', 'lostsun_unique', 'lanius_unique', 'pirate_unique')),
+    ('Hostile Homeworlds', ('rebel_unique', 'auto_unique', 'hive_unique', 'rock_unique', 'dusk_unique')),
+    ('Hazard Homeworlds', ('slug_unique', 'clan_unique', 'shell_unique', 'morph_unique', 'leech_unique', 'monk_unique', 'ghost_unique', 'dynasty_unique', 'coalition_unique')),
+    ('Secret Sectors', ('stargrove', 'spider_secret', 'jerry_secret', 'nights_secret', 'hektar_secret', 'estate_secret', 'origins_secret', 'augmented_secret')),
+)
 
 
 def _build_items() -> tuple[Item, ...]:
@@ -1043,6 +1134,29 @@ def _build_items() -> tuple[Item, ...]:
                 family=family,
                 count=2 if family in ("weapon", "drone") else 1,
             ))
+
+    # Magic Hat (Multiverse): 9 items by family of destinations, or one item per destination.
+    for slot, (group, keys) in enumerate(MAGIC_HAT_GROUPS):
+        items.append(Item(
+            name=f"Magic Hat: {group}",
+            code=ITEM_ID_BASE + ITEM_OFFSET_MV_MAGIC_HAT + slot,
+            group=GROUP_MAGIC_HAT,
+            classification="useful",
+            kind=KIND_HAT,
+            family="by_group",
+            hat=keys,
+        ))
+    for slot, (key, _menu, _sector, text) in enumerate(MAGIC_HAT_DESTINATIONS):
+        place = text.removeprefix("Go to ").removeprefix("the ").removeprefix("an ").removeprefix("a ").rstrip(".")
+        items.append(Item(
+            name=f"Magic Hat: {place[0].upper()}{place[1:]}",
+            code=ITEM_ID_BASE + ITEM_OFFSET_MV_MAGIC_HAT + 100 + slot,
+            group=GROUP_MAGIC_HAT,
+            classification="useful",
+            kind=KIND_HAT,
+            family="by_sector",
+            hat=(key,),
+        ))
 
     return tuple(items)
 
