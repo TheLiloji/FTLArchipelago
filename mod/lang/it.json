@@ -435,6 +435,8 @@
     "saves.archived": "Archiviato: conservato nella cartella ap_profiles/archived, nulla è stato cancellato.",
     "reset.question.profile": "Questo seed non è quello di questo salvataggio. Avrà il proprio salvataggio, e questo resta esattamente com'è: puoi tornarci dal menu Salvataggi. FTL si riavvia per cambiare.",
     "reset.question.profile.solo": "La modalità solo ha il proprio salvataggio, e questo resta esattamente com'è: puoi tornarci dal menu Salvataggi. FTL si riavvia per cambiare.",
-    "reset.yes.profile": "Usa il suo salvataggio"
+    "reset.yes.profile": "Usa il suo salvataggio",
+    "sector_locks.closed": "Questa uscita è chiusa: questa nave ha bisogno del Sector Pass {n} per lasciare il settore {sector}. Si apre appena arriva il pass.",
+    "sector_locks.open": "Sector Pass ricevuto: l'uscita è aperta."
   }
 }

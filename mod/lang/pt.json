@@ -435,6 +435,8 @@
     "saves.archived": "Arquivada: guardada na pasta ap_profiles/archived, nada foi apagado.",
     "reset.question.profile": "Esta seed não é a desta gravação. Terá a sua própria gravação, e esta fica exatamente como está: podes voltar a ela no menu Gravações. O FTL reinicia para mudar.",
     "reset.question.profile.solo": "O modo solo tem a sua própria gravação, e esta fica exatamente como está: podes voltar a ela no menu Gravações. O FTL reinicia para mudar.",
-    "reset.yes.profile": "Usar a sua gravação"
+    "reset.yes.profile": "Usar a sua gravação",
+    "sector_locks.closed": "Esta saída está fechada: esta nave precisa do Sector Pass {n} para sair do setor {sector}. Abre assim que o passe chegar.",
+    "sector_locks.open": "Sector Pass recebido: a saída está aberta."
   }
 }

@@ -281,7 +281,7 @@ function apFillerShipsWaiting()
     return false
 end
 
-local SHIPLESS_KINDS = { ship = true, cap = true, start = true, archive = true }
+local SHIPLESS_KINDS = { ship = true, cap = true, start = true, archive = true, pass = true }
 local CATALOG_KINDS = { shop = true, crew = true }
 
 local function noRunStarted()
@@ -330,6 +330,22 @@ local function deliverOne(descriptor)
         fillerLog("delivered: " .. key)
         if _G.apNotifyItem then
             _G.apNotifyItem(descriptor.display or apT(key, params), descriptor.sender,
+                descriptor.sender == nil and not _G.apSoloEnabled)
+        end
+        return true
+    end
+
+    -- sector_locks: one more pass for this layout, kept for this run and the next ones.
+    if descriptor.kind == "pass" then
+        local inventory = _G.apInventory
+        if inventory == nil or descriptor.bp == nil then
+            return false
+        end
+        inventory.passes = inventory.passes or {}
+        inventory.passes[descriptor.bp] = (inventory.passes[descriptor.bp] or 0) + 1
+        fillerLog("sector pass: " .. descriptor.bp .. " x" .. inventory.passes[descriptor.bp])
+        if _G.apNotifyItem and not descriptor.isReplay then
+            _G.apNotifyItem(descriptor.display or apT("gift.something"), descriptor.sender,
                 descriptor.sender == nil and not _G.apSoloEnabled)
         end
         return true
@@ -680,7 +696,7 @@ end
 _G.apSupportedKinds = {
     ship = true, cap = true, start = true, filler = true, trap = true,
     weapon = true, drone = true, augment = true, shop = true, archive = true, crew = true, bundle = true,
-    layout = true, progressive_ship = true,
+    layout = true, progressive_ship = true, pass = true,
 }
 
 _G.apSupportedResources = {}

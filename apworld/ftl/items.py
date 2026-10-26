@@ -136,6 +136,9 @@ def enabled_items(options, shop_items: tuple[data.ShopItem, ...] = ()) -> tuple[
         elif group in (data.GROUP_SHOP_WEAPONS, data.GROUP_SHOP_DRONES, data.GROUP_SHOP_AUGMENTS):
             if item.blueprint in shop_blueprints and ftl_options.bundle_size(options, item.family) == 1:
                 kept.append(item)
+        elif group == data.GROUP_SECTOR_PASSES:
+            if options.sector_locks and item.blueprint in layouts:
+                kept.append(item)
         elif group == data.GROUP_BUNDLES:
             if int(item.name.rsplit(" ", 1)[1]) <= bundle_counts.get(item.family, 0):
                 kept.append(item)

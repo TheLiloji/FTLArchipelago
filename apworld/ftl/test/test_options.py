@@ -1102,3 +1102,15 @@ class TestKestrelKeyIgnoredWhenStartingWithIt(FTLTestBase):
         start = [item.name for item in self.multiworld.precollected_items[self.player]]
         self.assertIn("Kestrel Cruiser Key", start)
         self.assertFalse(self.world.fill_slot_data()["kestrel_locked"])
+
+
+class TestSectorLocks(FTLTestBase):
+    options = {"sector_locks": True, "layout_count": 4, "sector_logic": "strict"}
+
+    def test_two_passes_per_layout_and_deep_checks_need_them(self) -> None:
+        passes = [item.name for item in self.multiworld.itempool if item.name.startswith("Sector Pass (")]
+        self.assertEqual(len(passes), 2 * len(self.world.selected_layouts))
+        layout = self.world.selected_layouts[0]
+        deep = self.world.get_location(f"{layout.display}: Reach sector 6")
+        self.collect_all_but([f"Sector Pass ({layout.display})"])
+        self.assertFalse(deep.can_reach(self.multiworld.state), "no pass, no sector 6")

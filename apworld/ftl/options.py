@@ -374,6 +374,14 @@ class ShopDealScrap(Range):
     default = 100
 
 
+class SectorLocks(Toggle):
+    """Each ship layout needs Sector Passes to go deeper: the first lets it past sector 4, the second past
+    sector 7. Without them, the exit of sector 4 (or 7) stays shut and says why. Two items per layout.
+    """
+
+    display_name = "Sector Locks"
+
+
 class KestrelKey(Toggle):
     """When your starting ship is not the Kestrel, the Kestrel Cruiser A needs its key like any other ship.
     Off: the Kestrel A is always yours, as before. FTL still lets you pick it in the hangar; a run with it
@@ -1067,6 +1075,7 @@ class FTLOptions(PerGameCommonOptions):
     sector_skip: SectorSkip
     shop_deal_scrap: ShopDealScrap
     kestrel_key: KestrelKey
+    sector_locks: SectorLocks
     archives: Archives
     archives_required: ArchivesRequired
     victory_layouts: VictoryLayouts
@@ -1160,7 +1169,7 @@ ftl_option_groups = [
     ),
     OptionGroup(
         "Runs",
-        [HeadStarts, RunStartScrap, SectorSkip, EventBeacons, SectorLogic, ModLanguage],
+        [HeadStarts, RunStartScrap, SectorSkip, SectorLocks, EventBeacons, SectorLogic, ModLanguage],
         start_collapsed=True,
     ),
     OptionGroup(

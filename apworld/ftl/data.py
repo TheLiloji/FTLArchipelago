@@ -31,6 +31,8 @@ KIND_AUGMENT = "augment"
 KIND_ARCHIVE = "archive"
 KIND_CREW = "crew"
 KIND_BUNDLE = "bundle"
+# A Sector Pass (sector_locks): "bp" names the layout it lets past sectors 4 and 7.
+KIND_PASS = "pass"
 # A Type B or C that needs no ship key (layout_unlocks: independent). A mod that does not know it refuses the seed.
 KIND_LAYOUT = "layout"
 # A ship key that comes once per layout (layout_unlocks: progressive): "bps" lists what each copy gives, in order.
@@ -40,6 +42,7 @@ KINDS_IMPLEMENTED = (
     KIND_SHIP, KIND_CAP, KIND_START, KIND_FILLER, KIND_TRAP,
     KIND_SHOP, KIND_WEAPON, KIND_DRONE, KIND_AUGMENT, KIND_ARCHIVE, KIND_CREW, KIND_BUNDLE, KIND_LAYOUT,
     KIND_PROGRESSIVE_SHIP,
+    KIND_PASS,
 )
 
 REACTOR_TARGET = "reactor"
@@ -77,6 +80,7 @@ ITEM_OFFSET_ARCHIVE = 12_000
 ITEM_OFFSET_CREW = 13_000
 ITEM_OFFSET_SHIP_SYSTEM_LEVEL = 14_000
 ITEM_OFFSET_BUNDLE = 16_000
+ITEM_OFFSET_SECTOR_PASS = 17_000
 
 LOCATION_OFFSET_SECTOR = 0
 LOCATION_OFFSET_VICTORY = 10_000
@@ -576,6 +580,7 @@ GROUP_SHOP_DRONES = "Drones"
 GROUP_SHOP_AUGMENTS = "Augmentations"
 GROUP_ARCHIVES = "Archives"
 GROUP_BUNDLES = "Bundles"
+GROUP_SECTOR_PASSES = "Sector Passes"
 
 SHOP_FAMILIES: tuple[str, ...] = ("weapon", "drone", "augment")
 SHOP_FAMILY_GROUPS: dict[str, str] = {
@@ -973,6 +978,19 @@ def _build_items() -> tuple[Item, ...]:
                 family=family,
                 count=2 if family in ("weapon", "drone") else 1,
             ))
+
+    # sector_locks: two progressive passes per layout, one to go past sector 4, the second past sector 7.
+    for layout in LAYOUTS:
+        items.append(Item(
+            name=f"Sector Pass ({layout.display})",
+            code=ITEM_ID_BASE + ITEM_OFFSET_SECTOR_PASS + layout.index,
+            group=GROUP_SECTOR_PASSES,
+            classification="progression",
+            kind=KIND_PASS,
+            blueprint=layout.blueprint,
+            ship=layout.ship,
+            count=2,
+        ))
 
     return tuple(items)
 
