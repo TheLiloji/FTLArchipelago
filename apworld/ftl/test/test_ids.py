@@ -92,6 +92,9 @@ class TestIdentifiersAreWellFormed(unittest.TestCase):
             elif location.group == data.GROUP_SECTOR_FIGHTS:
                 expected = data.SECTOR_FIGHT_CHECK_FORMAT.format(ship=location.ship, sector=location.sector,
                                                                  n=location.fight)
+            elif location.group in (data.GROUP_MV_ENDINGS, data.GROUP_MV_ENDINGS_RARE):
+                self.assertTrue(location.check_id.startswith("mvend:"), location.name)
+                continue
             else:
                 expected = data.ACHIEVEMENT_CHECK_FORMAT.format(
                     achievement=location.achievement

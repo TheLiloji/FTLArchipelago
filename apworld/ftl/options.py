@@ -230,6 +230,14 @@ class MultiverseAchievementChecks(Toggle):
     display_name = "Multiverse Achievement Checks"
 
 
+class MultiverseEndingChecks(Toggle):
+    """With Multiverse, its endings send checks: the Flagship and the true ending as usual checks, and Nexus,
+    HER, The One Who Rhymes, Chaos and the royal heist holding filler only, since they are long or hidden.
+    """
+
+    display_name = "Multiverse Ending Checks"
+
+
 class MagicHat(Choice):
     """With Multiverse, the Magic Hat's sector jumps become Archipelago items: once one is received, the reroute
     menu offers the destinations it opens, in this run and the next ones.
@@ -1101,6 +1109,7 @@ class FTLOptions(PerGameCommonOptions):
     multiverse: Multiverse
     multiverse_achievements: MultiverseAchievementChecks
     magic_hat: MagicHat
+    multiverse_endings: MultiverseEndingChecks
     ship_layouts: ShipLayouts
     layout_count: LayoutCount
     layout_unlocks: LayoutUnlocks
@@ -1157,7 +1166,7 @@ class FTLOptions(PerGameCommonOptions):
 
 
 ftl_option_groups = [
-    OptionGroup("Multiverse", [Multiverse, MultiverseAchievementChecks, MagicHat]),
+    OptionGroup("Multiverse", [Multiverse, MultiverseAchievementChecks, MultiverseEndingChecks, MagicHat]),
     OptionGroup("Goal", [VictoriesRequired, VictoryDifficulty, FlagshipSabotage, Archives, ArchivesRequired,
                          VictoryCollectsLayout]),
     OptionGroup(

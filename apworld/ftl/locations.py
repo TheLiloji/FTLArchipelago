@@ -190,6 +190,9 @@ def selected_locations(options) -> tuple[data.Location, ...]:
         elif location.group == data.GROUP_MV_ACHIEVEMENTS:
             if multiverse(options) and options.multiverse_achievements:
                 kept.append(location)
+        elif location.group in (data.GROUP_MV_ENDINGS, data.GROUP_MV_ENDINGS_RARE):
+            if multiverse(options) and options.multiverse_endings:
+                kept.append(location)
         else:  # pragma: no cover
             raise ValueError(
                 f"{location.name!r} belongs to group {location.group!r}, which "

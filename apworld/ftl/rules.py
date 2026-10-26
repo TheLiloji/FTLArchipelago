@@ -148,14 +148,14 @@ def location_depth(location: data.Location, shop_by_sector: bool = False) -> int
     if location.group == data.GROUP_EVENTS:
         # Archipelago events show up about twice a sector.
         return min(data.SECTOR_COUNT, (location.fight + 1) // 2)
-    if location.group == data.GROUP_VICTORIES:
+    if location.group in (data.GROUP_VICTORIES, data.GROUP_MV_ENDINGS, data.GROUP_MV_ENDINGS_RARE):
         return data.SECTOR_COUNT
     found = _REACH_SECTOR.search(location.description)
     return int(found.group(1)) if found else 0
 
 
 def location_needs_flagship(location: data.Location) -> bool:
-    if location.group == data.GROUP_VICTORIES:
+    if location.group in (data.GROUP_VICTORIES, data.GROUP_MV_ENDINGS, data.GROUP_MV_ENDINGS_RARE):
         return True
     return bool(_BEAT_THE_BOSS.search(location.description))
 

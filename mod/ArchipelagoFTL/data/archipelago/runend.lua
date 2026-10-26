@@ -64,7 +64,29 @@ function apEndSnapshot(prefix)
     endLog((prefix or "state") .. " " .. (ok and message or ("unreadable: " .. tostring(message))))
 end
 
+-- multiverse_endings: each ending reached sends its own check, on top of the victory.
+local ENDING_CHECKS = {
+    BOSS_DESTROYED = "flagship", TRUE_VICTORY_BOMB = "true", TRUE_VICTORY_SAVE = "true",
+    NEXUS_ENDING_BAD_KILL = "nexus", NEXUS_ENDING_BAD_SAVE = "nexus", NEXUS_ENDING_GOOD_KILL = "nexus",
+    NEXUS_ENDING_GOOD_SAVE = "nexus", NEXUS_HER_HELP_BAD = "nexus", HER_FINALE_REAL = "her",
+    THE_ONE_WHO_RHYMES_WIN = "rhymes", THE_ONE_WHO_RHYMES_WIN_CHAOS = "chaos",
+    KNIGHT_BEANS_THEFT = "heist", KNIGHT_PALACE_THEFT = "heist",
+}
+
+function apEndingCheck(event)
+    local ending = ENDING_CHECKS[event]
+    if ending == nil or not _G.apSendCheck then
+        return false
+    end
+    local key = "mvend:" .. ending
+    if not (_G.apLocationNameFor and apLocationNameFor(key)) then
+        return false
+    end
+    return apSendCheck(key, apLocationNameFor(key))
+end
+
 script.on_game_event("BOSS_DESTROYED", false, function()
+    apTry(TAG, apEndingCheck, "BOSS_DESTROYED")
     declareEnd("victory", "flagship destroyed")
 end)
 
@@ -78,6 +100,7 @@ local MULTIVERSE_ENDINGS = {
 
 for _, ending in ipairs(MULTIVERSE_ENDINGS) do
     script.on_game_event(ending, false, function()
+        apTry(TAG, apEndingCheck, ending)
         declareEnd("victory", "Multiverse ending " .. ending)
     end)
 end

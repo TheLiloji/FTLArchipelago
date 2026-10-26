@@ -712,3 +712,14 @@ test("magic hat: an item opens its destinations in the reroute menu, for this ru
     equals(sim.runVariables.ap_hat_rebel_generic, 1, "still there in the next run")
     _G.apInventory.hat = nil
 end)
+
+test("multiverse endings: an ending reached sends its own check", function()
+    apContractResetForTesting()
+    apForgetChecksForTesting()
+    applySeed({ loc = { ["mvend:true"] = "Multiverse Ending: True Ending", ["mvend:nexus"] = "Multiverse Ending: Nexus" } })
+    sim.startRun(true)
+    check(apEndingCheck("TRUE_VICTORY_SAVE"), "the true ending")
+    check(apCheckAlreadySent("mvend:true"), "is sent")
+    check(apEndingCheck("NEXUS_ENDING_GOOD_KILL"), "a Nexus ending")
+    check(not apEndingCheck("HER_FINALE_REAL"), "an ending not in the seed sends nothing")
+end)

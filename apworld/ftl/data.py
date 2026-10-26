@@ -109,6 +109,7 @@ LOCATION_OFFSET_CREW = 60_000
 LOCATION_OFFSET_SHIP_SYSTEM = 70_000
 # Taken by the Multiverse achievements on the Multiverse branch, already released there: never reuse it.
 LOCATION_OFFSET_MV_ACH = 80_000
+LOCATION_OFFSET_MV_ENDING = 107_000
 LOCATION_OFFSET_FIGHT = 90_000
 LOCATION_OFFSET_SECTOR_FIGHT = 100_000
 LOCATION_OFFSET_EVENT = 105_000
@@ -645,13 +646,15 @@ GROUP_VICTORIES = "Ship victories"
 GROUP_SHIP_ACHIEVEMENTS = "Ship achievements"
 GROUP_GENERAL_ACHIEVEMENTS = "General achievements"
 GROUP_MV_ACHIEVEMENTS = "Multiverse achievements"
+GROUP_MV_ENDINGS = "Multiverse endings"
+GROUP_MV_ENDINGS_RARE = "Multiverse rare endings"
 GROUP_SHOP_SLOTS = "Archipelago shop"
 GROUP_FIGHTS = "Fights won"
 GROUP_SECTOR_FIGHTS = "Fights won per sector"
 GROUP_EVENTS = "Archipelago events"
 GROUP_REACTOR = "Reactor power"
 # Location groups that only ever hold filler: the logic does not count them as room for the items it needs.
-FILLER_ONLY_GROUPS: frozenset[str] = frozenset({GROUP_MV_ACHIEVEMENTS, GROUP_MV_CREW_RARE})
+FILLER_ONLY_GROUPS: frozenset[str] = frozenset({GROUP_MV_ACHIEVEMENTS, GROUP_MV_CREW_RARE, GROUP_MV_ENDINGS_RARE})
 
 TIER_GENERAL = "general"
 TIER_DISTANCE = "distance"
@@ -950,6 +953,18 @@ MAGIC_HAT_GROUPS: tuple[tuple[str, tuple[str, ...]], ...] = (
     ('Hostile Homeworlds', ('rebel_unique', 'auto_unique', 'hive_unique', 'rock_unique', 'dusk_unique')),
     ('Hazard Homeworlds', ('slug_unique', 'clan_unique', 'shell_unique', 'morph_unique', 'leech_unique', 'monk_unique', 'ghost_unique', 'dynasty_unique', 'coalition_unique')),
     ('Secret Sectors', ('stargrove', 'spider_secret', 'jerry_secret', 'nights_secret', 'hektar_secret', 'estate_secret', 'origins_secret', 'augmented_secret')),
+)
+
+
+# Multiverse's endings and the events that reach them (the mod's runend.lua): (slot, key, label, filler only).
+MV_ENDINGS: tuple[tuple[int, str, str, bool], ...] = (
+    (0, "flagship", "Flagship", False),
+    (1, "true", "True Ending", False),
+    (2, "nexus", "Nexus", True),
+    (3, "her", "HER", True),
+    (4, "rhymes", "The One Who Rhymes", True),
+    (5, "chaos", "Chaos", True),
+    (6, "heist", "Royal Heist", True),
 )
 
 
@@ -1328,6 +1343,17 @@ def _build_locations() -> tuple[Location, ...]:
             achievement=achievement,
         ))
 
+    # Multiverse's endings: the Flagship and the true ending are checks like any; the others are long or hidden,
+    # so they only ever hold filler. Slots never move once published.
+    for slot, key, label, rare in MV_ENDINGS:
+        locations.append(Location(
+            name=f"Multiverse Ending: {label}",
+            code=LOCATION_ID_BASE + LOCATION_OFFSET_MV_ENDING + slot,
+            check_id=f"mvend:{key}",
+            group=GROUP_MV_ENDINGS_RARE if rare else GROUP_MV_ENDINGS,
+            description=f"Reach Multiverse's {label} ending and beat the boss it asks for.",
+        ))
+
     return tuple(locations)
 
 
@@ -1504,7 +1530,7 @@ def _check_vanilla_totals() -> None:
                       + 10 * 16 + len(MV_LAYOUTS) * (SECTOR_COUNT + 1) + len(MV_SHIPS) * 16
                       + len(MV_ACHIEVEMENTS_RAW) + len(ALL_SHIPS) * MAX_FIGHTS_PER_SHIP
                       + len(ALL_SHIPS) * SECTOR_COUNT * MAX_FIGHTS_PER_SECTOR
-                      + MAX_EVENT_CHECKS + len(REACTOR_THRESHOLDS)),
+                      + MAX_EVENT_CHECKS + len(REACTOR_THRESHOLDS) + len(MV_ENDINGS)),
     }
     wrong = {label: pair for label, pair in expected.items() if pair[0] != pair[1]}
     if wrong:

@@ -257,3 +257,21 @@ class TestMagicHatWithoutMultiverse(FTLTestBase):
     def test_no_hat_item_in_the_base_game(self) -> None:
         self.assertFalse(any(data.ITEMS_BY_NAME[item.name].group == data.GROUP_MAGIC_HAT
                              for item in self.multiworld.itempool))
+
+
+class TestMultiverseEndings(FTLTestBase):
+    options = {"multiverse": True, "multiverse_endings": True}
+
+    def test_the_endings_are_checks_and_the_rare_ones_hold_filler(self) -> None:
+        names = {location.name: location for location in self.multiworld.get_locations(self.player)}
+        self.assertIn("Multiverse Ending: True Ending", names)
+        self.assertIn(data.LOCATIONS_BY_NAME["Multiverse Ending: Nexus"].group, data.FILLER_ONLY_GROUPS)
+        self.assertNotIn(data.LOCATIONS_BY_NAME["Multiverse Ending: True Ending"].group, data.FILLER_ONLY_GROUPS)
+
+
+class TestMultiverseEndingsOffByDefault(FTLTestBase):
+    options = {"multiverse": True}
+
+    def test_no_ending_check(self) -> None:
+        self.assertFalse(any(location.name.startswith("Multiverse Ending")
+                             for location in self.multiworld.get_locations(self.player)))
