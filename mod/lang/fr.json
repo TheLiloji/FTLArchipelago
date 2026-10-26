@@ -437,6 +437,7 @@
     "reset.yes.profile": "Utiliser sa sauvegarde",
     "sector_locks.closed": "Cette sortie est fermée : ce vaisseau a besoin du Sector Pass {n} pour quitter le secteur {sector}. Elle s'ouvre dès que le pass arrive.",
     "sector_locks.open": "Sector Pass reçu : la sortie est ouverte.",
-    "reset.kept.profile": "Gardée : cette sauvegarde reste avec sa seed. Chargez une autre sauvegarde, ou connectez-vous à la seed de celle-ci."
+    "reset.kept.profile": "Gardée : cette sauvegarde reste avec sa seed. Chargez une autre sauvegarde, ou connectez-vous à la seed de celle-ci.",
+    "deal.off": "Il n'y a pas de pactes dans cette seed"
   }
 }
