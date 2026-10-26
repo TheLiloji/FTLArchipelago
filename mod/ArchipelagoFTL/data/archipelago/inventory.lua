@@ -170,8 +170,10 @@ end
 
 local ALWAYS_THERE = { PLAYER_SHIP_HARD = true }
 
+-- kestrel_key: a seed may ask the Kestrel A for its key like any ship (FTL still shows it in the hangar).
 local function hasKey(ship)
-    return ALWAYS_THERE[ship] == true or ship == (_G.apSeedStartShip and apSeedStartShip()) or owned(ship)
+    local always = ALWAYS_THERE[ship] == true and not (_G.apSeedKestrelLocked and apSeedKestrelLocked())
+    return always or ship == (_G.apSeedStartShip and apSeedStartShip()) or owned(ship)
 end
 
 -- Whether a run may count with this layout: "ok", "not_in_seed" or "not_received". FTL unlocks ships on its

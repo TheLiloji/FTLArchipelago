@@ -667,3 +667,13 @@ test("ships: a ship is named by its class, a B or C layout adds its letter", fun
     sim.shipClasses = nil
     sim.shipNames.PLAYER_SHIP_FED = before
 end)
+
+test("kestrel key: a seed that locks the Kestrel refuses its runs until the key comes in", function()
+    shipConnect({ "Rock Cruiser Key" }, { kestrel_locked = true })
+    equals(apShipReceived("PLAYER_SHIP_HARD"), "not_received", "no key, no Kestrel run")
+    shipConnect({ "Rock Cruiser Key", "Kestrel Cruiser Key" }, { kestrel_locked = true })
+    equals(apShipReceived("PLAYER_SHIP_HARD"), "ok", "with its key it counts")
+    shipConnect({ "Rock Cruiser Key" })
+    equals(apShipReceived("PLAYER_SHIP_HARD"), "ok", "other seeds keep the Kestrel A")
+    shipDone()
+end)

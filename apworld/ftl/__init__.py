@@ -155,7 +155,7 @@ class FTLWorld(World):
         return by_slot[slot]
 
     def _draw_layouts(self) -> None:
-        forced = [self.start_ship.blueprint, *data.ALWAYS_UNLOCKED_LAYOUTS]
+        forced = [self.start_ship.blueprint, *options.always_unlocked_layouts(self.options)]
         forced.extend(options.goal_layouts(self.options) or ())
         refused = sorted(data.LAYOUTS_BY_BLUEPRINT[blueprint].display
                          for blueprint in dict.fromkeys(forced) if blueprint in options.excluded_layouts(self.options))
@@ -181,7 +181,7 @@ class FTLWorld(World):
 
     def _starting_keys(self) -> tuple[str, ...]:
         always = {
-            data.LAYOUTS_BY_BLUEPRINT[blueprint].ship for blueprint in data.ALWAYS_UNLOCKED_LAYOUTS
+            data.LAYOUTS_BY_BLUEPRINT[blueprint].ship for blueprint in options.always_unlocked_layouts(self.options)
         }
         wanted = dict.fromkeys([self.start_ship.blueprint, *sorted(always)])
         return tuple(data.SHIP_KEY_NAMES[blueprint] for blueprint in wanted)
@@ -287,6 +287,7 @@ class FTLWorld(World):
                                             "shop_hints"),
             "tracker": self._tracker_data(),
             "logic": self._logic_for_the_mod(),
+            "kestrel_locked": not options.always_unlocked_layouts(self.options),
         }
         return slot_data
 

@@ -1083,3 +1083,22 @@ class TestEarlyShipKeysProgressive(FTLTestBase):
     def test_one_copy_of_each_key_comes_early(self) -> None:
         for key in self.world.logic.early_ship_keys:
             self.assertEqual(self.multiworld.local_early_items[self.player].get(key), 1)
+
+
+class TestKestrelNeedsItsKey(FTLTestBase):
+    options = {"kestrel_key": True, "start_ship": "rock_cruiser", "layout_count": 6}
+
+    def test_the_kestrel_key_is_not_given_at_the_start(self) -> None:
+        start = [item.name for item in self.multiworld.precollected_items[self.player]]
+        self.assertNotIn("Kestrel Cruiser Key", start)
+        self.assertIn("Rock Cruiser Key", start)
+        self.assertTrue(self.world.fill_slot_data()["kestrel_locked"])
+
+
+class TestKestrelKeyIgnoredWhenStartingWithIt(FTLTestBase):
+    options = {"kestrel_key": True, "start_ship": "kestrel_cruiser"}
+
+    def test_the_kestrel_stays_given(self) -> None:
+        start = [item.name for item in self.multiworld.precollected_items[self.player]]
+        self.assertIn("Kestrel Cruiser Key", start)
+        self.assertFalse(self.world.fill_slot_data()["kestrel_locked"])

@@ -385,7 +385,7 @@ def _relieve_with_free_keys(
 
 def _free_ship_keys(world: "FTLWorld") -> tuple[str, ...]:
     ships = {world.start_ship.blueprint}
-    ships.update(data.LAYOUTS_BY_BLUEPRINT[bp].ship for bp in data.ALWAYS_UNLOCKED_LAYOUTS)
+    ships.update(data.LAYOUTS_BY_BLUEPRINT[bp].ship for bp in options_module.always_unlocked_layouts(world.options))
     return tuple(data.SHIP_KEY_NAMES[ship] for ship in sorted(ships))
 
 

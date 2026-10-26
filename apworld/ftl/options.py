@@ -374,6 +374,15 @@ class ShopDealScrap(Range):
     default = 100
 
 
+class KestrelKey(Toggle):
+    """When your starting ship is not the Kestrel, the Kestrel Cruiser A needs its key like any other ship.
+    Off: the Kestrel A is always yours, as before. FTL still lets you pick it in the hangar; a run with it
+    then sends nothing until its key comes in, and the game says so.
+    """
+
+    display_name = "Kestrel Needs Its Key"
+
+
 class FlagshipSabotage(Range):
     """The multiworld sabotages the Flagship: each of its phases arrives weakened, more with each level.
     1: hull -10 %. 2: and shields -1. 3: hull -20 %. 4: and weapons -1. 5: hull -30 %. 0 turns it off.
@@ -1057,6 +1066,7 @@ class FTLOptions(PerGameCommonOptions):
     flagship_sabotage: FlagshipSabotage
     sector_skip: SectorSkip
     shop_deal_scrap: ShopDealScrap
+    kestrel_key: KestrelKey
     archives: Archives
     archives_required: ArchivesRequired
     victory_layouts: VictoryLayouts
@@ -1123,7 +1133,7 @@ ftl_option_groups = [
                          VictoryCollectsLayout]),
     OptionGroup(
         "Ships",
-        [StartShip, ShipLayouts, LayoutCount, ExcludedLayouts, LayoutUnlocks, EarlyShipKeys],
+        [StartShip, ShipLayouts, LayoutCount, ExcludedLayouts, LayoutUnlocks, EarlyShipKeys, KestrelKey],
     ),
     OptionGroup(
         "Checks",
@@ -1313,3 +1323,13 @@ def progressive_layouts(options, ship: str) -> tuple[data.Layout, ...]:
     from . import locations
     return tuple(sorted((layout for layout in locations.selected_layouts(options) if layout.ship == ship),
                         key=lambda layout: layout.variant))
+
+
+def always_unlocked_layouts(options) -> tuple[str, ...]:
+    """The layouts every seed gives at the start: the Kestrel A, unless kestrel_key asks for its key."""
+    kestrel = data.ALWAYS_UNLOCKED_LAYOUTS
+    start_slot = getattr(options, "start_ship").value
+    start_is_kestrel = any(ship.slot == start_slot and ship.blueprint in kestrel for ship in data.SHIPS)
+    if getattr(options, "kestrel_key", None) is not None and options.kestrel_key and not start_is_kestrel:
+        return ()
+    return kestrel
