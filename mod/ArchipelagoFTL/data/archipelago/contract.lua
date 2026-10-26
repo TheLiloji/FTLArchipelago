@@ -74,8 +74,11 @@ function apApplySlotData(slotData, slotName, solo)
         local incoming = apSeedFingerprint(identity)
         contractLog(string.format("seed fingerprint: stored %d, incoming %d, hash %s",
             stored, incoming, tostring(identity.hash)))
+        -- With save profiles, a save that already belongs to a seed asks on any other seed, progress or not:
+        -- the answer gives that seed its own save. Without them, only a profile with ships has something to lose.
+        local bound = _G.apSavesSupported ~= nil and apSavesSupported() and stored ~= 0
         if incoming ~= stored
-            and _G.apProfileHasShips and _G.apProfileHasShips() then
+            and (bound or (_G.apProfileHasShips and _G.apProfileHasShips())) then
             state.seedChangedWithUnlocks = true
             state.seedChangeReason = stored == 0 and "foreign" or "seedchange"
             state.refusedFingerprint = incoming

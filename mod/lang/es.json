@@ -437,6 +437,7 @@
     "reset.question.profile.solo": "El modo solo tiene su propia partida, y esta queda exactamente como está: puedes volver a ella desde el menú Partidas. FTL se reinicia para cambiar.",
     "reset.yes.profile": "Usar su partida",
     "sector_locks.closed": "Esta salida está cerrada: esta nave necesita el Sector Pass {n} para salir del sector {sector}. Se abre en cuanto llega el pase.",
-    "sector_locks.open": "Sector Pass recibido: la salida está abierta."
+    "sector_locks.open": "Sector Pass recibido: la salida está abierta.",
+    "reset.kept.profile": "Guardada: esta partida se queda con su seed. Carga otra partida o conéctate a la seed de esta."
   }
 }

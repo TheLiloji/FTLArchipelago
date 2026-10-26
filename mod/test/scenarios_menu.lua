@@ -496,3 +496,73 @@ test("save profiles: each save remembers its own seed, the first one keeps the o
     sim.profiles.current = "main"
     sim.profiles.on = false
 end)
+
+local function profileConnect(hash)
+    apNetResetForTesting()
+    sim.net.calls = {}
+    apNetConnect("ws://localhost:38281", "Navigator", "")
+    sim.netEvent("connected", { name = "Navigator", extra = {
+        contract = 2, kinds = { "filler" }, kinds_required = {}, items = {},
+        loc = { ["shop:1"] = "Archipelago Shop 1" }, seed_hash = hash } })
+    sim.net.connected = true
+    sim.tick(1)
+end
+
+local function profileStart(current)
+    apContractResetForTesting()
+    apConnectResetForTesting()
+    apInventoryClear()
+    sim.profiles.on = true
+    sim.profiles.current = current
+    sim.profiles.pending = nil
+    sim.started = false
+    sim.durable = {}
+    sim.quitCalled = false
+end
+
+local function profileEnd()
+    sim.profiles.on = false
+    sim.profiles.current = "main"
+    sim.profiles.pending = nil
+    sim.durable = {}
+    apSeedChangeAcknowledged()
+end
+
+test("save profiles: a save that belongs to a seed asks on another seed, even with no progress (Windows b, e)", function()
+    profileStart("seed-1")
+    profileConnect("seed-A")
+    check(not apSeedChangeLeftovers(), "a new save takes its first seed without asking")
+    check(apNetSeedTag() ~= 0, "and keeps it")
+    profileConnect("seed-B")
+    check(apSeedChangeLeftovers(), "another seed on it: the question, though nothing was played")
+    profileEnd()
+end)
+
+test("save profiles: keeping the save leaves the other seed out, nothing renamed (Windows c)", function()
+    profileStart("main")
+    profileConnect("seed-A")
+    local mine = apNetSeedTag()
+    sim.profiles.details["main.label"] = "Navigator on A"
+    profileConnect("seed-B")
+    sim.renderMenu()
+    check(sim.drawnText(apT("reset.no")), "the question is up")
+    sim.net.calls = {}
+    sim.click(700, 385)
+    equals(sim.netCalls("Connect"), 0, "keeping does not connect the other seed")
+    equals(apNetSeedTag(), mine, "the save keeps its seed")
+    equals(sim.profiles.details["main.label"], "Navigator on A", "and its name")
+    check(not sim.quitCalled, "FTL stays open")
+    profileEnd()
+end)
+
+test("save profiles: solo from another save offers solo's own save (Windows d)", function()
+    profileStart("main")
+    sim.renderMenu()
+    sim.click(305, 586)
+    sim.renderMenu()
+    check(sim.drawnText(apT("reset.yes.profile")), "solo asks to use its own save")
+    sim.click(400, 385)
+    equals(sim.profiles.pending, "solo", "the switch goes to the solo save")
+    check(sim.quitCalled, "FTL closes to load it")
+    profileEnd()
+end)
