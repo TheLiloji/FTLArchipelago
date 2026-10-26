@@ -202,6 +202,222 @@ std::string Timestamp()
 
 }
 
+namespace
+{
+const char* kProfileFiles[][2] = { { "_prof.sav", "prof.sav" }, { "_prof_backup.sav", "prof_backup.sav" },
+                                   { "_continue.sav", "continue.sav" } };
+const size_t kProfileFileCount = sizeof(kProfileFiles) / sizeof(kProfileFiles[0]);
+bool gWipeNewProfile = false;
+
+bool FileExists(const std::string& path)
+{
+    std::ifstream f(path.c_str(), std::ios::binary);
+    return f.good();
+}
+
+void MakeDir(const std::string& path)
+{
+#ifdef _WIN32
+    _mkdir(path.c_str());
+#else
+    mkdir(path.c_str(), 0755);
+#endif
+}
+
+bool ValidProfileId(const std::string& id)
+{
+    if (id.empty() || id.size() > 64) return false;
+    for (size_t i = 0; i < id.size(); ++i) {
+        const char c = id[i];
+        if (!((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '-' || c == '_')) {
+            return false;
+        }
+    }
+    return true;
+}
+
+std::string ProfilesFolder()
+{
+    return FileHelper::getUserFolder() + "ap_profiles";
+}
+
+std::string CurrentProfileId(const std::map<std::string, std::string>& values)
+{
+    std::map<std::string, std::string>::const_iterator found = values.find("profile");
+    return found == values.end() || found->second.empty() ? std::string("main") : found->second;
+}
+
+std::vector<std::string> SplitIds(const std::string& list)
+{
+    std::vector<std::string> ids;
+    std::string current;
+    for (size_t i = 0; i <= list.size(); ++i) {
+        if (i == list.size() || list[i] == ',') {
+            if (!current.empty() && std::find(ids.begin(), ids.end(), current) == ids.end()) ids.push_back(current);
+            current.clear();
+        } else {
+            current += list[i];
+        }
+    }
+    return ids;
+}
+
+std::string JoinIds(const std::vector<std::string>& ids)
+{
+    std::string list;
+    for (size_t i = 0; i < ids.size(); ++i) {
+        if (i > 0) list += ",";
+        list += ids[i];
+    }
+    return list;
+}
+}
+
+std::string Client::ProfileId() const
+{
+    return CurrentProfileId(ReadState());
+}
+
+std::vector<std::string> Client::ProfileIds() const
+{
+    const std::map<std::string, std::string> values = ReadState();
+    std::map<std::string, std::string>::const_iterator found = values.find("profiles");
+    std::vector<std::string> ids = SplitIds(found == values.end() ? std::string() : found->second);
+    const std::string current = CurrentProfileId(values);
+    if (std::find(ids.begin(), ids.end(), current) == ids.end()) ids.insert(ids.begin(), current);
+    return ids;
+}
+
+bool Client::SwitchProfile(const std::string& id)
+{
+    if (!ValidProfileId(id)) return false;
+    std::map<std::string, std::string> values = ReadState();
+    if (id == CurrentProfileId(values)) {
+        values.erase("profile_pending");
+    } else {
+        values["profile_pending"] = id;
+    }
+    WriteState(values);
+    return true;
+}
+
+std::string Client::PendingProfile() const
+{
+    const std::map<std::string, std::string> values = ReadState();
+    std::map<std::string, std::string>::const_iterator found = values.find("profile_pending");
+    return found == values.end() ? std::string() : found->second;
+}
+
+bool Client::ArchiveProfile(const std::string& id)
+{
+    if (!ValidProfileId(id)) return false;
+    std::map<std::string, std::string> values = ReadState();
+    if (id == CurrentProfileId(values) || values["profile_pending"] == id) return false;
+    const std::string folder = ProfilesFolder();
+    MakeDir(folder);
+    MakeDir(folder + "/archived");
+    const std::string from = folder + "/" + id;
+    const std::string to = folder + "/archived/" + id + "-" + Timestamp();
+    if (FileExists(from + "/prof.sav") && std::rename(from.c_str(), to.c_str()) != 0) return false;
+    std::vector<std::string> ids = SplitIds(values["profiles"]);
+    ids.erase(std::remove(ids.begin(), ids.end(), id), ids.end());
+    values["profiles"] = JoinIds(ids);
+    for (std::map<std::string, std::string>::iterator i = values.begin(); i != values.end();) {
+        if (i->first.compare(0, 8 + id.size() + 1, "profile." + id + ".") == 0) {
+            values.erase(i++);
+        } else {
+            ++i;
+        }
+    }
+    WriteState(values);
+    return true;
+}
+
+void Client::DescribeProfile(const std::string& key, const std::string& value)
+{
+    if (key.empty() || key.find('=') != std::string::npos || key.find('.') != std::string::npos) return;
+    std::map<std::string, std::string> values = ReadState();
+    std::string clean = value;
+    for (size_t i = 0; i < clean.size(); ++i) {
+        if (clean[i] == '\n' || clean[i] == '\r') clean[i] = ' ';
+    }
+    const std::string id = CurrentProfileId(values);
+    values["profile." + id + "." + key] = clean;
+    // When this save was last played, as the menu shows it: the Lua side has no clock.
+    char stamp[32];
+    std::time_t now = std::time(nullptr);
+    std::tm* local = std::localtime(&now);
+    if (local != nullptr && std::strftime(stamp, sizeof(stamp), "%Y-%m-%d %H:%M", local) > 0) {
+        values["profile." + id + ".last"] = stamp;
+    }
+    WriteState(values);
+}
+
+std::string Client::ProfileDetail(const std::string& id, const std::string& key) const
+{
+    const std::map<std::string, std::string> values = ReadState();
+    std::map<std::string, std::string>::const_iterator found = values.find("profile." + id + "." + key);
+    return found == values.end() ? std::string() : found->second;
+}
+
+void ApplyPendingProfile()
+{
+    gWipeNewProfile = false;
+    std::map<std::string, std::string> values = ReadState();
+    const std::string pending = values["profile_pending"];
+    values.erase("profile_pending");
+    const std::string current = CurrentProfileId(values);
+    if (!ValidProfileId(pending) || pending == current || SaveFileHandler::instance == nullptr) {
+        WriteState(values);
+        return;
+    }
+    const std::string base = FileHelper::getUserFolder() + SaveFileHandler::instance->savePrefix;
+    const std::string folder = ProfilesFolder();
+    MakeDir(folder);
+    const std::string away = folder + "/" + current + "/";
+    MakeDir(away);
+    // The current files first: a failed copy stops everything, the player keeps what they had.
+    for (size_t i = 0; i < kProfileFileCount; ++i) {
+        const std::string live = base + kProfileFiles[i][0];
+        const std::string kept = away + kProfileFiles[i][1];
+        if (FileExists(live)) {
+            if (!CopyFileContent(live, kept)) {
+                WriteState(values);
+                return;
+            }
+        } else {
+            std::remove(kept.c_str());
+        }
+    }
+    const std::string target = folder + "/" + pending + "/";
+    const bool known = FileExists(target + "prof.sav");
+    for (size_t i = 0; i < kProfileFileCount; ++i) {
+        const std::string live = base + kProfileFiles[i][0];
+        const std::string stored = target + kProfileFiles[i][1];
+        if (known && FileExists(stored)) {
+            CopyFileContent(stored, live);
+        } else if (i > 0 || known) {
+            // Kept in the folder just above: the backup and the run of the other profile are not lost.
+            std::remove(live.c_str());
+        }
+    }
+    gWipeNewProfile = !known;
+    std::vector<std::string> ids = SplitIds(values["profiles"]);
+    if (std::find(ids.begin(), ids.end(), current) == ids.end()) ids.push_back(current);
+    if (std::find(ids.begin(), ids.end(), pending) == ids.end()) ids.push_back(pending);
+    values["profiles"] = JoinIds(ids);
+    values["profile"] = pending;
+    WriteState(values);
+}
+
+void FinishPendingProfile()
+{
+    if (!gWipeNewProfile) return;
+    gWipeNewProfile = false;
+    G_->GetScoreKeeper()->WipeProfile(true);
+    G_->GetScoreKeeper()->Save(false);
+}
+
 bool Client::RequestProfileReset()
 {
     if (SaveFileHandler::instance == nullptr) return false;

@@ -42,6 +42,17 @@ public:
     bool RelaunchWhenClosed();
     bool ProfileResetRequested() const;
 
+    // Save profiles: each seed (and solo) keeps its own copy of FTL's profile and run save, in
+    // <user folder>/ap_profiles/<id>/. A switch is done at the next launch, before FTL reads the profile:
+    // the current files are copied away first, nothing is ever deleted (an archived profile is only moved).
+    std::string ProfileId() const;
+    std::vector<std::string> ProfileIds() const;
+    bool SwitchProfile(const std::string& id);
+    std::string PendingProfile() const;
+    bool ArchiveProfile(const std::string& id);
+    void DescribeProfile(const std::string& key, const std::string& value);
+    std::string ProfileDetail(const std::string& id, const std::string& key) const;
+
     void RememberState(const std::string& key, const std::string& value);
     std::string RecallState(const std::string& key) const;
     void Disconnect();
@@ -87,6 +98,11 @@ private:
 };
 
 Client& Instance();
+
+// Used by the ScoreKeeper::OnInit hook: put the profile asked for in place before FTL reads it, then give a new
+// profile a clean start once FTL has.
+void ApplyPendingProfile();
+void FinishPendingProfile();
 
 // Used by the hooks: whether this unlock may go through, and telling Lua about one that did not.
 bool ShipUnlockAllowed(const std::string& blueprint);

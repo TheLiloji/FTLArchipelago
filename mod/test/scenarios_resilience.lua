@@ -1213,3 +1213,43 @@ test("reactor checks: each threshold the reactor reaches sends its check", funct
     check(not apCheckAlreadySent("reactor:15"), "15 not yet")
     sim.powerManager.currentPower.second = 8
 end)
+
+test("sector skip: a sector the layout already crossed opens its first beacon as an exit, and the jump pays", function()
+    apContractResetForTesting()
+    apForgetChecksForTesting()
+    applySeed({ options = { sector_skip = 1 } })
+    sim.meta["ap_reached_PLAYER_SHIP_HARD"] = 3
+    sim.startRun(true)
+    sim.starMap.worldLevel = 0
+    sim.starMap.currentLoc = sim.makeLocation()
+    sim.jumpArrive()
+    equals(sim.starMap.currentLoc.beacon, true, "sector 1: its first beacon is an exit")
+    local before = sim.player.currentScrap
+    sim.starMap.worldLevel = 1
+    sim.starMap.currentLoc = sim.makeLocation()
+    sim.jumpArrive()
+    equals(sim.player.currentScrap - before, 30, "jumped on at once: the skip pays")
+    equals(sim.starMap.currentLoc.beacon, true, "sector 2 was reached before too")
+    sim.starMap.currentLoc = sim.makeLocation()
+    sim.jumpArrive()
+    sim.starMap.worldLevel = 2
+    sim.starMap.currentLoc = sim.makeLocation()
+    before = sim.player.currentScrap
+    sim.jumpArrive()
+    equals(sim.player.currentScrap, before, "sector 2 explored: nothing paid")
+    check(sim.starMap.currentLoc.beacon ~= true, "sector 3 was the deepest: no exit")
+    sim.starMap.worldLevel = 0
+    sim.meta["ap_reached_PLAYER_SHIP_HARD"] = nil
+end)
+
+test("sector skip: off by default", function()
+    apContractResetForTesting()
+    applySeed({})
+    sim.meta["ap_reached_PLAYER_SHIP_HARD"] = 5
+    sim.startRun(true)
+    sim.starMap.worldLevel = 0
+    sim.starMap.currentLoc = sim.makeLocation()
+    sim.jumpArrive()
+    check(sim.starMap.currentLoc.beacon ~= true, "no exit without the option")
+    sim.meta["ap_reached_PLAYER_SHIP_HARD"] = nil
+end)

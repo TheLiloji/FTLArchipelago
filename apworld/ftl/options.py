@@ -398,6 +398,15 @@ class ReactorChecks(Toggle):
     display_name = "Reactor Checks"
 
 
+class SectorSkip(Toggle):
+    """A ship layout that already reached the next sector in an earlier run may skip sectors 1 to 4: the first
+    beacon of such a sector is an exit. Jumping on at once gives 30 scrap; exploring as usual stays possible.
+    The skipped sector's checks wait for another run.
+    """
+
+    display_name = "Sector Skip"
+
+
 class FlagshipSabotage(Range):
     """The multiworld sabotages the Flagship: each of its phases arrives weakened, more with each level.
     1: hull -10 %. 2: and shields -1. 3: hull -20 %. 4: and weapons -1. 5: hull -30 %. 0 turns it off.
@@ -1082,6 +1091,7 @@ class FTLOptions(PerGameCommonOptions):
     victories_required: VictoriesRequired
     victory_difficulty: VictoryDifficulty
     flagship_sabotage: FlagshipSabotage
+    sector_skip: SectorSkip
     archives: Archives
     archives_required: ArchivesRequired
     victory_layouts: VictoryLayouts
@@ -1179,7 +1189,7 @@ ftl_option_groups = [
     ),
     OptionGroup(
         "Runs",
-        [HeadStarts, RunStartScrap, EventBeacons, SectorLogic, ModLanguage],
+        [HeadStarts, RunStartScrap, SectorSkip, EventBeacons, SectorLogic, ModLanguage],
         start_collapsed=True,
     ),
     OptionGroup(

@@ -40,6 +40,13 @@
 %rename("%s") ArchipelagoFTL::Client::RequestProfileReset;
 %rename("%s") ArchipelagoFTL::Client::RelaunchWhenClosed;
 %rename("%s") ArchipelagoFTL::Client::ProfileResetRequested;
+%rename("%s") ArchipelagoFTL::Client::ProfileId;
+%rename("%s") ArchipelagoFTL::Client::ProfileIds;
+%rename("%s") ArchipelagoFTL::Client::SwitchProfile;
+%rename("%s") ArchipelagoFTL::Client::PendingProfile;
+%rename("%s") ArchipelagoFTL::Client::ArchiveProfile;
+%rename("%s") ArchipelagoFTL::Client::DescribeProfile;
+%rename("%s") ArchipelagoFTL::Client::ProfileDetail;
 %rename("%s") ArchipelagoFTL::Client::RememberState;
 %rename("%s") ArchipelagoFTL::Client::RecallState;
 %rename("%s") ArchipelagoFTL::Client::SetShipLock;

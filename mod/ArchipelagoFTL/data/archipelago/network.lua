@@ -878,6 +878,11 @@ local function moduleCall(method, ...)
     return result
 end
 
+-- Save profiles (module from 0.6 on): nil when the module is older and has none.
+function apNetProfileCall(method, ...)
+    return moduleCall(method, ...)
+end
+
 -- Whether the module can lock at all.
 function apNetShipLock(on)
     local ap = client()

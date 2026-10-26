@@ -409,3 +409,75 @@ test("a ship that starts with Oxygen is offered nothing", function()
     equals(#apSystemInstallChoices(), 0, "Oxygen is already aboard")
     sim.hullPlaces = nil
 end)
+
+local function profileSeedChange()
+    apContractResetForTesting()
+    apConnectResetForTesting()
+    apInventoryClear()
+    sim.profiles.on = true
+    sim.net.calls = {}
+    applySeed({ seed_hash = "seed-A" })
+    apInventoryAdd({ kind = "ship", bp = "PLAYER_SHIP_ROCK" })
+    applySeed({ seed_hash = "seed-B" })
+    sim.quitCalled = false
+end
+
+test("save profiles: a new seed gets its own save, the current one is kept, nothing is erased", function()
+    profileSeedChange()
+    sim.renderMenu()
+    check(sim.drawnText(apT("reset.yes.profile")), "the question offers the seed's own save")
+    for y = 150, 400 do
+        sim.click(640 - 200, y)
+        if sim.quitCalled then break end
+    end
+    equals(sim.netCalls("RequestProfileReset"), 0, "nothing is wiped")
+    equals(sim.netCalls("SwitchProfile"), 1, "the switch is asked for")
+    check(tostring(sim.profiles.pending):find("^seed%-") ~= nil, "to this seed's save: " .. tostring(sim.profiles.pending))
+    check(sim.quitCalled, "and FTL closes to load it")
+    sim.profiles.on = false
+end)
+
+test("save profiles: the Saves menu lists the saves, loads one and archives another after a confirmation", function()
+    apContractResetForTesting()
+    apConnectResetForTesting()
+    sim.profiles.on = true
+    sim.profiles.ids = { "main", "seed-1", "solo" }
+    sim.profiles.details["seed-1.label"] = "Navigator on archipelago.gg"
+    sim.profiles.details["seed-1.checks"] = "12/151"
+    sim.profiles.details["seed-1.last"] = "2026-10-25 22:10"
+    sim.started = false
+    sim.renderMenu()
+    check(sim.drawnText(apT("saves.button")), "the home screen has a Saves button")
+    check(apSavesOpen(), "it opens")
+    check(apSavesIsOpen(), "and stays open")
+    sim.renderMenu()
+    check(sim.drawnText("Navigator on archipelago.gg"), "each save says whose it is")
+    check(sim.drawnText(apT("saves.checks", { checks = "12/151" })), "how far it went")
+    check(sim.drawnText(apT("saves.last", { date = "2026-10-25 22:10" })), "and when it was played")
+    check(sim.drawnText(apT("saves.current")), "the one in use is marked")
+    check(sim.drawnText(apT("saves.solo")), "solo mode has its own")
+    -- Rows: main (in use), seed-1, solo. Archive solo twice, then load seed-1.
+    local archive3 = { x = 250 + 780 - 20 - 112 + 5, y = 160 + 96 + 2 * 58 + 15 }
+    sim.click(archive3.x, archive3.y)
+    equals(#sim.profiles.archived, 0, "a first click only asks to confirm")
+    sim.renderMenu()
+    check(sim.drawnText(apT("saves.archive.sure")), "and says so")
+    sim.click(archive3.x, archive3.y)
+    equals(sim.profiles.archived[1], "solo", "the second click archives it")
+    sim.quitCalled = false
+    sim.click(250 + 780 - 20 - 230 + 5, 160 + 96 + 58 + 15)
+    equals(sim.profiles.pending, "seed-1", "Load asks for that save")
+    check(sim.quitCalled, "and FTL closes to load it")
+    apSavesCloseForTesting()
+    sim.profiles.on = false
+    sim.profiles.ids = { "main" }
+end)
+
+test("save profiles: an older module has no Saves menu and keeps the old reset", function()
+    sim.profiles.on = false
+    apConnectResetForTesting()
+    sim.started = false
+    sim.renderMenu()
+    check(not sim.drawnText(apT("saves.button")), "no Saves button")
+    check(not apSavesOpen(), "nothing to open")
+end)

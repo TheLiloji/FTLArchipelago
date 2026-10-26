@@ -158,7 +158,14 @@ end
 
 local resetAsked = false
 
+local function profilesOn()
+    return _G.apSavesSupported ~= nil and apSavesSupported()
+end
+
 local function resetQuestionText()
+    if profilesOn() then
+        return apT(_G.apSoloPending and "reset.question.profile.solo" or "reset.question.profile")
+    end
     local reason = _G.apSeedChangeReason and _G.apSeedChangeReason() or "seedchange"
     if reason == "foreign" then
         return apT("reset.question.foreign")
@@ -181,11 +188,19 @@ local function acceptReset()
     local solo = _G.apSoloPending
     _G.apSoloPending = false
     local autoBefore = autoActive()
-    local done = _G.apNetRequestProfileReset and _G.apNetRequestProfileReset()
-    if done and _G.apNetForgetProgress then
-        _G.apNetForgetProgress(_G.apSeedChangeFingerprint and apSeedChangeFingerprint() or nil)
+    local done
+    if profilesOn() then
+        -- Its own save for this seed (or for solo): the current one stays as it is, swapped at the next launch.
+        local fingerprint = _G.apSeedChangeFingerprint and apSeedChangeFingerprint() or nil
+        done = apSavesSwitch(apSavesIdFor(fingerprint, solo))
+        if done and solo and _G.apSoloRememberActive then _G.apSoloRememberActive() end
+    else
+        done = _G.apNetRequestProfileReset and _G.apNetRequestProfileReset()
+        if done and _G.apNetForgetProgress then
+            _G.apNetForgetProgress(_G.apSeedChangeFingerprint and apSeedChangeFingerprint() or nil)
+        end
+        if done and solo and _G.apSoloForgetProgress then _G.apSoloForgetProgress(true) end
     end
-    if done and solo and _G.apSoloForgetProgress then _G.apSoloForgetProgress(true) end
     if autoBefore and _G.apNetRemember then _G.apNetRemember(AUTO_KEY, 1) end
     if _G.apSeedChangeAcknowledged then _G.apSeedChangeAcknowledged() end
     if done then
@@ -194,7 +209,7 @@ local function acceptReset()
             _G.apNetRememberText(RELAUNCH_PASSWORD_KEY, FIELDS[4].value)
         end
         message, messageTone = apT(relaunch and "reset.relaunch" or "reset.asked"), "good"
-        connectLog("profile erased, dated copy kept alongside"
+        connectLog((profilesOn() and "save switched for the next launch" or "profile erased, dated copy kept alongside")
             .. (relaunch and ", automatic relaunch planned" or ", relaunch by hand"))
         local closed = pcall(function() Hyperspace.App:OnExit() end)
         connectLog(closed and "game close requested" or "close failed, do it by hand")
@@ -233,14 +248,16 @@ local function currentQuestion()
     end
     if resetQuestionOpen() then
         return { title = apT("question.seed.title"), text = resetQuestionText(),
-                 yes = "reset.yes", yesTone = "warn", accept = acceptReset,
+                 yes = profilesOn() and "reset.yes.profile" or "reset.yes",
+                 yesTone = profilesOn() and "good" or "warn", accept = acceptReset,
                  no = "reset.no", noTone = "dim", decline = declineReset }
     end
     return nil
 end
 
+-- A window of the home screen is open (the seed question, the Saves menu): the title and messages step aside.
 function apConnectQuestionOpen()
-    return currentQuestion() ~= nil
+    return currentQuestion() ~= nil or (_G.apSavesIsOpen ~= nil and apSavesIsOpen())
 end
 
 local function hangarOpen()
@@ -278,6 +295,8 @@ local function geometry()
     g.resetYes = { x = QUESTION.x + 18, y = buttonsTop, w = buttonWidth, h = QUESTION_BUTTON_H }
     g.resetNo = { x = QUESTION.x + 36 + buttonWidth, y = buttonsTop, w = buttonWidth, h = QUESTION_BUTTON_H }
     g.shortcuts = PANEL.bottom - 34
+    g.saves = { x = PANEL.x + PANEL.w - PAD - 110, y = g.auto.y - 4, w = 110, h = 22 }
+    g.savesStatus = { x = PANEL.x + PANEL.w - PAD - 110, y = PANEL.bottom - STATUS_H + 10, w = 110, h = 22 }
     return g
 end
 
@@ -330,7 +349,10 @@ local function drawForm()
         end
     end
 
-    ui.checkbox(g.auto.x, g.auto.y, autoActive(), apT("connect.auto"), g.auto.w)
+    if profilesOn() then
+        ui.button(g.saves, apT("saves.button"), "secondary")
+    end
+    ui.checkbox(g.auto.x, g.auto.y, autoActive(), apT("connect.auto"), g.auto.w - (profilesOn() and 120 or 0))
     ui.button(g.button, apT(attempt ~= nil and "connect.button.busy" or "connect.button"), "primary", attempt ~= nil)
     ui.button(g.solo, apT("connect.solo"), "secondary")
 
@@ -374,6 +396,9 @@ local function drawStatus()
     end
     ui.text(9, s.x + PAD, s.y + 94, s.w - PAD * 2, "dim", apT("connect.keys.run"))
     ui.button(g.leave, apT(solo and "connect.solo.stop" or "connect.disconnect"), "secondary")
+    if profilesOn() then
+        ui.button(g.savesStatus, apT("saves.button"), "secondary")
+    end
 end
 
 local function resumeLast()
@@ -669,6 +694,9 @@ script.on_internal_event(Defines.InternalEvents.ON_MOUSE_L_BUTTON_DOWN, function
         return Defines.Chain.CONTINUE
     end
     x, y = apMousePosition(x, y)
+    if _G.apSavesClick and apSavesClick(x, y) then
+        return Defines.Chain.PREEMPT
+    end
     local g = geometry()
     local question = currentQuestion()
     if question ~= nil then
@@ -680,6 +708,10 @@ script.on_internal_event(Defines.InternalEvents.ON_MOUSE_L_BUTTON_DOWN, function
             question.decline()
             return Defines.Chain.PREEMPT
         end
+    end
+    if question == nil and profilesOn() and inside(seedActive() and g.savesStatus or g.saves, x, y) then
+        apSavesOpen()
+        return Defines.Chain.PREEMPT
     end
     if seedActive() then
         if inside(g.leave, x, y) then
@@ -762,6 +794,8 @@ script.on_render_event(
         end
         if question ~= nil then
             pcall(drawQuestion, question)
+        elseif _G.apSavesDraw then
+            apSavesDraw()
         end
     end
 )
