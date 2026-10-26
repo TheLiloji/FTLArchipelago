@@ -373,6 +373,14 @@
     </customStore>
 </store>
 
+<!-- Magic Hat (Multiverse): MV offers "Reroute." only with coordinates (req COORDS, which counts its own hat).
+     Archipelago's hat counts too, once one of its items came in. Nothing to find in the base game. -->
+<mod:findLike type="events" panic="false">
+    <mod:findName type="req" name="COORDS" panic="false">
+        <mod-append:name>ap_hat_on</mod-append:name>
+    </mod:findName>
+</mod:findLike>
+
 <scripts>
     <script>data/archipelago/gamedata.lua</script>
     <script>data/archipelago/gamedata_mv.lua</script>
