@@ -1302,3 +1302,14 @@ test("sector skip: the first beacon of a new run is judged too, without a jump",
     equals(sim.starMap.currentLoc.beacon, true, "sector 1's start beacon is an exit")
     sim.meta["ap_reached_PLAYER_SHIP_HARD"] = nil
 end)
+
+test("shop deal scrap: at 0 a closed deal costs nothing, and opens again at its price", function()
+    applySeed({ options = { shop_deal_scrap = 0 } })
+    apApplyShopGifts()
+    local desc = Hyperspace.Blueprints:GetAugmentBlueprint("AP_DEAL_2").desc
+    equals(desc.cost, 0, "closed: free, a click takes nothing")
+    apShopGiftsForgetSeed()
+    applySeed({})
+    apApplyShopGifts()
+    equals(Hyperspace.Blueprints:GetAugmentBlueprint("AP_DEAL_2").desc.cost, 10, "open again: its price back")
+end)
