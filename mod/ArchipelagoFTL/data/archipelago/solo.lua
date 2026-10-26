@@ -335,6 +335,11 @@ function apSoloRememberActive()
     remember(KEY_ACTIVE, 1)
 end
 
+-- Another save is loaded: solo must not start again by itself on it.
+function apSoloForgetActive()
+    remember(KEY_ACTIVE, 0)
+end
+
 function apSoloWasActive()
     return recall(KEY_ACTIVE) == 1
 end

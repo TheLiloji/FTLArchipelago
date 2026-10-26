@@ -72,6 +72,12 @@ function apSavesSwitch(id)
         savesLog("switch to " .. tostring(id) .. " refused")
         return false
     end
+    -- Solo resumes by itself at launch: only in the solo save.
+    if id == "solo" then
+        if _G.apSoloRememberActive then apSoloRememberActive() end
+    elseif _G.apSoloForgetActive then
+        apSoloForgetActive()
+    end
     savesLog("switch to " .. tostring(id) .. " at the next launch")
     return true
 end

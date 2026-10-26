@@ -566,3 +566,24 @@ test("save profiles: solo from another save offers solo's own save (Windows d)",
     check(sim.quitCalled, "FTL closes to load it")
     profileEnd()
 end)
+
+test("save profiles: loading another save from solo does not start solo again there (Windows)", function()
+    profileStart("solo")
+    sim.durable["ap_solo_active"] = "1"
+    apSavesSwitch("main")
+    equals(sim.durable["ap_solo_active"], "0", "solo will not resume on the save just loaded")
+    apSavesSwitch("solo")
+    equals(sim.durable["ap_solo_active"], "1", "going back to the solo save resumes it")
+    profileEnd()
+end)
+
+test("sector locks: the same pass sent again is still one pass", function()
+    _G.apInventory = { ships = {}, systemCaps = {}, startingUpgrades = {}, shopAvailability = {} }
+    sim.startRun(true)
+    apQueueItem({ kind = "pass", bp = "PLAYER_SHIP_HARD", index = 4, display = "Sector Pass (The Kestrel)" })
+    sim.tick(60)
+    apQueueItem({ kind = "pass", bp = "PLAYER_SHIP_HARD", index = 4, display = "Sector Pass (The Kestrel)" })
+    sim.tick(60)
+    equals(_G.apInventory.passes.PLAYER_SHIP_HARD, 1, "one pass, not two")
+    _G.apInventory.passes, _G.apInventory.passIndices = nil, nil
+end)
