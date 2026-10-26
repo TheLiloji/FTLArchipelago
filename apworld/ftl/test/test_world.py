@@ -196,3 +196,15 @@ class TestUniversalTrackerRebuildsTheSameWorld(FTLTestBase):
         self.assertEqual(self.world.shop_items, tracker.shop_items)
         self.assertEqual(self.world.bundles, tracker.bundles)
         self.assertEqual(tracker.options.sectorsanity_first_sector.value, 3)
+
+
+class TestLogicCopyForTheMod(FTLTestBase):
+    options = {"sector_logic": "strict", "layout_count": 4}
+
+    def test_the_mod_gets_each_layouts_needs_and_each_checks_blueprints(self) -> None:
+        logic = self.world.fill_slot_data()["logic"]
+        self.assertTrue(logic["layouts"])
+        for layout, needs in logic["layouts"].items():
+            self.assertTrue(all(name in data.ITEMS_BY_NAME for name in needs), layout)
+        self.assertTrue(logic["blueprints"], "strict logic asks blueprints somewhere")
+        self.assertTrue(all(name in data.ITEMS_BY_NAME for name in logic["blueprint_items"]))

@@ -132,6 +132,16 @@ local DEAL_BLUEPRINTS = { "AP_DEAL_1", "AP_DEAL_2", "AP_DEAL_3", "AP_DEAL_4", "A
 
 local DEAL_REWARD = { 35, 55, 80, 60, 90, 130 }
 
+-- shop_deal_scrap: the deals' scrap, in percent (100 by default). At 0 the deals are off: they show as closed.
+local function dealPercent()
+    local value = _G.apSeedOption and apSeedOption("shop_deal_scrap")
+    return math.max(0, math.min(200, math.floor(tonumber(value) or 100)))
+end
+
+local function dealReward(index)
+    return math.floor((DEAL_REWARD[index] or 30) * dealPercent() / 100)
+end
+
 -- The blood pacts, on the shop's second page: more scrap, and a chance in a hundred to lose a crew member for
 -- good, Clone Bay or not.
 local DEAL_BLOOD = { [4] = 5, [5] = 10, [6] = 20 }
@@ -392,8 +402,18 @@ function apApplyShopGifts()
 
     for index, blueprintName in ipairs(DEAL_BLUEPRINTS) do
         local desc = dealDesc(blueprintName)
-        if desc ~= nil and not dealsSigned[blueprintName] then
-            local reward = tostring(DEAL_REWARD[index] or 30)
+        if dealPercent() == 0 then
+            dealsSigned[blueprintName] = true
+        end
+        if desc ~= nil and dealsSigned[blueprintName] and dealPercent() == 0 then
+            desc.title.data = apT("deal.closed.title")
+            desc.title.isLiteral = true
+            desc.shortTitle.data = apT("deal.closed.short")
+            desc.shortTitle.isLiteral = true
+            desc.description.data = apT("deal.closed.body")
+            desc.description.isLiteral = true
+        elseif desc ~= nil and not dealsSigned[blueprintName] then
+            local reward = tostring(dealReward(index))
             local blood = DEAL_BLOOD[index]
             desc.title.data = apT(blood and "deal.blood.title" or "deal.title", { scrap = reward })
             desc.title.isLiteral = true
@@ -665,7 +685,7 @@ local function signDeal(index, blueprintName)
         Hyperspace.ships.player:RemoveItem(blueprintName, true)
     end)
 
-    local reward = DEAL_REWARD[index] or 30
+    local reward = dealReward(index)
     pcall(function()
         Hyperspace.ships.player:ModifyScrapCount(reward, false)
     end)

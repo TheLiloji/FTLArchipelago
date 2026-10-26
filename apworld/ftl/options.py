@@ -423,6 +423,15 @@ class SectorSkip(Toggle):
     display_name = "Sector Skip"
 
 
+class ShopDealScrap(Range):
+    """The scrap the Archipelago shop's deals give, in percent of the usual amount. 0 turns the deals off."""
+
+    display_name = "Archipelago Shop Deal Scrap (%)"
+    range_start = 0
+    range_end = 200
+    default = 100
+
+
 class FlagshipSabotage(Range):
     """The multiworld sabotages the Flagship: each of its phases arrives weakened, more with each level.
     1: hull -10 %. 2: and shields -1. 3: hull -20 %. 4: and weapons -1. 5: hull -30 %. 0 turns it off.
@@ -1108,6 +1117,7 @@ class FTLOptions(PerGameCommonOptions):
     victory_difficulty: VictoryDifficulty
     flagship_sabotage: FlagshipSabotage
     sector_skip: SectorSkip
+    shop_deal_scrap: ShopDealScrap
     archives: Archives
     archives_required: ArchivesRequired
     victory_layouts: VictoryLayouts
@@ -1203,7 +1213,7 @@ ftl_option_groups = [
     ),
     OptionGroup(
         "Archipelago Shop",
-        [ShopChecks, ShopBySector, ShopPerShip, ShopHints],
+        [ShopChecks, ShopBySector, ShopPerShip, ShopHints, ShopDealScrap],
         start_collapsed=True,
     ),
     OptionGroup(

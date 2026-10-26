@@ -1253,3 +1253,23 @@ test("sector skip: off by default", function()
     check(sim.starMap.currentLoc.beacon ~= true, "no exit without the option")
     sim.meta["ap_reached_PLAYER_SHIP_HARD"] = nil
 end)
+
+test("shop deal scrap: the seed's percent changes what a deal pays, 0 closes them", function()
+    apShopGiftsConfigure(DEMO or {})
+    applySeed({ options = { shop_deal_scrap = 50 } })
+    sim.startRun(true)
+    sim.player.currentScrap = 0
+    _G.apTrapLink.enabled = false
+    sim.sign("AP_DEAL_2")
+    sim.tick(120)
+    equals(sim.player.currentScrap, 27, "half of the 55 scrap")
+    applySeed({ options = { shop_deal_scrap = 0 } })
+    apApplyShopGifts()
+    sim.player.currentScrap = 0
+    sim.clearLog()
+    sim.sign("AP_DEAL_3")
+    sim.tick(120)
+    equals(sim.player.currentScrap, 0, "at 0 a deal pays nothing")
+    check(shownKey("deal.closed"), "it is closed")
+    applySeed({})
+end)

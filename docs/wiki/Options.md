@@ -114,6 +114,7 @@ packages sold at the AP STORE beacons, which hold other players' items.
 | **Archipelago Event Checks** | 0 to 20 (default 5): the packages of the relay and pirate events become checks of their own, "Archipelago Event 1", 2... before the events take the shop's packages |
 | **Reactor Checks** | Off by default. Reactor power 10, 15, 20 and 25 send checks |
 | **Flagship Sabotage** | 0 to 5 (default 0): each Flagship phase arrives weakened. Hull -10 %, then shields -1, hull -20 %, weapons -1, hull -30 % |
+| **Archipelago Shop Deal Scrap** | 0 to 200 % (default 100): what the shop's deals pay. 0 turns them off |
 | **Sector Skip** | Off by default. A layout that already reached the next sector may skip sectors 1 to 4: their first beacon is an exit, and jumping on at once gives 30 scrap |
 
 ## Expert options

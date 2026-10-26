@@ -872,6 +872,9 @@ local function checkRows(entry, category)
         -- achievement, a race) speaks the game's language, not the seed's English location name.
         local name = place.translated and place.text or check.raw or check.name
         box.checks[#box.checks + 1] = { key = check.key, name = name, done = done }
+        if not done and _G.apInLogic and apInLogic(check.key) then
+            box.inLogic = true
+        end
         box.total, row.total = box.total + 1, row.total + 1
         if done then
             box.done, row.done = box.done + 1, row.done + 1
@@ -953,6 +956,10 @@ local function drawBox(box, row, bx, by, bw)
     else
         rect(bx, by, bw, BOX_H, row.current and "faint" or "card")
         outline(bx, by, bw, BOX_H, row.current and "border" or "faint", 1)
+        -- In logic: what the seed expects can be done with the items received so far.
+        if box.inLogic then
+            rect(bx, by, bw, 3, "useful")
+        end
     end
     -- Several checks in one box (shop packages of a sector): one dot each, green once done.
     if box.total > 1 and box.total <= 6 and not complete then
