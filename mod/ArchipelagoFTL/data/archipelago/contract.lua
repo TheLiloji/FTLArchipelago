@@ -320,6 +320,7 @@ function apReceiveItem(itemName, sender, isReplay, index)
         race = descriptor.race,
         skill = descriptor.skill,
         tiers = descriptor.tiers,
+        hat = descriptor.hat,
         n = descriptor.n or 1,
         display = itemName,
         sender = sender,

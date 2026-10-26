@@ -67,3 +67,7 @@ Source: <https://github.com/Et0san/Manual>
 
 FTL is © Subset Games. No game asset is redistributed by this mod: it only patches the game's own
 data files at install time, through ftlman.
+
+## Magic Hat
+
+The Magic Hat sector unlocks (Multiverse) are based on ArchiHat by Trapper444.

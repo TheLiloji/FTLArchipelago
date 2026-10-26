@@ -281,7 +281,7 @@ function apFillerShipsWaiting()
     return false
 end
 
-local SHIPLESS_KINDS = { ship = true, cap = true, start = true, archive = true }
+local SHIPLESS_KINDS = { ship = true, cap = true, start = true, archive = true, hat = true }
 local CATALOG_KINDS = { shop = true, crew = true }
 
 local function noRunStarted()
@@ -330,6 +330,27 @@ local function deliverOne(descriptor)
         fillerLog("delivered: " .. key)
         if _G.apNotifyItem then
             _G.apNotifyItem(descriptor.display or apT(key, params), descriptor.sender,
+                descriptor.sender == nil and not _G.apSoloEnabled)
+        end
+        return true
+    end
+
+    -- Magic Hat (Multiverse): the destinations this item opens, kept for this run and the next ones.
+    if descriptor.kind == "hat" then
+        local inventory = _G.apInventory
+        if inventory == nil then
+            return false
+        end
+        inventory.hat = inventory.hat or {}
+        for _, key in ipairs(descriptor.hat or {}) do
+            inventory.hat[tostring(key)] = true
+        end
+        fillerLog("magic hat: " .. table.concat(descriptor.hat or {}, ", "))
+        if _G.apSyncMagicHat then
+            apTry(TAG, apSyncMagicHat)
+        end
+        if _G.apNotifyItem and not descriptor.isReplay then
+            _G.apNotifyItem(descriptor.display or apT("gift.something"), descriptor.sender,
                 descriptor.sender == nil and not _G.apSoloEnabled)
         end
         return true
@@ -680,7 +701,7 @@ end
 _G.apSupportedKinds = {
     ship = true, cap = true, start = true, filler = true, trap = true,
     weapon = true, drone = true, augment = true, shop = true, archive = true, crew = true, bundle = true,
-    layout = true, progressive_ship = true,
+    layout = true, progressive_ship = true, hat = true,
 }
 
 _G.apSupportedResources = {}
@@ -864,3 +885,33 @@ script.on_internal_event(Defines.InternalEvents.ON_TICK, function()
 end)
 
 fillerLog("filler and traps module loaded (console: LUA apFillerStatus())")
+
+-- The Magic Hat's events read run variables: ap_hat_on shows the hat in the reroute menu, ap_hat_<menu> each of
+-- its three menus, ap_hat_<key> each destination received.
+local function hatMenu(key)
+    if key:find("_secret$") then return "secret" end
+    if key:find("_unique$") or key == "stargrove" then return "unique" end
+    return "generic"
+end
+
+function apSyncMagicHat()
+    local received = ((_G.apInventory or {}).hat) or {}
+    local menus, any = {}, false
+    for key in pairs(received) do
+        Hyperspace.playerVariables["ap_hat_" .. key] = 1
+        menus[hatMenu(key)] = true
+        any = true
+    end
+    for _, menu in ipairs({ "generic", "unique", "secret" }) do
+        Hyperspace.playerVariables["ap_hat_" .. menu] = menus[menu] and 1 or 0
+    end
+    Hyperspace.playerVariables.ap_hat_on = any and 1 or 0
+end
+
+local hatDivider = 0
+script.on_internal_event(Defines.InternalEvents.ON_TICK, function()
+    hatDivider = (hatDivider + 1) % 30
+    if hatDivider == 0 then
+        apTry(TAG, apSyncMagicHat)
+    end
+end)

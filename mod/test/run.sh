@@ -27,6 +27,8 @@ runcheck() {
 
 runcheck python3 "$HERE/../gen_lang.py" --check || exit 2
 
+runcheck python3 "$HERE/../tools/gen_hat_events.py" --check || exit 2
+
 runcheck python3 "$HERE/check_i18n.py" || exit 2
 
 runcheck python3 "$HERE/check_glyphs.py" || exit 2

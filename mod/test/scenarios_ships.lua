@@ -696,3 +696,19 @@ test("ships: a ship is named by its class, a B or C layout adds its letter", fun
     sim.shipClasses = nil
     sim.shipNames.PLAYER_SHIP_FED = before
 end)
+
+test("magic hat: an item opens its destinations in the reroute menu, for this run and the next", function()
+    _G.apInventory = { ships = {}, systemCaps = {}, startingUpgrades = {}, shopAvailability = {} }
+    sim.startRun(true)
+    apQueueItem({ kind = "hat", hat = { "rebel_generic", "rebel_unique" }, display = "Magic Hat: Hostile Sectors" })
+    sim.tick(31)
+    equals(sim.runVariables.ap_hat_on, 1, "the hat shows in the reroute menu")
+    equals(sim.runVariables.ap_hat_rebel_generic, 1, "with its destinations")
+    equals(sim.runVariables.ap_hat_generic, 1, "in the generic menu")
+    equals(sim.runVariables.ap_hat_unique, 1, "and the unique one")
+    equals(sim.runVariables.ap_hat_secret, 0, "not the secret one")
+    sim.startRun(true)
+    sim.tick(31)
+    equals(sim.runVariables.ap_hat_rebel_generic, 1, "still there in the next run")
+    _G.apInventory.hat = nil
+end)
