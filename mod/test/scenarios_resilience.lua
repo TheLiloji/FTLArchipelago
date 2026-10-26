@@ -1290,3 +1290,15 @@ test("sector locks: the exit of sector 4 stays shut without a pass, and opens wh
     sim.starMap.worldLevel = 0
     _G.apInventory.passes = nil
 end)
+
+test("sector skip: the first beacon of a new run is judged too, without a jump", function()
+    apContractResetForTesting()
+    applySeed({ options = { sector_skip = 1 } })
+    sim.meta["ap_reached_PLAYER_SHIP_HARD"] = 3
+    sim.startRun(true)
+    sim.starMap.worldLevel = 0
+    sim.starMap.currentLoc = sim.makeLocation()
+    apSectorSkipArrive()
+    equals(sim.starMap.currentLoc.beacon, true, "sector 1's start beacon is an exit")
+    sim.meta["ap_reached_PLAYER_SHIP_HARD"] = nil
+end)

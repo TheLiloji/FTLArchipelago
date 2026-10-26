@@ -208,3 +208,19 @@ class TestLogicCopyForTheMod(FTLTestBase):
             self.assertTrue(all(name in data.ITEMS_BY_NAME for name in needs), layout)
         self.assertTrue(logic["blueprints"], "strict logic asks blueprints somewhere")
         self.assertTrue(all(name in data.ITEMS_BY_NAME for name in logic["blueprint_items"]))
+
+
+class TestEveryOptionTheModReadsIsSent(FTLTestBase):
+    options = {"layout_count": 3}
+
+    def test_slot_data_options_cover_the_mods_apseedoption_calls(self) -> None:
+        import re
+        from pathlib import Path
+        mod = Path(__file__).resolve().parents[3] / "mod" / "ArchipelagoFTL" / "data" / "archipelago"
+        if not mod.is_dir():
+            self.skipTest("the mod's sources are not next to this apworld")
+        names = set()
+        for path in mod.glob("*.lua"):
+            names |= set(re.findall(r'apSeedOption\("([a-z_]+)"\)', path.read_text(encoding="utf-8")))
+        sent = set(self.world.fill_slot_data()["options"])
+        self.assertEqual(sorted(names - sent), [], "options the mod reads but the seed never sends")

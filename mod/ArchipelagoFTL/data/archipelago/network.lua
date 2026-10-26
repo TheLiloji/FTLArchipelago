@@ -253,7 +253,17 @@ end
 local UNKNOWN = "Unknown"
 
 local CONSUMED_KEY = "ap_items_done"
-local SEED_KEY = "ap_seed_tag"
+local SEED_KEY_BASE = "ap_seed_tag"
+
+-- Each save profile remembers its own seed: a save made for one seed asks again when another one connects.
+-- The first save ("main", the only one before 0.6) keeps the old key.
+local function seedKey()
+    local profile = _G.apSavesSupported and apSavesSupported() and apSavesCurrent() or "main"
+    if profile == "main" then
+        return SEED_KEY_BASE
+    end
+    return SEED_KEY_BASE .. "@" .. profile
+end
 
 local durableStore = nil
 
@@ -263,7 +273,7 @@ local function store()
     end
     local ap = client()
     if ap == nil then return nil end
-    local ok = pcall(function() return ap:RecallState(SEED_KEY) end)
+    local ok = pcall(function() return ap:RecallState(SEED_KEY_BASE) end)
     durableStore = ok and ap or false
     if not ok then
         netLog("network module has no durable memory: falling back to the FTL profile")
@@ -294,7 +304,7 @@ local function writeMeta(key, value)
 end
 
 function apNetSeedTag()
-    return meta(SEED_KEY)
+    return meta(seedKey())
 end
 
 function apNetRecall(key)
@@ -331,7 +341,7 @@ local function migrateOldCount()
     if old <= 0 then
         return
     end
-    local tag = meta(SEED_KEY)
+    local tag = meta(seedKey())
     if meta(consumedKey(tag)) == 0 then
         writeMeta(consumedKey(tag), old)
     end
@@ -374,7 +384,7 @@ end
 
 function apNetRememberSeed(fingerprint)
     state.consumedUntil = consumedFor(fingerprint) - 1
-    writeMeta(SEED_KEY, fingerprint or 0)
+    writeMeta(seedKey(), fingerprint or 0)
     state.delivered = loadDelivered(fingerprint)
     netLog("seed fingerprint recorded: " .. tostring(fingerprint))
 end
@@ -384,7 +394,7 @@ function apNetForgetItems()
 end
 
 function apNetForgetProgress(incoming)
-    local current = meta(SEED_KEY)
+    local current = meta(seedKey())
     writeMeta(consumedKey(current), 0)
     apNetRememberText(deliveredKey(current), "")
     if _G.apShopForgetOwed then apShopForgetOwed(current) end
@@ -393,7 +403,7 @@ function apNetForgetProgress(incoming)
         apNetRememberText(deliveredKey(incoming), "")
         if _G.apShopForgetOwed then apShopForgetOwed(incoming) end
     end
-    writeMeta(SEED_KEY, 0)
+    writeMeta(seedKey(), 0)
     writeMeta(CONSUMED_KEY, 0)
     state.consumedUntil = -1
     state.delivered = {}
@@ -405,8 +415,8 @@ local function reloadConsumed()
     local fingerprint = _G.apSeedFingerprint and _G.apSeedFingerprint() or 0
     state.consumedUntil = consumedFor(fingerprint) - 1
     state.delivered = loadDelivered(fingerprint)
-    if meta(SEED_KEY) ~= fingerprint then
-        writeMeta(SEED_KEY, fingerprint)
+    if meta(seedKey()) ~= fingerprint then
+        writeMeta(seedKey(), fingerprint)
         if state.consumedUntil < 0 then
             netLog("new seed: resources already received start over from zero")
             return
@@ -538,6 +548,8 @@ local function onConnected(event)
 
     if not state.seedRefused then
         reloadConsumed()
+        -- The save in use is this seed's: the Saves menu names it at once.
+        if _G.apSavesDescribe then pcall(_G.apSavesDescribe) end
     end
 
     if not state.seedRefused then

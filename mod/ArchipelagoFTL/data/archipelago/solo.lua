@@ -226,6 +226,7 @@ function apSoloStart(force)
     remember(KEY_SEED, _G.apSeedFingerprint and apSeedFingerprint() or 0)
     remember(KEY_ACTIVE, 1)
     _G.apSoloEnabled = true
+    if _G.apSavesDescribe then pcall(_G.apSavesDescribe) end
     -- A reconnection still pending from an earlier server would load that seed over this one.
     if _G.apNetDisconnect then pcall(_G.apNetDisconnect) end
 
@@ -277,6 +278,7 @@ function apSoloResume()
     end
 
     _G.apSoloEnabled = true
+    if _G.apSavesDescribe then pcall(_G.apSavesDescribe) end
     if _G.apNetDisconnect then pcall(_G.apNetDisconnect) end
     state.delivered, state.given = 0, {}
     for _, index in ipairs(indices) do

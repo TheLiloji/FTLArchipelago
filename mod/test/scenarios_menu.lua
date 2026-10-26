@@ -481,3 +481,18 @@ test("save profiles: an older module has no Saves menu and keeps the old reset",
     check(not sim.drawnText(apT("saves.button")), "no Saves button")
     check(not apSavesOpen(), "nothing to open")
 end)
+
+test("save profiles: each save remembers its own seed, the first one keeps the old key", function()
+    sim.profiles.on = true
+    sim.profiles.current = "seed-7"
+    apNetRememberSeed(4242)
+    equals(sim.durable["ap_seed_tag@seed-7"], "4242", "this save's seed")
+    sim.profiles.current = "main"
+    equals(apNetSeedTag() == 4242, false, "the first save does not take it")
+    apNetRememberSeed(1111)
+    equals(sim.durable["ap_seed_tag"], "1111", "the first save keeps the key it always had")
+    sim.profiles.current = "seed-7"
+    equals(apNetSeedTag(), 4242, "and each finds its own back")
+    sim.profiles.current = "main"
+    sim.profiles.on = false
+end)
