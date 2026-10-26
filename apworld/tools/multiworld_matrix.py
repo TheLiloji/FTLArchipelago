@@ -322,7 +322,7 @@ def main() -> int:
 
     subprocess.run(
         [sys.executable, str(ROOT / "apworld/tools/build_apworld.py"),
-         "--output", str(AP / "custom_worlds" / "ftlmv.apworld")],
+         "--output", str(AP / "custom_worlds" / "ftl_mv.apworld")],
         check=True, capture_output=True,
     )
 

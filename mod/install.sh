@@ -68,7 +68,7 @@ fi
 
 "${CAP[@]}" "$FTLMAN" patch -d "$FTL_DATA" \
     "$MODS_DIR/Hyperspace.ftl" \
-    "$here/ArchipelagoFTLMV.ftl" 2>&1 | tr '\r' '\n' | grep -vE 'KiB/|MiB/'
+    "$here/FTLArchipelago-MV.ftl" 2>&1 | tr '\r' '\n' | grep -vE 'KiB/|MiB/'
 
 header_ok "$FTL_DATA/ftl.dat" || {
     echo "ftl.dat came out damaged from the install: restore ftl.dat.vanilla" >&2

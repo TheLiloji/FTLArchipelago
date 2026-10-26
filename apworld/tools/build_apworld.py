@@ -11,7 +11,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 PACKAGE = ROOT / "ftl"
 # Packed under its own name, so it installs next to the base game's ftl.apworld.
-PACKAGE_NAME = "ftlmv"
+PACKAGE_NAME = "ftl_mv"
 
 CONTAINER_VERSION = 7
 
@@ -44,6 +44,11 @@ def container_manifest() -> bytes:
 
 def build(output: Path) -> None:
     output.parent.mkdir(parents=True, exist_ok=True)
+    # Renamed in 0.6 (ftlmv -> ftl_mv): two copies of the same game would stop Archipelago. Never deleted here.
+    old = output.parent / "ftlmv.apworld"
+    if old.exists() and old != output:
+        print(f"warning: {old} is the old name of this world, remove it or Archipelago sees the game twice",
+              file=sys.stderr)
     if output.exists():
         output.unlink()
     with zipfile.ZipFile(output, "w", zipfile.ZIP_DEFLATED) as zf:
@@ -61,7 +66,7 @@ def verify() -> int:
 
     problems: list[str] = []
     with tempfile.TemporaryDirectory() as tmp:
-        target = Path(tmp) / "ftlmv.apworld"
+        target = Path(tmp) / "ftl_mv.apworld"
         build(target)
         with zipfile.ZipFile(target) as zf:
             names = set(zf.namelist())
@@ -92,7 +97,7 @@ def main() -> None:
     parser.add_argument(
         "--output",
         type=Path,
-        default=Path.home() / ".local/opt/Archipelago/custom_worlds/ftlmv.apworld",
+        default=Path.home() / ".local/opt/Archipelago/custom_worlds/ftl_mv.apworld",
         help="path of the .apworld to write (default: custom_worlds of the local build)",
     )
     parser.add_argument(

@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-# Builds ArchipelagoFTLMV.ftl (the Multiverse build). The test keys and the demo shop are left out unless --debug is given.
+# Builds FTLArchipelago-MV.ftl (the Multiverse build). The test keys and the demo shop are left out unless --debug is given.
 set -euo pipefail
 
 here="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 src="$here/ArchipelagoFTL"
-out="$here/ArchipelagoFTLMV.ftl"
+out="$here/FTLArchipelago-MV.ftl"
 debug=0
 [ "${1:-}" = "--debug" ] && debug=1
 

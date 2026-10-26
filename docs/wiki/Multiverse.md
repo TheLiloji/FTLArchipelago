@@ -4,8 +4,10 @@
 [Italiano](Multiverse.it.md) · [Português](Multiverse.pt.md)
 
 The mod also plays with **FTL: Multiverse 5.5.1**. Its ships replace the base game's, and its sectors get
-ARCHIPELAGO beacons too. It is the same `ftl.apworld`: a Multiverse player and a base game player can be in the
-same multiworld.
+ARCHIPELAGO beacons too. It is its own game in Archipelago, **FTL Multiverse**, with its own world file
+`ftl_mv.apworld` (next to `ftl.apworld` if you have both). A Multiverse player and a base game player can be in the
+same multiworld. If you still have an old `ftlmv.apworld` in `custom_worlds`, remove it: Archipelago would see the
+game twice.
 
 ## Installing
 
@@ -14,9 +16,9 @@ the mods in this order, then click **Apply**.
 
 1. Multiverse **Assets** (5.5)
 2. Multiverse **Data** (5.5.1)
-3. **ArchipelagoFTL**
+3. **FTLArchipelago-MV** (`FTLArchipelago-MV.ftl`)
 
-Use the Multiverse build of the mod: the release whose name ends in `-mv`, like `v0.5.0-mv.1`. Hyperspace is
+Use the Multiverse build of the mod: the release whose name ends in `-mv`, like `v0.6.0-mv.1`. Hyperspace is
 1.23.1, as in the guide.
 
 Multiverse and the base game share FTL's profile. If you play both, or several seeds, save the
@@ -34,6 +36,9 @@ Set **Multiverse** to on. In the Options Creator it is the first group.
 - **Shop Weapons** and **Shop Drones** go up to 37 and 14: that many of Multiverse's 120 weapons and 25 drones
   are drawn at random and handed out by Archipelago, and the others stay for sale in stores as usual. **Shop
   Augments** can take all 22 of Multiverse's augments.
+- **Magic Hat** (on by default, `by_group`): the Magic Hat's sector jumps become items. Once one is received,
+  the reroute menu offers the destinations it opens. `by_sector` gives one item per destination (65 items),
+  `disabled` leaves the hat as Multiverse makes it. Based on ArchiHat by Trapper444.
 - **Multiverse Achievement Checks** adds 26 of Multiverse's achievements (Accomplishments and Special Events) as
   checks. They only ever hold filler or traps, since some are long or rare.
 
