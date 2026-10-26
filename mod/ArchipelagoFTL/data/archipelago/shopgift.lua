@@ -131,6 +131,8 @@ end
 local DEAL_BLUEPRINTS = { "AP_DEAL_1", "AP_DEAL_2", "AP_DEAL_3", "AP_DEAL_4", "AP_DEAL_5", "AP_DEAL_6" }
 
 local DEAL_REWARD = { 35, 55, 80, 60, 90, 130 }
+-- Their price in the store (blueprints.xml.append), put back when a deal opens again.
+local DEAL_COST = { 5, 10, 15, 5, 10, 15 }
 
 -- shop_deal_scrap: the deals' scrap, in percent (100 by default). At 0 the deals are off: they show as closed.
 local function dealPercent()
@@ -412,7 +414,10 @@ function apApplyShopGifts()
             desc.shortTitle.isLiteral = true
             desc.description.data = apT("deal.closed.body")
             desc.description.isLiteral = true
+            -- A closed deal costs nothing: a click must not take scrap for nothing.
+            desc.cost = 0
         elseif desc ~= nil and not dealsSigned[blueprintName] then
+            desc.cost = DEAL_COST[index] or 5
             local reward = tostring(dealReward(index))
             local blood = DEAL_BLOOD[index]
             desc.title.data = apT(blood and "deal.blood.title" or "deal.title", { scrap = reward })
@@ -745,6 +750,7 @@ local function signDeal(index, blueprintName)
         desc.shortTitle.isLiteral = true
         desc.description.data = apT("deal.closed.body")
         desc.description.isLiteral = true
+        desc.cost = 0
     end
 end
 
