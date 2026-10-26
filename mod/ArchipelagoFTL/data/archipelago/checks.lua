@@ -1013,7 +1013,8 @@ end
 checkLog("check detection module loaded")
 
 -- sector_skip: a layout that already reached the next sector in an earlier run may skip sectors 1 to 4. Their
--- first beacon becomes an exit: jump on at once for some scrap, or explore as usual. Each layout's deepest sector
+-- first beacon becomes an exit: jump on at once for some scrap and one more pick in the start-of-run menu, or
+-- explore as usual. Each layout's deepest sector
 -- is kept in the profile.
 local SKIP_LAST_SECTOR = 4
 local SKIP_SCRAP = 30
@@ -1050,6 +1051,7 @@ function apSectorSkipArrive()
     -- A new sector: the last one was skipped if the exit was taken from its first beacon.
     if runVariable("ap_skip_offered") == previous and previous > 0 and runVariable("ap_skip_jumps") == 0 then
         Hyperspace.ships.player:ModifyScrapCount(SKIP_SCRAP, false)
+        _G.apLoadoutExtraPick = true
         checkLog("sector " .. previous .. " skipped, reward: " .. SKIP_SCRAP)
         if _G.apNotifyStatus then
             _G.apNotifyStatus(apT("sector_skip.done", { n = previous, scrap = SKIP_SCRAP }))

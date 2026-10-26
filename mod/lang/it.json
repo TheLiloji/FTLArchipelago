@@ -412,7 +412,7 @@
     "flagship.sabotaged": "L'ammiraglia arriva sabotata dal multiworld (livello {n}).",
     "check.label.reactor": "Reattore a potenza {n}",
     "sector_skip.offered": "Settore {n} già attraversato con questa nave: questo faro è un'uscita. Salta subito al settore successivo per {scrap} rottami, o esplora come al solito.",
-    "sector_skip.done": "Settore {n} saltato: +{scrap} rottami.",
+    "sector_skip.done": "Settore {n} saltato: +{scrap} rottami e una scelta in più tra ciò che hai ricevuto.",
     "saves.button": "Salvataggi",
     "saves.title": "Salvataggi Archipelago",
     "saves.intro": "Ogni seed, e la modalità solo, ha il proprio salvataggio di FTL: navi sbloccate, obiettivi e la run in corso. Il tuo salvataggio di FTL senza Archipelago non viene mai toccato. Caricare un salvataggio riavvia FTL.",

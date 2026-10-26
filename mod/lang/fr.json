@@ -411,7 +411,7 @@
     "flagship.sabotaged": "Le vaisseau amiral arrive saboté par le multiworld (niveau {n}).",
     "check.label.reactor": "Réacteur à {n} de puissance",
     "sector_skip.offered": "Secteur {n} déjà traversé avec ce vaisseau : cette balise est une sortie. Sautez au secteur suivant tout de suite pour {scrap} ferraille, ou explorez comme d'habitude.",
-    "sector_skip.done": "Secteur {n} passé : +{scrap} ferraille.",
+    "sector_skip.done": "Secteur {n} passé : +{scrap} ferraille, et un choix de plus parmi ce que vous avez reçu.",
     "saves.button": "Sauvegardes",
     "saves.title": "Sauvegardes Archipelago",
     "saves.intro": "Chaque seed, et le mode solo, a sa propre sauvegarde FTL : vaisseaux débloqués, succès et run en cours. Votre sauvegarde FTL sans Archipelago n'est jamais touchée. Charger une sauvegarde relance FTL.",

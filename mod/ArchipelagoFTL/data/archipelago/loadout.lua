@@ -435,6 +435,20 @@ script.on_internal_event(Defines.InternalEvents.JUMP_ARRIVE, function(shipManage
     if shipManager ~= nil and shipManager.iShipId ~= 0 then
         return Defines.Chain.CONTINUE
     end
+    -- sector_skip: a sector skipped gives one more pick from the received items, at the next beacon.
+    if _G.apLoadoutExtraPick then
+        _G.apLoadoutExtraPick = false
+        taken = {}
+        pages = {}
+        open = false
+        pending = true
+        remember("open", 1)
+        for _, category in ipairs(CATEGORIES) do
+            remember(category, 0)
+        end
+        menuLog("one more pick for the sector skipped")
+        return Defines.Chain.CONTINUE
+    end
     close("first jump of the run")
     return Defines.Chain.CONTINUE
 end)

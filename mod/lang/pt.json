@@ -412,7 +412,7 @@
     "flagship.sabotaged": "A nave-almirante chega sabotada pelo multiworld (nível {n}).",
     "check.label.reactor": "Reator com {n} de energia",
     "sector_skip.offered": "Setor {n} já atravessado com esta nave: este farol é uma saída. Salta já para o setor seguinte por {scrap} de sucata, ou explora como de costume.",
-    "sector_skip.done": "Setor {n} saltado: +{scrap} de sucata.",
+    "sector_skip.done": "Setor {n} saltado: +{scrap} de sucata e mais uma escolha do que recebeste.",
     "saves.button": "Gravações",
     "saves.title": "Gravações do Archipelago",
     "saves.intro": "Cada seed, e o modo solo, tem a sua própria gravação do FTL: naves desbloqueadas, conquistas e a partida em curso. A tua gravação do FTL sem Archipelago nunca é tocada. Carregar uma gravação reinicia o FTL.",
