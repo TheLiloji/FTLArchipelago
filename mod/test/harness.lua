@@ -358,6 +358,35 @@ local function resetWorld()
             return sim.net.durableMemory ~= false
         end,
         ProfileResetRequested = function() return sim.net.resetRequested == true end,
+        -- Off unless a test turns it on: the other tests play an older module, without save profiles.
+        ProfileId = function() if sim.profiles.on then return sim.profiles.current end return nil end,
+        ProfileIds = function()
+            local ids = { sim.profiles.current }
+            for _, id in ipairs(sim.profiles.ids) do
+                if id ~= sim.profiles.current then ids[#ids + 1] = id end
+            end
+            return vector(ids)
+        end,
+        SwitchProfile = function(_, id)
+            sim.net.calls[#sim.net.calls + 1] = { "SwitchProfile", id = id }
+            sim.profiles.pending = id ~= sim.profiles.current and id or nil
+            return true
+        end,
+        PendingProfile = function() return sim.profiles.pending or "" end,
+        ArchiveProfile = function(_, id)
+            if id == sim.profiles.current then return false end
+            local kept = {}
+            for _, other in ipairs(sim.profiles.ids) do
+                if other ~= id then kept[#kept + 1] = other end
+            end
+            sim.profiles.ids = kept
+            sim.profiles.archived[#sim.profiles.archived + 1] = id
+            return true
+        end,
+        DescribeProfile = function(_, key, value)
+            sim.profiles.details[sim.profiles.current .. "." .. key] = value
+        end,
+        ProfileDetail = function(_, id, key) return sim.profiles.details[id .. "." .. key] or "" end,
         RelaunchWhenClosed = function()
             sim.net.calls[#sim.net.calls + 1] = { "RelaunchWhenClosed" }
             return sim.net.relaunchPossible ~= false
@@ -440,6 +469,7 @@ local function resetWorld()
         end,
     }
     sim.net.durableMemory = true
+    sim.profiles = { current = "main", ids = { "main" }, details = {}, archived = {} }
 
     _G.Hyperspace = {
         version = "1.23.1-test",

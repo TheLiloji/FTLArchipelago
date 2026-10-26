@@ -111,6 +111,15 @@ int Client::AchievementStatus(const std::string& name) const
 
 }
 
+// A save profile chosen in the menu is put in place before FTL reads it (see Client::SwitchProfile).
+HOOK_METHOD(ScoreKeeper, OnInit, () -> void)
+{
+    LOG_HOOK("HOOK_METHOD -> ScoreKeeper::OnInit -> Begin (ArchipelagoHooks.cpp)\n")
+    ArchipelagoFTL::ApplyPendingProfile();
+    super();
+    ArchipelagoFTL::FinishPendingProfile();
+}
+
 // Events and achievements unlock vanilla ships here. Loading the profile calls it too, with nothing to save
 // and no popup: that one is let through.
 HOOK_METHOD(ScoreKeeper, UnlockShip, (int shipId, int shipType, bool save, bool hidePopup) -> void)

@@ -328,6 +328,11 @@ function apSoloForgetProgress(startAfter)
     remember(KEY_ACTIVE, startAfter and 1 or 0)
 end
 
+-- Solo moves to its own save: it starts again by itself there, with its progress.
+function apSoloRememberActive()
+    remember(KEY_ACTIVE, 1)
+end
+
 function apSoloWasActive()
     return recall(KEY_ACTIVE) == 1
 end
