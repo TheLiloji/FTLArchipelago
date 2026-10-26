@@ -562,6 +562,29 @@ def _has_blueprints(player: int, count: int) -> Callable[[CollectionState], bool
     return lambda state: state.has_group(group, player, count)
 
 
+def sector_pass_needs(world: "FTLWorld", layout: data.Layout, count: int) -> tuple[str, ...]:
+    """sector_locks: the passes a layout needs to go past sector 4 (one) or 7 (two)."""
+    if not world.options.sector_locks or count <= 0:
+        return ()
+    return (f"Sector Pass ({layout.display})",) * count
+
+
+def _sector_lock_rule(world: "FTLWorld", location: data.Location, layouts) -> Callable[[CollectionState], bool] | None:
+    depth = location_depth(location, bool(world.options.shop_by_sector))
+    count = 2 if depth >= 8 or location_needs_flagship(location) else (1 if depth >= 5 else 0)
+    if count == 0:
+        return None
+    if location.layout is not None:
+        able = [layout for layout in layouts if layout.blueprint == location.layout]
+    elif location.ship is not None:
+        able = [layout for layout in layouts if layout.ship == location.ship]
+    else:
+        able = list(layouts)
+    names = tuple(f"Sector Pass ({layout.display})" for layout in able)
+    player = world.player
+    return lambda state: any(state.has(name, player, count) for name in names)
+
+
 def set_rules(world: "FTLWorld") -> None:
     player = world.player
     level = world.sector_logic_level
@@ -579,6 +602,12 @@ def set_rules(world: "FTLWorld") -> None:
         milestone = power_milestone(world.options, level, location, bool(world.options.shop_by_sector))
         if milestone is not None:
             add_rule(world.get_location(location.name), _power_rule(world, location, milestone))
+
+    if world.options.sector_locks:
+        for location in world.created_locations:
+            rule = _sector_lock_rule(world, location, layouts)
+            if rule is not None:
+                add_rule(world.get_location(location.name), rule)
 
     _set_system_rules(world, layouts)
 
@@ -814,7 +843,8 @@ def _goal_rule(world: "FTLWorld") -> Callable[[CollectionState], bool]:
         layout for layout in selected_layouts(world.options)
         if chosen is None or layout.blueprint in chosen
     )
-    requirement_sets = tuple(layout_requirements(world, layout) for layout in goal_candidates)
+    requirement_sets = tuple(layout_requirements(world, layout) + sector_pass_needs(world, layout, 2)
+                             for layout in goal_candidates)
     options = world.options
     # With power milestones, a victory counts only on a layout ready for the Flagship.
     flagship_ready = tuple(

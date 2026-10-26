@@ -436,6 +436,8 @@
     "saves.archived": "Archivée : gardée dans le dossier ap_profiles/archived, rien n'est supprimé.",
     "reset.question.profile": "Cette seed n'est pas celle de cette sauvegarde. Elle aura sa propre sauvegarde, et celle-ci reste exactement comme elle est : vous pourrez y revenir depuis le menu Sauvegardes. FTL redémarre pour changer.",
     "reset.question.profile.solo": "Le mode solo a sa propre sauvegarde, et celle-ci reste exactement comme elle est : vous pourrez y revenir depuis le menu Sauvegardes. FTL redémarre pour changer.",
-    "reset.yes.profile": "Utiliser sa sauvegarde"
+    "reset.yes.profile": "Utiliser sa sauvegarde",
+    "sector_locks.closed": "Cette sortie est fermée : ce vaisseau a besoin du Sector Pass {n} pour quitter le secteur {sector}. Elle s'ouvre dès que le pass arrive.",
+    "sector_locks.open": "Sector Pass reçu : la sortie est ouverte."
   }
 }

@@ -1273,3 +1273,20 @@ test("shop deal scrap: the seed's percent changes what a deal pays, 0 closes the
     check(shownKey("deal.closed"), "it is closed")
     applySeed({})
 end)
+
+test("sector locks: the exit of sector 4 stays shut without a pass, and opens when it comes in", function()
+    apContractResetForTesting()
+    _G.apInventory = { ships = {}, systemCaps = {}, startingUpgrades = {}, shopAvailability = {} }
+    applySeed({ options = { sector_locks = 1 } })
+    sim.startRun(true)
+    sim.starMap.worldLevel = 3
+    sim.starMap.currentLoc = sim.makeLocation()
+    sim.starMap.currentLoc.beacon = true
+    sim.jumpArrive()
+    equals(sim.starMap.currentLoc.beacon, false, "no pass: the exit is shut")
+    apQueueItem({ kind = "pass", bp = "PLAYER_SHIP_HARD", display = "Sector Pass (The Kestrel)" })
+    sim.tick(121)
+    equals(sim.starMap.currentLoc.beacon, true, "the pass came in: open")
+    sim.starMap.worldLevel = 0
+    _G.apInventory.passes = nil
+end)

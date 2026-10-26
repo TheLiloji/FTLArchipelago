@@ -1122,3 +1122,58 @@ script.on_internal_event(Defines.InternalEvents.JUMP_ARRIVE, function(shipManage
         apTry(TAG, apSectorSkipArrive)
     end
 end)
+
+-- sector_locks: the exit of sector 4 (or 7) stays shut for a layout without its first (or second) Sector Pass,
+-- and opens as soon as the pass comes in.
+local lockedExit, lockedNeed, lockedLayout = nil, 0, nil
+
+local function locksOn()
+    local value = _G.apSeedOption and apSeedOption("sector_locks")
+    return value == 1 or value == true
+end
+
+local function passesFor(layout)
+    return (((_G.apInventory or {}).passes or {})[layout]) or 0
+end
+
+function apSectorLockArrive()
+    lockedExit = nil
+    if not locksOn() then
+        return
+    end
+    local layout = currentLayout()
+    local sector = math.floor(Hyperspace.App.world.starMap.worldLevel) + 1
+    local need = sector == 4 and 1 or (sector == 7 and 2 or 0)
+    local here = Hyperspace.App.world.starMap.currentLoc
+    if layout == nil or need == 0 or here == nil or here.beacon ~= true or passesFor(layout) >= need then
+        return
+    end
+    here.beacon = false
+    lockedExit, lockedNeed, lockedLayout = here, need, layout
+    checkLog("sector " .. sector .. " exit shut: " .. layout .. " needs Sector Pass " .. need)
+    if _G.apNotifyWarning then
+        _G.apNotifyWarning(apT("sector_locks.closed", { n = need, sector = sector }))
+    end
+end
+
+local lockTicks = 0
+script.on_internal_event(Defines.InternalEvents.ON_TICK, function()
+    lockTicks = (lockTicks + 1) % 60
+    if lockTicks ~= 0 or lockedExit == nil then
+        return
+    end
+    if passesFor(lockedLayout) >= lockedNeed then
+        lockedExit.beacon = true
+        lockedExit = nil
+        checkLog("sector exit opened: the pass came in")
+        if _G.apNotifyStatus then
+            _G.apNotifyStatus(apT("sector_locks.open"))
+        end
+    end
+end)
+
+script.on_internal_event(Defines.InternalEvents.JUMP_ARRIVE, function(shipManager)
+    if shipManager.iShipId == 0 then
+        apTry(TAG, apSectorLockArrive)
+    end
+end)

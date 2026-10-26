@@ -116,6 +116,7 @@ packages sold at the AP STORE beacons, which hold other players' items.
 | **Flagship Sabotage** | 0 to 5 (default 0): each Flagship phase arrives weakened. Hull -10 %, then shields -1, hull -20 %, weapons -1, hull -30 % |
 | **Archipelago Shop Deal Scrap** | 0 to 200 % (default 100): what the shop's deals pay. 0 turns them off |
 | **Kestrel Needs Its Key** | Off by default. When you do not start with the Kestrel, the Kestrel A needs its key like any ship. FTL still shows it in the hangar: a run with it sends nothing until the key comes in |
+| **Sector Locks** | Off by default. Each layout needs Sector Passes: the first to leave sector 4, the second to leave sector 7. Without them the exit stays shut and says why. Two items per layout |
 | **Sector Skip** | Off by default. A layout that already reached the next sector may skip sectors 1 to 4: their first beacon is an exit, and jumping on at once gives 30 scrap |
 
 ## Expert options

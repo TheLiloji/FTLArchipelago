@@ -437,6 +437,8 @@
     "saves.archived": "Archived: kept in the ap_profiles/archived folder, nothing deleted.",
     "reset.question.profile": "This seed is not the one this save was made for. It gets its own save, and this one stays exactly as it is: you can come back to it from the Saves menu. FTL restarts to switch.",
     "reset.question.profile.solo": "Solo mode gets its own save, and this one stays exactly as it is: you can come back to it from the Saves menu. FTL restarts to switch.",
-    "reset.yes.profile": "Use its own save"
+    "reset.yes.profile": "Use its own save",
+    "sector_locks.closed": "This exit is shut: this ship needs Sector Pass {n} to leave sector {sector}. It opens as soon as the pass comes in.",
+    "sector_locks.open": "Sector Pass received: the exit is open."
   }
 }

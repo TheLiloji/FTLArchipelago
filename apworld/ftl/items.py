@@ -142,6 +142,9 @@ def enabled_items(options, shop_items: tuple[data.ShopItem, ...] = ()) -> tuple[
             wanted = {mode.option_by_group: "by_group", mode.option_by_sector: "by_sector"}.get(mode.value)
             if locations.multiverse(options) and item.family == wanted:
                 kept.append(item)
+        elif group == data.GROUP_SECTOR_PASSES:
+            if options.sector_locks and item.blueprint in layouts:
+                kept.append(item)
         elif group == data.GROUP_BUNDLES:
             if int(item.name.rsplit(" ", 1)[1]) <= bundle_counts.get(item.family, 0):
                 kept.append(item)
