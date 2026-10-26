@@ -440,6 +440,7 @@
     "reset.yes.profile": "Usar su partida",
     "sector_locks.closed": "Esta salida está cerrada: esta nave necesita el Sector Pass {n} para salir del sector {sector}. Se abre en cuanto llega el pase.",
     "sector_locks.open": "Sector Pass recibido: la salida está abierta.",
-    "reset.kept.profile": "Guardada: esta partida se queda con su seed. Carga otra partida o conéctate a la seed de esta."
+    "reset.kept.profile": "Guardada: esta partida se queda con su seed. Carga otra partida o conéctate a la seed de esta.",
+    "deal.off": "No hay pactos en esta seed"
   }
 }

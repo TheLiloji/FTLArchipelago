@@ -1270,7 +1270,7 @@ test("shop deal scrap: the seed's percent changes what a deal pays, 0 closes the
     sim.sign("AP_DEAL_3")
     sim.tick(120)
     equals(sim.player.currentScrap, 0, "at 0 a deal pays nothing")
-    check(shownKey("deal.closed"), "it is closed")
+    check(shownKey("deal.off"), "and says the seed has no deals")
     applySeed({})
 end)
 

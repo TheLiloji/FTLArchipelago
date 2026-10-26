@@ -440,6 +440,7 @@
     "reset.yes.profile": "Usa il suo salvataggio",
     "sector_locks.closed": "Questa uscita è chiusa: questa nave ha bisogno del Sector Pass {n} per lasciare il settore {sector}. Si apre appena arriva il pass.",
     "sector_locks.open": "Sector Pass ricevuto: l'uscita è aperta.",
-    "reset.kept.profile": "Tenuto: questo salvataggio resta con il suo seed. Carica un altro salvataggio o collegati al seed di questo."
+    "reset.kept.profile": "Tenuto: questo salvataggio resta con il suo seed. Carica un altro salvataggio o collegati al seed di questo.",
+    "deal.off": "In questo seed non ci sono patti"
   }
 }

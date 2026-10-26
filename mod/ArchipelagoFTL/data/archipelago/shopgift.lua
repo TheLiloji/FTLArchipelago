@@ -780,7 +780,7 @@ script.on_internal_event(Defines.InternalEvents.ON_TICK, function()
                     Hyperspace.ships.player:RemoveItem(blueprintName, true)
                 end)
                 if _G.apNotifyStatus then
-                    _G.apNotifyStatus(apT("deal.closed"))
+                    _G.apNotifyStatus(apT(dealPercent() == 0 and "deal.off" or "deal.closed"))
                 end
             else
                 signDeal(index, blueprintName)
