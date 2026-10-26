@@ -48,7 +48,14 @@ class TestDurationPresets(TestCase):
 
     def test_short_medium_and_long(self) -> None:
         self.assertEqual(DURATION_PRESETS,
-                         ["first_game.yaml", "long_game.yaml", "medium_game.yaml", "short_game.yaml"])
+                         ["first_game.yaml", "long_game.yaml", "medium_game.yaml", "short_game.yaml",
+                          "solo_game.yaml"])
+
+    def test_the_solo_preset_uses_what_keeps_a_lone_seed_going(self) -> None:
+        options = load("solo_game.yaml")
+        for key in ("sector_skip", "sector_locks", "reactor_checks"):
+            self.assertTrue(options[key], key)
+        self.assertEqual(options["combat_checks_mode"], "per_sector")
 
     def test_every_preset_says_which_victories_count(self) -> None:
         for name in DURATION_PRESETS:
