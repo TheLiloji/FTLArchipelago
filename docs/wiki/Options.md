@@ -108,6 +108,11 @@ packages sold at the AP STORE beacons, which hold other players' items.
 | **Archipelago Shop Hints** | `seen` (the default): the packages you see at an Archipelago beacon become hints, so their owners know where their item waits. `off` keeps the shop secret |
 | **Trap Chance** | Three new traps that wait for your next fight: an anti-ship battery, a Flagship power surge (lighter in sectors 1 and 2), or a hazard (nebula, ion storm, asteroids, sun or pulsar). The battery and the hazard go away when the fight is over |
 | **Sector Logic** | `relaxed` is now called `none`: the logic expects nothing, you may have to win with very little. For experienced players. `relaxed` still works in old YAMLs |
+| **Combat Checks Mode** | `per_run` (the default): the first fights of a run send checks. `per_sector`: the first fights of each sector send their own, up to **Fights per Sector** (1 to 5, default 2) |
+| **Archipelago Event Checks** | 0 to 20 (default 5): the packages of the relay and pirate events become checks of their own, "Archipelago Event 1", 2... before the events take the shop's packages |
+| **Reactor Checks** | Off by default. Reactor power 10, 15, 20 and 25 send checks |
+| **Flagship Sabotage** | 0 to 5 (default 0): each Flagship phase arrives weakened. Hull -10 %, then shields -1, hull -20 %, weapons -1, hull -30 % |
+| **Sector Skip** | Off by default. A layout that already reached the next sector may skip sectors 1 to 4: their first beacon is an exit, and jumping on at once gives 30 scrap |
 
 ## Expert options
 
