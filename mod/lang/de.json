@@ -439,6 +439,7 @@
     "reset.question.profile.solo": "Der Solomodus bekommt einen eigenen Spielstand, und dieser bleibt genau so: du kannst über das Menü Spielstände zurückkehren. FTL startet zum Wechseln neu.",
     "reset.yes.profile": "Eigenen Spielstand nutzen",
     "sector_locks.closed": "Dieser Ausgang ist zu: dieses Schiff braucht Sector Pass {n}, um Sektor {sector} zu verlassen. Er öffnet sich, sobald der Pass ankommt.",
-    "sector_locks.open": "Sector Pass erhalten: der Ausgang ist offen."
+    "sector_locks.open": "Sector Pass erhalten: der Ausgang ist offen.",
+    "reset.kept.profile": "Behalten: dieser Spielstand bleibt bei seinem Seed. Lade einen anderen Spielstand oder verbinde dich mit dem Seed dieses Spielstands."
   }
 }

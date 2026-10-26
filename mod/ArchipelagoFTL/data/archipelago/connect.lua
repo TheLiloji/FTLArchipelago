@@ -105,7 +105,23 @@ end
 
 local soloQuestion = false
 
+-- With save profiles, solo plays in its own save: starting it from another save asks first.
+local soloProfileQuestion = false
+
+local function soloNeedsItsSave()
+    if not (_G.apSavesSupported and apSavesSupported()) or apSavesCurrent() == "solo" then
+        return false
+    end
+    soloProfileQuestion = true
+    _G.apSoloPending = true
+    connectLog("solo asked from another save: its own save is offered")
+    return true
+end
+
 local function toggleSolo()
+    if not _G.apSoloEnabled and soloNeedsItsSave() then
+        return
+    end
     if _G.apSoloEnabled then
         connectLog("solo mode stopped from the panel")
         if _G.apSoloStop then _G.apSoloStop() end
@@ -174,6 +190,9 @@ local function resetQuestionText()
 end
 
 local function resetQuestionOpen()
+    if soloProfileQuestion then
+        return true
+    end
     if resetAsked then
         return false
     end
@@ -185,6 +204,7 @@ end
 
 local function acceptReset()
     resetAsked = true
+    soloProfileQuestion = false
     local solo = _G.apSoloPending
     _G.apSoloPending = false
     local autoBefore = autoActive()
@@ -220,6 +240,21 @@ local function acceptReset()
 end
 
 local function declineReset()
+    if soloProfileQuestion then
+        soloProfileQuestion = false
+        _G.apSoloPending = false
+        message, messageTone = apT("reset.kept.profile"), "dim"
+        return
+    end
+    -- With save profiles, keeping means this save stays with its own seed: the other seed is not taken in.
+    if profilesOn() then
+        _G.apSoloPending = false
+        if _G.apSeedChangeAcknowledged then _G.apSeedChangeAcknowledged() end
+        if _G.apNetDisconnect then pcall(_G.apNetDisconnect) end
+        message, messageTone = apT("reset.kept.profile"), "dim"
+        connectLog("the save keeps its own seed: the other seed is not loaded")
+        return
+    end
     if _G.apSeedChangeFingerprint and _G.apNetRememberSeed then
         local fingerprint = _G.apSeedChangeFingerprint()
         if fingerprint ~= nil then _G.apNetRememberSeed(fingerprint) end
