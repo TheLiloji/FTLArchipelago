@@ -454,8 +454,8 @@ script.on_internal_event(Defines.InternalEvents.JUMP_ARRIVE, function(shipManage
         return Defines.Chain.CONTINUE
     end
     -- sector_skip: a sector skipped gives one more pick from the received items, at the next beacon.
-    -- An extra pick not used yet (no room aboard, or the player left it) comes back at the next beacon.
-    if extraPick and open then
+    -- An extra pick not used yet (no room aboard, or the menu closed with Finish) comes back at the next beacon.
+    if extraPick then
         _G.apLoadoutExtraPick = true
     end
     if _G.apLoadoutExtraPick then

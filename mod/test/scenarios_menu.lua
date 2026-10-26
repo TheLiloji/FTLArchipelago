@@ -633,9 +633,11 @@ test("sector skip: the extra pick says so, waits when there is no room, and come
     end
     check(said, "and the player is told why")
     restore()
+    sim.click(apLoadoutPoint("done"))
+    check(not apLoadoutOpen(), "closed with Finish")
     sim.jumpArrive()
     sim.renderGui()
-    check(apLoadoutOpen(), "the pick not made comes back at the next beacon")
+    check(apLoadoutOpen(), "the pick not made comes back at the next beacon, even after Finish")
     sim.click(apLoadoutPoint("row", "weapon", 1))
     sim.jumpArrive()
     sim.renderGui()
