@@ -213,7 +213,6 @@ local function acceptReset()
         -- Its own save for this seed (or for solo): the current one stays as it is, swapped at the next launch.
         local fingerprint = _G.apSeedChangeFingerprint and apSeedChangeFingerprint() or nil
         done = apSavesSwitch(apSavesIdFor(fingerprint, solo))
-        if done and solo and _G.apSoloRememberActive then _G.apSoloRememberActive() end
     else
         done = _G.apNetRequestProfileReset and _G.apNetRequestProfileReset()
         if done and _G.apNetForgetProgress then

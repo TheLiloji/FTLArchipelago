@@ -363,6 +363,14 @@ local function deliverOne(descriptor)
             return false
         end
         inventory.passes = inventory.passes or {}
+        -- The same item sent again (a reconnection) is the same pass, not a second one.
+        inventory.passIndices = inventory.passIndices or {}
+        if descriptor.index ~= nil and inventory.passIndices[descriptor.index] then
+            return true
+        end
+        if descriptor.index ~= nil then
+            inventory.passIndices[descriptor.index] = true
+        end
         inventory.passes[descriptor.bp] = (inventory.passes[descriptor.bp] or 0) + 1
         fillerLog("sector pass: " .. descriptor.bp .. " x" .. inventory.passes[descriptor.bp])
         if _G.apNotifyItem and not descriptor.isReplay then
