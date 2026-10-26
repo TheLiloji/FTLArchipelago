@@ -64,3 +64,19 @@
 <text name="ap_trap_asb_end_text" language="es">La batería de defensa planetaria se apaga. El combate ha terminado.</text>
 <text name="ap_trap_hazard_text" language="es">Alguien le pasó una corrección de rumbo falsa a tu ordenador de navegación. Esta baliza no es tan tranquila como decían las cartas.</text>
 <text name="ap_trap_hazard_end_text" language="es">Terminado el combate, el espacio alrededor de la baliza se calma.</text>
+<text name="ap_evt_overclock_text" language="es">Un técnico engi te llama desde un módulo taller estrecho. «Tu reactor va con prudencia. Podríamos hacerlo cantar. O fundirse. Normalmente, cantar.» Te dice un precio y una apuesta.</text>
+<text name="ap_evt_overclock_c1" language="es">Apostar 30 de chatarra al overclock.</text>
+<text name="ap_evt_overclock_c1_text" language="es">El técnico se conecta con un entusiasmo inquietante. El reactor zumba cada vez más agudo.</text>
+<text name="ap_evt_overclock_c2" language="es">Dejar que lo pruebe en los motores.</text>
+<text name="ap_evt_overclock_c2_text" language="es">La prueba sale a medias: los motores tosen y echan chispas, pero el técnico te da tres células de combustible por las molestias.</text>
+<text name="ap_evt_overclock_c3" language="es">Darle las gracias e irse.</text>
+<text name="ap_evt_overclock_c3_text" language="es">El técnico parece decepcionado, luego te despide con la mano y vuelve a sus cables.</text>
+<text name="ap_evt_overclock_win" language="es">El overclock aguanta. El técnico grita de alegría, no gana nada y te paga el doble con una apuesta paralela sobre tu nave.</text>
+<text name="ap_evt_overclock_lose" language="es">Algo revienta. Luego otra cosa. El reactor vuelve a la normalidad, pero partes de la nave no disfrutaron del viaje.</text>
+<text name="ap_evt_arms_text" language="es">Un carguero muy armado espera en la baliza. Su capitán sonríe demasiado. «Buenas armas, precios justos, sin preguntas. Solo hoy.»</text>
+<text name="ap_evt_arms_c1" language="es">Comprar un arma por 45 de chatarra.</text>
+<text name="ap_evt_arms_c1_text" language="es">El capitán elige una caja sin mirarla y la hace trasladar. Sin devoluciones.</text>
+<text name="ap_evt_arms_c2" language="es">Cambiar 4 de combustible por uno de sus aparatos.</text>
+<text name="ap_evt_arms_c2_text" language="es">El combustible se va, vuelve una cajita sellada. Muy rara, jura.</text>
+<text name="ap_evt_arms_c3" language="es">Rechazar y seguir.</text>
+<text name="ap_evt_arms_c3_text" language="es">«Usted se lo pierde», dice el capitán, ya buscando al siguiente cliente.</text>

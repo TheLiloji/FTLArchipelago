@@ -384,3 +384,87 @@
     <removeHazards/>
     <removeNebula/>
 </event>
+
+<!-- An Engi tech offers to overclock the reactor for a bet: scrap if it holds, damage if it does not. -->
+<event name="AP_EVT_OVERCLOCK">
+    <preventQuest/>
+    <text id="ap_evt_overclock_text"/>
+    <img back="AP_BACKGROUND" planet="AP_PLANET"/>
+    <beaconType load="AP_BEACON_SIGNAL"/>
+    <choice>
+        <text id="ap_evt_overclock_c1"/>
+        <event name="AP_EVT_OVERCLOCK_A">
+            <text id="ap_evt_overclock_c1_text"/>
+            <item_modify>
+                <item type="scrap" min="-30" max="-30"/>
+            </item_modify>
+            <choice>
+                <text id="continue"/>
+                <event load="AP_OVERCLOCK_ROLL"/>
+            </choice>
+        </event>
+    </choice>
+    <choice>
+        <text id="ap_evt_overclock_c2"/>
+        <event name="AP_EVT_OVERCLOCK_B">
+            <text id="ap_evt_overclock_c2_text"/>
+            <item_modify>
+                <item type="fuel" min="3" max="3"/>
+            </item_modify>
+            <damage amount="1" system="engines"/>
+        </event>
+    </choice>
+    <choice>
+        <text id="ap_evt_overclock_c3"/>
+        <event name="AP_EVT_OVERCLOCK_C">
+            <text id="ap_evt_overclock_c3_text"/>
+        </event>
+    </choice>
+</event>
+<eventList name="AP_OVERCLOCK_ROLL">
+    <event>
+        <text id="ap_evt_overclock_win"/>
+        <item_modify>
+            <item type="scrap" min="75" max="75"/>
+        </item_modify>
+    </event>
+    <event>
+        <text id="ap_evt_overclock_lose"/>
+        <damage amount="2"/>
+        <damage amount="1" system="engines"/>
+    </event>
+</eventList>
+
+<!-- A rare arms dealer: a weapon for scrap, or an augment for fuel. -->
+<event name="AP_EVT_ARMS_DEALER">
+    <preventQuest/>
+    <text id="ap_evt_arms_text"/>
+    <img back="AP_BACKGROUND" planet="AP_PLANET"/>
+    <beaconType load="AP_BEACON_SIGNAL"/>
+    <choice>
+        <text id="ap_evt_arms_c1"/>
+        <event name="AP_EVT_ARMS_DEALER_A">
+            <text id="ap_evt_arms_c1_text"/>
+            <item_modify>
+                <item type="scrap" min="-45" max="-45"/>
+            </item_modify>
+            <weapon name="RANDOM"/>
+        </event>
+    </choice>
+    <choice>
+        <text id="ap_evt_arms_c2"/>
+        <event name="AP_EVT_ARMS_DEALER_B">
+            <text id="ap_evt_arms_c2_text"/>
+            <item_modify>
+                <item type="fuel" min="-4" max="-4"/>
+            </item_modify>
+            <augment name="RANDOM"/>
+        </event>
+    </choice>
+    <choice>
+        <text id="ap_evt_arms_c3"/>
+        <event name="AP_EVT_ARMS_DEALER_C">
+            <text id="ap_evt_arms_c3_text"/>
+        </event>
+    </choice>
+</event>

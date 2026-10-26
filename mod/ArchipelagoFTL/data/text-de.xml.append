@@ -66,3 +66,19 @@
 <text name="ap_trap_asb_end_text" language="de">Die planetare Verteidigungsbatterie schaltet ab. Der Kampf ist vorbei.</text>
 <text name="ap_trap_hazard_text" language="de">Jemand hat deinem Navigationscomputer eine falsche Kurskorrektur untergeschoben. Diese Bake ist nicht so ruhig, wie die Karten behaupten.</text>
 <text name="ap_trap_hazard_end_text" language="de">Nach dem Kampf beruhigt sich der Raum um die Bake.</text>
+<text name="ap_evt_overclock_text" language="de">Ein Engi-Techniker funkt Sie aus einer engen Werkstattkapsel an. &quot;Ihr Reaktor läuft vorsichtig. Wir könnten ihn singen lassen. Oder schmelzen. Meistens singen.&quot; Er nennt einen Preis und eine Wette.</text>
+<text name="ap_evt_overclock_c1" language="de">30 Schrott auf das Übertakten setzen.</text>
+<text name="ap_evt_overclock_c1_text" language="de">Der Techniker stöpselt sich mit beunruhigender Begeisterung ein. Der Reaktor summt immer höher.</text>
+<text name="ap_evt_overclock_c2" language="de">Ihn lieber an den Triebwerken testen lassen.</text>
+<text name="ap_evt_overclock_c2_text" language="de">Der Test klappt halb: die Triebwerke husten und sprühen Funken, aber der Techniker gibt Ihnen drei Brennstoffzellen für die Mühe.</text>
+<text name="ap_evt_overclock_c3" language="de">Danken und weiterfliegen.</text>
+<text name="ap_evt_overclock_c3_text" language="de">Der Techniker wirkt enttäuscht, winkt dann ab und kehrt zu seinen Kabeln zurück.</text>
+<text name="ap_evt_overclock_win" language="de">Die Übertaktung hält. Der Techniker jubelt, gewinnt nichts und zahlt Ihnen dank einer Nebenwette auf Ihr Schiff das Doppelte zurück.</text>
+<text name="ap_evt_overclock_lose" language="de">Etwas knallt. Dann noch etwas. Der Reaktor beruhigt sich wieder, aber Teile des Schiffs fanden die Reise nicht gut.</text>
+<text name="ap_evt_arms_text" language="de">Ein schwer bewaffneter Frachter wartet am Leuchtfeuer. Sein Kapitän lächelt zu viel. &quot;Gute Waffen, faire Preise, keine Fragen. Nur heute.&quot;</text>
+<text name="ap_evt_arms_c1" language="de">Eine Waffe für 45 Schrott kaufen.</text>
+<text name="ap_evt_arms_c1_text" language="de">Der Kapitän greift eine Kiste, ohne hinzusehen, und lässt sie herüberschaffen. Kein Umtausch.</text>
+<text name="ap_evt_arms_c2" language="de">4 Treibstoff gegen eines seiner Geräte tauschen.</text>
+<text name="ap_evt_arms_c2_text" language="de">Der Treibstoff geht hinüber, eine kleine versiegelte Kiste kommt zurück. Sehr selten, schwört er.</text>
+<text name="ap_evt_arms_c3" language="de">Ablehnen und weiterfliegen.</text>
+<text name="ap_evt_arms_c3_text" language="de">&quot;Ihr Pech&quot;, sagt der Kapitän und sucht schon den nächsten Kunden.</text>

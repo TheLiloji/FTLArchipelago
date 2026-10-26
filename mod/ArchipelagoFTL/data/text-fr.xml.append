@@ -66,3 +66,19 @@
 <text name="ap_trap_asb_end_text" language="fr">La batterie de défense planétaire s'éteint. Le combat est terminé.</text>
 <text name="ap_trap_hazard_text" language="fr">Quelqu'un a glissé une mauvaise correction de cap à votre ordinateur de navigation. Cette balise n'est pas aussi calme que le disaient les cartes.</text>
 <text name="ap_trap_hazard_end_text" language="fr">Le combat terminé, l'espace autour de la balise se calme.</text>
+<text name="ap_evt_overclock_text" language="fr">Un technicien engi vous appelle depuis un module-atelier exigu. « Votre réacteur tourne prudemment. On pourrait le faire chanter. Ou fondre. En général, chanter. » Il annonce un prix et un pari.</text>
+<text name="ap_evt_overclock_c1" language="fr">Parier 30 ferraille sur le surcadençage.</text>
+<text name="ap_evt_overclock_c1_text" language="fr">Le technicien se branche avec un enthousiasme inquiétant. Le réacteur monte dans les aigus.</text>
+<text name="ap_evt_overclock_c2" language="fr">Le laisser essayer sur les moteurs plutôt.</text>
+<text name="ap_evt_overclock_c2_text" language="fr">L'essai marche à moitié : les moteurs toussent et crachent des étincelles, mais le technicien vous donne trois cellules de carburant pour la peine.</text>
+<text name="ap_evt_overclock_c3" language="fr">Le remercier et partir.</text>
+<text name="ap_evt_overclock_c3_text" language="fr">Le technicien a l'air déçu, puis vous fait signe de partir et retourne à ses câbles.</text>
+<text name="ap_evt_overclock_win" language="fr">Le surcadençage tient. Le technicien jubile, ne gagne rien, et vous rembourse deux fois grâce à un pari parallèle sur votre vaisseau.</text>
+<text name="ap_evt_overclock_lose" language="fr">Quelque chose saute. Puis autre chose. Le réacteur revient à la normale, mais une partie du vaisseau n'a pas aimé le voyage.</text>
+<text name="ap_evt_arms_text" language="fr">Un cargo lourdement armé attend à la balise. Son capitaine sourit trop. « Belles armes, prix honnêtes, pas de questions. Aujourd'hui seulement. »</text>
+<text name="ap_evt_arms_c1" language="fr">Acheter une arme pour 45 ferraille.</text>
+<text name="ap_evt_arms_c1_text" language="fr">Le capitaine choisit une caisse sans la regarder et la fait transborder. Pas de remboursement.</text>
+<text name="ap_evt_arms_c2" language="fr">Échanger 4 carburant contre un de ses gadgets.</text>
+<text name="ap_evt_arms_c2_text" language="fr">Le carburant part, une petite boîte scellée revient. Très rare, jure-t-il.</text>
+<text name="ap_evt_arms_c3" language="fr">Refuser et continuer.</text>
+<text name="ap_evt_arms_c3_text" language="fr">« Tant pis pour vous », dit le capitaine, qui cherche déjà le client suivant.</text>

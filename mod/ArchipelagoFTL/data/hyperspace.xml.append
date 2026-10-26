@@ -99,6 +99,12 @@
     <event name="AP_EVT_SLUG_WHISPER">
         <changeBackground>AP_BACKGROUND</changeBackground>
     </event>
+    <event name="AP_EVT_OVERCLOCK">
+        <changeBackground>AP_BACKGROUND</changeBackground>
+    </event>
+    <event name="AP_EVT_ARMS_DEALER">
+        <changeBackground>AP_BACKGROUND</changeBackground>
+    </event>
     <event name="AP_EVT_ANOTHER_WORLD">
         <changeBackground>AP_BACKGROUND</changeBackground>
     </event>
