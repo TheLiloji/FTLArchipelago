@@ -275,3 +275,14 @@ class TestMultiverseEndingsOffByDefault(FTLTestBase):
     def test_no_ending_check(self) -> None:
         self.assertFalse(any(location.name.startswith("Multiverse Ending")
                              for location in self.multiworld.get_locations(self.player)))
+
+
+class TestMultiverseQuests(FTLTestBase):
+    options = {"multiverse": True, "multiverse_quests": True, "layout_count": 10}
+
+    def test_each_ship_of_the_seed_has_its_quest_holding_filler(self) -> None:
+        quests = [location for location in self.multiworld.get_locations(self.player)
+                  if location.name.startswith("Multiverse Quest: ")]
+        self.assertTrue(quests)
+        self.assertTrue(all(data.LOCATIONS_BY_NAME[location.name].group in data.FILLER_ONLY_GROUPS
+                            for location in quests))

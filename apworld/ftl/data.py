@@ -110,6 +110,7 @@ LOCATION_OFFSET_SHIP_SYSTEM = 70_000
 # Taken by the Multiverse achievements on the Multiverse branch, already released there: never reuse it.
 LOCATION_OFFSET_MV_ACH = 80_000
 LOCATION_OFFSET_MV_ENDING = 107_000
+LOCATION_OFFSET_MV_QUEST = 108_000
 LOCATION_OFFSET_FIGHT = 90_000
 LOCATION_OFFSET_SECTOR_FIGHT = 100_000
 LOCATION_OFFSET_EVENT = 105_000
@@ -648,13 +649,15 @@ GROUP_GENERAL_ACHIEVEMENTS = "General achievements"
 GROUP_MV_ACHIEVEMENTS = "Multiverse achievements"
 GROUP_MV_ENDINGS = "Multiverse endings"
 GROUP_MV_ENDINGS_RARE = "Multiverse rare endings"
+GROUP_MV_QUESTS = "Multiverse ship quests"
 GROUP_SHOP_SLOTS = "Archipelago shop"
 GROUP_FIGHTS = "Fights won"
 GROUP_SECTOR_FIGHTS = "Fights won per sector"
 GROUP_EVENTS = "Archipelago events"
 GROUP_REACTOR = "Reactor power"
 # Location groups that only ever hold filler: the logic does not count them as room for the items it needs.
-FILLER_ONLY_GROUPS: frozenset[str] = frozenset({GROUP_MV_ACHIEVEMENTS, GROUP_MV_CREW_RARE, GROUP_MV_ENDINGS_RARE})
+FILLER_ONLY_GROUPS: frozenset[str] = frozenset({GROUP_MV_ACHIEVEMENTS, GROUP_MV_CREW_RARE, GROUP_MV_ENDINGS_RARE,
+                                                    GROUP_MV_QUESTS})
 
 TIER_GENERAL = "general"
 TIER_DISTANCE = "distance"
@@ -1354,6 +1357,17 @@ def _build_locations() -> tuple[Location, ...]:
             description=f"Reach Multiverse's {label} ending and beat the boss it asks for.",
         ))
 
+    # Multiverse's ship quests: the game unlocking a ship's Type A (a quest done), which Archipelago refuses but
+    # counts. Long and random, so filler only.
+    for ship in MV_SHIPS:
+        locations.append(Location(
+            name=f"Multiverse Quest: {ship.display}",
+            code=LOCATION_ID_BASE + LOCATION_OFFSET_MV_QUEST + ship.slot,
+            check_id=f"mvquest:{ship.blueprint}",
+            group=GROUP_MV_QUESTS,
+            ship=ship.blueprint,
+        ))
+
     return tuple(locations)
 
 
@@ -1530,7 +1544,7 @@ def _check_vanilla_totals() -> None:
                       + 10 * 16 + len(MV_LAYOUTS) * (SECTOR_COUNT + 1) + len(MV_SHIPS) * 16
                       + len(MV_ACHIEVEMENTS_RAW) + len(ALL_SHIPS) * MAX_FIGHTS_PER_SHIP
                       + len(ALL_SHIPS) * SECTOR_COUNT * MAX_FIGHTS_PER_SECTOR
-                      + MAX_EVENT_CHECKS + len(REACTOR_THRESHOLDS) + len(MV_ENDINGS)),
+                      + MAX_EVENT_CHECKS + len(REACTOR_THRESHOLDS) + len(MV_ENDINGS) + len(MV_SHIPS)),
     }
     wrong = {label: pair for label, pair in expected.items() if pair[0] != pair[1]}
     if wrong:

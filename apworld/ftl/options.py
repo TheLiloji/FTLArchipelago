@@ -238,6 +238,14 @@ class MultiverseEndingChecks(Toggle):
     display_name = "Multiverse Ending Checks"
 
 
+class MultiverseQuestChecks(Toggle):
+    """With Multiverse, finishing the quest that unlocks a Multiverse ship sends a check for that ship (the ship
+    itself still comes from Archipelago). They only ever hold filler, since quests are long and random.
+    """
+
+    display_name = "Multiverse Ship Quest Checks"
+
+
 class MagicHat(Choice):
     """With Multiverse, the Magic Hat's sector jumps become Archipelago items: once one is received, the reroute
     menu offers the destinations it opens, in this run and the next ones.
@@ -1110,6 +1118,7 @@ class FTLOptions(PerGameCommonOptions):
     multiverse_achievements: MultiverseAchievementChecks
     magic_hat: MagicHat
     multiverse_endings: MultiverseEndingChecks
+    multiverse_quests: MultiverseQuestChecks
     ship_layouts: ShipLayouts
     layout_count: LayoutCount
     layout_unlocks: LayoutUnlocks
@@ -1166,7 +1175,8 @@ class FTLOptions(PerGameCommonOptions):
 
 
 ftl_option_groups = [
-    OptionGroup("Multiverse", [Multiverse, MultiverseAchievementChecks, MultiverseEndingChecks, MagicHat]),
+    OptionGroup("Multiverse", [Multiverse, MultiverseAchievementChecks, MultiverseEndingChecks, MultiverseQuestChecks,
+                                  MagicHat]),
     OptionGroup("Goal", [VictoriesRequired, VictoryDifficulty, FlagshipSabotage, Archives, ArchivesRequired,
                          VictoryCollectsLayout]),
     OptionGroup(

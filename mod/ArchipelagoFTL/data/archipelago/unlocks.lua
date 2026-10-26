@@ -220,7 +220,20 @@ local function saveEarned()
     end
 end
 
+-- multiverse_quests: Multiverse unlocking a ship's Type A means its quest is done, a check of its own.
+local function questCheck(blueprint)
+    if blueprint:match("_[23]$") or not (_G.apLocationNameFor and _G.apSendCheck) then
+        return false
+    end
+    local key = "mvquest:" .. blueprint
+    if apLocationNameFor(key) == nil then
+        return false
+    end
+    return apSendCheck(key, apLocationNameFor(key))
+end
+
 function apShipUnlockDenied(blueprint)
+    apTry(TAG, questCheck, blueprint)
     local status = _G.apShipReceived and apShipReceived(blueprint) or "not_received"
     if status == "ok" then
         unlockLog("FTL unlocked " .. blueprint .. ", which Archipelago allows: let through")

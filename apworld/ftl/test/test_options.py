@@ -187,7 +187,7 @@ class TestEverythingEnabled(FTLTestBase):
         multiverse = sum(1 for location in data.LOCATIONS
                          if location.layout in {layout.blueprint for layout in data.MV_LAYOUTS}
                          or location.group in (data.GROUP_MV_ACHIEVEMENTS, data.GROUP_MV_CREW, data.GROUP_MV_CREW_RARE,
-                                               data.GROUP_MV_ENDINGS, data.GROUP_MV_ENDINGS_RARE)
+                                               data.GROUP_MV_ENDINGS, data.GROUP_MV_ENDINGS_RARE, data.GROUP_MV_QUESTS)
                          or (location.group == data.GROUP_FIGHTS and location.ship in mv_ships))
         always_free = len(locations.ON_EVERY_SHIP)
         # Per-run and per-sector fight checks exclude each other: this seed counts per run.
