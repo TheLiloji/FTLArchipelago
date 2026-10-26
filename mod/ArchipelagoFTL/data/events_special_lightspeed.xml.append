@@ -3,13 +3,13 @@
 <mod:findName type="event" name="REROUTE_MENU" panic="false">
 	<mod-append:choice hidden="true" req="ap_hat_on" blue="false">
 		<text>Use the Archipelago Magic Hat.</text>
-		<event load="AP_HAT_MENU"/>
+		<event><loadEvent>AP_HAT_MENU</loadEvent></event>
 	</mod-append:choice>
 </mod:findName>
 <mod:findName type="event" name="REROUTE_MENU_LASTSTAND" panic="false">
 	<mod-append:choice hidden="true" req="ap_hat_on" blue="false">
 		<text>Use the Archipelago Magic Hat.</text>
-		<event load="AP_HAT_MENU"/>
+		<event><loadEvent>AP_HAT_MENU</loadEvent></event>
 	</mod-append:choice>
 </mod:findName>
 <event name="AP_HAT_MENU">
@@ -20,296 +20,296 @@
 	</choice>
 	<choice hidden="true" req="ap_hat_generic" blue="false">
 		<text>Look for a generic sector.</text>
-		<event load="AP_HAT_MENU_GENERIC"/>
+		<event><loadEvent>AP_HAT_MENU_GENERIC</loadEvent></event>
 	</choice>
 	<choice hidden="true" req="ap_hat_unique" blue="false">
 		<text>Look for a unique sector.</text>
-		<event load="AP_HAT_MENU_UNIQUE"/>
+		<event><loadEvent>AP_HAT_MENU_UNIQUE</loadEvent></event>
 	</choice>
 	<choice hidden="true" req="ap_hat_secret" blue="false">
 		<text>Look for a secret sector.</text>
-		<event load="AP_HAT_MENU_SECRET"/>
+		<event><loadEvent>AP_HAT_MENU_SECRET</loadEvent></event>
 	</choice>
 </event>
 <event name="AP_HAT_MENU_GENERIC">
 	<text>You consider where the Magic Hat could take you.</text>
 	<choice hidden="true">
 		<text>Nevermind.</text>
-		<event load="AP_HAT_MENU"/>
+		<event><loadEvent>AP_HAT_MENU</loadEvent></event>
 	</choice>
 	<choice hidden="true" req="ap_hat_union_generic" blue="false">
 		<text>Go to a Union sector.</text>
-		<event load="AP_HAT_WARP_UNION_GENERIC"/>
+		<event><loadEvent>AP_HAT_WARP_UNION_GENERIC</loadEvent></event>
 	</choice>
 	<choice hidden="true" req="ap_hat_federation_generic" blue="false">
 		<text>Go to a Federation sector.</text>
-		<event load="AP_HAT_WARP_FEDERATION_GENERIC"/>
+		<event><loadEvent>AP_HAT_WARP_FEDERATION_GENERIC</loadEvent></event>
 	</choice>
 	<choice hidden="true" req="ap_hat_engi_generic" blue="false">
 		<text>Go to a Harmony sector.</text>
-		<event load="AP_HAT_WARP_ENGI_GENERIC"/>
+		<event><loadEvent>AP_HAT_WARP_ENGI_GENERIC</loadEvent></event>
 	</choice>
 	<choice hidden="true" req="ap_hat_zoltan_generic" blue="false">
 		<text>Go to a Ministry sector.</text>
-		<event load="AP_HAT_WARP_ZOLTAN_GENERIC"/>
+		<event><loadEvent>AP_HAT_WARP_ZOLTAN_GENERIC</loadEvent></event>
 	</choice>
 	<choice hidden="true" req="ap_hat_orchid_generic" blue="false">
 		<text>Go to a Gathering sector.</text>
-		<event load="AP_HAT_WARP_ORCHID_GENERIC"/>
+		<event><loadEvent>AP_HAT_WARP_ORCHID_GENERIC</loadEvent></event>
 	</choice>
 	<choice hidden="true" req="ap_hat_vampweed_generic" blue="false">
 		<text>Go to a Confederate sector.</text>
-		<event load="AP_HAT_WARP_VAMPWEED_GENERIC"/>
+		<event><loadEvent>AP_HAT_WARP_VAMPWEED_GENERIC</loadEvent></event>
 	</choice>
 	<choice hidden="true" req="ap_hat_freemantis_generic" blue="false">
 		<text>Go to a Free Mantis sector.</text>
-		<event load="AP_HAT_WARP_FREEMANTIS_GENERIC"/>
+		<event><loadEvent>AP_HAT_WARP_FREEMANTIS_GENERIC</loadEvent></event>
 	</choice>
 	<choice hidden="true" req="ap_hat_crystal_generic" blue="false">
 		<text>Go to an Imperial sector.</text>
-		<event load="AP_HAT_WARP_CRYSTAL_GENERIC"/>
+		<event><loadEvent>AP_HAT_WARP_CRYSTAL_GENERIC</loadEvent></event>
 	</choice>
 	<choice hidden="true" req="ap_hat_outcast_generic" blue="false">
 		<text>Go to an Outcast sector.</text>
-		<event load="AP_HAT_WARP_OUTCAST_GENERIC"/>
+		<event><loadEvent>AP_HAT_WARP_OUTCAST_GENERIC</loadEvent></event>
 	</choice>
 	<choice hidden="true" req="ap_hat_separatist_generic" blue="false">
 		<text>Go to a Separatist sector.</text>
-		<event load="AP_HAT_WARP_SEPARATIST_GENERIC"/>
+		<event><loadEvent>AP_HAT_WARP_SEPARATIST_GENERIC</loadEvent></event>
 	</choice>
 	<choice hidden="true" req="ap_hat_abandoned_generic" blue="false">
 		<text>Go to an Abandoned sector.</text>
-		<event load="AP_HAT_WARP_ABANDONED_GENERIC"/>
+		<event><loadEvent>AP_HAT_WARP_ABANDONED_GENERIC</loadEvent></event>
 	</choice>
 	<choice hidden="true" req="ap_hat_pirate_generic" blue="false">
 		<text>Go to a Pirate sector.</text>
-		<event load="AP_HAT_WARP_PIRATE_GENERIC"/>
+		<event><loadEvent>AP_HAT_WARP_PIRATE_GENERIC</loadEvent></event>
 	</choice>
 	<choice hidden="true" req="ap_hat_rebel_generic" blue="false">
 		<text>Go to a Rebel sector.</text>
-		<event load="AP_HAT_WARP_REBEL_GENERIC"/>
+		<event><loadEvent>AP_HAT_WARP_REBEL_GENERIC</loadEvent></event>
 	</choice>
 	<choice hidden="true" req="ap_hat_auto_generic" blue="false">
 		<text>Go to an Auto sector.</text>
-		<event load="AP_HAT_WARP_AUTO_GENERIC"/>
+		<event><loadEvent>AP_HAT_WARP_AUTO_GENERIC</loadEvent></event>
 	</choice>
 	<choice hidden="true" req="ap_hat_hive_generic" blue="false">
 		<text>Go to a Hive sector.</text>
-		<event load="AP_HAT_WARP_HIVE_GENERIC"/>
+		<event><loadEvent>AP_HAT_WARP_HIVE_GENERIC</loadEvent></event>
 	</choice>
 	<choice hidden="true" req="ap_hat_rock_generic" blue="false">
 		<text>Go to a Theocracy sector.</text>
-		<event load="AP_HAT_WARP_ROCK_GENERIC"/>
+		<event><loadEvent>AP_HAT_WARP_ROCK_GENERIC</loadEvent></event>
 	</choice>
 	<choice hidden="true" req="ap_hat_dusk_generic" blue="false">
 		<text>Go to a Duskbringer sector.</text>
-		<event load="AP_HAT_WARP_DUSK_GENERIC"/>
+		<event><loadEvent>AP_HAT_WARP_DUSK_GENERIC</loadEvent></event>
 	</choice>
 	<choice hidden="true" req="ap_hat_slug_generic" blue="false">
 		<text>Go to a Kleptocracy sector.</text>
-		<event load="AP_HAT_WARP_SLUG_GENERIC"/>
+		<event><loadEvent>AP_HAT_WARP_SLUG_GENERIC</loadEvent></event>
 	</choice>
 	<choice hidden="true" req="ap_hat_shell_generic" blue="false">
 		<text>Go to a Geniocracy sector.</text>
-		<event load="AP_HAT_WARP_SHELL_GENERIC"/>
+		<event><loadEvent>AP_HAT_WARP_SHELL_GENERIC</loadEvent></event>
 	</choice>
 	<choice hidden="true" req="ap_hat_leech_generic" blue="false">
 		<text>Go to an Eargen sector.</text>
-		<event load="AP_HAT_WARP_LEECH_GENERIC"/>
+		<event><loadEvent>AP_HAT_WARP_LEECH_GENERIC</loadEvent></event>
 	</choice>
 	<choice hidden="true" req="ap_hat_ghost_generic" blue="false">
 		<text>Go to a Vagabond sector.</text>
-		<event load="AP_HAT_WARP_GHOST_GENERIC"/>
+		<event><loadEvent>AP_HAT_WARP_GHOST_GENERIC</loadEvent></event>
 	</choice>
 	<choice hidden="true" req="ap_hat_dynasty_generic" blue="false">
 		<text>Go to a Dynasty sector.</text>
-		<event load="AP_HAT_WARP_DYNASTY_GENERIC"/>
+		<event><loadEvent>AP_HAT_WARP_DYNASTY_GENERIC</loadEvent></event>
 	</choice>
 	<choice hidden="true" req="ap_hat_coalition_generic" blue="false">
 		<text>Go to a Coalition sector.</text>
-		<event load="AP_HAT_WARP_COALITION_GENERIC"/>
+		<event><loadEvent>AP_HAT_WARP_COALITION_GENERIC</loadEvent></event>
 	</choice>
 	<choice hidden="true" req="ap_hat_mining_generic" blue="false">
 		<text>Go to a Mining sector.</text>
-		<event load="AP_HAT_WARP_MINING_GENERIC"/>
+		<event><loadEvent>AP_HAT_WARP_MINING_GENERIC</loadEvent></event>
 	</choice>
 	<choice hidden="true" req="ap_hat_unexplored_generic" blue="false">
 		<text>Go to an Unexplored sector.</text>
-		<event load="AP_HAT_WARP_UNEXPLORED_GENERIC"/>
+		<event><loadEvent>AP_HAT_WARP_UNEXPLORED_GENERIC</loadEvent></event>
 	</choice>
 	<choice hidden="true" req="ap_hat_abandoned_sale" blue="false">
 		<text>Go to an Abandoned Sale sector.</text>
-		<event load="AP_HAT_WARP_ABANDONED_SALE"/>
+		<event><loadEvent>AP_HAT_WARP_ABANDONED_SALE</loadEvent></event>
 	</choice>
 	<choice hidden="true" req="ap_hat_pirate_sale" blue="false">
 		<text>Go to a Pirate Sale sector.</text>
-		<event load="AP_HAT_WARP_PIRATE_SALE"/>
+		<event><loadEvent>AP_HAT_WARP_PIRATE_SALE</loadEvent></event>
 	</choice>
 	<choice hidden="true" req="ap_hat_slug_sale" blue="false">
 		<text>Go to a Kleptocracy Sale sector.</text>
-		<event load="AP_HAT_WARP_SLUG_SALE"/>
+		<event><loadEvent>AP_HAT_WARP_SLUG_SALE</loadEvent></event>
 	</choice>
 	<choice hidden="true" req="ap_hat_leech_sale" blue="false">
 		<text>Go to an Eargen Sale sector.</text>
-		<event load="AP_HAT_WARP_LEECH_SALE"/>
+		<event><loadEvent>AP_HAT_WARP_LEECH_SALE</loadEvent></event>
 	</choice>
 </event>
 <event name="AP_HAT_MENU_UNIQUE">
 	<text>You consider where the Magic Hat could take you.</text>
 	<choice hidden="true">
 		<text>Nevermind.</text>
-		<event load="AP_HAT_MENU"/>
+		<event><loadEvent>AP_HAT_MENU</loadEvent></event>
 	</choice>
 	<choice hidden="true" req="ap_hat_union_unique" blue="false">
 		<text>Go to the Union Coreworlds.</text>
-		<event load="AP_HAT_WARP_UNION_UNIQUE"/>
+		<event><loadEvent>AP_HAT_WARP_UNION_UNIQUE</loadEvent></event>
 	</choice>
 	<choice hidden="true" req="ap_hat_militia_unique" blue="false">
 		<text>Go to the Militia Encampment.</text>
-		<event load="AP_HAT_WARP_MILITIA_UNIQUE"/>
+		<event><loadEvent>AP_HAT_WARP_MILITIA_UNIQUE</loadEvent></event>
 	</choice>
 	<choice hidden="true" req="ap_hat_fed_unique" blue="false">
 		<text>Go to the Federation Sector.</text>
-		<event load="AP_HAT_WARP_FED_UNIQUE"/>
+		<event><loadEvent>AP_HAT_WARP_FED_UNIQUE</loadEvent></event>
 	</choice>
 	<choice hidden="true" req="ap_hat_engi_unique" blue="false">
 		<text>Go to the Harmony Coreworlds.</text>
-		<event load="AP_HAT_WARP_ENGI_UNIQUE"/>
+		<event><loadEvent>AP_HAT_WARP_ENGI_UNIQUE</loadEvent></event>
 	</choice>
 	<choice hidden="true" req="ap_hat_zoltan_unique" blue="false">
 		<text>Go to the Ministry Capital.</text>
-		<event load="AP_HAT_WARP_ZOLTAN_UNIQUE"/>
+		<event><loadEvent>AP_HAT_WARP_ZOLTAN_UNIQUE</loadEvent></event>
 	</choice>
 	<choice hidden="true" req="ap_hat_orchid_unique" blue="false">
 		<text>Go to the Gathering Gardenworlds.</text>
-		<event load="AP_HAT_WARP_ORCHID_UNIQUE"/>
+		<event><loadEvent>AP_HAT_WARP_ORCHID_UNIQUE</loadEvent></event>
 	</choice>
 	<choice hidden="true" req="ap_hat_vampweed_unique" blue="false">
 		<text>Go to the Confederate Coreworlds.</text>
-		<event load="AP_HAT_WARP_VAMPWEED_UNIQUE"/>
+		<event><loadEvent>AP_HAT_WARP_VAMPWEED_UNIQUE</loadEvent></event>
 	</choice>
 	<choice hidden="true" req="ap_hat_freemantis_unique" blue="false">
 		<text>Go to the Free Mantis Hunting Grounds.</text>
-		<event load="AP_HAT_WARP_FREEMANTIS_UNIQUE"/>
+		<event><loadEvent>AP_HAT_WARP_FREEMANTIS_UNIQUE</loadEvent></event>
 	</choice>
 	<choice hidden="true" req="ap_hat_crystal_unique" blue="false">
 		<text>Go to the Imperial New-Homelands.</text>
-		<event load="AP_HAT_WARP_CRYSTAL_UNIQUE"/>
+		<event><loadEvent>AP_HAT_WARP_CRYSTAL_UNIQUE</loadEvent></event>
 	</choice>
 	<choice hidden="true" req="ap_hat_outcast_unique" blue="false">
 		<text>Go to the Theocracy Badlands.</text>
-		<event load="AP_HAT_WARP_OUTCAST_UNIQUE"/>
+		<event><loadEvent>AP_HAT_WARP_OUTCAST_UNIQUE</loadEvent></event>
 	</choice>
 	<choice hidden="true" req="ap_hat_lostsun_unique" blue="false">
 		<text>Go to the Lost Sun Stronghold.</text>
-		<event load="AP_HAT_WARP_LOSTSUN_UNIQUE"/>
+		<event><loadEvent>AP_HAT_WARP_LOSTSUN_UNIQUE</loadEvent></event>
 	</choice>
 	<choice hidden="true" req="ap_hat_lanius_unique" blue="false">
 		<text>Go to the Lanius Swarmlands.</text>
-		<event load="AP_HAT_WARP_LANIUS_UNIQUE"/>
+		<event><loadEvent>AP_HAT_WARP_LANIUS_UNIQUE</loadEvent></event>
 	</choice>
 	<choice hidden="true" req="ap_hat_pirate_unique" blue="false">
 		<text>Go to the Black Market.</text>
-		<event load="AP_HAT_WARP_PIRATE_UNIQUE"/>
+		<event><loadEvent>AP_HAT_WARP_PIRATE_UNIQUE</loadEvent></event>
 	</choice>
 	<choice hidden="true" req="ap_hat_hacked_unique" blue="false">
 		<text>Go to the Hacked Union Sector.</text>
-		<event load="AP_HAT_WARP_HACKED_UNIQUE"/>
+		<event><loadEvent>AP_HAT_WARP_HACKED_UNIQUE</loadEvent></event>
 	</choice>
 	<choice hidden="true" req="ap_hat_rebel_unique" blue="false">
 		<text>Go to the Rebel Stronghold.</text>
-		<event load="AP_HAT_WARP_REBEL_UNIQUE"/>
+		<event><loadEvent>AP_HAT_WARP_REBEL_UNIQUE</loadEvent></event>
 	</choice>
 	<choice hidden="true" req="ap_hat_auto_unique" blue="false">
 		<text>Go to the Central Shipyards.</text>
-		<event load="AP_HAT_WARP_AUTO_UNIQUE"/>
+		<event><loadEvent>AP_HAT_WARP_AUTO_UNIQUE</loadEvent></event>
 	</choice>
 	<choice hidden="true" req="ap_hat_hive_unique" blue="false">
 		<text>Go to the Hive Broodworlds.</text>
-		<event load="AP_HAT_WARP_HIVE_UNIQUE"/>
+		<event><loadEvent>AP_HAT_WARP_HIVE_UNIQUE</loadEvent></event>
 	</choice>
 	<choice hidden="true" req="ap_hat_rock_unique" blue="false">
 		<text>Go to the Theocracy Homeworlds.</text>
-		<event load="AP_HAT_WARP_ROCK_UNIQUE"/>
+		<event><loadEvent>AP_HAT_WARP_ROCK_UNIQUE</loadEvent></event>
 	</choice>
 	<choice hidden="true" req="ap_hat_dusk_unique" blue="false">
 		<text>Go to the Duskbringer Stronghold.</text>
-		<event load="AP_HAT_WARP_DUSK_UNIQUE"/>
+		<event><loadEvent>AP_HAT_WARP_DUSK_UNIQUE</loadEvent></event>
 	</choice>
 	<choice hidden="true" req="ap_hat_slug_unique" blue="false">
 		<text>Go to the Kleptocracy Capital.</text>
-		<event load="AP_HAT_WARP_SLUG_UNIQUE"/>
+		<event><loadEvent>AP_HAT_WARP_SLUG_UNIQUE</loadEvent></event>
 	</choice>
 	<choice hidden="true" req="ap_hat_clan_unique" blue="false">
 		<text>Go to the Guild Territory.</text>
-		<event load="AP_HAT_WARP_CLAN_UNIQUE"/>
+		<event><loadEvent>AP_HAT_WARP_CLAN_UNIQUE</loadEvent></event>
 	</choice>
 	<choice hidden="true" req="ap_hat_stargrove" blue="false">
 		<text>Go to the Stargrove.</text>
-		<event load="AP_HAT_WARP_STARGROVE"/>
+		<event><loadEvent>AP_HAT_WARP_STARGROVE</loadEvent></event>
 	</choice>
 	<choice hidden="true" req="ap_hat_shell_unique" blue="false">
 		<text>Go to the Geniocracy Coreworlds.</text>
-		<event load="AP_HAT_WARP_SHELL_UNIQUE"/>
+		<event><loadEvent>AP_HAT_WARP_SHELL_UNIQUE</loadEvent></event>
 	</choice>
 	<choice hidden="true" req="ap_hat_morph_unique" blue="false">
 		<text>Go to the Geniocracy Science District.</text>
-		<event load="AP_HAT_WARP_MORPH_UNIQUE"/>
+		<event><loadEvent>AP_HAT_WARP_MORPH_UNIQUE</loadEvent></event>
 	</choice>
 	<choice hidden="true" req="ap_hat_leech_unique" blue="false">
 		<text>Go to the Eargen Republic Capital.</text>
-		<event load="AP_HAT_WARP_LEECH_UNIQUE"/>
+		<event><loadEvent>AP_HAT_WARP_LEECH_UNIQUE</loadEvent></event>
 	</choice>
 	<choice hidden="true" req="ap_hat_monk_unique" blue="false">
 		<text>Go to the Illesctrian Oasis.</text>
-		<event load="AP_HAT_WARP_MONK_UNIQUE"/>
+		<event><loadEvent>AP_HAT_WARP_MONK_UNIQUE</loadEvent></event>
 	</choice>
 	<choice hidden="true" req="ap_hat_ghost_unique" blue="false">
 		<text>Go to the Spectral Wastelands.</text>
-		<event load="AP_HAT_WARP_GHOST_UNIQUE"/>
+		<event><loadEvent>AP_HAT_WARP_GHOST_UNIQUE</loadEvent></event>
 	</choice>
 	<choice hidden="true" req="ap_hat_dynasty_unique" blue="false">
 		<text>Go to the Spectral Capital.</text>
-		<event load="AP_HAT_WARP_DYNASTY_UNIQUE"/>
+		<event><loadEvent>AP_HAT_WARP_DYNASTY_UNIQUE</loadEvent></event>
 	</choice>
 	<choice hidden="true" req="ap_hat_coalition_unique" blue="false">
 		<text>Go to the Coalition Stronghold.</text>
-		<event load="AP_HAT_WARP_COALITION_UNIQUE"/>
+		<event><loadEvent>AP_HAT_WARP_COALITION_UNIQUE</loadEvent></event>
 	</choice>
 </event>
 <event name="AP_HAT_MENU_SECRET">
 	<text>You consider where the Magic Hat could take you.</text>
 	<choice hidden="true">
 		<text>Nevermind.</text>
-		<event load="AP_HAT_MENU"/>
+		<event><loadEvent>AP_HAT_MENU</loadEvent></event>
 	</choice>
 	<choice hidden="true" req="ap_hat_spider_secret" blue="false">
 		<text>Go to the Infested Sector.</text>
-		<event load="AP_HAT_WARP_SPIDER_SECRET"/>
+		<event><loadEvent>AP_HAT_WARP_SPIDER_SECRET</loadEvent></event>
 	</choice>
 	<choice hidden="true" req="ap_hat_jerry_secret" blue="false">
 		<text>Go to the Jerome Protectorate.</text>
-		<event load="AP_HAT_WARP_JERRY_SECRET"/>
+		<event><loadEvent>AP_HAT_WARP_JERRY_SECRET</loadEvent></event>
 	</choice>
 	<choice hidden="true" req="ap_hat_nights_secret" blue="false">
 		<text>Go to the Royal Nebula.</text>
-		<event load="AP_HAT_WARP_NIGHTS_SECRET"/>
+		<event><loadEvent>AP_HAT_WARP_NIGHTS_SECRET</loadEvent></event>
 	</choice>
 	<choice hidden="true" req="ap_hat_hektar_secret" blue="false">
 		<text>Go to the Hektar Mega-Market.</text>
-		<event load="AP_HAT_WARP_HEKTAR_SECRET"/>
+		<event><loadEvent>AP_HAT_WARP_HEKTAR_SECRET</loadEvent></event>
 	</choice>
 	<choice hidden="true" req="ap_hat_estate_secret" blue="false">
 		<text>Go to the Wentworth Innovations HQ.</text>
-		<event load="AP_HAT_WARP_ESTATE_SECRET"/>
+		<event><loadEvent>AP_HAT_WARP_ESTATE_SECRET</loadEvent></event>
 	</choice>
 	<choice hidden="true" req="ap_hat_origins_secret" blue="false">
 		<text>Go to the Crystalline Origins.</text>
-		<event load="AP_HAT_WARP_ORIGINS_SECRET"/>
+		<event><loadEvent>AP_HAT_WARP_ORIGINS_SECRET</loadEvent></event>
 	</choice>
 	<choice hidden="true" req="ap_hat_augmented_secret" blue="false">
 		<text>Go to the Ancient Recovery Site.</text>
-		<event load="AP_HAT_WARP_AUGMENTED_SECRET"/>
+		<event><loadEvent>AP_HAT_WARP_AUGMENTED_SECRET</loadEvent></event>
 	</choice>
 </event>
 <event name="AP_HAT_WARP_UNION_GENERIC">
@@ -327,7 +327,7 @@
 	</choice>
 	<choice hidden="true">
 		<text>Nevermind.</text>
-		<event load="AP_HAT_MENU"/>
+		<event><loadEvent>AP_HAT_MENU</loadEvent></event>
 	</choice>
 </event>
 <event name="AP_HAT_WARP_FEDERATION_GENERIC">
@@ -345,7 +345,7 @@
 	</choice>
 	<choice hidden="true">
 		<text>Nevermind.</text>
-		<event load="AP_HAT_MENU"/>
+		<event><loadEvent>AP_HAT_MENU</loadEvent></event>
 	</choice>
 </event>
 <event name="AP_HAT_WARP_ENGI_GENERIC">
@@ -363,7 +363,7 @@
 	</choice>
 	<choice hidden="true">
 		<text>Nevermind.</text>
-		<event load="AP_HAT_MENU"/>
+		<event><loadEvent>AP_HAT_MENU</loadEvent></event>
 	</choice>
 </event>
 <event name="AP_HAT_WARP_ZOLTAN_GENERIC">
@@ -381,7 +381,7 @@
 	</choice>
 	<choice hidden="true">
 		<text>Nevermind.</text>
-		<event load="AP_HAT_MENU"/>
+		<event><loadEvent>AP_HAT_MENU</loadEvent></event>
 	</choice>
 </event>
 <event name="AP_HAT_WARP_ORCHID_GENERIC">
@@ -399,7 +399,7 @@
 	</choice>
 	<choice hidden="true">
 		<text>Nevermind.</text>
-		<event load="AP_HAT_MENU"/>
+		<event><loadEvent>AP_HAT_MENU</loadEvent></event>
 	</choice>
 </event>
 <event name="AP_HAT_WARP_VAMPWEED_GENERIC">
@@ -417,7 +417,7 @@
 	</choice>
 	<choice hidden="true">
 		<text>Nevermind.</text>
-		<event load="AP_HAT_MENU"/>
+		<event><loadEvent>AP_HAT_MENU</loadEvent></event>
 	</choice>
 </event>
 <event name="AP_HAT_WARP_FREEMANTIS_GENERIC">
@@ -435,7 +435,7 @@
 	</choice>
 	<choice hidden="true">
 		<text>Nevermind.</text>
-		<event load="AP_HAT_MENU"/>
+		<event><loadEvent>AP_HAT_MENU</loadEvent></event>
 	</choice>
 </event>
 <event name="AP_HAT_WARP_CRYSTAL_GENERIC">
@@ -453,7 +453,7 @@
 	</choice>
 	<choice hidden="true">
 		<text>Nevermind.</text>
-		<event load="AP_HAT_MENU"/>
+		<event><loadEvent>AP_HAT_MENU</loadEvent></event>
 	</choice>
 </event>
 <event name="AP_HAT_WARP_OUTCAST_GENERIC">
@@ -471,7 +471,7 @@
 	</choice>
 	<choice hidden="true">
 		<text>Nevermind.</text>
-		<event load="AP_HAT_MENU"/>
+		<event><loadEvent>AP_HAT_MENU</loadEvent></event>
 	</choice>
 </event>
 <event name="AP_HAT_WARP_SEPARATIST_GENERIC">
@@ -489,7 +489,7 @@
 	</choice>
 	<choice hidden="true">
 		<text>Nevermind.</text>
-		<event load="AP_HAT_MENU"/>
+		<event><loadEvent>AP_HAT_MENU</loadEvent></event>
 	</choice>
 </event>
 <event name="AP_HAT_WARP_ABANDONED_GENERIC">
@@ -507,7 +507,7 @@
 	</choice>
 	<choice hidden="true">
 		<text>Nevermind.</text>
-		<event load="AP_HAT_MENU"/>
+		<event><loadEvent>AP_HAT_MENU</loadEvent></event>
 	</choice>
 </event>
 <event name="AP_HAT_WARP_PIRATE_GENERIC">
@@ -525,7 +525,7 @@
 	</choice>
 	<choice hidden="true">
 		<text>Nevermind.</text>
-		<event load="AP_HAT_MENU"/>
+		<event><loadEvent>AP_HAT_MENU</loadEvent></event>
 	</choice>
 </event>
 <event name="AP_HAT_WARP_REBEL_GENERIC">
@@ -543,7 +543,7 @@
 	</choice>
 	<choice hidden="true">
 		<text>Nevermind.</text>
-		<event load="AP_HAT_MENU"/>
+		<event><loadEvent>AP_HAT_MENU</loadEvent></event>
 	</choice>
 </event>
 <event name="AP_HAT_WARP_AUTO_GENERIC">
@@ -561,7 +561,7 @@
 	</choice>
 	<choice hidden="true">
 		<text>Nevermind.</text>
-		<event load="AP_HAT_MENU"/>
+		<event><loadEvent>AP_HAT_MENU</loadEvent></event>
 	</choice>
 </event>
 <event name="AP_HAT_WARP_HIVE_GENERIC">
@@ -579,7 +579,7 @@
 	</choice>
 	<choice hidden="true">
 		<text>Nevermind.</text>
-		<event load="AP_HAT_MENU"/>
+		<event><loadEvent>AP_HAT_MENU</loadEvent></event>
 	</choice>
 </event>
 <event name="AP_HAT_WARP_ROCK_GENERIC">
@@ -597,7 +597,7 @@
 	</choice>
 	<choice hidden="true">
 		<text>Nevermind.</text>
-		<event load="AP_HAT_MENU"/>
+		<event><loadEvent>AP_HAT_MENU</loadEvent></event>
 	</choice>
 </event>
 <event name="AP_HAT_WARP_DUSK_GENERIC">
@@ -615,7 +615,7 @@
 	</choice>
 	<choice hidden="true">
 		<text>Nevermind.</text>
-		<event load="AP_HAT_MENU"/>
+		<event><loadEvent>AP_HAT_MENU</loadEvent></event>
 	</choice>
 </event>
 <event name="AP_HAT_WARP_SLUG_GENERIC">
@@ -633,7 +633,7 @@
 	</choice>
 	<choice hidden="true">
 		<text>Nevermind.</text>
-		<event load="AP_HAT_MENU"/>
+		<event><loadEvent>AP_HAT_MENU</loadEvent></event>
 	</choice>
 </event>
 <event name="AP_HAT_WARP_SHELL_GENERIC">
@@ -651,7 +651,7 @@
 	</choice>
 	<choice hidden="true">
 		<text>Nevermind.</text>
-		<event load="AP_HAT_MENU"/>
+		<event><loadEvent>AP_HAT_MENU</loadEvent></event>
 	</choice>
 </event>
 <event name="AP_HAT_WARP_LEECH_GENERIC">
@@ -669,7 +669,7 @@
 	</choice>
 	<choice hidden="true">
 		<text>Nevermind.</text>
-		<event load="AP_HAT_MENU"/>
+		<event><loadEvent>AP_HAT_MENU</loadEvent></event>
 	</choice>
 </event>
 <event name="AP_HAT_WARP_GHOST_GENERIC">
@@ -687,7 +687,7 @@
 	</choice>
 	<choice hidden="true">
 		<text>Nevermind.</text>
-		<event load="AP_HAT_MENU"/>
+		<event><loadEvent>AP_HAT_MENU</loadEvent></event>
 	</choice>
 </event>
 <event name="AP_HAT_WARP_DYNASTY_GENERIC">
@@ -705,7 +705,7 @@
 	</choice>
 	<choice hidden="true">
 		<text>Nevermind.</text>
-		<event load="AP_HAT_MENU"/>
+		<event><loadEvent>AP_HAT_MENU</loadEvent></event>
 	</choice>
 </event>
 <event name="AP_HAT_WARP_COALITION_GENERIC">
@@ -723,7 +723,7 @@
 	</choice>
 	<choice hidden="true">
 		<text>Nevermind.</text>
-		<event load="AP_HAT_MENU"/>
+		<event><loadEvent>AP_HAT_MENU</loadEvent></event>
 	</choice>
 </event>
 <event name="AP_HAT_WARP_MINING_GENERIC">
@@ -741,7 +741,7 @@
 	</choice>
 	<choice hidden="true">
 		<text>Nevermind.</text>
-		<event load="AP_HAT_MENU"/>
+		<event><loadEvent>AP_HAT_MENU</loadEvent></event>
 	</choice>
 </event>
 <event name="AP_HAT_WARP_UNEXPLORED_GENERIC">
@@ -759,7 +759,7 @@
 	</choice>
 	<choice hidden="true">
 		<text>Nevermind.</text>
-		<event load="AP_HAT_MENU"/>
+		<event><loadEvent>AP_HAT_MENU</loadEvent></event>
 	</choice>
 </event>
 <event name="AP_HAT_WARP_ABANDONED_SALE">
@@ -777,7 +777,7 @@
 	</choice>
 	<choice hidden="true">
 		<text>Nevermind.</text>
-		<event load="AP_HAT_MENU"/>
+		<event><loadEvent>AP_HAT_MENU</loadEvent></event>
 	</choice>
 </event>
 <event name="AP_HAT_WARP_PIRATE_SALE">
@@ -795,7 +795,7 @@
 	</choice>
 	<choice hidden="true">
 		<text>Nevermind.</text>
-		<event load="AP_HAT_MENU"/>
+		<event><loadEvent>AP_HAT_MENU</loadEvent></event>
 	</choice>
 </event>
 <event name="AP_HAT_WARP_SLUG_SALE">
@@ -813,7 +813,7 @@
 	</choice>
 	<choice hidden="true">
 		<text>Nevermind.</text>
-		<event load="AP_HAT_MENU"/>
+		<event><loadEvent>AP_HAT_MENU</loadEvent></event>
 	</choice>
 </event>
 <event name="AP_HAT_WARP_LEECH_SALE">
@@ -831,7 +831,7 @@
 	</choice>
 	<choice hidden="true">
 		<text>Nevermind.</text>
-		<event load="AP_HAT_MENU"/>
+		<event><loadEvent>AP_HAT_MENU</loadEvent></event>
 	</choice>
 </event>
 <event name="AP_HAT_WARP_UNION_UNIQUE">
@@ -849,7 +849,7 @@
 	</choice>
 	<choice hidden="true">
 		<text>Nevermind.</text>
-		<event load="AP_HAT_MENU"/>
+		<event><loadEvent>AP_HAT_MENU</loadEvent></event>
 	</choice>
 </event>
 <event name="AP_HAT_WARP_MILITIA_UNIQUE">
@@ -867,7 +867,7 @@
 	</choice>
 	<choice hidden="true">
 		<text>Nevermind.</text>
-		<event load="AP_HAT_MENU"/>
+		<event><loadEvent>AP_HAT_MENU</loadEvent></event>
 	</choice>
 </event>
 <event name="AP_HAT_WARP_FED_UNIQUE">
@@ -885,7 +885,7 @@
 	</choice>
 	<choice hidden="true">
 		<text>Nevermind.</text>
-		<event load="AP_HAT_MENU"/>
+		<event><loadEvent>AP_HAT_MENU</loadEvent></event>
 	</choice>
 </event>
 <event name="AP_HAT_WARP_ENGI_UNIQUE">
@@ -903,7 +903,7 @@
 	</choice>
 	<choice hidden="true">
 		<text>Nevermind.</text>
-		<event load="AP_HAT_MENU"/>
+		<event><loadEvent>AP_HAT_MENU</loadEvent></event>
 	</choice>
 </event>
 <event name="AP_HAT_WARP_ZOLTAN_UNIQUE">
@@ -921,7 +921,7 @@
 	</choice>
 	<choice hidden="true">
 		<text>Nevermind.</text>
-		<event load="AP_HAT_MENU"/>
+		<event><loadEvent>AP_HAT_MENU</loadEvent></event>
 	</choice>
 </event>
 <event name="AP_HAT_WARP_ORCHID_UNIQUE">
@@ -939,7 +939,7 @@
 	</choice>
 	<choice hidden="true">
 		<text>Nevermind.</text>
-		<event load="AP_HAT_MENU"/>
+		<event><loadEvent>AP_HAT_MENU</loadEvent></event>
 	</choice>
 </event>
 <event name="AP_HAT_WARP_VAMPWEED_UNIQUE">
@@ -957,7 +957,7 @@
 	</choice>
 	<choice hidden="true">
 		<text>Nevermind.</text>
-		<event load="AP_HAT_MENU"/>
+		<event><loadEvent>AP_HAT_MENU</loadEvent></event>
 	</choice>
 </event>
 <event name="AP_HAT_WARP_FREEMANTIS_UNIQUE">
@@ -975,7 +975,7 @@
 	</choice>
 	<choice hidden="true">
 		<text>Nevermind.</text>
-		<event load="AP_HAT_MENU"/>
+		<event><loadEvent>AP_HAT_MENU</loadEvent></event>
 	</choice>
 </event>
 <event name="AP_HAT_WARP_CRYSTAL_UNIQUE">
@@ -993,7 +993,7 @@
 	</choice>
 	<choice hidden="true">
 		<text>Nevermind.</text>
-		<event load="AP_HAT_MENU"/>
+		<event><loadEvent>AP_HAT_MENU</loadEvent></event>
 	</choice>
 </event>
 <event name="AP_HAT_WARP_OUTCAST_UNIQUE">
@@ -1011,7 +1011,7 @@
 	</choice>
 	<choice hidden="true">
 		<text>Nevermind.</text>
-		<event load="AP_HAT_MENU"/>
+		<event><loadEvent>AP_HAT_MENU</loadEvent></event>
 	</choice>
 </event>
 <event name="AP_HAT_WARP_LOSTSUN_UNIQUE">
@@ -1029,7 +1029,7 @@
 	</choice>
 	<choice hidden="true">
 		<text>Nevermind.</text>
-		<event load="AP_HAT_MENU"/>
+		<event><loadEvent>AP_HAT_MENU</loadEvent></event>
 	</choice>
 </event>
 <event name="AP_HAT_WARP_LANIUS_UNIQUE">
@@ -1047,7 +1047,7 @@
 	</choice>
 	<choice hidden="true">
 		<text>Nevermind.</text>
-		<event load="AP_HAT_MENU"/>
+		<event><loadEvent>AP_HAT_MENU</loadEvent></event>
 	</choice>
 </event>
 <event name="AP_HAT_WARP_PIRATE_UNIQUE">
@@ -1065,7 +1065,7 @@
 	</choice>
 	<choice hidden="true">
 		<text>Nevermind.</text>
-		<event load="AP_HAT_MENU"/>
+		<event><loadEvent>AP_HAT_MENU</loadEvent></event>
 	</choice>
 </event>
 <event name="AP_HAT_WARP_HACKED_UNIQUE">
@@ -1083,7 +1083,7 @@
 	</choice>
 	<choice hidden="true">
 		<text>Nevermind.</text>
-		<event load="AP_HAT_MENU"/>
+		<event><loadEvent>AP_HAT_MENU</loadEvent></event>
 	</choice>
 </event>
 <event name="AP_HAT_WARP_REBEL_UNIQUE">
@@ -1101,7 +1101,7 @@
 	</choice>
 	<choice hidden="true">
 		<text>Nevermind.</text>
-		<event load="AP_HAT_MENU"/>
+		<event><loadEvent>AP_HAT_MENU</loadEvent></event>
 	</choice>
 </event>
 <event name="AP_HAT_WARP_AUTO_UNIQUE">
@@ -1119,7 +1119,7 @@
 	</choice>
 	<choice hidden="true">
 		<text>Nevermind.</text>
-		<event load="AP_HAT_MENU"/>
+		<event><loadEvent>AP_HAT_MENU</loadEvent></event>
 	</choice>
 </event>
 <event name="AP_HAT_WARP_HIVE_UNIQUE">
@@ -1137,7 +1137,7 @@
 	</choice>
 	<choice hidden="true">
 		<text>Nevermind.</text>
-		<event load="AP_HAT_MENU"/>
+		<event><loadEvent>AP_HAT_MENU</loadEvent></event>
 	</choice>
 </event>
 <event name="AP_HAT_WARP_ROCK_UNIQUE">
@@ -1155,7 +1155,7 @@
 	</choice>
 	<choice hidden="true">
 		<text>Nevermind.</text>
-		<event load="AP_HAT_MENU"/>
+		<event><loadEvent>AP_HAT_MENU</loadEvent></event>
 	</choice>
 </event>
 <event name="AP_HAT_WARP_DUSK_UNIQUE">
@@ -1173,7 +1173,7 @@
 	</choice>
 	<choice hidden="true">
 		<text>Nevermind.</text>
-		<event load="AP_HAT_MENU"/>
+		<event><loadEvent>AP_HAT_MENU</loadEvent></event>
 	</choice>
 </event>
 <event name="AP_HAT_WARP_SLUG_UNIQUE">
@@ -1191,7 +1191,7 @@
 	</choice>
 	<choice hidden="true">
 		<text>Nevermind.</text>
-		<event load="AP_HAT_MENU"/>
+		<event><loadEvent>AP_HAT_MENU</loadEvent></event>
 	</choice>
 </event>
 <event name="AP_HAT_WARP_CLAN_UNIQUE">
@@ -1209,7 +1209,7 @@
 	</choice>
 	<choice hidden="true">
 		<text>Nevermind.</text>
-		<event load="AP_HAT_MENU"/>
+		<event><loadEvent>AP_HAT_MENU</loadEvent></event>
 	</choice>
 </event>
 <event name="AP_HAT_WARP_STARGROVE">
@@ -1227,7 +1227,7 @@
 	</choice>
 	<choice hidden="true">
 		<text>Nevermind.</text>
-		<event load="AP_HAT_MENU"/>
+		<event><loadEvent>AP_HAT_MENU</loadEvent></event>
 	</choice>
 </event>
 <event name="AP_HAT_WARP_SHELL_UNIQUE">
@@ -1245,7 +1245,7 @@
 	</choice>
 	<choice hidden="true">
 		<text>Nevermind.</text>
-		<event load="AP_HAT_MENU"/>
+		<event><loadEvent>AP_HAT_MENU</loadEvent></event>
 	</choice>
 </event>
 <event name="AP_HAT_WARP_MORPH_UNIQUE">
@@ -1263,7 +1263,7 @@
 	</choice>
 	<choice hidden="true">
 		<text>Nevermind.</text>
-		<event load="AP_HAT_MENU"/>
+		<event><loadEvent>AP_HAT_MENU</loadEvent></event>
 	</choice>
 </event>
 <event name="AP_HAT_WARP_LEECH_UNIQUE">
@@ -1281,7 +1281,7 @@
 	</choice>
 	<choice hidden="true">
 		<text>Nevermind.</text>
-		<event load="AP_HAT_MENU"/>
+		<event><loadEvent>AP_HAT_MENU</loadEvent></event>
 	</choice>
 </event>
 <event name="AP_HAT_WARP_MONK_UNIQUE">
@@ -1299,7 +1299,7 @@
 	</choice>
 	<choice hidden="true">
 		<text>Nevermind.</text>
-		<event load="AP_HAT_MENU"/>
+		<event><loadEvent>AP_HAT_MENU</loadEvent></event>
 	</choice>
 </event>
 <event name="AP_HAT_WARP_GHOST_UNIQUE">
@@ -1317,7 +1317,7 @@
 	</choice>
 	<choice hidden="true">
 		<text>Nevermind.</text>
-		<event load="AP_HAT_MENU"/>
+		<event><loadEvent>AP_HAT_MENU</loadEvent></event>
 	</choice>
 </event>
 <event name="AP_HAT_WARP_DYNASTY_UNIQUE">
@@ -1335,7 +1335,7 @@
 	</choice>
 	<choice hidden="true">
 		<text>Nevermind.</text>
-		<event load="AP_HAT_MENU"/>
+		<event><loadEvent>AP_HAT_MENU</loadEvent></event>
 	</choice>
 </event>
 <event name="AP_HAT_WARP_COALITION_UNIQUE">
@@ -1353,7 +1353,7 @@
 	</choice>
 	<choice hidden="true">
 		<text>Nevermind.</text>
-		<event load="AP_HAT_MENU"/>
+		<event><loadEvent>AP_HAT_MENU</loadEvent></event>
 	</choice>
 </event>
 <event name="AP_HAT_WARP_SPIDER_SECRET">
@@ -1371,7 +1371,7 @@
 	</choice>
 	<choice hidden="true">
 		<text>Nevermind.</text>
-		<event load="AP_HAT_MENU"/>
+		<event><loadEvent>AP_HAT_MENU</loadEvent></event>
 	</choice>
 </event>
 <event name="AP_HAT_WARP_JERRY_SECRET">
@@ -1389,7 +1389,7 @@
 	</choice>
 	<choice hidden="true">
 		<text>Nevermind.</text>
-		<event load="AP_HAT_MENU"/>
+		<event><loadEvent>AP_HAT_MENU</loadEvent></event>
 	</choice>
 </event>
 <event name="AP_HAT_WARP_NIGHTS_SECRET">
@@ -1407,7 +1407,7 @@
 	</choice>
 	<choice hidden="true">
 		<text>Nevermind.</text>
-		<event load="AP_HAT_MENU"/>
+		<event><loadEvent>AP_HAT_MENU</loadEvent></event>
 	</choice>
 </event>
 <event name="AP_HAT_WARP_HEKTAR_SECRET">
@@ -1425,7 +1425,7 @@
 	</choice>
 	<choice hidden="true">
 		<text>Nevermind.</text>
-		<event load="AP_HAT_MENU"/>
+		<event><loadEvent>AP_HAT_MENU</loadEvent></event>
 	</choice>
 </event>
 <event name="AP_HAT_WARP_ESTATE_SECRET">
@@ -1443,7 +1443,7 @@
 	</choice>
 	<choice hidden="true">
 		<text>Nevermind.</text>
-		<event load="AP_HAT_MENU"/>
+		<event><loadEvent>AP_HAT_MENU</loadEvent></event>
 	</choice>
 </event>
 <event name="AP_HAT_WARP_ORIGINS_SECRET">
@@ -1461,7 +1461,7 @@
 	</choice>
 	<choice hidden="true">
 		<text>Nevermind.</text>
-		<event load="AP_HAT_MENU"/>
+		<event><loadEvent>AP_HAT_MENU</loadEvent></event>
 	</choice>
 </event>
 <event name="AP_HAT_WARP_AUGMENTED_SECRET">
@@ -1479,7 +1479,7 @@
 	</choice>
 	<choice hidden="true">
 		<text>Nevermind.</text>
-		<event load="AP_HAT_MENU"/>
+		<event><loadEvent>AP_HAT_MENU</loadEvent></event>
 	</choice>
 </event>
 </FTL>

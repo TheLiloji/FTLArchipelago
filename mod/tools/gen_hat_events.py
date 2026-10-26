@@ -31,7 +31,7 @@ def build(destinations) -> str:
         lines += [f'<mod:findName type="event" name="{menu_event}" panic="false">',
                   '\t<mod-append:choice hidden="true" req="ap_hat_on" blue="false">',
                   '\t\t<text>Use the Archipelago Magic Hat.</text>',
-                  '\t\t<event load="AP_HAT_MENU"/>',
+                  '\t\t<event><loadEvent>AP_HAT_MENU</loadEvent></event>',
                   '\t</mod-append:choice>',
                   '</mod:findName>']
     lines += ['<event name="AP_HAT_MENU">',
@@ -40,18 +40,18 @@ def build(destinations) -> str:
               '\t\t<event><loadEvent>ATLAS_MENU_NOEQUIPMENT</loadEvent></event>', '\t</choice>']
     for menu, text in MENUS:
         lines += [f'\t<choice hidden="true" req="ap_hat_{menu}" blue="false">', f'\t\t<text>{text}</text>',
-                  f'\t\t<event load="AP_HAT_MENU_{menu.upper()}"/>', '\t</choice>']
+                  f'\t\t<event><loadEvent>AP_HAT_MENU_{menu.upper()}</loadEvent></event>', '\t</choice>']
     lines.append('</event>')
     for menu, _ in MENUS:
         lines += [f'<event name="AP_HAT_MENU_{menu.upper()}">',
                   '\t<text>You consider where the Magic Hat could take you.</text>',
                   '\t<choice hidden="true">', '\t\t<text>Nevermind.</text>',
-                  '\t\t<event load="AP_HAT_MENU"/>', '\t</choice>']
+                  '\t\t<event><loadEvent>AP_HAT_MENU</loadEvent></event>', '\t</choice>']
         for key, kind, _sector, text in destinations:
             if kind == menu:
                 lines += [f'\t<choice hidden="true" req="ap_hat_{key}" blue="false">',
                           f'\t\t<text>{escape(text)}</text>',
-                          f'\t\t<event load="AP_HAT_WARP_{key.upper()}"/>', '\t</choice>']
+                          f'\t\t<event><loadEvent>AP_HAT_WARP_{key.upper()}</loadEvent></event>', '\t</choice>']
         lines.append('</event>')
     for key, _kind, sector, text in destinations:
         lines += [f'<event name="AP_HAT_WARP_{key.upper()}">',
@@ -64,7 +64,7 @@ def build(destinations) -> str:
                   f'\t\t\t\t<event><secretSector>{sector}</secretSector></event>', '\t\t\t</choice>',
                   '\t\t</event>', '\t</choice>',
                   '\t<choice hidden="true">', '\t\t<text>Nevermind.</text>',
-                  '\t\t<event load="AP_HAT_MENU"/>', '\t</choice>', '</event>']
+                  '\t\t<event><loadEvent>AP_HAT_MENU</loadEvent></event>', '\t</choice>', '</event>']
     lines.append("</FTL>")
     return "\n".join(lines) + "\n"
 
