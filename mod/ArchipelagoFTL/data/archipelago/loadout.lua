@@ -229,7 +229,23 @@ function apLoadoutPoint(target, category, row)
     return area.x + area.w / 2, area.y + area.h / 2
 end
 
+-- sector_skip's extra pick: this menu came back for one more pick. Kept until a pick is made.
+local extraPick = false
+
+local function roomFor(category)
+    if category ~= "weapon" and category ~= "drone" then
+        return true
+    end
+    return _G.apEquipmentHasRoom == nil or apEquipmentHasRoom(category)
+end
+
 local function take(category, entry)
+    if not roomFor(category) then
+        if _G.apNotifyStatus then
+            _G.apNotifyStatus(apT("loadout.no_room", { name = entry.label }))
+        end
+        return
+    end
     local succeeded, reason
     if category == "system" then
         succeeded = _G.apInstallChosenSystem ~= nil and apInstallChosenSystem(entry.system)
@@ -259,6 +275,7 @@ local function take(category, entry)
     end
     taken[category] = entry.label
     remember(category, 1)
+    extraPick = false
     menuLog("taken for this run: " .. entry.label)
     if _G.apNotifyStatus then
         _G.apNotifyStatus(apT("loadout.taken", { name = entry.label }))
@@ -307,7 +324,8 @@ local function draw()
     end
     ui.text(24, titleX, PANEL.y + 14, PANEL.x + PANEL.w - 20 - titleX, "title", apT("loadout.title"))
     ui.wrapped(10, PANEL.x + 20, PANEL.y + 54, PANEL.w - 40, "dim",
-        apT(#categories > #CATEGORIES and "loadout.hint.systems" or "loadout.hint"))
+        apT(extraPick and "loadout.hint.extra"
+            or (#categories > #CATEGORIES and "loadout.hint.systems" or "loadout.hint")))
 
     for _, category in ipairs(categories) do
         local column = g.columns[category]
@@ -336,7 +354,7 @@ local function draw()
                 if entry == nil then break end
                 local area = rowArea(column, row)
                 local isChosen = chosen ~= nil and entry.label == chosen
-                local available = chosen == nil
+                local available = chosen == nil and roomFor(category)
                 local over = available and ui.hovered(area)
                 ui.rect(area.x, area.y, area.w, area.h, isChosen and "hover" or (over and "hover" or "window"))
                 ui.rect(area.x, area.y, 3, area.h, isChosen and "good" or (over and "border" or "faint"))
@@ -436,8 +454,13 @@ script.on_internal_event(Defines.InternalEvents.JUMP_ARRIVE, function(shipManage
         return Defines.Chain.CONTINUE
     end
     -- sector_skip: a sector skipped gives one more pick from the received items, at the next beacon.
+    -- An extra pick not used yet (no room aboard, or the player left it) comes back at the next beacon.
+    if extraPick and open then
+        _G.apLoadoutExtraPick = true
+    end
     if _G.apLoadoutExtraPick then
         _G.apLoadoutExtraPick = false
+        extraPick = true
         taken = {}
         pages = {}
         open = false

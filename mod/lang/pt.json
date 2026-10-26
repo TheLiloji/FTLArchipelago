@@ -439,6 +439,8 @@
     "sector_locks.closed": "Esta saída está fechada: esta nave precisa do Sector Pass {n} para sair do setor {sector}. Abre assim que o passe chegar.",
     "sector_locks.open": "Sector Pass recebido: a saída está aberta.",
     "reset.kept.profile": "Mantida: esta gravação fica com a sua seed. Carrega outra gravação ou liga-te à seed desta.",
-    "deal.off": "Não há pactos nesta seed"
+    "deal.off": "Não há pactos nesta seed",
+    "loadout.hint.extra": "Mais uma escolha pelo setor saltado: escolhe uma arma, um drone ou um tripulante do que recebeste.",
+    "loadout.no_room": "Sem espaço a bordo para {name}: liberta primeiro um espaço de arma ou de porão."
   }
 }

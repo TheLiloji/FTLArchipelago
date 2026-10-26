@@ -439,6 +439,8 @@
     "sector_locks.closed": "This exit is shut: this ship needs Sector Pass {n} to leave sector {sector}. It opens as soon as the pass comes in.",
     "sector_locks.open": "Sector Pass received: the exit is open.",
     "reset.kept.profile": "Kept: this save stays with its own seed. Load another save, or connect to this save's seed.",
-    "deal.off": "There are no deals in this seed"
+    "deal.off": "There are no deals in this seed",
+    "loadout.hint.extra": "One more pick for the sector you skipped: take a weapon, a drone or a crew member from what you have received.",
+    "loadout.no_room": "No room aboard for {name}: free a weapon slot or a cargo slot first."
   }
 }
