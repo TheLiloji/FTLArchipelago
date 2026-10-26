@@ -1123,6 +1123,16 @@ script.on_internal_event(Defines.InternalEvents.JUMP_ARRIVE, function(shipManage
     end
 end)
 
+-- A new run starts at its first beacon without a jump: that beacon is judged once the run is under way.
+local skipStartTicks = 0
+script.on_internal_event(Defines.InternalEvents.ON_TICK, function()
+    skipStartTicks = (skipStartTicks + 1) % 30
+    if skipStartTicks ~= 0 or not inRun() or runVariable("ap_skip_sector") ~= 0 then
+        return
+    end
+    apTry(TAG, apSectorSkipArrive)
+end)
+
 -- sector_locks: the exit of sector 4 (or 7) stays shut for a layout without its first (or second) Sector Pass,
 -- and opens as soon as the pass comes in.
 local lockedExit, lockedNeed, lockedLayout = nil, 0, nil
