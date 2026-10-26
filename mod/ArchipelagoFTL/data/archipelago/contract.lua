@@ -177,6 +177,7 @@ function apApplySlotData(slotData, slotName, solo)
     state.seedName = slotData.seed_name
     state.options = slotData.options or {}
     state.logic = type(slotData.logic) == "table" and slotData.logic or nil
+    state.kestrelLocked = slotData.kestrel_locked == true
     state.receivedByIndex = {}
 
     state.itemDescriptors = slotData.items or {}
@@ -454,6 +455,10 @@ function apLayoutInSeed(blueprint)
     return state.layouts == nil or state.layouts[blueprint] == true
 end
 
+function apSeedKestrelLocked()
+    return state.kestrelLocked == true
+end
+
 function apSeedStartShip()
     return state.startShip
 end
@@ -583,6 +588,7 @@ function apContractResetForTesting()
     state.seedName = nil
     state.options = {}
     state.logic = nil
+    state.kestrelLocked = false
     state.receivedByIndex = {}
     state.identity = nil
     state.lastIdentity = nil

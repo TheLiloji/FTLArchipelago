@@ -3,6 +3,7 @@ from __future__ import annotations
 from BaseClasses import Location
 
 from . import data
+from . import options as ftl_options
 from .options import apply_sector_floor, excluded_layouts
 
 
@@ -39,7 +40,7 @@ def multiverse(options) -> bool:
 
 
 def always_unlocked(options) -> tuple[str, ...]:
-    return data.MV_ALWAYS_UNLOCKED_LAYOUTS if multiverse(options) else data.ALWAYS_UNLOCKED_LAYOUTS
+    return data.MV_ALWAYS_UNLOCKED_LAYOUTS if multiverse(options) else ftl_options.always_unlocked_layouts(options)
 
 
 # Systems every FTL layout starts with (Engines, Piloting...): their Install check would always be free.

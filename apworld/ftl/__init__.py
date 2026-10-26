@@ -296,6 +296,7 @@ class FTLWorld(World):
                                             "shop_hints"),
             "tracker": self._tracker_data(),
             "logic": self._logic_for_the_mod(),
+            "kestrel_locked": not options.always_unlocked_layouts(self.options),
         }
         return slot_data
 
