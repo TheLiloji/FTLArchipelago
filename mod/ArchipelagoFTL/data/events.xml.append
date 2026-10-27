@@ -307,21 +307,46 @@
 <event name="AP_TRAP_SURGE_LASER">
     <text id="ap_trap_surge_text"/>
     <superBarrage player="false"/>
+    <triggeredEvent event="AP_TRAP_SURGE_LASER_AGAIN" seeded="false" loops="999" thisFight="true" minTime="25.0" maxTime="25.0">
+        <warningMessage id="warning_power_surge" x="692" y="84" time="5.0" centerText="true" flash="true" sound="surgeWarning" useWarningLine="true"/>
+    </triggeredEvent>
+</event>
+<event name="AP_TRAP_SURGE_LASER_AGAIN">
+    <superBarrage player="false"/>
 </event>
 
 <event name="AP_TRAP_SURGE_DRONES">
     <text id="ap_trap_surge_text"/>
     <superDrones player="false"/>
+    <triggeredEvent event="AP_TRAP_SURGE_DRONES_AGAIN" seeded="false" loops="999" thisFight="true" minTime="25.0" maxTime="25.0">
+        <warningMessage id="warning_power_surge" x="692" y="84" time="5.0" centerText="true" flash="true" sound="surgeWarning" useWarningLine="true"/>
+    </triggeredEvent>
+</event>
+<event name="AP_TRAP_SURGE_DRONES_AGAIN">
+    <superDrones player="false"/>
 </event>
 
-<!-- Lighter surges for sectors 1 and 2 (AP_SURGE_LIGHT_* in hyperspace.xml.append). -->
+<!-- Lighter surges for sectors 1 and 2 (AP_SURGE_LIGHT_* in hyperspace.xml.append). Like the Flagship's, a surge comes
+     back every 25 seconds of the fight, announced by the same warning. -->
 <event name="AP_TRAP_SURGE_LASER_LIGHT">
     <text id="ap_trap_surge_text"/>
+    <superBarrage player="false" name="AP_SURGE_LIGHT_LASER"/>
+    <triggeredEvent event="AP_TRAP_SURGE_LASER_LIGHT_AGAIN" seeded="false" loops="999" thisFight="true" minTime="25.0" maxTime="25.0">
+        <warningMessage id="warning_power_surge" x="692" y="84" time="5.0" centerText="true" flash="true" sound="surgeWarning" useWarningLine="true"/>
+    </triggeredEvent>
+</event>
+<event name="AP_TRAP_SURGE_LASER_LIGHT_AGAIN">
     <superBarrage player="false" name="AP_SURGE_LIGHT_LASER"/>
 </event>
 
 <event name="AP_TRAP_SURGE_DRONES_LIGHT">
     <text id="ap_trap_surge_text"/>
+    <superDrones player="false" name="AP_SURGE_LIGHT_DRONES"/>
+    <triggeredEvent event="AP_TRAP_SURGE_DRONES_LIGHT_AGAIN" seeded="false" loops="999" thisFight="true" minTime="25.0" maxTime="25.0">
+        <warningMessage id="warning_power_surge" x="692" y="84" time="5.0" centerText="true" flash="true" sound="surgeWarning" useWarningLine="true"/>
+    </triggeredEvent>
+</event>
+<event name="AP_TRAP_SURGE_DRONES_LIGHT_AGAIN">
     <superDrones player="false" name="AP_SURGE_LIGHT_DRONES"/>
 </event>
 
