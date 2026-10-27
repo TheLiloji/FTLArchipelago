@@ -1104,6 +1104,24 @@ class TestKestrelKeyIgnoredWhenStartingWithIt(FTLTestBase):
         self.assertFalse(self.world.fill_slot_data()["kestrel_locked"])
 
 
+class TestSectorLocksWithShopBySector(FTLTestBase):
+    options = {"sector_locks": True, "layout_count": 4, "shop_by_sector": True, "shop_checks": 40}
+
+    def test_a_pass_only_counts_for_a_ship_whose_key_came(self) -> None:
+        slot = next(location for location in self.world.created_locations
+                    if location.shop_slot is not None and rules.location_depth(location, True) >= 5)
+        rule = rules._sector_lock_rule(self.world, slot, self.world.selected_layouts)
+        other = next(layout for layout in self.world.selected_layouts
+                     if data.SHIP_KEY_NAMES[layout.ship] not in self.world.precollected_item_names)
+        state = CollectionState(self.multiworld)
+        for _ in range(2):
+            state.collect(self.world.create_item(f"Sector Pass ({other.display})"), True)
+        self.assertFalse(rule(state), "the pass of a ship not received opens nothing")
+        for name in rules.layout_requirements(self.world, other):
+            state.collect(self.world.create_item(name), True)
+        self.assertTrue(rule(state), "once its key and blueprints are in, it does")
+
+
 class TestSectorLocks(FTLTestBase):
     options = {"sector_locks": True, "layout_count": 4, "sector_logic": "strict"}
 
