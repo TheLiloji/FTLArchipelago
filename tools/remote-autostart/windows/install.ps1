@@ -1,6 +1,8 @@
 ﻿# Installe claude-rc pour l'utilisateur courant : copie dans %USERPROFILE%\claude-rc
 # et crée une tâche planifiée "claude-rc" qui lance tout à l'ouverture de session,
 # puis revérifie toutes les 5 minutes (relance ce qui manque, prend les nouvelles lignes).
+# install.ps1 -Later : crée la tâche sans rien lancer maintenant (démarrage à la prochaine session).
+param([switch]$Later)
 $ErrorActionPreference = 'Stop'
 $dest = Join-Path $env:USERPROFILE 'claude-rc'
 New-Item -ItemType Directory -Force -Path $dest | Out-Null
@@ -21,4 +23,5 @@ $principal = New-ScheduledTaskPrincipal -UserId "$env:USERDOMAIN\$env:USERNAME" 
 Register-ScheduledTask -TaskName 'claude-rc' -Action $action -Trigger $trigger -Settings $settings `
     -Principal $principal -Description 'Lance claude remote-control pour chaque ligne de dossiers.conf' -Force | Out-Null
 Write-Output "Tâche planifiée claude-rc créée. Script et config dans $dest"
-& $script start
+if ($Later) { Write-Output 'Rien lancé maintenant : tout démarrera à la prochaine ouverture de session.' }
+else { & $script start }
