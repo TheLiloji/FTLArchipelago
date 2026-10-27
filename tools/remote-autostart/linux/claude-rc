@@ -31,7 +31,7 @@ export PATH="$HOME/.local/bin:$HOME/.claude/local:$HOME/.npm-global/bin:/usr/loc
 
 die() { echo "claude-rc: $*" >&2; exit 1; }
 
-need_tmux() { command -v tmux >/dev/null || die "tmux manque (sudo dnf install tmux)"; }
+need_tmux() { command -v tmux >/dev/null || die "tmux manque (sudo apt install tmux)"; }
 
 trim() { local s="$1"; s="${s#"${s%%[![:space:]]*}"}"; s="${s%"${s##*[![:space:]]}"}"; printf '%s' "$s"; }
 

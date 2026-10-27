@@ -4,7 +4,7 @@
 set -eu
 here="$(cd "$(dirname "$0")" && pwd)"
 
-command -v tmux >/dev/null || { echo "tmux manque : sudo dnf install tmux, puis relance ce script"; exit 1; }
+command -v tmux >/dev/null || { echo "tmux manque : sudo apt install tmux, puis relance ce script"; exit 1; }
 command -v claude >/dev/null || [ -x "$HOME/.local/bin/claude" ] || { echo "claude introuvable dans le PATH"; exit 1; }
 
 mkdir -p "$HOME/.local/bin" "$HOME/.config/claude-rc" "$HOME/.config/systemd/user"

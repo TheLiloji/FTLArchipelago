@@ -21,7 +21,7 @@ Le nom apparaît dans la liste des sessions sur claude.ai/code. Les options sont
 Copie le dossier `linux/` sur le PC, puis :
 
 ```text
-sudo dnf install tmux        # seulement s'il manque
+sudo apt install tmux        # seulement s'il manque
 cd linux
 bash install.sh
 ```
