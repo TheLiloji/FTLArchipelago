@@ -3759,7 +3759,7 @@ test("online, a deal always promises someone else will pay", function()
         _G.apTrapLink.enabled = true
         sim.startRun(true)
         _G.apNetSendTrap = function() return true end
-        _G.apTrapLinkState.received = 1
+        _G.apTrapLinkState.partnerAge = 0
         sim.clearLog()
 
         sim.sign("AP_DEAL_2")
@@ -3779,7 +3779,7 @@ test("alone on Trap Link, a deal's trap always hits the player", function()
         sim.reset()
         apShopGiftsConfigure(DEMO)
         _G.apTrapLink.enabled = true
-        _G.apTrapLinkState.received = 0
+        _G.apTrapLinkState.partnerAge = nil
         sim.startRun(true)
         _G.apNetSendTrap = function() sends = sends + 1 return true end
         sim.clearLog()
@@ -8048,4 +8048,18 @@ test("arriving in a fight, weapons come aboard once it is over, at the same beac
     sim.enemy = nil
     sim.tick(2)
     equals(#sim.equipped.weapon, 1, "right after it, without waiting for another jump")
+end)
+
+test("TrapLink: a trap received long ago no longer counts as a partner on the link", function()
+    _G.apTrapLink.enabled = true
+    apTrapLinkReceive("Other", "Ice Trap")
+    check(apTrapLinkPartnerSeen(), "a trap just came in: someone is there")
+    apTrapLinkAgePartner(300)
+    check(apTrapLinkPartnerSeen(), "still there five minutes later")
+    apTrapLinkAgePartner(301)
+    check(not apTrapLinkPartnerSeen(), "ten minutes without a trap: no partner assumed")
+    apTrapLinkReceive("Other", "Ice Trap")
+    apTrapLinkForgetPartner()
+    check(not apTrapLinkPartnerSeen(), "and a disconnect forgets the partner too")
+    _G.apTrapLink.enabled = false
 end)

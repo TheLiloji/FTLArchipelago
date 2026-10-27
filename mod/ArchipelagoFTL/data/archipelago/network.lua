@@ -754,6 +754,7 @@ local HANDLERS = {
         state.connected = false
         state.connecting = false
         netLog("disconnected")
+        if _G.apTrapLinkForgetPartner then apTrapLinkForgetPartner() end
         if wasConnected and _G.apNotifyStatus then
             _G.apNotifyStatus(apT("net.disconnected"))
         end
