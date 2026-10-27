@@ -1,0 +1,9 @@
+[Unit]
+Description=Surveille ~/.config/claude-rc/dossiers.conf
+
+[Path]
+PathChanged=%h/.config/claude-rc/dossiers.conf
+Unit=claude-rc-sync.service
+
+[Install]
+WantedBy=default.target

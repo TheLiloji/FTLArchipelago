@@ -1,0 +1,14 @@
+[Unit]
+Description=Claude remote-control pour chaque dossier de ~/.config/claude-rc/dossiers.conf
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=%h/.local/bin/claude-rc start
+ExecReload=%h/.local/bin/claude-rc start
+ExecStop=%h/.local/bin/claude-rc stop
+
+[Install]
+WantedBy=default.target

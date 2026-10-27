@@ -1,0 +1,135 @@
+#!/usr/bin/env bash
+# claude-rc : lance un "claude remote-control" par dossier listé dans la config,
+# chacun dans sa session tmux, avec relance automatique s'il s'arrête.
+#
+#   claude-rc start                 lance ce qui manque (sans toucher à ce qui tourne)
+#   claude-rc stop [nom]            arrête tout, ou une seule entrée
+#   claude-rc restart [nom]         arrête puis relance
+#   claude-rc status                état de chaque entrée
+#   claude-rc add <nom> <dossier> [options...]   ajoute une entrée puis la lance
+#   claude-rc remove <nom>          retire une entrée et l'arrête
+#   claude-rc attach <nom>          ouvre la fenêtre tmux (Ctrl+b puis d pour la quitter)
+#                                   (serveur tmux à part : tmux -L claude-rc ls)
+#   claude-rc list                  affiche la config
+#
+# Config : ~/.config/claude-rc/dossiers.conf, une ligne par dossier :
+#   nom | dossier | options facultatives pour claude remote-control
+set -u
+
+CONF_DIR="${CLAUDE_RC_CONF_DIR:-$HOME/.config/claude-rc}"
+CONF="$CONF_DIR/dossiers.conf"
+LOG_DIR="${CLAUDE_RC_LOG_DIR:-$HOME/.local/state/claude-rc}"
+PREFIX="rc-"
+SELF="$(readlink -f "$0")"
+RETRY_DELAY="${CLAUDE_RC_RETRY_DELAY:-30}"
+# Options ajoutées à chaque entrée. Sans session pré-créée, un redémarrage
+# ne laisse pas de session vide en plus dans la liste de claude.ai/code.
+DEFAULT_OPTS="${CLAUDE_RC_DEFAULT_OPTS:---no-create-session-in-dir}"
+
+# systemd ne charge pas toujours le PATH du terminal.
+export PATH="$HOME/.local/bin:$HOME/.claude/local:$HOME/.npm-global/bin:/usr/local/bin:$PATH"
+
+die() { echo "claude-rc: $*" >&2; exit 1; }
+
+need_tmux() { command -v tmux >/dev/null || die "tmux manque (sudo dnf install tmux)"; }
+
+trim() { local s="$1"; s="${s#"${s%%[![:space:]]*}"}"; s="${s%"${s##*[![:space:]]}"}"; printf '%s' "$s"; }
+
+ensure_conf() {
+  mkdir -p "$CONF_DIR" "$LOG_DIR"
+  [ -f "$CONF" ] || cat > "$CONF" <<'CONF'
+# Un "claude remote-control" par ligne : nom | dossier | options (facultatif)
+# Le nom : lettres, chiffres, - et _ seulement. Lignes avec # ignorées.
+# Une session Claude locale peut s'ajouter avec : claude-rc add <nom> <dossier>
+CONF
+}
+
+# Sort "nom<TAB>dossier<TAB>options" pour chaque ligne valide.
+entries() {
+  [ -f "$CONF" ] || return 0
+  local line name dir opts
+  while IFS= read -r line || [ -n "$line" ]; do
+    line="$(trim "$line")"
+    [ -z "$line" ] && continue
+    [ "${line:0:1}" = "#" ] && continue
+    IFS='|' read -r name dir opts <<<"$line"
+    name="$(trim "${name:-}")"; dir="$(trim "${dir:-}")"; opts="$(trim "${opts:-}")"
+    dir="${dir/#\~/$HOME}"
+    if ! [[ "$name" =~ ^[A-Za-z0-9_-]+$ ]] || [ -z "$dir" ]; then
+      echo "claude-rc: ligne ignorée (format nom | dossier | options) : $line" >&2
+      continue
+    fi
+    printf '%s\t%s\t%s\n' "$name" "$dir" "$opts"
+  done < "$CONF"
+}
+
+running() { tmux -L claude-rc has-session -t "=$PREFIX$1" 2>/dev/null; }
+
+# Boucle exécutée dans la fenêtre tmux : relance claude remote-control quand il s'arrête
+# (par exemple après ~10 min sans réseau, ce qui le fait quitter).
+loop() {
+  local name="$1" dir="$2" opts="$3" log="$LOG_DIR/$1.log" rc
+  cd "$dir" || { echo "Dossier introuvable : $dir"; sleep 3600; exit 1; }
+  while true; do
+    echo "[$(date '+%F %T')] démarrage de $name dans $dir" | tee -a "$log"
+    # shellcheck disable=SC2086
+    claude remote-control --name "$name" $DEFAULT_OPTS $opts
+    rc=$?
+    echo "[$(date '+%F %T')] $name arrêté (code $rc), relance dans ${RETRY_DELAY}s" | tee -a "$log"
+    sleep "$RETRY_DELAY"
+  done
+}
+
+start_one() {
+  local name="$1" dir="$2" opts="$3"
+  if running "$name"; then echo "ok      $name (déjà lancé)"; return; fi
+  if [ ! -d "$dir" ]; then echo "absent  $name : dossier $dir introuvable"; return; fi
+  tmux -L claude-rc new-session -d -s "$PREFIX$name" -c "$dir" \
+    "$(printf '%q ' "$SELF" __loop "$name" "$dir" "$opts")"
+  echo "lancé   $name -> $dir"
+}
+
+stop_one() {
+  if running "$1"; then tmux -L claude-rc kill-session -t "=$PREFIX$1"; echo "arrêté  $1"; fi
+}
+
+cmd="${1:-status}"; shift || true
+case "$cmd" in
+  __loop) loop "$@" ;;
+  start)
+    need_tmux; ensure_conf
+    entries | while IFS=$'\t' read -r n d o; do start_one "$n" "$d" "$o"; done ;;
+  stop)
+    need_tmux
+    if [ -n "${1:-}" ]; then stop_one "$1"
+    else tmux -L claude-rc ls -F '#{session_name}' 2>/dev/null | grep "^$PREFIX" | while read -r s; do stop_one "${s#"$PREFIX"}"; done
+    fi ;;
+  restart)
+    "$SELF" stop "${1:-}"; sleep 2; "$SELF" start ;;
+  status)
+    need_tmux; ensure_conf
+    entries | while IFS=$'\t' read -r n d o; do
+      if running "$n"; then echo "lancé   $n -> $d"; else echo "arrêté  $n -> $d"; fi
+    done ;;
+  add)
+    [ $# -ge 2 ] || die "usage : claude-rc add <nom> <dossier> [options...]"
+    ensure_conf
+    name="$1"; given="$2"; shift 2
+    [[ "$name" =~ ^[A-Za-z0-9_-]+$ ]] || die "nom invalide : lettres, chiffres, - et _ seulement"
+    dir="$(cd "$given" 2>/dev/null && pwd)" || die "dossier introuvable : $given"
+    if entries | cut -f1 | grep -qx "$name"; then die "l'entrée $name existe déjà (claude-rc list)"; fi
+    printf '%s | %s | %s\n' "$name" "$dir" "$*" >> "$CONF"
+    echo "ajouté  $name -> $dir"
+    "$SELF" start ;;
+  remove)
+    [ -n "${1:-}" ] || die "usage : claude-rc remove <nom>"
+    stop_one "$1" 2>/dev/null
+    tmp="$(mktemp)"
+    awk -F'|' -v n="$1" '{ k=$1; gsub(/^[ \t]+|[ \t]+$/, "", k) } k!=n' "$CONF" > "$tmp" && cat "$tmp" > "$CONF"
+    rm -f "$tmp"; echo "retiré  $1" ;;
+  attach)
+    [ -n "${1:-}" ] || die "usage : claude-rc attach <nom>"
+    exec tmux -L claude-rc attach -t "=$PREFIX$1" ;;
+  list) ensure_conf; cat "$CONF" ;;
+  *) sed -n '2,15p' "$0" | sed 's/^# \{0,1\}//'; exit 1 ;;
+esac

@@ -1,0 +1,6 @@
+[Unit]
+Description=Lance les nouvelles entrées de claude-rc après un changement de config
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/systemctl --user reload claude-rc.service
