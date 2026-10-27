@@ -181,7 +181,7 @@
     <mod:insertByFind>
         <mod:findLike type="event" limit="1" panic="false"/>
         <mod-before:priorityEvent name="AP_STORE_EVENT" min="1" max="1" priority="10"/>
-        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9" req="ap_event_checks" lvl="1"/>
+        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9"/>
         <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
         <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
         <mod-before:event name="AP_EVT_HIJACK" min="0" max="1"/>
@@ -192,7 +192,7 @@
     <mod:insertByFind>
         <mod:findLike type="event" limit="1" panic="false"/>
         <mod-before:priorityEvent name="AP_STORE_EVENT" min="1" max="1" priority="10"/>
-        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9" req="ap_event_checks" lvl="1"/>
+        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9"/>
         <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
         <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
         <mod-before:event name="AP_EVT_HIJACK" min="0" max="1"/>
@@ -203,7 +203,7 @@
     <mod:insertByFind>
         <mod:findLike type="event" limit="1" panic="false"/>
         <mod-before:priorityEvent name="AP_STORE_EVENT" min="1" max="1" priority="10"/>
-        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9" req="ap_event_checks" lvl="1"/>
+        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9"/>
         <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
         <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
         <mod-before:event name="AP_EVT_HIJACK" min="0" max="1"/>
@@ -214,7 +214,7 @@
     <mod:insertByFind>
         <mod:findLike type="event" limit="1" panic="false"/>
         <mod-before:priorityEvent name="AP_STORE_EVENT" min="1" max="1" priority="10"/>
-        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9" req="ap_event_checks" lvl="1"/>
+        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9"/>
         <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
         <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
         <mod-before:event name="AP_EVT_HIJACK" min="0" max="1"/>
@@ -225,7 +225,7 @@
     <mod:insertByFind>
         <mod:findLike type="event" limit="1" panic="false"/>
         <mod-before:priorityEvent name="AP_STORE_EVENT" min="1" max="1" priority="10"/>
-        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9" req="ap_event_checks" lvl="1"/>
+        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9"/>
         <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
         <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
         <mod-before:event name="AP_EVT_HIJACK" min="0" max="1"/>
@@ -236,7 +236,7 @@
     <mod:insertByFind>
         <mod:findLike type="event" limit="1" panic="false"/>
         <mod-before:priorityEvent name="AP_STORE_EVENT" min="1" max="1" priority="10"/>
-        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9" req="ap_event_checks" lvl="1"/>
+        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9"/>
         <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
         <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
         <mod-before:event name="AP_EVT_HIJACK" min="0" max="1"/>
@@ -247,7 +247,7 @@
     <mod:insertByFind>
         <mod:findLike type="event" limit="1" panic="false"/>
         <mod-before:priorityEvent name="AP_STORE_EVENT" min="1" max="1" priority="10"/>
-        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9" req="ap_event_checks" lvl="1"/>
+        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9"/>
         <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
         <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
         <mod-before:event name="AP_EVT_HIJACK" min="0" max="1"/>
@@ -258,7 +258,7 @@
     <mod:insertByFind>
         <mod:findLike type="event" limit="1" panic="false"/>
         <mod-before:priorityEvent name="AP_STORE_EVENT" min="1" max="1" priority="10"/>
-        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9" req="ap_event_checks" lvl="1"/>
+        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9"/>
         <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
         <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
         <mod-before:event name="AP_EVT_HIJACK" min="0" max="1"/>
@@ -269,7 +269,7 @@
     <mod:insertByFind>
         <mod:findLike type="event" limit="1" panic="false"/>
         <mod-before:priorityEvent name="AP_STORE_EVENT" min="1" max="1" priority="10"/>
-        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9" req="ap_event_checks" lvl="1"/>
+        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9"/>
         <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
         <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
         <mod-before:event name="AP_EVT_HIJACK" min="0" max="1"/>
@@ -280,7 +280,7 @@
     <mod:insertByFind>
         <mod:findLike type="event" limit="1" panic="false"/>
         <mod-before:priorityEvent name="AP_STORE_EVENT" min="1" max="1" priority="10"/>
-        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9" req="ap_event_checks" lvl="1"/>
+        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9"/>
         <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
         <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
         <mod-before:event name="AP_EVT_HIJACK" min="0" max="1"/>
@@ -291,7 +291,7 @@
     <mod:insertByFind>
         <mod:findLike type="event" limit="1" panic="false"/>
         <mod-before:priorityEvent name="AP_STORE_EVENT" min="1" max="1" priority="10"/>
-        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9" req="ap_event_checks" lvl="1"/>
+        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9"/>
         <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
         <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
         <mod-before:event name="AP_EVT_HIJACK" min="0" max="1"/>
@@ -302,7 +302,7 @@
     <mod:insertByFind>
         <mod:findLike type="event" limit="1" panic="false"/>
         <mod-before:priorityEvent name="AP_STORE_EVENT" min="1" max="1" priority="10"/>
-        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9" req="ap_event_checks" lvl="1"/>
+        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9"/>
         <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
         <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
         <mod-before:event name="AP_EVT_HIJACK" min="0" max="1"/>
@@ -313,7 +313,7 @@
     <mod:insertByFind>
         <mod:findLike type="event" limit="1" panic="false"/>
         <mod-before:priorityEvent name="AP_STORE_EVENT" min="1" max="1" priority="10"/>
-        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9" req="ap_event_checks" lvl="1"/>
+        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9"/>
         <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
         <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
         <mod-before:event name="AP_EVT_HIJACK" min="0" max="1"/>
@@ -324,7 +324,7 @@
     <mod:insertByFind>
         <mod:findLike type="event" limit="1" panic="false"/>
         <mod-before:priorityEvent name="AP_STORE_EVENT" min="1" max="1" priority="10"/>
-        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9" req="ap_event_checks" lvl="1"/>
+        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9"/>
         <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
         <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
         <mod-before:event name="AP_EVT_HIJACK" min="0" max="1"/>
@@ -335,7 +335,7 @@
     <mod:insertByFind>
         <mod:findLike type="event" limit="1" panic="false"/>
         <mod-before:priorityEvent name="AP_STORE_EVENT" min="1" max="1" priority="10"/>
-        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9" req="ap_event_checks" lvl="1"/>
+        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9"/>
         <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
         <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
         <mod-before:event name="AP_EVT_HIJACK" min="0" max="1"/>
@@ -346,7 +346,7 @@
     <mod:insertByFind>
         <mod:findLike type="event" limit="1" panic="false"/>
         <mod-before:priorityEvent name="AP_STORE_EVENT" min="1" max="1" priority="10"/>
-        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9" req="ap_event_checks" lvl="1"/>
+        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9"/>
         <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
         <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
         <mod-before:event name="AP_EVT_HIJACK" min="0" max="1"/>
@@ -357,7 +357,7 @@
     <mod:insertByFind>
         <mod:findLike type="event" limit="1" panic="false"/>
         <mod-before:priorityEvent name="AP_STORE_EVENT" min="1" max="1" priority="10"/>
-        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9" req="ap_event_checks" lvl="1"/>
+        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9"/>
         <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
         <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
         <mod-before:event name="AP_EVT_HIJACK" min="0" max="1"/>
@@ -368,7 +368,7 @@
     <mod:insertByFind>
         <mod:findLike type="event" limit="1" panic="false"/>
         <mod-before:priorityEvent name="AP_STORE_EVENT" min="1" max="1" priority="10"/>
-        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9" req="ap_event_checks" lvl="1"/>
+        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9"/>
         <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
         <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
         <mod-before:event name="AP_EVT_HIJACK" min="0" max="1"/>
@@ -379,7 +379,7 @@
     <mod:insertByFind>
         <mod:findLike type="event" limit="1" panic="false"/>
         <mod-before:priorityEvent name="AP_STORE_EVENT" min="1" max="1" priority="10"/>
-        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9" req="ap_event_checks" lvl="1"/>
+        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9"/>
         <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
         <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
         <mod-before:event name="AP_EVT_HIJACK" min="0" max="1"/>
@@ -390,7 +390,7 @@
     <mod:insertByFind>
         <mod:findLike type="event" limit="1" panic="false"/>
         <mod-before:priorityEvent name="AP_STORE_EVENT" min="1" max="1" priority="10"/>
-        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9" req="ap_event_checks" lvl="1"/>
+        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9"/>
         <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
         <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
         <mod-before:event name="AP_EVT_HIJACK" min="0" max="1"/>
@@ -401,7 +401,7 @@
     <mod:insertByFind>
         <mod:findLike type="event" limit="1" panic="false"/>
         <mod-before:priorityEvent name="AP_STORE_EVENT" min="1" max="1" priority="10"/>
-        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9" req="ap_event_checks" lvl="1"/>
+        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9"/>
         <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
         <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
         <mod-before:event name="AP_EVT_HIJACK" min="0" max="1"/>
@@ -412,7 +412,7 @@
     <mod:insertByFind>
         <mod:findLike type="event" limit="1" panic="false"/>
         <mod-before:priorityEvent name="AP_STORE_EVENT" min="1" max="1" priority="10"/>
-        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9" req="ap_event_checks" lvl="1"/>
+        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9"/>
         <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
         <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
         <mod-before:event name="AP_EVT_HIJACK" min="0" max="1"/>
@@ -423,7 +423,7 @@
     <mod:insertByFind>
         <mod:findLike type="event" limit="1" panic="false"/>
         <mod-before:priorityEvent name="AP_STORE_EVENT" min="1" max="1" priority="10"/>
-        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9" req="ap_event_checks" lvl="1"/>
+        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9"/>
         <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
         <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
         <mod-before:event name="AP_EVT_HIJACK" min="0" max="1"/>
@@ -434,7 +434,7 @@
     <mod:insertByFind>
         <mod:findLike type="event" limit="1" panic="false"/>
         <mod-before:priorityEvent name="AP_STORE_EVENT" min="1" max="1" priority="10"/>
-        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9" req="ap_event_checks" lvl="1"/>
+        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9"/>
         <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
         <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
         <mod-before:event name="AP_EVT_HIJACK" min="0" max="1"/>
@@ -445,7 +445,7 @@
     <mod:insertByFind>
         <mod:findLike type="event" limit="1" panic="false"/>
         <mod-before:priorityEvent name="AP_STORE_EVENT" min="1" max="1" priority="10"/>
-        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9" req="ap_event_checks" lvl="1"/>
+        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9"/>
         <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
         <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
         <mod-before:event name="AP_EVT_HIJACK" min="0" max="1"/>
@@ -456,7 +456,7 @@
     <mod:insertByFind>
         <mod:findLike type="event" limit="1" panic="false"/>
         <mod-before:priorityEvent name="AP_STORE_EVENT" min="1" max="1" priority="10"/>
-        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9" req="ap_event_checks" lvl="1"/>
+        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9"/>
         <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
         <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
         <mod-before:event name="AP_EVT_HIJACK" min="0" max="1"/>
@@ -467,7 +467,7 @@
     <mod:insertByFind>
         <mod:findLike type="event" limit="1" panic="false"/>
         <mod-before:priorityEvent name="AP_STORE_EVENT" min="1" max="1" priority="10"/>
-        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9" req="ap_event_checks" lvl="1"/>
+        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9"/>
         <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
         <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
         <mod-before:event name="AP_EVT_HIJACK" min="0" max="1"/>
@@ -478,7 +478,7 @@
     <mod:insertByFind>
         <mod:findLike type="event" limit="1" panic="false"/>
         <mod-before:priorityEvent name="AP_STORE_EVENT" min="1" max="1" priority="10"/>
-        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9" req="ap_event_checks" lvl="1"/>
+        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9"/>
         <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
         <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
         <mod-before:event name="AP_EVT_HIJACK" min="0" max="1"/>
@@ -489,7 +489,7 @@
     <mod:insertByFind>
         <mod:findLike type="event" limit="1" panic="false"/>
         <mod-before:priorityEvent name="AP_STORE_EVENT" min="1" max="1" priority="10"/>
-        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9" req="ap_event_checks" lvl="1"/>
+        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9"/>
         <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
         <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
         <mod-before:event name="AP_EVT_HIJACK" min="0" max="1"/>
@@ -500,7 +500,7 @@
     <mod:insertByFind>
         <mod:findLike type="event" limit="1" panic="false"/>
         <mod-before:priorityEvent name="AP_STORE_EVENT" min="1" max="1" priority="10"/>
-        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9" req="ap_event_checks" lvl="1"/>
+        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9"/>
         <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
         <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
         <mod-before:event name="AP_EVT_HIJACK" min="0" max="1"/>
@@ -511,7 +511,7 @@
     <mod:insertByFind>
         <mod:findLike type="event" limit="1" panic="false"/>
         <mod-before:priorityEvent name="AP_STORE_EVENT" min="1" max="1" priority="10"/>
-        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9" req="ap_event_checks" lvl="1"/>
+        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9"/>
         <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
         <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
         <mod-before:event name="AP_EVT_HIJACK" min="0" max="1"/>
@@ -522,7 +522,7 @@
     <mod:insertByFind>
         <mod:findLike type="event" limit="1" panic="false"/>
         <mod-before:priorityEvent name="AP_STORE_EVENT" min="1" max="1" priority="10"/>
-        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9" req="ap_event_checks" lvl="1"/>
+        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9"/>
         <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
         <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
         <mod-before:event name="AP_EVT_HIJACK" min="0" max="1"/>
@@ -533,7 +533,7 @@
     <mod:insertByFind>
         <mod:findLike type="event" limit="1" panic="false"/>
         <mod-before:priorityEvent name="AP_STORE_EVENT" min="1" max="1" priority="10"/>
-        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9" req="ap_event_checks" lvl="1"/>
+        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9"/>
         <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
         <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
         <mod-before:event name="AP_EVT_HIJACK" min="0" max="1"/>
@@ -544,7 +544,7 @@
     <mod:insertByFind>
         <mod:findLike type="event" limit="1" panic="false"/>
         <mod-before:priorityEvent name="AP_STORE_EVENT" min="1" max="1" priority="10"/>
-        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9" req="ap_event_checks" lvl="1"/>
+        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9"/>
         <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
         <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
         <mod-before:event name="AP_EVT_HIJACK" min="0" max="1"/>
@@ -555,7 +555,7 @@
     <mod:insertByFind>
         <mod:findLike type="event" limit="1" panic="false"/>
         <mod-before:priorityEvent name="AP_STORE_EVENT" min="1" max="1" priority="10"/>
-        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9" req="ap_event_checks" lvl="1"/>
+        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9"/>
         <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
         <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
         <mod-before:event name="AP_EVT_HIJACK" min="0" max="1"/>
@@ -566,7 +566,7 @@
     <mod:insertByFind>
         <mod:findLike type="event" limit="1" panic="false"/>
         <mod-before:priorityEvent name="AP_STORE_EVENT" min="1" max="1" priority="10"/>
-        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9" req="ap_event_checks" lvl="1"/>
+        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9"/>
         <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
         <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
         <mod-before:event name="AP_EVT_HIJACK" min="0" max="1"/>
@@ -577,7 +577,7 @@
     <mod:insertByFind>
         <mod:findLike type="event" limit="1" panic="false"/>
         <mod-before:priorityEvent name="AP_STORE_EVENT" min="1" max="1" priority="10"/>
-        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9" req="ap_event_checks" lvl="1"/>
+        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9"/>
         <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
         <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
         <mod-before:event name="AP_EVT_HIJACK" min="0" max="1"/>
@@ -588,7 +588,7 @@
     <mod:insertByFind>
         <mod:findLike type="event" limit="1" panic="false"/>
         <mod-before:priorityEvent name="AP_STORE_EVENT" min="1" max="1" priority="10"/>
-        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9" req="ap_event_checks" lvl="1"/>
+        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9"/>
         <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
         <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
         <mod-before:event name="AP_EVT_HIJACK" min="0" max="1"/>
@@ -599,7 +599,7 @@
     <mod:insertByFind>
         <mod:findLike type="event" limit="1" panic="false"/>
         <mod-before:priorityEvent name="AP_STORE_EVENT" min="1" max="1" priority="10"/>
-        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9" req="ap_event_checks" lvl="1"/>
+        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9"/>
         <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
         <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
         <mod-before:event name="AP_EVT_HIJACK" min="0" max="1"/>
@@ -610,7 +610,7 @@
     <mod:insertByFind>
         <mod:findLike type="event" limit="1" panic="false"/>
         <mod-before:priorityEvent name="AP_STORE_EVENT" min="1" max="1" priority="10"/>
-        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9" req="ap_event_checks" lvl="1"/>
+        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9"/>
         <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
         <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
         <mod-before:event name="AP_EVT_HIJACK" min="0" max="1"/>
@@ -621,7 +621,7 @@
     <mod:insertByFind>
         <mod:findLike type="event" limit="1" panic="false"/>
         <mod-before:priorityEvent name="AP_STORE_EVENT" min="1" max="1" priority="10"/>
-        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9" req="ap_event_checks" lvl="1"/>
+        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9"/>
         <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
         <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
         <mod-before:event name="AP_EVT_HIJACK" min="0" max="1"/>
@@ -632,7 +632,7 @@
     <mod:insertByFind>
         <mod:findLike type="event" limit="1" panic="false"/>
         <mod-before:priorityEvent name="AP_STORE_EVENT" min="1" max="1" priority="10"/>
-        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9" req="ap_event_checks" lvl="1"/>
+        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9"/>
         <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
         <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
         <mod-before:event name="AP_EVT_HIJACK" min="0" max="1"/>
@@ -643,7 +643,7 @@
     <mod:insertByFind>
         <mod:findLike type="event" limit="1" panic="false"/>
         <mod-before:priorityEvent name="AP_STORE_EVENT" min="1" max="1" priority="10"/>
-        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9" req="ap_event_checks" lvl="1"/>
+        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9"/>
         <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
         <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
         <mod-before:event name="AP_EVT_HIJACK" min="0" max="1"/>
@@ -654,7 +654,7 @@
     <mod:insertByFind>
         <mod:findLike type="event" limit="1" panic="false"/>
         <mod-before:priorityEvent name="AP_STORE_EVENT" min="1" max="1" priority="10"/>
-        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9" req="ap_event_checks" lvl="1"/>
+        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9"/>
         <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
         <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
         <mod-before:event name="AP_EVT_HIJACK" min="0" max="1"/>
@@ -665,7 +665,7 @@
     <mod:insertByFind>
         <mod:findLike type="event" limit="1" panic="false"/>
         <mod-before:priorityEvent name="AP_STORE_EVENT" min="1" max="1" priority="10"/>
-        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9" req="ap_event_checks" lvl="1"/>
+        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9"/>
         <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
         <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
         <mod-before:event name="AP_EVT_HIJACK" min="0" max="1"/>
@@ -676,7 +676,7 @@
     <mod:insertByFind>
         <mod:findLike type="event" limit="1" panic="false"/>
         <mod-before:priorityEvent name="AP_STORE_EVENT" min="1" max="1" priority="10"/>
-        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9" req="ap_event_checks" lvl="1"/>
+        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9"/>
         <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
         <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
         <mod-before:event name="AP_EVT_HIJACK" min="0" max="1"/>
@@ -687,7 +687,7 @@
     <mod:insertByFind>
         <mod:findLike type="event" limit="1" panic="false"/>
         <mod-before:priorityEvent name="AP_STORE_EVENT" min="1" max="1" priority="10"/>
-        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9" req="ap_event_checks" lvl="1"/>
+        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9"/>
         <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
         <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
         <mod-before:event name="AP_EVT_HIJACK" min="0" max="1"/>
@@ -698,7 +698,7 @@
     <mod:insertByFind>
         <mod:findLike type="event" limit="1" panic="false"/>
         <mod-before:priorityEvent name="AP_STORE_EVENT" min="1" max="1" priority="10"/>
-        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9" req="ap_event_checks" lvl="1"/>
+        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9"/>
         <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
         <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
         <mod-before:event name="AP_EVT_HIJACK" min="0" max="1"/>
@@ -709,7 +709,7 @@
     <mod:insertByFind>
         <mod:findLike type="event" limit="1" panic="false"/>
         <mod-before:priorityEvent name="AP_STORE_EVENT" min="1" max="1" priority="10"/>
-        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9" req="ap_event_checks" lvl="1"/>
+        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9"/>
         <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
         <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
         <mod-before:event name="AP_EVT_HIJACK" min="0" max="1"/>
@@ -720,7 +720,7 @@
     <mod:insertByFind>
         <mod:findLike type="event" limit="1" panic="false"/>
         <mod-before:priorityEvent name="AP_STORE_EVENT" min="1" max="1" priority="10"/>
-        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9" req="ap_event_checks" lvl="1"/>
+        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9"/>
         <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
         <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
         <mod-before:event name="AP_EVT_HIJACK" min="0" max="1"/>
@@ -731,7 +731,7 @@
     <mod:insertByFind>
         <mod:findLike type="event" limit="1" panic="false"/>
         <mod-before:priorityEvent name="AP_STORE_EVENT" min="1" max="1" priority="10"/>
-        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9" req="ap_event_checks" lvl="1"/>
+        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9"/>
         <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
         <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
         <mod-before:event name="AP_EVT_HIJACK" min="0" max="1"/>
@@ -742,7 +742,7 @@
     <mod:insertByFind>
         <mod:findLike type="event" limit="1" panic="false"/>
         <mod-before:priorityEvent name="AP_STORE_EVENT" min="1" max="1" priority="10"/>
-        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9" req="ap_event_checks" lvl="1"/>
+        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9"/>
         <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
         <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
         <mod-before:event name="AP_EVT_HIJACK" min="0" max="1"/>
@@ -753,7 +753,7 @@
     <mod:insertByFind>
         <mod:findLike type="event" limit="1" panic="false"/>
         <mod-before:priorityEvent name="AP_STORE_EVENT" min="1" max="1" priority="10"/>
-        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9" req="ap_event_checks" lvl="1"/>
+        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9"/>
         <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
         <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
         <mod-before:event name="AP_EVT_HIJACK" min="0" max="1"/>
@@ -764,7 +764,7 @@
     <mod:insertByFind>
         <mod:findLike type="event" limit="1" panic="false"/>
         <mod-before:priorityEvent name="AP_STORE_EVENT" min="1" max="1" priority="10"/>
-        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9" req="ap_event_checks" lvl="1"/>
+        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9"/>
         <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
         <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
         <mod-before:event name="AP_EVT_HIJACK" min="0" max="1"/>
@@ -775,7 +775,7 @@
     <mod:insertByFind>
         <mod:findLike type="event" limit="1" panic="false"/>
         <mod-before:priorityEvent name="AP_STORE_EVENT" min="1" max="1" priority="10"/>
-        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9" req="ap_event_checks" lvl="1"/>
+        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9"/>
         <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
         <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
         <mod-before:event name="AP_EVT_HIJACK" min="0" max="1"/>
@@ -786,7 +786,7 @@
     <mod:insertByFind>
         <mod:findLike type="event" limit="1" panic="false"/>
         <mod-before:priorityEvent name="AP_STORE_EVENT" min="1" max="1" priority="10"/>
-        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9" req="ap_event_checks" lvl="1"/>
+        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9"/>
         <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
         <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
         <mod-before:event name="AP_EVT_HIJACK" min="0" max="1"/>
@@ -797,7 +797,7 @@
     <mod:insertByFind>
         <mod:findLike type="event" limit="1" panic="false"/>
         <mod-before:priorityEvent name="AP_STORE_EVENT" min="1" max="1" priority="10"/>
-        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9" req="ap_event_checks" lvl="1"/>
+        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9"/>
         <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
         <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
         <mod-before:event name="AP_EVT_HIJACK" min="0" max="1"/>
@@ -808,7 +808,7 @@
     <mod:insertByFind>
         <mod:findLike type="event" limit="1" panic="false"/>
         <mod-before:priorityEvent name="AP_STORE_EVENT" min="1" max="1" priority="10"/>
-        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9" req="ap_event_checks" lvl="1"/>
+        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9"/>
         <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
         <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
         <mod-before:event name="AP_EVT_HIJACK" min="0" max="1"/>
@@ -819,7 +819,7 @@
     <mod:insertByFind>
         <mod:findLike type="event" limit="1" panic="false"/>
         <mod-before:priorityEvent name="AP_STORE_EVENT" min="1" max="1" priority="10"/>
-        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9" req="ap_event_checks" lvl="1"/>
+        <mod-before:priorityEvent name="AP_EVT_SECTOR_EVENT" min="1" max="1" priority="9"/>
         <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
         <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
         <mod-before:event name="AP_EVT_HIJACK" min="0" max="1"/>
