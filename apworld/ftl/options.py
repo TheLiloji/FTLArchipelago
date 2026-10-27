@@ -416,7 +416,8 @@ class ReactorChecks(Toggle):
 
 class SectorSkip(Toggle):
     """A ship layout that already reached the next sector in an earlier run may skip sectors 1 to 4: the first
-    beacon of such a sector is an exit. Jumping on at once gives 30 scrap; exploring as usual stays possible.
+    beacon of such a sector is an exit. Jumping on at once gives 60 scrap and one more pick in the start-of-run menu;
+    exploring as usual stays possible.
     The skipped sector's checks wait for another run.
     """
 

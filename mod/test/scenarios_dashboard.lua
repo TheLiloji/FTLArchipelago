@@ -725,7 +725,8 @@ test("in logic: a check is in logic once its layout's items and its blueprints a
                 items = { ["Rock Cruiser Key"] = { k = "ship", bp = "PLAYER_SHIP_ROCK" },
                           ["Shields blueprint"] = { k = "cap", sys = "shields" } },
                 logic = { layouts = { PLAYER_SHIP_ROCK = { "Rock Cruiser Key" } },
-                          blueprints = { ["PLAYER_SHIP_ROCK:sector:3"] = 1 },
+                          checks = { ["PLAYER_SHIP_ROCK:sector:3"] = { ways = { { l = "PLAYER_SHIP_ROCK", i = {} } },
+                                                                        bp = 1, pass = 0 } },
                           blueprint_items = { "Shields blueprint" } } })
     equals(apInLogic("PLAYER_SHIP_ROCK:sector:3"), false, "nothing received yet")
     apReceiveItem("Rock Cruiser Key", "Nina", false, 0)
@@ -735,4 +736,32 @@ test("in logic: a check is in logic once its layout's items and its blueprints a
     apContractResetForTesting()
     applySeed({})
     equals(apInLogic("PLAYER_SHIP_ROCK:sector:3"), nil, "a seed without the logic copy says nothing")
+end)
+
+test("in logic: Sector Passes, the ship's own systems and unowned ships count like the apworld's logic", function()
+    apContractResetForTesting()
+    applySeed({ loc = { ["PLAYER_SHIP_ROCK:sector:5"] = "Rock Cruiser A: Reach sector 5",
+                        ["sys:cloaking"] = "Install Cloaking", ["crew:engi"] = "First Engi aboard" },
+                logic = { layouts = { PLAYER_SHIP_ROCK = { "Rock Cruiser Key" }, PLAYER_SHIP_STEALTH = { "Stealth Cruiser Key" } },
+                          passes = { PLAYER_SHIP_ROCK = "Sector Pass (Rock)", PLAYER_SHIP_STEALTH = "Sector Pass (Stealth)" },
+                          checks = {
+                              ["PLAYER_SHIP_ROCK:sector:5"] = { ways = { { l = "PLAYER_SHIP_ROCK", i = {} } }, bp = 0, pass = 1 },
+                              ["sys:cloaking"] = { ways = { { l = "PLAYER_SHIP_ROCK", i = { "Cloaking blueprint" } },
+                                                            { l = "PLAYER_SHIP_STEALTH", i = {} } }, bp = 0, pass = 0 },
+                              ["crew:engi"] = { ways = { { l = "PLAYER_SHIP_ROCK", i = {} } }, bp = 0, pass = 0 },
+                          },
+                          blueprint_items = {} } })
+    equals(apInLogic("crew:engi"), false, "no ship received: nothing in logic")
+    apReceiveItem("Rock Cruiser Key", "Nina", false, 0)
+    equals(apInLogic("crew:engi"), true, "the Rock: the Engi check is in logic")
+    equals(apInLogic("PLAYER_SHIP_ROCK:sector:5"), false, "sector 5 needs the Rock's first Sector Pass")
+    apReceiveItem("Sector Pass (Stealth)", "Nina", false, 1)
+    equals(apInLogic("PLAYER_SHIP_ROCK:sector:5"), false, "another ship's pass does not count")
+    apReceiveItem("Sector Pass (Rock)", "Nina", false, 2)
+    equals(apInLogic("PLAYER_SHIP_ROCK:sector:5"), true, "its own pass does")
+    equals(apInLogic("sys:cloaking"), false, "Cloaking on the Rock needs its blueprint")
+    apReceiveItem("Stealth Cruiser Key", "Nina", false, 3)
+    equals(apInLogic("sys:cloaking"), true, "the Stealth starts with it")
+    apContractResetForTesting()
+    applySeed({})
 end)

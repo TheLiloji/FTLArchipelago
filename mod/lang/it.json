@@ -187,7 +187,7 @@
     "event.link.fed": "Energia versata nella riserva comune",
     "event.package.route": "Inviare il pacco di {slot}: {item}",
     "event.package.self": "Ritirare il tuo pacco: {item}",
-    "event.trap.nobody": "Trappola non inviata: nessuno online.",
+    "event.trap.nobody": "Nessuno là fuori a ricevere il sovraccarico: colpisce la tua nave.",
     "event.trap.sent": "Trappola inviata a un altro giocatore (TrapLink).",
     "filler.crew": "{n} membri d'equipaggio",
     "filler.crew.one": "{n} membro d'equipaggio",
@@ -443,6 +443,7 @@
     "reset.kept.profile": "Tenuto: questo salvataggio resta con il suo seed. Carica un altro salvataggio o collegati al seed di questo.",
     "deal.off": "In questo seed non ci sono patti",
     "loadout.hint.extra": "Una scelta in più per il settore saltato: prendi un'arma, un drone o un membro dell'equipaggio tra ciò che hai ricevuto.",
-    "loadout.no_room": "Non c'è posto a bordo per {name}: libera prima uno slot arma o di stiva."
+    "loadout.no_room": "Non c'è posto a bordo per {name}: libera prima uno slot arma o di stiva.",
+    "event.trap.own": "Sovraccarico del segnale"
   }
 }

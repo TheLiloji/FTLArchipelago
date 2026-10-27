@@ -162,7 +162,8 @@ local TRAP_DELIVERY = {
     end,
 }
 
--- Fight traps wait in the run's save, at most fightTrapCeiling of each kind.
+-- Fight traps wait in the profile, at most fightTrapCeiling of each kind: one armed when a run ends waits for
+-- the first fight of the next run.
 local FIGHT_TRAPS = {
     { name = "asb", events = { "AP_TRAP_ASB" } },
     { name = "power_surge", events = { "AP_TRAP_SURGE_LASER", "AP_TRAP_SURGE_DRONES" },
@@ -175,12 +176,12 @@ local FIGHT_TRAPS = {
 local EARLY_SECTORS = 2
 
 function apFightTrapArmed(name)
-    local ok, value = pcall(function() return Hyperspace.playerVariables["ap_trap_" .. name] end)
+    local ok, value = pcall(function() return Hyperspace.metaVariables["ap_trap_" .. name] end)
     return ok and math.floor(tonumber(value) or 0) or 0
 end
 
 local function setFightTrapArmed(name, n)
-    pcall(function() Hyperspace.playerVariables["ap_trap_" .. name] = n end)
+    pcall(function() Hyperspace.metaVariables["ap_trap_" .. name] = n end)
 end
 
 function apArmFightTrap(name)

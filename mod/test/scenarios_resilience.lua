@@ -1228,7 +1228,7 @@ test("sector skip: a sector the layout already crossed opens its first beacon as
     sim.starMap.worldLevel = 1
     sim.starMap.currentLoc = sim.makeLocation()
     sim.jumpArrive()
-    equals(sim.player.currentScrap - before, 30, "jumped on at once: the skip pays")
+    equals(sim.player.currentScrap - before, 60, "jumped on at once: the skip pays")
     equals(sim.starMap.currentLoc.beacon, true, "sector 2 was reached before too")
     sim.starMap.currentLoc = sim.makeLocation()
     sim.jumpArrive()
@@ -1312,4 +1312,32 @@ test("shop deal scrap: at 0 a closed deal costs nothing, and opens again at its 
     applySeed({})
     apApplyShopGifts()
     equals(Hyperspace.Blueprints:GetAugmentBlueprint("AP_DEAL_2").desc.cost, 10, "open again: its price back")
+end)
+
+test("sector skip: the start beacon stays an exit while the offer stands, even if the game rebuilds it", function()
+    apContractResetForTesting()
+    applySeed({ options = { sector_skip = 1 } })
+    sim.meta["ap_reached_PLAYER_SHIP_HARD"] = 3
+    sim.startRun(true)
+    sim.menuOpen = false
+    sim.starMap.worldLevel = 0
+    sim.starMap.currentLoc = sim.makeLocation()
+    sim.tick(31)
+    check(sim.starMap.currentLoc.beacon == true, "offered: an exit")
+    sim.starMap.currentLoc = sim.makeLocation()
+    sim.tick(31)
+    check(sim.starMap.currentLoc.beacon == true, "the rebuilt start beacon is an exit again")
+    sim.menuOpen = nil
+    sim.meta["ap_reached_PLAYER_SHIP_HARD"] = nil
+end)
+
+test("fight traps: one armed when the run ends waits for the first fight of the next run", function()
+    sim.meta["ap_trap_asb"] = nil
+    sim.startRun(true)
+    apQueueItem({ kind = "trap", eff = "asb" })
+    sim.tick(60)
+    equals(apTrapAsbArmed(), 1, "armed")
+    sim.startRun(true)
+    equals(apTrapAsbArmed(), 1, "still armed in the new run")
+    sim.meta["ap_trap_asb"] = nil
 end)

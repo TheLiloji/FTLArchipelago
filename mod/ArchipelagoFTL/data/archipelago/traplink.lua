@@ -76,6 +76,12 @@ function apTrapLinkReceive(source, trapName)
     })
 end
 
+-- A trap the mod makes (a pact, the surge from another world) only goes out once a trap from another slot showed
+-- someone else is on the link this session: alone on it, the trap would vanish, so it hits the player instead.
+function apTrapLinkPartnerSeen()
+    return _G.apTrapLink ~= nil and _G.apTrapLink.enabled == true and (state.received or 0) > 0
+end
+
 function apTrapLinkOnTrap(descriptor)
     if not _G.apTrapLink.enabled then
         return false

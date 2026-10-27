@@ -302,19 +302,36 @@ class FTLWorld(World):
         return slot_data
 
     def _logic_for_the_mod(self) -> dict[str, Any]:
-        """A light copy of the logic for the dashboard's "in logic" marker: what each layout needs, and how many
-        system blueprints each check needs. Power and system needs are left out: the marker is a hint."""
+        """A light copy of the logic for the dashboard's "in logic" marker. For each check: the layouts it can be
+        done with, and for each of them the system blueprints still missing; how many blueprints it needs in all;
+        how many Sector Passes its depth asks of the layout. Power milestones are left out: the marker is a hint."""
         level = self.sector_logic_level
         by_sector = bool(self.options.shop_by_sector)
-        blueprints = {}
+        gated = bool(self.options.system_blueprints)
+        layouts = self.selected_layouts
+        by_region = {locations.region_name(layout): layout for layout in layouts}
+        checks = {}
         for location in self.created_locations:
-            count = rules.blueprints_required(level, location, by_sector)
-            if count:
-                blueprints[location.check_id] = count
+            region = locations.region_of(location, self.options)
+            able = [by_region[region]] if region in by_region else list(rules._layouts_able_to_try(self.options, location))
+            needed = rules.systems_a_location_needs(location)
+            ways = []
+            for layout in able:
+                missing = [system for system in needed if system not in layout.start_systems]
+                if any(system not in layout.empty_slots for system in missing):
+                    continue
+                items = [data.BLUEPRINT_ITEM_NAMES[system] for system in missing] if gated else []
+                ways.append({"l": layout.blueprint, "i": items})
+            depth = rules.location_depth(location, by_sector)
+            passes = 0
+            if self.options.sector_locks:
+                passes = 2 if depth >= 8 or rules.location_needs_flagship(location) else (1 if depth >= 5 else 0)
+            checks[location.check_id] = {"ways": ways, "bp": rules.blueprints_required(level, location, by_sector),
+                                         "pass": passes}
         return {
-            "layouts": {layout.blueprint: list(rules.layout_requirements(self, layout))
-                        for layout in self.selected_layouts},
-            "blueprints": blueprints,
+            "layouts": {layout.blueprint: list(rules.layout_requirements(self, layout)) for layout in layouts},
+            "passes": {layout.blueprint: f"Sector Pass ({layout.display})" for layout in layouts},
+            "checks": checks,
             "blueprint_items": sorted(item.name for item in data.ITEMS if item.group == data.GROUP_BLUEPRINTS),
         }
 

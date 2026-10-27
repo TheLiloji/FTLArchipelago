@@ -187,7 +187,7 @@
     "event.link.fed": "Energía depositada en la reserva común",
     "event.package.route": "Enviar el paquete de {slot}: {item}",
     "event.package.self": "Recoger tu paquete: {item}",
-    "event.trap.nobody": "Trampa no enviada: no hay nadie conectado.",
+    "event.trap.nobody": "No hay nadie que reciba la sobrecarga: golpea tu nave.",
     "event.trap.sent": "Trampa enviada a otro jugador (TrapLink).",
     "filler.crew": "{n} tripulantes",
     "filler.crew.one": "{n} tripulante",
@@ -443,6 +443,7 @@
     "reset.kept.profile": "Guardada: esta partida se queda con su seed. Carga otra partida o conéctate a la seed de esta.",
     "deal.off": "No hay pactos en esta seed",
     "loadout.hint.extra": "Una elección más por el sector saltado: toma un arma, un dron o un tripulante de lo que has recibido.",
-    "loadout.no_room": "No hay sitio a bordo para {name}: libera antes un hueco de arma o de bodega."
+    "loadout.no_room": "No hay sitio a bordo para {name}: libera antes un hueco de arma o de bodega.",
+    "event.trap.own": "Sobrecarga de señal"
   }
 }

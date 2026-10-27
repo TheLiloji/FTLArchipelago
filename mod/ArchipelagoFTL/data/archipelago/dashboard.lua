@@ -1063,7 +1063,7 @@ local function drawCrewCards(x, y, w, bottom, rows)
                 local done = box.done >= box.total
                 local area = { x = cx, y = ry, w = cardW, h = cardH }
                 rect(cx, ry, cardW, cardH, hovered(area) and "hover" or "faint")
-                rect(cx, ry + cardH - 3, cardW, 3, done and "good" or "card")
+                rect(cx, ry + cardH - 3, cardW, 3, done and "good" or (box.inLogic and "useful" or "card"))
                 if hovered(area) then state.pointed = box end
                 local race = tostring(box.checks[1].key):match("^crew:(.+)$")
                 local texture = race and crewTexture(race)

@@ -61,13 +61,22 @@ local function drainTheLink(eventName)
 end
 
 local function sendTrapOutward(eventName)
-    if _G.apNetSendTrap == nil then
-        record(eventName, "offline: would have broadcast a trap")
-        return
+    local sent = false
+    if _G.apTrapLinkPartnerSeen ~= nil and apTrapLinkPartnerSeen() and _G.apNetSendTrap ~= nil then
+        local ok, result = pcall(_G.apNetSendTrap, "Archipelago Signal Surge")
+        sent = ok and result ~= false
     end
-    local ok, result = pcall(_G.apNetSendTrap, "Archipelago Signal Surge")
-    local sent = ok and result ~= false
-    record(eventName, sent and "trap broadcast to others" or "no one out there to receive it")
+    if sent then
+        record(eventName, "trap broadcast to others")
+    else
+        -- No one seen on the link: the surge comes back, like a pact.
+        local effects = { "fire", "breach", "fuel_leak", "system_damage", "hull_damage" }
+        local effect = effects[math.random(1, #effects)]
+        record(eventName, "no one out there to receive it, the trap hits us (" .. effect .. ")")
+        if _G.apQueueItem then
+            _G.apQueueItem({ kind = "trap", eff = effect, display = apT("event.trap.own"), fromLink = true })
+        end
+    end
     if _G.apNotifyStatus then
         _G.apNotifyStatus(apT(sent and "event.trap.sent" or "event.trap.nobody"))
     end

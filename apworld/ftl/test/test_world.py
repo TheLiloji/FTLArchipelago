@@ -206,7 +206,7 @@ class TestLogicCopyForTheMod(FTLTestBase):
         self.assertTrue(logic["layouts"])
         for layout, needs in logic["layouts"].items():
             self.assertTrue(all(name in data.ITEMS_BY_NAME for name in needs), layout)
-        self.assertTrue(logic["blueprints"], "strict logic asks blueprints somewhere")
+        self.assertTrue(any(entry["bp"] for entry in logic["checks"].values()), "strict logic asks blueprints somewhere")
         self.assertTrue(all(name in data.ITEMS_BY_NAME for name in logic["blueprint_items"]))
 
 
@@ -224,3 +224,17 @@ class TestEveryOptionTheModReadsIsSent(FTLTestBase):
             names |= set(re.findall(r'apSeedOption\("([a-z_]+)"\)', path.read_text(encoding="utf-8")))
         sent = set(self.world.fill_slot_data()["options"])
         self.assertEqual(sorted(names - sent), [], "options the mod reads but the seed never sends")
+
+
+class TestLogicCopyFollowsSectorLocks(FTLTestBase):
+    options = {"sector_logic": "strict", "sector_locks": True, "layout_count": 4, "system_blueprints": True}
+
+    def test_deep_checks_ask_for_passes_and_installs_for_their_blueprint(self) -> None:
+        logic = self.world.fill_slot_data()["logic"]
+        layout = self.world.selected_layouts[0]
+        self.assertEqual(logic["checks"][f"{layout.blueprint}:sector:5"]["pass"], 1)
+        self.assertEqual(logic["checks"][f"{layout.blueprint}:sector:8"]["pass"], 2)
+        self.assertEqual(logic["checks"][f"{layout.blueprint}:sector:4"]["pass"], 0)
+        installs = [entry for key, entry in logic["checks"].items() if key.startswith("sys:") and key.count(":") == 1]
+        for entry in installs:
+            self.assertTrue(entry["ways"])
