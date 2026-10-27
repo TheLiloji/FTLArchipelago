@@ -611,7 +611,7 @@ test("sector skip: a skipped sector opens the start-of-run menu again for one mo
     sim.meta["ap_reached_PLAYER_SHIP_HARD"] = nil
 end)
 
-test("sector skip: the extra pick says so, waits when there is no room, and comes back at the next beacon", function()
+test("sector skip: the extra pick says so, stays open when there is no room, and ends with the menu", function()
     apInventoryClear()
     apInventory.shopAvailability.LASER_BURST_3 = 2
     apContractResetForTesting()
@@ -637,9 +637,5 @@ test("sector skip: the extra pick says so, waits when there is no room, and come
     check(not apLoadoutOpen(), "closed with Finish")
     sim.jumpArrive()
     sim.renderGui()
-    check(apLoadoutOpen(), "the pick not made comes back at the next beacon, even after Finish")
-    sim.click(apLoadoutPoint("row", "weapon", 1))
-    sim.jumpArrive()
-    sim.renderGui()
-    check(not apLoadoutOpen(), "once made, it is gone")
+    check(not apLoadoutOpen(), "closed with Finish, the extra pick is gone: it never comes back beacon after beacon")
 end)

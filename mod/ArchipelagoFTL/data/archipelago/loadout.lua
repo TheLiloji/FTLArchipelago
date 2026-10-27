@@ -184,6 +184,9 @@ local function close(reason)
     if open then
         menuLog("menu closed: " .. reason)
     end
+    -- sector_skip's extra pick ends with the menu, used or not: one that cannot be made must not come back at
+    -- every beacon.
+    extraPick = false
     open = false
     pending = false
     remember("open", 0)
@@ -229,7 +232,7 @@ function apLoadoutPoint(target, category, row)
     return area.x + area.w / 2, area.y + area.h / 2
 end
 
--- sector_skip's extra pick: this menu came back for one more pick. Kept until a pick is made.
+-- sector_skip's extra pick: this menu came back for one more pick, until a pick is made or the menu is closed.
 local extraPick = false
 
 local function roomFor(category)
@@ -454,10 +457,6 @@ script.on_internal_event(Defines.InternalEvents.JUMP_ARRIVE, function(shipManage
         return Defines.Chain.CONTINUE
     end
     -- sector_skip: a sector skipped gives one more pick from the received items, at the next beacon.
-    -- An extra pick not used yet (no room aboard, or the menu closed with Finish) comes back at the next beacon.
-    if extraPick then
-        _G.apLoadoutExtraPick = true
-    end
     if _G.apLoadoutExtraPick then
         _G.apLoadoutExtraPick = false
         extraPick = true
