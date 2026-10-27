@@ -185,7 +185,7 @@
     "event.link.fed": "Energie in die gemeinsame Reserve geleitet",
     "event.package.route": "Paket für {slot} senden: {item}",
     "event.package.self": "Dein eigenes Paket holen: {item}",
-    "event.trap.nobody": "Falle nicht verschickt: niemand online.",
+    "event.trap.nobody": "Niemand da draußen, der den Stoß abfängt: er trifft dein Schiff.",
     "event.trap.sent": "Falle an einen anderen Spieler geschickt (TrapLink).",
     "filler.crew": "{n} Besatzungsmitglieder",
     "filler.crew.one": "{n} Besatzungsmitglied",
@@ -441,6 +441,7 @@
     "reset.kept.profile": "Behalten: dieser Spielstand bleibt bei seinem Seed. Lade einen anderen Spielstand oder verbinde dich mit dem Seed dieses Spielstands.",
     "deal.off": "In diesem Seed gibt es keine Pakte",
     "loadout.hint.extra": "Eine weitere Wahl für den übersprungenen Sektor: nimm eine Waffe, eine Drohne oder ein Crewmitglied aus dem, was du erhalten hast.",
-    "loadout.no_room": "Kein Platz an Bord für {name}: mach zuerst einen Waffen- oder Frachtplatz frei."
+    "loadout.no_room": "Kein Platz an Bord für {name}: mach zuerst einen Waffen- oder Frachtplatz frei.",
+    "event.trap.own": "Signalstoß"
   }
 }

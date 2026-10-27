@@ -184,7 +184,7 @@
     "event.link.fed": "Énergie versée dans la réserve commune",
     "event.package.route": "Expédier le colis de {slot} : {item}",
     "event.package.self": "Récupérer votre colis : {item}",
-    "event.trap.nobody": "Piège non envoyé : personne en ligne pour le recevoir.",
+    "event.trap.nobody": "Personne dehors pour encaisser la surtension : elle frappe votre vaisseau.",
     "event.trap.sent": "Piège envoyé à un autre joueur (TrapLink).",
     "filler.crew": "{n} équipiers",
     "filler.crew.one": "{n} équipier",
@@ -440,6 +440,7 @@
     "reset.kept.profile": "Gardée : cette sauvegarde reste avec sa seed. Chargez une autre sauvegarde, ou connectez-vous à la seed de celle-ci.",
     "deal.off": "Il n'y a pas de pactes dans cette seed",
     "loadout.hint.extra": "Un choix de plus pour le secteur passé : prenez une arme, un drone ou un équipier parmi ce que vous avez reçu.",
-    "loadout.no_room": "Pas de place à bord pour {name} : libérez d'abord un emplacement d'arme ou de soute."
+    "loadout.no_room": "Pas de place à bord pour {name} : libérez d'abord un emplacement d'arme ou de soute.",
+    "event.trap.own": "Surtension du signal"
   }
 }

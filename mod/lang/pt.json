@@ -185,7 +185,7 @@
     "event.link.fed": "Energia despejada na reserva comum",
     "event.package.route": "Enviar o pacote de {slot}: {item}",
     "event.package.self": "Recolher o teu pacote: {item}",
-    "event.trap.nobody": "Armadilha não enviada: ninguém online.",
+    "event.trap.nobody": "Ninguém lá fora para receber a sobrecarga: ela atinge sua nave.",
     "event.trap.sent": "Armadilha enviada a outro jogador (TrapLink).",
     "filler.crew": "{n} tripulantes",
     "filler.crew.one": "{n} tripulante",
@@ -441,6 +441,7 @@
     "reset.kept.profile": "Mantida: esta gravação fica com a sua seed. Carrega outra gravação ou liga-te à seed desta.",
     "deal.off": "Não há pactos nesta seed",
     "loadout.hint.extra": "Mais uma escolha pelo setor saltado: escolhe uma arma, um drone ou um tripulante do que recebeste.",
-    "loadout.no_room": "Sem espaço a bordo para {name}: liberta primeiro um espaço de arma ou de porão."
+    "loadout.no_room": "Sem espaço a bordo para {name}: liberta primeiro um espaço de arma ou de porão.",
+    "event.trap.own": "Sobrecarga de sinal"
   }
 }
