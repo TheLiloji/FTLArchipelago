@@ -575,9 +575,11 @@ def _sector_lock_rule(world: "FTLWorld", location: data.Location, layouts) -> Ca
         able = [layout for layout in layouts if layout.ship == location.ship]
     else:
         able = list(layouts)
-    names = tuple(f"Sector Pass ({layout.display})" for layout in able)
+    # A pass only opens the sectors of a layout the player can fly: a shop slot shared by every ship
+    # needs one layout holding both its key and its passes.
+    needs = tuple(layout_requirements(world, layout) + sector_pass_needs(world, layout, count) for layout in able)
     player = world.player
-    return lambda state: any(state.has(name, player, count) for name in names)
+    return lambda state: any(_has_requirements(state, names, player) for names in needs)
 
 
 def set_rules(world: "FTLWorld") -> None:
