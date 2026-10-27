@@ -272,36 +272,45 @@ local function receivedCounts()
     return counts
 end
 
-function apInLogic(checkKey)
-    local logic = state.logic
-    if logic == nil then
-        return nil
+local function hasAll(counts, names)
+    local wanted = {}
+    for _, name in ipairs(names or {}) do
+        wanted[name] = (wanted[name] or 0) + 1
     end
-    local counts = receivedCounts()
-    local layout = tostring(checkKey):match("^(PLAYER_SHIP_[%u%d_]+):")
-    local needs = layout and (logic.layouts or {})[layout] or nil
-    if needs ~= nil then
-        local wanted = {}
-        for _, name in ipairs(needs) do
-            wanted[name] = (wanted[name] or 0) + 1
-        end
-        for name, count in pairs(wanted) do
-            if (counts[name] or 0) < count then
-                return false
-            end
-        end
-    end
-    local required = (logic.blueprints or {})[checkKey]
-    if required ~= nil then
-        local have = 0
-        for _, name in ipairs(logic.blueprint_items or {}) do
-            have = have + (counts[name] or 0)
-        end
-        if have < required then
+    for name, count in pairs(wanted) do
+        if (counts[name] or 0) < count then
             return false
         end
     end
     return true
+end
+
+function apInLogic(checkKey)
+    local logic = state.logic
+    if logic == nil or logic.checks == nil then
+        return nil
+    end
+    local entry = logic.checks[checkKey]
+    if entry == nil then
+        return nil
+    end
+    local counts = receivedCounts()
+    local have = 0
+    for _, name in ipairs(logic.blueprint_items or {}) do
+        have = have + (counts[name] or 0)
+    end
+    if have < (entry.bp or 0) then
+        return false
+    end
+    -- One layout of the seed, received, past the sectors this check asks, with the systems it needs.
+    for _, way in ipairs(entry.ways or {}) do
+        local passName = (logic.passes or {})[way.l]
+        if hasAll(counts, (logic.layouts or {})[way.l]) and hasAll(counts, way.i)
+            and ((entry.pass or 0) == 0 or (passName ~= nil and (counts[passName] or 0) >= entry.pass)) then
+            return true
+        end
+    end
+    return false
 end
 
 function apReceiveItem(itemName, sender, isReplay, index)
