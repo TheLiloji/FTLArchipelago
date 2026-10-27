@@ -338,6 +338,13 @@ for _, name in ipairs({ "AP_EVT_ZOLTAN_TITHE_LINK", "AP_EVT_ZOLTAN_TOLL", "AP_EV
     OUR_DECOR[name] = true
 end
 
+-- event_checks: each sector draws one guaranteed Archipelago event (the relay or the pirates) when the seed has
+-- event checks. Kept in the profile, since sector 1 is drawn before the run's first tick.
+function apApplySectorEvent()
+    local value = tonumber(_G.apSeedOption and apSeedOption("event_checks")) or 0
+    pcall(function() Hyperspace.metaVariables.ap_event_checks = value > 0 and 1 or 0 end)
+end
+
 -- The loadEventList of the tithe and the surge picks the link version only when it can work.
 local flagTicks = 0
 script.on_internal_event(Defines.InternalEvents.ON_TICK, function()
@@ -349,6 +356,7 @@ script.on_internal_event(Defines.InternalEvents.ON_TICK, function()
         Hyperspace.playerVariables.ap_energylink = (online and _G.apEnergyLink and _G.apEnergyLink.enabled) and 1 or 0
         Hyperspace.playerVariables.ap_traplink = (online and _G.apTrapLink and _G.apTrapLink.enabled) and 1 or 0
     end)
+    apApplySectorEvent()
 end)
 local SHOPS = { "AP_STORE_EVENT_3", "AP_STORE_EVENT_6", "AP_STORE_EVENT_9", "AP_STORE_EVENT_12" }
 for _, name in ipairs(SHOPS) do OUR_DECOR[name] = true end

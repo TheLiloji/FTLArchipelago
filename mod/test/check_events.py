@@ -230,7 +230,7 @@ def main() -> int:
                 failures.append(f"the sector patch does not apply: {result.stderr.strip()}")
             else:
                 applied = len(re.findall(r'name="AP_EVT_[A-Z_]+"', result.stdout))
-                expected = len(re.findall(r'<mod-(?:append|before):event name="AP_EVT_[A-Z_]+"',
+                expected = len(re.findall(r'<mod-(?:append|before):(?:event|priorityEvent) name="AP_EVT_[A-Z_]+"',
                                           SECTORS.read_text(encoding="utf-8")))
                 if applied != expected:
                     failures.append(
