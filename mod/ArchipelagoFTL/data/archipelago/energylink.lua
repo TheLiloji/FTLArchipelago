@@ -235,8 +235,34 @@ function apEnergyLinkGranted(joules)
 end
 
 function apEnergyLinkSync(joules)
-    state.pool = joules or 0
+    state.pool = tonumber(joules) or 0
+    state.poolKnown = true
 end
+
+-- The pool in whole fuel units, nil until the server told it.
+function apEnergyLinkPoolFuel()
+    if not state.poolKnown then
+        return nil
+    end
+    return math.floor(math.max(0, state.pool) / JOULES_PER_FUEL)
+end
+
+-- Other slots fill and drain the pool too: a look every 20 seconds keeps the dashboard's figure fresh.
+-- Adding 0 changes nothing and answers with the pool's value.
+local lookTicks = 0
+script.on_internal_event(Defines.InternalEvents.ON_TICK, function()
+    lookTicks = lookTicks + 1
+    if lookTicks < (state.poolKnown and 60 * 20 or 60 * 2) then
+        return
+    end
+    lookTicks = 0
+    if _G.apEnergyLink and _G.apEnergyLink.enabled and _G.apNetEnergyLinkDeposit then
+        local ok, looked = pcall(_G.apNetEnergyLinkDeposit, 0)
+        if not ok or looked == false then
+            state.poolKnown = false
+        end
+    end
+end)
 
 local function considerWithdrawal()
     local config = _G.apEnergyLink

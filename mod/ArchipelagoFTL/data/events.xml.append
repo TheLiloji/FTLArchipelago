@@ -468,3 +468,9 @@
         </event>
     </choice>
 </event>
+
+<!-- event_checks: one Archipelago event in every sector (sector_data places it when ap_event_checks is set). -->
+<eventList name="AP_EVT_SECTOR_EVENT">
+    <event load="AP_EVT_PACKAGE"/>
+    <event load="AP_EVT_HIJACK"/>
+</eventList>

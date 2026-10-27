@@ -738,6 +738,23 @@ test("in logic: a check is in logic once its layout's items and its blueprints a
     equals(apInLogic("PLAYER_SHIP_ROCK:sector:3"), nil, "a seed without the logic copy says nothing")
 end)
 
+test("in logic: a shared shop slot past sector 4 needs one layout holding both its key and its pass", function()
+    apContractResetForTesting()
+    applySeed({ loc = { ["shop:6:1"] = "AP Store: Sector 6, slot 1" },
+                logic = { layouts = { PLAYER_SHIP_ROCK = { "Rock Cruiser Key" }, PLAYER_SHIP_STEALTH = { "Stealth Cruiser Key" } },
+                          passes = { PLAYER_SHIP_ROCK = "Sector Pass (Rock)", PLAYER_SHIP_STEALTH = "Sector Pass (Stealth)" },
+                          checks = { ["shop:6:1"] = { ways = { { l = "PLAYER_SHIP_ROCK", i = {} },
+                                                               { l = "PLAYER_SHIP_STEALTH", i = {} } }, bp = 0, pass = 1 } },
+                          blueprint_items = {} } })
+    apReceiveItem("Rock Cruiser Key", "Nina", false, 0)
+    apReceiveItem("Sector Pass (Stealth)", "Nina", false, 1)
+    equals(apInLogic("shop:6:1"), false, "the Rock without its pass, a pass for a Stealth not received: not in logic")
+    apReceiveItem("Sector Pass (Rock)", "Nina", false, 2)
+    equals(apInLogic("shop:6:1"), true, "the Rock with its own pass: in logic")
+    apContractResetForTesting()
+    applySeed({})
+end)
+
 test("in logic: Sector Passes, the ship's own systems and unowned ships count like the apworld's logic", function()
     apContractResetForTesting()
     applySeed({ loc = { ["PLAYER_SHIP_ROCK:sector:5"] = "Rock Cruiser A: Reach sector 5",
@@ -764,4 +781,33 @@ test("in logic: Sector Passes, the ship's own systems and unowned ships count li
     equals(apInLogic("sys:cloaking"), true, "the Stealth starts with it")
     apContractResetForTesting()
     applySeed({})
+end)
+
+test("dashboard: the EnergyLink chip shows the shared pool in fuel, and a look at it is no empty answer", function()
+    sim.startRun(true)
+    dashboardSeed()
+    apEnergyLinkConfigure({ enabled = true })
+    _G.apEnergyLinkState.poolKnown = false
+    local summary = apSeedSummary
+    local restore = stub("apSeedSummary", function()
+        local s = summary()
+        s.links.energy = true
+        return s
+    end)
+    openDashboard("overview")
+    check(sim.drawnText(apT("dash.links.energy", { n = "?" })), "unknown until the server tells")
+    closeDashboard()
+    sim.clearLog()
+    sim.netEvent("energy", { index = 0, value = 3500000 })
+    sim.tick(2)
+    openDashboard("overview")
+    check(sim.drawnText(apT("dash.links.energy", { n = "3" })), "3.5 fuel worth of joules: 3 fuel")
+    local said = false
+    for _, line in ipairs(sim.screen) do
+        if line:find(apT("energylink.empty"), 1, true) then said = true end
+    end
+    check(not said, "a look at the pool does not say it is empty")
+    closeDashboard()
+    restore()
+    apEnergyLinkConfigure({ enabled = false })
 end)

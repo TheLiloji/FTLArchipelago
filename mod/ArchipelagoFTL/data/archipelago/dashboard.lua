@@ -433,6 +433,11 @@ local function drawLinksCard(x, y, w, h)
     end
     local chipX = x + 16
     for _, name in ipairs(links) do
+        if name == "EnergyLink" then
+            -- The shared pool, in fuel like the mod gives it.
+            local fuel = _G.apEnergyLinkPoolFuel and apEnergyLinkPoolFuel() or nil
+            name = apT("dash.links.energy", { n = fuel ~= nil and tostring(fuel) or "?" })
+        end
         local chipW = width(10, name) + 20
         if chipX + chipW > x + w - 16 then break end
         rect(chipX, y + 32, chipW, 22, "faint")

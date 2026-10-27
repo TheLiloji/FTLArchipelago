@@ -179,6 +179,7 @@ function apApplySlotData(slotData, slotName, solo)
     end
     state.seedName = slotData.seed_name
     state.options = slotData.options or {}
+    if _G.apApplySectorEvent then apApplySectorEvent() end
     state.logic = type(slotData.logic) == "table" and slotData.logic or nil
     state.kestrelLocked = slotData.kestrel_locked == true
     state.receivedByIndex = {}

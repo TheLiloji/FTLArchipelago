@@ -444,6 +444,7 @@
     "deal.off": "In diesem Seed gibt es keine Pakte",
     "loadout.hint.extra": "Eine weitere Wahl für den übersprungenen Sektor: nimm eine Waffe, eine Drohne oder ein Crewmitglied aus dem, was du erhalten hast.",
     "loadout.no_room": "Kein Platz an Bord für {name}: mach zuerst einen Waffen- oder Frachtplatz frei.",
-    "event.trap.own": "Signalstoß"
+    "event.trap.own": "Signalstoß",
+    "dash.links.energy": "EnergyLink: {n} Treibstoff"
   }
 }

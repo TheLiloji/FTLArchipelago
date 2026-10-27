@@ -444,6 +444,7 @@
     "deal.off": "In questo seed non ci sono patti",
     "loadout.hint.extra": "Una scelta in più per il settore saltato: prendi un'arma, un drone o un membro dell'equipaggio tra ciò che hai ricevuto.",
     "loadout.no_room": "Non c'è posto a bordo per {name}: libera prima uno slot arma o di stiva.",
-    "event.trap.own": "Sovraccarico del segnale"
+    "event.trap.own": "Sovraccarico del segnale",
+    "dash.links.energy": "EnergyLink: {n} carburante"
   }
 }

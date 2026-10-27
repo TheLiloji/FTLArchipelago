@@ -1341,3 +1341,34 @@ test("fight traps: one armed when the run ends waits for the first fight of the 
     equals(apTrapAsbArmed(), 1, "still armed in the new run")
     sim.meta["ap_trap_asb"] = nil
 end)
+
+test("sector skip: refused, the offer is gone for the sector and no other beacon turns into an exit", function()
+    apContractResetForTesting()
+    applySeed({ options = { sector_skip = 1 } })
+    sim.meta["ap_reached_PLAYER_SHIP_HARD"] = 3
+    sim.startRun(true)
+    sim.menuOpen = false
+    sim.starMap.worldLevel = 0
+    local start = sim.makeLocation()
+    start.loc = { x = 100, y = 200 }
+    local second = sim.makeLocation()
+    second.loc = { x = 300, y = 150 }
+    local list = { [0] = start, [1] = second }
+    sim.starMap.locations = { size = function() return 2 end }
+    setmetatable(sim.starMap.locations, { __index = function(_, i) return list[i] end })
+    sim.starMap.currentLoc = start
+    sim.tick(31)
+    check(start.beacon == true, "offered: the start beacon is an exit")
+    -- FTL points currentLoc at the destination while the ship jumps.
+    sim.starMap.currentLoc = second
+    sim.tick(31)
+    check(second.beacon ~= true, "the beacon jumped to never becomes an exit")
+    sim.jumpArrive()
+    check(start.beacon == false, "refused: the start beacon is no exit any more")
+    sim.starMap.currentLoc = start
+    sim.tick(31)
+    check(start.beacon == false, "and stays so for the rest of the sector")
+    sim.starMap.locations = nil
+    sim.menuOpen = nil
+    sim.meta["ap_reached_PLAYER_SHIP_HARD"] = nil
+end)
