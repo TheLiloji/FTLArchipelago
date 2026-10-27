@@ -1102,7 +1102,8 @@ function apSectorSkipArrive()
     local here = Hyperspace.App.world.starMap.currentLoc
     here.beacon = true
     Hyperspace.playerVariables.ap_skip_offered = sector
-    Hyperspace.playerVariables.ap_skip_loc = (locKey(here) or -1) + 1
+    -- Its place is taken on the next ticks: on arrival FTL has not laid out the new sector's map yet.
+    Hyperspace.playerVariables.ap_skip_loc = 0
     checkLog("sector " .. sector .. " can be skipped: its first beacon is an exit")
     if _G.apNotifyStatus then
         _G.apNotifyStatus(apT("sector_skip.offered", { n = sector, scrap = SKIP_SCRAP }))
@@ -1131,9 +1132,14 @@ script.on_internal_event(Defines.InternalEvents.ON_TICK, function()
     apTry(TAG, function()
         local sector = math.floor(Hyperspace.App.world.starMap.worldLevel) + 1
         local here = Hyperspace.App.world.starMap.currentLoc
-        if here ~= nil and runVariable("ap_skip_offered") == sector and runVariable("ap_skip_sector") == sector
-            and runVariable("ap_skip_jumps") == 0 and here.beacon ~= true and isOfferedBeacon(here)
-            and not Hyperspace.ships.player.bJumping then
+        if here == nil or runVariable("ap_skip_offered") ~= sector or runVariable("ap_skip_sector") ~= sector
+            or runVariable("ap_skip_jumps") ~= 0 or Hyperspace.ships.player.bJumping then
+            return
+        end
+        if runVariable("ap_skip_loc") == 0 then
+            Hyperspace.playerVariables.ap_skip_loc = (locKey(here) or -1) + 1
+        end
+        if here.beacon ~= true and isOfferedBeacon(here) then
             here.beacon = true
         end
     end)
