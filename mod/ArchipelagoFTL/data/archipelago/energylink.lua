@@ -234,8 +234,20 @@ function apEnergyLinkGranted(joules)
     return units
 end
 
+-- Every change of ours is already counted in state.pool: a pool grown by a whole fuel unit or more since the
+-- last look was filled by the other players, and the player is told.
 function apEnergyLinkSync(joules)
-    state.pool = tonumber(joules) or 0
+    local value = tonumber(joules) or 0
+    if state.poolKnown then
+        local added = math.floor((value - state.pool) / JOULES_PER_FUEL)
+        if added >= 1 then
+            energyLog("the other players put " .. added .. " fuel unit(s) in the shared pool")
+            if _G.apNotifyStatus then
+                _G.apNotifyStatus(apT("energylink.others", { n = added }))
+            end
+        end
+    end
+    state.pool = value
     state.poolKnown = true
 end
 

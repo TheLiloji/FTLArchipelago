@@ -736,3 +736,26 @@ test("dashboard: the EnergyLink chip shows the shared pool in fuel, and a look a
     restore()
     apEnergyLinkConfigure({ enabled = false })
 end)
+
+test("EnergyLink: fuel the other players put in the shared reserve is announced, our own is not", function()
+    sim.startRun(true)
+    apEnergyLinkConfigure({ enabled = true })
+    _G.apEnergyLinkState.poolKnown = false
+    apEnergyLinkSync(2000000)
+    sim.clearLog()
+    apEnergyLinkSync(7500000)
+    local said = false
+    for _, line in ipairs(sim.screen) do
+        if line:find(apT("energylink.others", { n = 5 }), 1, true) then said = true end
+    end
+    check(said, "5 fuel came from the others: the player reads it")
+    sim.clearLog()
+    _G.apEnergyLinkState.pool = _G.apEnergyLinkState.pool + 3000000
+    apEnergyLinkSync(10500000)
+    local quiet = true
+    for _, line in ipairs(sim.screen) do
+        if line:find(apT("energylink.others", { n = 3 }), 1, true) then quiet = false end
+    end
+    check(quiet, "our own deposit, already counted, is not taken for the others'")
+    apEnergyLinkConfigure({ enabled = false })
+end)

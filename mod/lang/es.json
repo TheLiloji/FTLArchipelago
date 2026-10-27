@@ -443,6 +443,7 @@
     "loadout.hint.extra": "Una elección más por el sector saltado: toma un arma, un dron o un tripulante de lo que has recibido.",
     "loadout.no_room": "No hay sitio a bordo para {name}: libera antes un hueco de arma o de bodega.",
     "event.trap.own": "Sobrecarga de señal",
-    "dash.links.energy": "EnergyLink: {n} combustible"
+    "dash.links.energy": "EnergyLink: {n} combustible",
+    "energylink.others": "Otros jugadores pusieron {n} de combustible en la reserva compartida."
   }
 }
