@@ -746,3 +746,82 @@
         <mod-before:event name="AP_EVT_HIJACK" min="0" max="1"/>
     </mod:insertByFind>
 </mod:findName>
+
+<!-- Secret sectors that last a whole sector keep an AP STORE too (not the one-beacon ones, nor the showdown). -->
+
+<mod:findName type="sectorDescription" name="SECRET_SPIDER" panic="false">
+    <mod:insertByFind>
+        <mod:findLike type="event" limit="1" panic="false"/>
+        <mod-before:event name="AP_STORE_EVENT" min="1" max="1"/>
+    </mod:insertByFind>
+</mod:findName>
+
+<mod:findName type="sectorDescription" name="SECRET_ORIGINS" panic="false">
+    <mod:insertByFind>
+        <mod:findLike type="event" limit="1" panic="false"/>
+        <mod-before:event name="AP_STORE_EVENT" min="1" max="1"/>
+    </mod:insertByFind>
+</mod:findName>
+
+<mod:findName type="sectorDescription" name="SECRET_ORIGINS_RUWEN" panic="false">
+    <mod:insertByFind>
+        <mod:findLike type="event" limit="1" panic="false"/>
+        <mod-before:event name="AP_STORE_EVENT" min="1" max="1"/>
+    </mod:insertByFind>
+</mod:findName>
+
+<mod:findName type="sectorDescription" name="SECRET_JERRY" panic="false">
+    <mod:insertByFind>
+        <mod:findLike type="event" limit="1" panic="false"/>
+        <mod-before:event name="AP_STORE_EVENT" min="1" max="1"/>
+    </mod:insertByFind>
+</mod:findName>
+
+<mod:findName type="sectorDescription" name="SECRET_HEKTAR" panic="false">
+    <mod:insertByFind>
+        <mod:findLike type="event" limit="1" panic="false"/>
+        <mod-before:event name="AP_STORE_EVENT" min="1" max="1"/>
+    </mod:insertByFind>
+</mod:findName>
+
+<mod:findName type="sectorDescription" name="SECRET_ESTATE" panic="false">
+    <mod:insertByFind>
+        <mod:findLike type="event" limit="1" panic="false"/>
+        <mod-before:event name="AP_STORE_EVENT" min="1" max="1"/>
+    </mod:insertByFind>
+</mod:findName>
+
+<mod:findName type="sectorDescription" name="SECRET_NIGHTS" panic="false">
+    <mod:insertByFind>
+        <mod:findLike type="event" limit="1" panic="false"/>
+        <mod-before:event name="AP_STORE_EVENT" min="1" max="1"/>
+    </mod:insertByFind>
+</mod:findName>
+
+<mod:findName type="sectorDescription" name="SECRET_SYLVAN" panic="false">
+    <mod:insertByFind>
+        <mod:findLike type="event" limit="1" panic="false"/>
+        <mod-before:event name="AP_STORE_EVENT" min="1" max="1"/>
+    </mod:insertByFind>
+</mod:findName>
+
+<mod:findName type="sectorDescription" name="SECRET_AUGMENTED" panic="false">
+    <mod:insertByFind>
+        <mod:findLike type="event" limit="1" panic="false"/>
+        <mod-before:event name="AP_STORE_EVENT" min="1" max="1"/>
+    </mod:insertByFind>
+</mod:findName>
+
+<mod:findName type="sectorDescription" name="SECRET_ANCIENT" panic="false">
+    <mod:insertByFind>
+        <mod:findLike type="event" limit="1" panic="false"/>
+        <mod-before:event name="AP_STORE_EVENT" min="1" max="1"/>
+    </mod:insertByFind>
+</mod:findName>
+
+<mod:findName type="sectorDescription" name="SECRET_ROYAL" panic="false">
+    <mod:insertByFind>
+        <mod:findLike type="event" limit="1" panic="false"/>
+        <mod-before:event name="AP_STORE_EVENT" min="1" max="1"/>
+    </mod:insertByFind>
+</mod:findName>
