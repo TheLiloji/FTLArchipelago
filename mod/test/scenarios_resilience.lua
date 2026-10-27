@@ -1330,3 +1330,14 @@ test("sector skip: the start beacon stays an exit while the offer stands, even i
     sim.menuOpen = nil
     sim.meta["ap_reached_PLAYER_SHIP_HARD"] = nil
 end)
+
+test("fight traps: one armed when the run ends waits for the first fight of the next run", function()
+    sim.meta["ap_trap_asb"] = nil
+    sim.startRun(true)
+    apQueueItem({ kind = "trap", eff = "asb" })
+    sim.tick(60)
+    equals(apTrapAsbArmed(), 1, "armed")
+    sim.startRun(true)
+    equals(apTrapAsbArmed(), 1, "still armed in the new run")
+    sim.meta["ap_trap_asb"] = nil
+end)
