@@ -1147,9 +1147,18 @@ test("event beacons: the seed's option hides the labels it should, and leaving t
     applySeed({ seed_hash = "beacons2", event_beacons = "hidden" })
     check(sim.hiddenBeacons.AP_EVT_PACKAGE and sim.hiddenBeacons.AP_EVT_HIJACK, "hidden: no event is labelled")
     apContractUnload()
-    check(next(sim.hiddenBeacons) == nil, "every label is back once the seed is left")
+    local function othersHidden()
+        for name in pairs(sim.hiddenBeacons) do
+            if name ~= "AP_EVT_SECTOR_EVENT" then return true end
+        end
+        return false
+    end
+    check(not othersHidden(), "every label is back once the seed is left")
     applySeed({ seed_hash = "beacons3" })
-    check(next(sim.hiddenBeacons) == nil, "a seed from before the option keeps every label")
+    check(not othersHidden(), "a seed from before the option keeps every label")
+    check(sim.hiddenBeacons.AP_EVT_SECTOR_EVENT, "but without event checks the sector's guaranteed beacon is a plain one")
+    applySeed({ seed_hash = "beacons4", options = { event_checks = 5 } })
+    check(not sim.hiddenBeacons.AP_EVT_SECTOR_EVENT, "with event checks it is labelled")
     sim.hiddenBeacons = nil
 end)
 

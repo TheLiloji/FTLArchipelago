@@ -16,8 +16,13 @@ local OTHER_EVENTS = {
     "AP_EVT_OVERCLOCK", "AP_EVT_ARMS_DEALER",
 }
 
+local beaconsMode = "marked"
+local sectorEventShown = nil
+
 function apApplyEventBeacons(mode)
     mode = mode or "marked"
+    beaconsMode = mode
+    sectorEventShown = nil
     if _G.apNetHideBeaconLabel == nil then return end
     for _, name in ipairs(IMPORTANT_EVENTS) do apNetHideBeaconLabel(name, mode == "hidden") end
     for _, name in ipairs(OTHER_EVENTS) do apNetHideBeaconLabel(name, mode ~= "marked") end
@@ -343,6 +348,12 @@ end
 function apApplySectorEvent()
     local value = tonumber(_G.apSeedOption and apSeedOption("event_checks")) or 0
     pcall(function() Hyperspace.metaVariables.ap_event_checks = value > 0 and 1 or 0 end)
+    -- Without event checks its beacon is an empty one: no ARCHIPELAGO label promising something.
+    local shown = value > 0 and beaconsMode ~= "hidden"
+    if shown ~= sectorEventShown and _G.apNetHideBeaconLabel ~= nil then
+        sectorEventShown = shown
+        apNetHideBeaconLabel("AP_EVT_SECTOR_EVENT", not shown)
+    end
 end
 
 -- The loadEventList of the tithe and the surge picks the link version only when it can work.
