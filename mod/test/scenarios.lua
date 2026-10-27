@@ -2825,6 +2825,7 @@ test("network: asking an empty shared pool tells the player instead of staying s
     sim.startRun(true)
     local before = sim.player.fuel_count
     sim.clearLog()
+    _G.apEnergyLinkState.pendingRequest = 2000000
     sim.netEvent("energy", { name = "EnergyLink1", value = 0, index = 0 })
     sim.tick(1)
     equals(sim.player.fuel_count, before, "no fuel")

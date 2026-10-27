@@ -442,6 +442,7 @@
     "deal.off": "Não há pactos nesta seed",
     "loadout.hint.extra": "Mais uma escolha pelo setor saltado: escolhe uma arma, um drone ou um tripulante do que recebeste.",
     "loadout.no_room": "Sem espaço a bordo para {name}: liberta primeiro um espaço de arma ou de porão.",
-    "event.trap.own": "Sobrecarga de sinal"
+    "event.trap.own": "Sobrecarga de sinal",
+    "dash.links.energy": "EnergyLink: {n} combustível"
   }
 }

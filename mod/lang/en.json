@@ -442,6 +442,7 @@
     "deal.off": "There are no deals in this seed",
     "loadout.hint.extra": "One more pick for the sector you skipped: take a weapon, a drone or a crew member from what you have received.",
     "loadout.no_room": "No room aboard for {name}: free a weapon slot or a cargo slot first.",
-    "event.trap.own": "Signal surge"
+    "event.trap.own": "Signal surge",
+    "dash.links.energy": "EnergyLink: {n} fuel"
   }
 }

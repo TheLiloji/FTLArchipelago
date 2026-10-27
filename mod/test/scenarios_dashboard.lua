@@ -707,3 +707,32 @@ test("in logic: Sector Passes, the ship's own systems and unowned ships count li
     apContractResetForTesting()
     applySeed({})
 end)
+
+test("dashboard: the EnergyLink chip shows the shared pool in fuel, and a look at it is no empty answer", function()
+    sim.startRun(true)
+    dashboardSeed()
+    apEnergyLinkConfigure({ enabled = true })
+    _G.apEnergyLinkState.poolKnown = false
+    local summary = apSeedSummary
+    local restore = stub("apSeedSummary", function()
+        local s = summary()
+        s.links.energy = true
+        return s
+    end)
+    openDashboard("overview")
+    check(sim.drawnText(apT("dash.links.energy", { n = "?" })), "unknown until the server tells")
+    closeDashboard()
+    sim.clearLog()
+    sim.netEvent("energy", { index = 0, value = 3500000 })
+    sim.tick(2)
+    openDashboard("overview")
+    check(sim.drawnText(apT("dash.links.energy", { n = "3" })), "3.5 fuel worth of joules: 3 fuel")
+    local said = false
+    for _, line in ipairs(sim.screen) do
+        if line:find(apT("energylink.empty"), 1, true) then said = true end
+    end
+    check(not said, "a look at the pool does not say it is empty")
+    closeDashboard()
+    restore()
+    apEnergyLinkConfigure({ enabled = false })
+end)

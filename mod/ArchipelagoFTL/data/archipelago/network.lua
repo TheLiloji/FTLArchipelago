@@ -788,10 +788,15 @@ local HANDLERS = {
     end,
 
     -- A reply to our own request carries what was taken (0 when the pool was empty); updates from others carry -1.
+    -- A look at the pool (adding 0) also comes back with index 0: only a pending request is answered as one.
+    -- Every reply carries the pool's new value, written last.
     energy = function(event)
-        if event.index and event.index >= 0 and _G.apEnergyLinkGranted then
+        local state = _G.apEnergyLinkState
+        local asked = state ~= nil and (state.pendingRequest or 0) > 0
+        if event.index and event.index >= 0 and (event.index > 0 or asked) and _G.apEnergyLinkGranted then
             _G.apEnergyLinkGranted(event.index)
-        elseif _G.apEnergyLinkSync then
+        end
+        if _G.apEnergyLinkSync then
             _G.apEnergyLinkSync(event.value)
         end
     end,
