@@ -1366,7 +1366,7 @@ test("sector skip: refused, the offer is gone for the sector and no other beacon
     sim.starMap.locations = { size = function() return 2 end }
     setmetatable(sim.starMap.locations, { __index = function(_, i) return list[i] end })
     sim.starMap.currentLoc = start
-    sim.tick(31)
+    sim.tick(62)
     check(start.beacon == true, "offered: the start beacon is an exit")
     -- FTL points currentLoc at the destination while the ship jumps.
     sim.starMap.currentLoc = second
@@ -1379,5 +1379,27 @@ test("sector skip: refused, the offer is gone for the sector and no other beacon
     check(start.beacon == false, "and stays so for the rest of the sector")
     sim.starMap.locations = nil
     sim.menuOpen = nil
+    sim.meta["ap_reached_PLAYER_SHIP_HARD"] = nil
+end)
+
+test("sector skip: the start beacon is taken once the new sector's map is laid out, not at the arrival", function()
+    apContractResetForTesting()
+    applySeed({ options = { sector_skip = 1 } })
+    sim.meta["ap_reached_PLAYER_SHIP_HARD"] = 4
+    sim.startRun(true)
+    sim.menuOpen = false
+    sim.starMap.worldLevel = 1
+    local old = sim.makeLocation()
+    old.loc = { x = 900, y = 300 }
+    sim.starMap.currentLoc = old
+    sim.jumpArrive()
+    -- FTL then lays out sector 2 and puts the ship on its start beacon.
+    local start = sim.makeLocation()
+    start.loc = { x = 80, y = 250 }
+    sim.starMap.currentLoc = start
+    sim.tick(31)
+    check(start.beacon == true, "the new sector's start beacon is the exit")
+    sim.menuOpen = nil
+    sim.starMap.worldLevel = 0
     sim.meta["ap_reached_PLAYER_SHIP_HARD"] = nil
 end)
