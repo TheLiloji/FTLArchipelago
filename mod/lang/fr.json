@@ -444,6 +444,7 @@
     "loadout.hint.extra": "Un choix de plus pour le secteur passé : prenez une arme, un drone ou un équipier parmi ce que vous avez reçu.",
     "loadout.no_room": "Pas de place à bord pour {name} : libérez d'abord un emplacement d'arme ou de soute.",
     "event.trap.own": "Surtension du signal",
-    "dash.links.energy": "EnergyLink : {n} carburant"
+    "dash.links.energy": "EnergyLink : {n} carburant",
+    "energylink.others": "D'autres joueurs ont mis {n} carburant dans la réserve commune."
   }
 }
