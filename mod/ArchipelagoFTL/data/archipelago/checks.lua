@@ -1017,7 +1017,7 @@ checkLog("check detection module loaded")
 -- explore as usual. Each layout's deepest sector
 -- is kept in the profile.
 local SKIP_LAST_SECTOR = 4
-local SKIP_SCRAP = 30
+local SKIP_SCRAP = 60
 
 local function skipOn()
     local value = _G.apSeedOption and apSeedOption("sector_skip")
@@ -1085,10 +1085,23 @@ end)
 local skipStartTicks = 0
 script.on_internal_event(Defines.InternalEvents.ON_TICK, function()
     skipStartTicks = (skipStartTicks + 1) % 30
-    if skipStartTicks ~= 0 or not inRun() or runVariable("ap_skip_sector") ~= 0 then
+    if skipStartTicks ~= 0 or not inRun() then
         return
     end
-    apTry(TAG, apSectorSkipArrive)
+    if runVariable("ap_skip_sector") == 0 then
+        apTry(TAG, apSectorSkipArrive)
+        return
+    end
+    -- While the offer stands (no jump yet in this sector), its beacon stays an exit: FTL builds the start beacon
+    -- again as the run settles, which took the exit back.
+    apTry(TAG, function()
+        local sector = math.floor(Hyperspace.App.world.starMap.worldLevel) + 1
+        local here = Hyperspace.App.world.starMap.currentLoc
+        if here ~= nil and runVariable("ap_skip_offered") == sector and runVariable("ap_skip_sector") == sector
+            and runVariable("ap_skip_jumps") == 0 and here.beacon ~= true then
+            here.beacon = true
+        end
+    end)
 end)
 
 -- sector_locks: the exit of sector 4 (or 7) stays shut for a layout without its first (or second) Sector Pass,
