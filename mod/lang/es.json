@@ -170,7 +170,7 @@
     "energylink.part.fuel": "{n} de combustible",
     "energylink.part.scrap": "{n} de chatarra",
     "energylink.received": "Recibido: {n} de combustible de la reserva común",
-    "energylink.sent": "{what} depositado en la reserva común.",
+    "energylink.sent": "{what} depositado en la reserva común: {net} de combustible tras la pérdida del 25 %.",
     "event.gift.nothing": "No hay paquetes en espera: no se envió nada y recuperas {scrap} de chatarra.",
     "event.gift.sent": "Paquete enviado: {item}, para {slot}",
     "event.hijack.self": "Una nave pirata se ha enganchado a un relé de Archipelago. Ha capturado tu propio paquete y pide 20 de chatarra para soltarlo.",

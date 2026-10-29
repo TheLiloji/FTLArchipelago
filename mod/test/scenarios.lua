@@ -1022,6 +1022,31 @@ test("scrap: EnergyLink only deposits what is above the threshold", function()
     _G.apEnergyLink.depositScrapAbove = 0
 end)
 
+test("EnergyLink: the deposit message says what lands in the reserve once the loss is taken", function()
+    if _G.apEnergyLink == nil or _G.apEnergyLinkContribute == nil then
+        check(true, "EnergyLink absent from this build: nothing to check")
+        return
+    end
+    sim.startRun(true)
+    _G.apEnergyLink.enabled = true
+    _G.apEnergyLink.depositScrapAbove = 0
+    local above = _G.apEnergyLink.depositFuelAbove
+    sim.player.fuel_count = above + 12
+    sim.clearLog()
+    local restore = stub("apNetEnergyLinkDeposit", function() return true end)
+    pcall(_G.apEnergyLinkContribute)
+    restore()
+    check(sim.shown(apT("energylink.sent", { what = apT("energylink.part.fuel", { n = 12 }), net = "9" })),
+        "12 fuel given, 9 in the reserve: the dashboard's figure grows by 9")
+    sim.player.fuel_count = above + 2
+    sim.clearLog()
+    restore = stub("apNetEnergyLinkDeposit", function() return true end)
+    pcall(_G.apEnergyLinkContribute)
+    restore()
+    check(sim.shown(apT("energylink.sent", { what = apT("energylink.part.fuel", { n = 2 }), net = "1.5" })),
+        "2 fuel given, 1.5 in the reserve")
+end)
+
 test("scrap: below the threshold, EnergyLink takes nothing", function()
     if _G.apEnergyLink == nil or _G.apEnergyLinkContribute == nil then
         check(true, "EnergyLink absent from this build: nothing to check")

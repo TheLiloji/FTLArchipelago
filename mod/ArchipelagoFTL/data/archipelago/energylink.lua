@@ -152,7 +152,10 @@ function apEnergyLinkContribute()
         energyLog("deposited " .. table.concat(given, " + ") .. " = " .. humanJoules(net)
             .. " (after " .. math.floor(DEPOSIT_LOSS * 100) .. "% loss)")
         if _G.apNotifyStatus then
-            _G.apNotifyStatus(apT("energylink.sent", { what = table.concat(given, " + ") }))
+            -- What lands in the reserve, in fuel: the dashboard's figure grows by this, not by what was given.
+            local fuel = net / JOULES_PER_FUEL
+            local shown = fuel == math.floor(fuel) and tostring(math.floor(fuel)) or string.format("%.1f", fuel)
+            _G.apNotifyStatus(apT("energylink.sent", { what = table.concat(given, " + "), net = shown }))
         end
     end
     return net

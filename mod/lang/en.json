@@ -170,7 +170,7 @@
     "energylink.part.fuel": "{n} fuel",
     "energylink.part.scrap": "{n} scrap",
     "energylink.received": "Received {n} fuel from the shared reserve",
-    "energylink.sent": "{what} into the shared reserve.",
+    "energylink.sent": "{what} into the shared reserve: {net} fuel once the 25% loss is taken.",
     "event.gift.nothing": "No package queued: nothing was sent, your {scrap} scrap is refunded.",
     "event.gift.sent": "Parcel away: {item}, addressed to {slot}",
     "event.hijack.self": "A pirate ship sits on an Archipelago relay. It has grabbed your own package and wants 20 scrap to let it go.",

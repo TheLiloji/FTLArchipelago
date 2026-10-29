@@ -169,7 +169,7 @@
     "energylink.part.fuel": "{n} de carburant",
     "energylink.part.scrap": "{n} de ferraille",
     "energylink.received": "Reçu : {n} de carburant, de la réserve commune",
-    "energylink.sent": "{what} versé dans la réserve commune.",
+    "energylink.sent": "{what} versé dans la réserve commune : {net} carburant après la perte de 25 %.",
     "event.gift.nothing": "Aucun colis en attente : rien n'a été expédié, vos {scrap} ferraille vous sont rendus.",
     "event.gift.sent": "Colis parti : {item}, adressé à {slot}",
     "event.hijack.self": "Un vaisseau pirate s'est posé sur un relais Archipelago. Il a saisi votre propre colis et demande 20 ferraille pour le relâcher.",

@@ -170,7 +170,7 @@
     "energylink.part.fuel": "{n} Treibstoff",
     "energylink.part.scrap": "{n} Schrott",
     "energylink.received": "Erhalten: {n} Treibstoff aus der gemeinsamen Reserve",
-    "energylink.sent": "{what} in die gemeinsame Reserve.",
+    "energylink.sent": "{what} in die gemeinsame Reserve: {net} Treibstoff nach 25 % Verlust.",
     "event.gift.nothing": "Kein Paket in der Warteschlange: nichts wurde verschickt, eure {scrap} Schrott sind zurückerstattet.",
     "event.gift.sent": "Paket unterwegs: {item}, adressiert an {slot}",
     "event.hijack.self": "Ein Piratenschiff hat sich an ein Archipelago-Relais gehängt. Es hat dein eigenes Paket abgefangen und will 20 Schrott, um es freizugeben.",
