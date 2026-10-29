@@ -13,6 +13,7 @@ from . import data, options as options_module
 from .locations import (
     MENU_REGION,
     ship_systems,
+    shop_owners,
     entrance_name,
     region_name,
     region_of,
@@ -573,6 +574,14 @@ def _sector_lock_rule(world: "FTLWorld", location: data.Location, layouts) -> Ca
         able = [layout for layout in layouts if layout.blueprint == location.layout]
     elif location.ship is not None:
         able = [layout for layout in layouts if layout.ship == location.ship]
+    elif location.shop_slot is not None and shop_owners(world.options):
+        # With shop_per_ship, the slot is only sold aboard its owner, so only the owner's passes open it.
+        owners = shop_owners(world.options)
+        owner = owners[data.shop_owner(location.shop_slot, len(owners), bool(world.options.shop_by_sector))]
+        if world.options.shop_per_ship == world.options.shop_per_ship.option_per_class:
+            able = [layout for layout in layouts if layout.ship == owner.ship]
+        else:
+            able = [owner]
     else:
         able = list(layouts)
     # A pass only opens the sectors of a layout the player can fly: a shop slot shared by every ship
