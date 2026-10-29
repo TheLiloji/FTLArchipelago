@@ -199,7 +199,7 @@ class TestUniversalTrackerRebuildsTheSameWorld(FTLTestBase):
 
 
 class TestLogicCopyForTheMod(FTLTestBase):
-    options = {"sector_logic": "strict", "layout_count": 4}
+    options = {"sector_logic": "strict", "layout_count": 4, "systemsanity": "first_install"}
 
     def test_the_mod_gets_each_layouts_needs_and_each_checks_blueprints(self) -> None:
         logic = self.world.fill_slot_data()["logic"]
@@ -208,6 +208,12 @@ class TestLogicCopyForTheMod(FTLTestBase):
             self.assertTrue(all(name in data.ITEMS_BY_NAME for name in needs), layout)
         self.assertTrue(any(entry["bp"] for entry in logic["checks"].values()), "strict logic asks blueprints somewhere")
         self.assertTrue(all(name in data.ITEMS_BY_NAME for name in logic["blueprint_items"]))
+
+    def test_every_way_is_a_layout_the_seed_drew(self) -> None:
+        logic = self.world.fill_slot_data()["logic"]
+        for key, entry in logic["checks"].items():
+            for way in entry["ways"]:
+                self.assertIn(way["l"], logic["layouts"], key)
 
 
 class TestEveryOptionTheModReadsIsSent(FTLTestBase):

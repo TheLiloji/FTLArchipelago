@@ -315,8 +315,9 @@ function apInLogic(checkKey)
     -- One layout of the seed, received, past the sectors this check asks, with the systems it needs.
     for _, way in ipairs(entry.ways or {}) do
         local passName = (logic.passes or {})[way.l]
+        local needs = (logic.layouts or {})[way.l]
         local aboard = owner == nil or way.l == owner or (perClass and way.l:gsub("_[23]$", "") == owner)
-        if aboard and hasAll(counts, (logic.layouts or {})[way.l]) and hasAll(counts, way.i)
+        if needs ~= nil and aboard and hasAll(counts, needs) and hasAll(counts, way.i)
             and ((entry.pass or 0) == 0 or (passName ~= nil and (counts[passName] or 0) >= entry.pass)) then
             return true
         end
@@ -324,10 +325,14 @@ function apInLogic(checkKey)
     return false
 end
 
-function apReceiveItem(itemName, sender, isReplay, index)
+function apNoteReceived(itemName, index)
     if index ~= nil and index >= 0 and state.receivedByIndex ~= nil then
         state.receivedByIndex[index] = tostring(itemName)
     end
+end
+
+function apReceiveItem(itemName, sender, isReplay, index)
+    apNoteReceived(itemName, index)
     -- A refused seed still sends its items; they come again once it is accepted.
     if state.refusal ~= nil then
         contractLog("item ignored, the seed is refused: " .. tostring(itemName))

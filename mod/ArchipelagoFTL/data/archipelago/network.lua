@@ -642,6 +642,10 @@ local function onItem(event)
     if tostring(event.name) == UNKNOWN then
         state.replayClean = false
     end
+    -- Every name counts for the "in logic" marker, also those already applied before a reconnect.
+    if event.index >= 0 and tostring(event.name) ~= UNKNOWN and _G.apNoteReceived then
+        _G.apNoteReceived(event.name, event.index)
+    end
     if event.index >= 0 and event.index <= state.lastItemIndex then
         return
     end
