@@ -226,6 +226,27 @@ class TestEveryOptionTheModReadsIsSent(FTLTestBase):
         self.assertEqual(sorted(names - sent), [], "options the mod reads but the seed never sends")
 
 
+class TestLogicCopyKeepsDeepShopSlotsAboardTheirOwner(FTLTestBase):
+    options = {"sector_locks": True, "layout_count": 4, "shop_by_sector": True, "shop_checks": 40,
+               "shop_per_ship": "per_layout"}
+
+    def test_a_deep_shop_slot_lists_only_its_owner(self) -> None:
+        from .. import locations
+        logic = self.world.fill_slot_data()["logic"]
+        owners = locations.shop_owners(self.world.options)
+        deep = 0
+        for location in self.world.created_locations:
+            if location.shop_slot is None:
+                continue
+            entry = logic["checks"][location.check_id]
+            if not entry["pass"]:
+                continue
+            owner = owners[data.shop_owner(location.shop_slot, len(owners), True)]
+            self.assertEqual([way["l"] for way in entry["ways"]], [owner.blueprint], location.check_id)
+            deep += 1
+        self.assertTrue(deep, "no deep shop slot")
+
+
 class TestLogicCopyFollowsSectorLocks(FTLTestBase):
     options = {"sector_logic": "strict", "sector_locks": True, "layout_count": 4, "system_blueprints": True}
 

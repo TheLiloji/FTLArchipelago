@@ -680,6 +680,27 @@ test("in logic: a shared shop slot past sector 4 needs one layout holding both i
     applySeed({})
 end)
 
+test("in logic: with shop_per_ship, a deep shop slot only counts its owner's pass, even from an older seed", function()
+    apContractResetForTesting()
+    local saved = _G.apShopConfig.owners
+    _G.apShopConfig.owners, _G.apShopConfig.sectors, _G.apShopConfig.per = { "PLAYER_SHIP_ROCK", "PLAYER_SHIP_STEALTH" }, 8, nil
+    applySeed({ loc = { ["shop:14"] = "AP Store: slot 14" },
+                logic = { layouts = { PLAYER_SHIP_ROCK = { "Rock Cruiser Key" }, PLAYER_SHIP_STEALTH = { "Stealth Cruiser Key" } },
+                          passes = { PLAYER_SHIP_ROCK = "Sector Pass (Rock)", PLAYER_SHIP_STEALTH = "Sector Pass (Stealth)" },
+                          checks = { ["shop:14"] = { ways = { { l = "PLAYER_SHIP_ROCK", i = {} },
+                                                              { l = "PLAYER_SHIP_STEALTH", i = {} } }, bp = 0, pass = 1 } },
+                          blueprint_items = {} } })
+    apReceiveItem("Rock Cruiser Key", "Nina", false, 0)
+    apReceiveItem("Stealth Cruiser Key", "Nina", false, 1)
+    apReceiveItem("Sector Pass (Rock)", "Nina", false, 2)
+    equals(apInLogic("shop:14"), false, "slot 14 is sold aboard the Stealth: the Rock's pass does not open it")
+    apReceiveItem("Sector Pass (Stealth)", "Nina", false, 3)
+    equals(apInLogic("shop:14"), true, "the Stealth's own pass does")
+    _G.apShopConfig.owners, _G.apShopConfig.sectors = saved, nil
+    apContractResetForTesting()
+    applySeed({})
+end)
+
 test("in logic: Sector Passes, the ship's own systems and unowned ships count like the apworld's logic", function()
     apContractResetForTesting()
     applySeed({ loc = { ["PLAYER_SHIP_ROCK:sector:5"] = "Rock Cruiser A: Reach sector 5",

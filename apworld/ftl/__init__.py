@@ -317,6 +317,9 @@ class FTLWorld(World):
             passes = 0
             if self.options.sector_locks:
                 passes = 2 if depth >= 8 or rules.location_needs_flagship(location) else (1 if depth >= 5 else 0)
+            if passes and location.shop_slot is not None:
+                owners = {layout.blueprint for layout in rules.shop_slot_owners(self, location, layouts)}
+                ways = [way for way in ways if way["l"] in owners]
             checks[location.check_id] = {"ways": ways, "bp": rules.blueprints_required(level, location, by_sector),
                                          "pass": passes}
         return {

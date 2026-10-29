@@ -565,6 +565,17 @@ def sector_pass_needs(world: "FTLWorld", layout: data.Layout, count: int) -> tup
     return (f"Sector Pass ({layout.display})",) * count
 
 
+def shop_slot_owners(world: "FTLWorld", location: data.Location, layouts) -> list[data.Layout]:
+    """The layouts aboard which a shop slot is sold: with shop_per_ship only its owner (or the owner's class)."""
+    owners = shop_owners(world.options)
+    if not owners:
+        return list(layouts)
+    owner = owners[data.shop_owner(location.shop_slot, len(owners), bool(world.options.shop_by_sector))]
+    if world.options.shop_per_ship == world.options.shop_per_ship.option_per_class:
+        return [layout for layout in layouts if layout.ship == owner.ship]
+    return [layout for layout in layouts if layout.blueprint == owner.blueprint]
+
+
 def _sector_lock_rule(world: "FTLWorld", location: data.Location, layouts) -> Callable[[CollectionState], bool] | None:
     depth = location_depth(location, bool(world.options.shop_by_sector))
     count = 2 if depth >= 8 or location_needs_flagship(location) else (1 if depth >= 5 else 0)
@@ -574,14 +585,8 @@ def _sector_lock_rule(world: "FTLWorld", location: data.Location, layouts) -> Ca
         able = [layout for layout in layouts if layout.blueprint == location.layout]
     elif location.ship is not None:
         able = [layout for layout in layouts if layout.ship == location.ship]
-    elif location.shop_slot is not None and shop_owners(world.options):
-        # With shop_per_ship, the slot is only sold aboard its owner, so only the owner's passes open it.
-        owners = shop_owners(world.options)
-        owner = owners[data.shop_owner(location.shop_slot, len(owners), bool(world.options.shop_by_sector))]
-        if world.options.shop_per_ship == world.options.shop_per_ship.option_per_class:
-            able = [layout for layout in layouts if layout.ship == owner.ship]
-        else:
-            able = [owner]
+    elif location.shop_slot is not None:
+        able = shop_slot_owners(world, location, layouts)
     else:
         able = list(layouts)
     # A pass only opens the sectors of a layout the player can fly: a shop slot shared by every ship
