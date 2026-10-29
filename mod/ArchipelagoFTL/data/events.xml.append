@@ -303,6 +303,11 @@
     <environment type="PDS" target="player"/>
 </event>
 
+<!-- Hull Breach Trap: the breach itself is opened by the mod, this only tells the player. -->
+<event name="AP_TRAP_BREACH">
+    <text id="ap_trap_breach_text"/>
+</event>
+
 <!-- Power Surge Trap: the enemy of the fight unleashes a Flagship power surge. -->
 <event name="AP_TRAP_SURGE_LASER">
     <text id="ap_trap_surge_text"/>

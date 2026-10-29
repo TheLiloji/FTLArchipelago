@@ -829,6 +829,11 @@ test("all five of the apworld's traps are applied", function()
     check(#sim.player._fires > 0, "fire: a fire started")
     check(sim.player._breaches > 0, "breach: a breach opened")
     check(#sim.player._breachRooms > 0, "the game's own breach, in a room: a hit with no damage opens none")
+    local told = false
+    for _, name in ipairs(sim.loadedEvents or {}) do
+        if name == "AP_TRAP_BREACH" then told = true end
+    end
+    check(told, "and a message box tells the player, like the power surge")
     check(sim.player.fuel_count < 16, "fuel_leak: fuel disappeared")
     check(sim.logged("trap.system_damage"), "system_damage: a system was hit")
     equals(sim.pursuit, 1, "fleet_advance: the rebel fleet advanced")

@@ -74,6 +74,10 @@ local TRAP_DELIVERY = {
             local room = apRandomRoomId(player)
             local ok, opened = pcall(function() return player.ship:BreachRandomHull(room) end)
             if ok and opened and room ~= nil then
+                -- Told like the power surge, by a message box: a breach alone is easy to miss.
+                pcall(function()
+                    Hyperspace.CustomEventsParser.GetInstance():LoadEvent(Hyperspace.App.world, "AP_TRAP_BREACH", false, -1)
+                end)
                 return "trap.breach", { room = room }
             end
         end
