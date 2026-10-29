@@ -446,6 +446,7 @@
     "dash.links.energy": "EnergyLink: {n} fuel",
     "energylink.others": "Other players put {n} fuel in the shared reserve.",
     "crew.waiting": "{name} waits for a free seat and comes aboard as soon as your crew has room.",
-    "crew.seated": "{name} comes aboard: a seat was free."
+    "crew.seated": "{name} comes aboard: a seat was free.",
+    "loadout.system.swap": "{name} (replaces {old})"
   }
 }

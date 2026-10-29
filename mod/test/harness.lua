@@ -216,7 +216,13 @@ local function makeShip(shipId)
         end
         return nil
     end
-    function ship:RemoveSystem(systemType) ship._removed[#ship._removed + 1] = systemType end
+    function ship:RemoveSystem(systemType)
+        ship._removed[#ship._removed + 1] = systemType
+        if (ship._systemsHeld or {})[systemType] then
+            ship._systemsHeld[systemType] = nil
+            if sim.systemLimit ~= nil then sim.mainSystemsUsed = math.max(0, (sim.mainSystemsUsed or 0) - 1) end
+        end
+    end
     function ship:GetWeaponList() return vector(ship._weapons) end
     function ship:RemoveItem(name, _)
         for i, held in ipairs(ship._weapons) do

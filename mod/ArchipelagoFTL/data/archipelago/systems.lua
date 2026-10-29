@@ -208,6 +208,37 @@ local function installCandidates(player, caps)
     return candidates
 end
 
+-- The Medbay and the Clone Bay share a place: a blueprint for the one the ship lacks is a swap, never forced.
+local EXCLUSIVE = { medbay = "clonebay", clonebay = "medbay" }
+
+-- The system aboard that the given one would replace, nil when it would replace nothing.
+local function swapOf(player, name)
+    local other = EXCLUSIVE[name]
+    if other ~= nil and systemId(other) ~= nil and player:HasSystem(systemId(other)) then
+        return other
+    end
+    return nil
+end
+
+-- Received blueprints that could only come aboard by replacing the Medbay or the Clone Bay.
+local function swapCandidates(player, caps)
+    local swaps = {}
+    for name in pairs(EXCLUSIVE) do
+        local id = systemId(name)
+        if id ~= nil and caps[name] ~= nil and hasBlueprint(name) and not player:HasSystem(id)
+            and hullHasPlace(player, id) and swapOf(player, name) ~= nil then
+            swaps[#swaps + 1] = name
+        end
+    end
+    table.sort(swaps)
+    return swaps
+end
+
+function apSystemSwapOf(name)
+    local player = Hyperspace.ships.player
+    return player ~= nil and swapOf(player, name) or nil
+end
+
 -- Free main system slots: the ship's limit (Hyperspace, 8 unless a ship says otherwise) minus what it powers.
 local function freeMainSlots(player)
     local ok, free = pcall(function()
@@ -250,6 +281,67 @@ local function isChoice(name)
     return ok and math.floor(tonumber(value) or 0) == 1
 end
 
+-- During a run, once per run and system: keep what is aboard, or replace it. The refused one stays received.
+local SWAP_EVENTS = { clonebay = "AP_SWAP_TO_CLONEBAY", medbay = "AP_SWAP_TO_MEDBAY" }
+
+local function offerSwap(name)
+    local variable = "ap_swap_offered_" .. name
+    local ok, offered = pcall(function() return Hyperspace.playerVariables[variable] end)
+    if ok and math.floor(tonumber(offered) or 0) == 1 then
+        return false
+    end
+    local safe = _G.apFillerCanDeliver == nil or apFillerCanDeliver()
+    local quiet = pcall(function()
+        local gui = Hyperspace.App.gui
+        assert(not (gui.choiceBoxOpen or gui.event_pause or gui.menu_pause))
+    end)
+    if not (safe and quiet) then
+        return false
+    end
+    local loaded = pcall(function()
+        Hyperspace.CustomEventsParser.GetInstance():LoadEvent(Hyperspace.App.world, SWAP_EVENTS[name], false, -1)
+    end)
+    if loaded then
+        pcall(function() Hyperspace.playerVariables[variable] = 1 end)
+        sysLog(name .. ": would replace " .. tostring(apSystemSwapOf(name)) .. ", the player is asked")
+    end
+    return loaded
+end
+
+-- Takes the Medbay or Clone Bay out and puts the other in its place; puts the old one back if that fails.
+local function swapIn(player, name, reason)
+    local old = swapOf(player, name)
+    if old == nil then
+        return installOne(player, name, reason)
+    end
+    player:RemoveSystem(systemId(old))
+    if installOne(player, name, reason .. ", replaces " .. old) then
+        setChoice(old, false)
+        return true
+    end
+    player:AddSystem(systemId(old))
+    return false
+end
+
+function apSwapSystem(name)
+    local player = Hyperspace.ships.player
+    if player == nil or EXCLUSIVE[name] == nil then
+        return false
+    end
+    local ok, done = pcall(swapIn, player, name, "swap accepted")
+    if ok and done then
+        apApplySystemRules()
+        return true
+    end
+    return false
+end
+
+for name, event in pairs(SWAP_EVENTS) do
+    script.on_game_event(event .. "_DO", false, function()
+        apTry("[AP-sys] ", apSwapSystem, name)
+    end)
+end
+
 local function installReceivedSystems(reason)
     local player = Hyperspace.ships.player
     local caps = (_G.apInventory or {}).systemCaps
@@ -272,9 +364,15 @@ local function installReceivedSystems(reason)
             setChoice(name, false)
         end
     end
+    -- Both the Medbay and the Clone Bay received, neither aboard: only one fits, the player picks it.
+    local both = {}
+    for _, name in ipairs(candidates) do
+        if EXCLUSIVE[name] ~= nil then both[#both + 1] = name end
+    end
+    local pickOne = starting and #both == 2
     local installed = {}
     for _, name in ipairs(candidates) do
-        if choose and not SUBSYSTEMS[name] then
+        if (choose and not SUBSYSTEMS[name]) or (pickOne and EXCLUSIVE[name] ~= nil) then
             setChoice(name, true)
         elseif installOne(player, name, reason) then
             installed[#installed + 1] = apSystemLabel(name)
@@ -282,6 +380,15 @@ local function installReceivedSystems(reason)
     end
     if choose then
         sysLog(mains .. " system(s) for " .. free .. " free slot(s): the player chooses in the menu")
+    end
+    -- The one the ship lacks: at the start of a run, the menu offers the swap; during a run, a short event asks.
+    for _, name in ipairs(swapCandidates(player, caps)) do
+        if starting then
+            setChoice(name, true)
+            sysLog(name .. ": would replace " .. swapOf(player, name) .. ", offered in the start-of-run menu")
+        else
+            offerSwap(name)
+        end
     end
     if #installed > 0 and _G.apNotifyStatus then
         _G.apNotifyStatus(apT("system.installed_free", { list = table.concat(installed, ", ") }))
@@ -310,13 +417,12 @@ function apSystemInstallChoices()
         return {}
     end
     local free = freeMainSlots(player)
-    if free ~= nil and free <= 0 then
-        return {}
-    end
     local left = {}
     for _, name in ipairs(INSTALL_ORDER) do
         local id = systemId(name)
-        if isChoice(name) and id ~= nil and not player:HasSystem(id) then
+        -- A swap needs no free slot: it takes the place of the Medbay or the Clone Bay.
+        if isChoice(name) and id ~= nil and not player:HasSystem(id)
+            and (swapOf(player, name) ~= nil or free == nil or free > 0) then
             left[#left + 1] = name
         end
     end
@@ -335,8 +441,10 @@ function apInstallChosenSystem(name)
     end
     for _, choice in ipairs(apSystemInstallChoices()) do
         if choice == name then
-            local ok, installed = pcall(installOne, player, name, "chosen in the start-of-run menu")
+            local ok, installed = pcall(swapIn, player, name, "chosen in the start-of-run menu")
             if ok and installed then
+                -- The Medbay and the Clone Bay: once one is picked, the other is no longer offered.
+                if EXCLUSIVE[name] ~= nil then setChoice(EXCLUSIVE[name], false) end
                 -- Put aboard at level 1 like any start system, before its cap is applied.
                 apApplySystemRules()
                 return true

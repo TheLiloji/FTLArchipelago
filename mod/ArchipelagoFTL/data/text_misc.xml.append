@@ -64,6 +64,14 @@
 <text name="ap_trap_asb_text">A planetary defense battery wakes up and locks onto your ship. Somebody gave them your transponder code.</text>
 <text name="ap_trap_surge_text">The enemy ship's reactor howls. Somebody sent them a Flagship power surge.</text>
 <text name="ap_trap_breach_text">Hull alarm. A section of the plating tore open by itself: somebody wanted you breathing vacuum.</text>
+<text name="ap_swap_clonebay_text">The Clone Bay blueprint came in, but your Medbay takes its place. Swap them? The Medbay blueprint stays yours.</text>
+<text name="ap_swap_medbay_text">The Medbay blueprint came in, but your Clone Bay takes its place. Swap them? The Clone Bay blueprint stays yours.</text>
+<text name="ap_swap_keep_medbay">Keep the Medbay.</text>
+<text name="ap_swap_keep_clonebay">Keep the Clone Bay.</text>
+<text name="ap_swap_to_clonebay">Install the Clone Bay.</text>
+<text name="ap_swap_to_medbay">Install the Medbay.</text>
+<text name="ap_swap_done_clonebay">The Clone Bay now stands where the Medbay was.</text>
+<text name="ap_swap_done_medbay">The Medbay now stands where the Clone Bay was.</text>
 <text name="ap_trap_asb_end_text">The planetary defense battery powers down. The fight is over.</text>
 <text name="ap_trap_hazard_text">Your nav computer took a bad course correction from someone. This beacon is not as quiet as the charts said.</text>
 <text name="ap_trap_hazard_end_text">With the fight over, the space around the beacon settles down.</text>

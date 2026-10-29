@@ -358,6 +358,73 @@ test("system install: the choice is still there after a Continue", function()
     sim.systemLimit, sim.mainSystemsUsed, sim.hullPlaces = nil, nil, nil
 end)
 
+local MEDBAY, CLONEBAY = 5, 13
+
+local function bayBlueprints(names, mode)
+    _G.apInventory = { ships = {}, systemCaps = {}, blueprints = {}, startingUpgrades = {}, shopAvailability = {} }
+    applySeed({ kinds = { "cap" }, options = { system_install = mode or 1 } })
+    for _, name in ipairs(names) do
+        apQueueItem({ kind = "cap", sys = name, n = 0, display = name .. " blueprint" })
+    end
+    drain()
+    sim.hullPlaces = { [MEDBAY] = true, [CLONEBAY] = true }
+    sim.systemLimit, sim.mainSystemsUsed = 8, 0
+end
+
+local function baysDone()
+    sim.systemLimit, sim.mainSystemsUsed, sim.hullPlaces = nil, nil, nil
+    sim.player._systemsHeld = nil
+end
+
+test("system install: a Clone Bay blueprint on a Medbay ship is a swap the start menu offers, never forced", function()
+    bayBlueprints({ "clonebay" })
+    sim.player._systemsHeld = { [MEDBAY] = true }
+    sim.startRun(true)
+    check(sim.player:HasSystem(MEDBAY) and not sim.player:HasSystem(CLONEBAY), "nothing swapped by itself")
+    equals(table.concat(apSystemInstallChoices(), ","), "clonebay", "the Clone Bay is offered")
+    check(menuShown(), "the start menu opens for it")
+    -- The row wraps the label on two lines: the Medbay only shows up there as the one replaced.
+    check(sim.drawnText(apSystemLabel("medbay")), "and the menu says it replaces the Medbay")
+    sim.click(apLoadoutPoint("row", "system", 1))
+    check(sim.player:HasSystem(CLONEBAY) and not sim.player:HasSystem(MEDBAY), "picked: the Clone Bay takes its place")
+    equals(#apSystemInstallChoices(), 0, "and the Medbay is not offered back")
+    baysDone()
+end)
+
+test("system install: both bays received and neither aboard, the start menu offers one or the other", function()
+    bayBlueprints({ "medbay", "clonebay" })
+    sim.startRun(true)
+    check(not sim.player:HasSystem(MEDBAY) and not sim.player:HasSystem(CLONEBAY), "the fixed order does not pick")
+    equals(#apSystemInstallChoices(), 2, "both are offered")
+    check(menuShown(), "the start menu opens for them")
+    local row = apSystemLabel("clonebay") < apSystemLabel("medbay") and 1 or 2
+    sim.click(apLoadoutPoint("row", "system", row))
+    check(sim.player:HasSystem(CLONEBAY), "the Clone Bay comes aboard")
+    equals(#apSystemInstallChoices(), 0, "and the Medbay is no longer offered")
+    baysDone()
+end)
+
+test("system install immediately: during a run, a short event asks before the Clone Bay replaces the Medbay", function()
+    bayBlueprints({}, 2)
+    sim.player._systemsHeld = { [MEDBAY] = true }
+    sim.startRun(true)
+    sim.jumpArrive()
+    sim.tick(2)
+    sim.loadedEvents = {}
+    apQueueItem({ kind = "cap", sys = "clonebay", n = 0, display = "Clone Bay blueprint" })
+    drain()
+    sim.tick(130)
+    local asked = 0
+    for _, name in ipairs(sim.loadedEvents) do
+        if name == "AP_SWAP_TO_CLONEBAY" then asked = asked + 1 end
+    end
+    equals(asked, 1, "the player is asked once")
+    check(sim.player:HasSystem(MEDBAY), "keeping the Medbay changes nothing")
+    sim.gameEvent("AP_SWAP_TO_CLONEBAY_DO")
+    check(sim.player:HasSystem(CLONEBAY) and not sim.player:HasSystem(MEDBAY), "replace: the Clone Bay is aboard")
+    baysDone()
+end)
+
 test("start-of-run menu: each weapon says its power and numbers, the store's text on hover", function()
     catalog({ LASER_BURST_3 = 2, MISSILES_2 = 2 })
     sim.blueprintStats = {

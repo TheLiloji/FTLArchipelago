@@ -446,6 +446,7 @@
     "dash.links.energy": "EnergyLink: {n} combustible",
     "energylink.others": "Otros jugadores pusieron {n} de combustible en la reserva compartida.",
     "crew.waiting": "{name} espera un sitio libre y sube a bordo en cuanto tu tripulación tenga espacio.",
-    "crew.seated": "{name} sube a bordo: se ha liberado un sitio."
+    "crew.seated": "{name} sube a bordo: se ha liberado un sitio.",
+    "loadout.system.swap": "{name} (sustituye {old})"
   }
 }

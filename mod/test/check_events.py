@@ -189,11 +189,11 @@ def main() -> int:
                 f"{event.get('name')} is placed in no sector: nobody will see it"
             )
 
-    # AP_TRAP_* events are loaded by the mod in the middle of a fight, never chosen on the map.
+    # AP_TRAP_* and AP_SWAP_* events are loaded by the mod during a run, never chosen on the map.
     on_the_map = [
         node for node in events_tree.iter("event")
         if (node.get("name") or "").startswith("AP_")
-        and not (node.get("name") or "").startswith("AP_TRAP_")
+        and not (node.get("name") or "").startswith(("AP_TRAP_", "AP_SWAP_"))
         and node.getparent().tag != "choice"
     ]
     for event in on_the_map:

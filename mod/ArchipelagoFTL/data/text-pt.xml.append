@@ -64,6 +64,14 @@
 <text name="ap_trap_asb_text" language="pt">Uma bateria de defesa planetária desperta e trava a mira na tua nave. Alguém lhes deu o teu código de transponder.</text>
 <text name="ap_trap_surge_text" language="pt">O reator da nave inimiga uiva. Alguém lhes enviou uma sobrecarga da nave-almirante.</text>
 <text name="ap_trap_breach_text" language="pt">Alarme do casco. Uma parte da blindagem se abriu sozinha: alguém queria que você respirasse o vácuo.</text>
+<text name="ap_swap_clonebay_text" language="pt">A planta da Clonagem chegou, mas sua Ala Médica ocupa o lugar dela. Trocar? A planta da Ala Médica continua sua.</text>
+<text name="ap_swap_medbay_text" language="pt">A planta da Ala Médica chegou, mas sua Clonagem ocupa o lugar dela. Trocar? A planta da Clonagem continua sua.</text>
+<text name="ap_swap_keep_medbay" language="pt">Manter a Ala Médica.</text>
+<text name="ap_swap_keep_clonebay" language="pt">Manter a Clonagem.</text>
+<text name="ap_swap_to_clonebay" language="pt">Instalar a Clonagem.</text>
+<text name="ap_swap_to_medbay" language="pt">Instalar a Ala Médica.</text>
+<text name="ap_swap_done_clonebay" language="pt">A Clonagem agora fica onde estava a Ala Médica.</text>
+<text name="ap_swap_done_medbay" language="pt">A Ala Médica agora fica onde estava a Clonagem.</text>
 <text name="ap_trap_asb_end_text" language="pt">A bateria de defesa planetária desliga-se. O combate terminou.</text>
 <text name="ap_trap_hazard_text" language="pt">Alguém passou uma correção de rumo falsa ao teu computador de navegação. Este farol não é tão calmo como diziam as cartas.</text>
 <text name="ap_trap_hazard_end_text" language="pt">Terminado o combate, o espaço à volta do farol acalma.</text>
