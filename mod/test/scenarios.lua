@@ -1995,6 +1995,41 @@ local function seconds(count)
     sim.tick(count * 60)
 end
 
+test("TrapLink: each FTL on the link announces itself on connect, and the others count it as a partner", function()
+    apNetResetForTesting()
+    apContractResetForTesting()
+    apTrapLinkForgetPartner()
+    sim.net.calls = {}
+    apNetConnect("ws://localhost:38281", "Navigator", "")
+    sim.netEvent("connected", { name = "Navigator", extra = {
+        contract = CONTRACT, kinds = { "filler" }, kinds_required = {}, items = {}, loc = {},
+        links = { trap = { enabled = true } } } })
+    sim.net.connected = true
+    sim.tick(1)
+    local announced = false
+    for _, call in ipairs(sim.net.calls) do
+        if call[1] == "AnnounceTrapLink" and call.reply == false then announced = true end
+    end
+    check(announced, "the connection announces this FTL on TrapLink")
+    check(not apTrapLinkPartnerSeen(), "alone so far: no partner")
+    sim.net.calls = {}
+    sim.netEvent("trap_partner", { sender = "Axel", index = 0 })
+    sim.tick(1)
+    check(apTrapLinkPartnerSeen(), "another FTL announced itself: a partner, without any trap")
+    local answered = false
+    for _, call in ipairs(sim.net.calls) do
+        if call[1] == "AnnounceTrapLink" and call.reply == true then answered = true end
+    end
+    check(answered, "and it gets an answer, so it counts us too")
+    sim.net.calls = {}
+    sim.netEvent("trap_partner", { sender = "Axel", index = 1 })
+    sim.tick(1)
+    equals(sim.netCalls("AnnounceTrapLink"), 0, "an answer is not answered")
+    apTrapLinkForgetPartner()
+    _G.apTrapLink.enabled = false
+    apNetResetForTesting()
+end)
+
 test("network: a successful connection is told to the player", function()
     sim.startRun(true)
     apNetConnect("ws://localhost:38281", "Navigator", "")

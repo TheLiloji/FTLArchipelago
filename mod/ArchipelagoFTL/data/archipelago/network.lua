@@ -216,6 +216,18 @@ function apNetAnnounceTags()
     end)
 end
 
+-- reply: an answer to another FTL's announce, or a reminder; only a first announce asks the others to answer.
+-- A library from before 0.6 beta.7 cannot announce: TrapLink then waits for a trap, as before.
+function apNetAnnounceTrapLink(reply)
+    return whenConnected(function(ap)
+        if ap.AnnounceTrapLink == nil then
+            return false
+        end
+        local ok, sent = pcall(function() return ap:AnnounceTrapLink(reply == true) end)
+        return ok and sent == true
+    end)
+end
+
 function apNetHintLocation(name)
     return whenConnected(function(ap)
         local ok, sent = pcall(function() return ap:HintLocation(name) end)
@@ -554,6 +566,7 @@ local function onConnected(event)
 
     if not state.seedRefused then
         apNetAnnounceTags()
+        if _G.apTrapLink and _G.apTrapLink.enabled then apNetAnnounceTrapLink(false) end
     end
 
     adoptServerChecks(true)
@@ -788,6 +801,12 @@ local HANDLERS = {
     trap = function(event)
         if _G.apTrapLinkReceive then
             _G.apTrapLinkReceive(event.sender, event.name)
+        end
+    end,
+
+    trap_partner = function(event)
+        if _G.apTrapLinkPartner then
+            _G.apTrapLinkPartner(event.sender, event.index == 1)
         end
     end,
 

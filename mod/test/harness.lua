@@ -450,6 +450,10 @@ local function resetWorld()
             sim.net.calls[#sim.net.calls + 1] = { "SendTrap", name = name }
             return true
         end,
+        AnnounceTrapLink = function(_, reply)
+            sim.net.calls[#sim.net.calls + 1] = { "AnnounceTrapLink", reply = reply }
+            return true
+        end,
         EnergyDeposit = function(_, joules)
             sim.net.calls[#sim.net.calls + 1] = { "EnergyDeposit", joules = joules }
             return true

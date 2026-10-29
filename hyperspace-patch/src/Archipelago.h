@@ -68,6 +68,8 @@ public:
     bool SendGoal();
     bool SendDeath(const std::string& cause);
     bool SendTrap(const std::string& trapName);
+    // TrapLink never says who is on it: FTL clients tell each other, through a bounce only FTL games receive.
+    bool AnnounceTrapLink(bool reply);
     bool EnergyDeposit(int64_t joules);
     bool EnergyRequest(int64_t joules);
     bool Say(const std::string& text);
