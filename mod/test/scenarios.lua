@@ -828,6 +828,7 @@ test("all five of the apworld's traps are applied", function()
 
     check(#sim.player._fires > 0, "fire: a fire started")
     check(sim.player._breaches > 0, "breach: a breach opened")
+    check(#sim.player._breachRooms > 0, "the game's own breach, in a room: a hit with no damage opens none")
     check(sim.player.fuel_count < 16, "fuel_leak: fuel disappeared")
     check(sim.logged("trap.system_damage"), "system_damage: a system was hit")
     equals(sim.pursuit, 1, "fleet_advance: the rebel fleet advanced")
@@ -1306,6 +1307,7 @@ test("trap: when nothing more is possible, the mod says so", function()
     sim.player.StartFire = failing
     sim.player.DamageArea = failing
     sim.player.GetRandomRoomCenter = failing
+    sim.player.ship.BreachRandomHull = failing
 
     sim.clearLog()
     springTrapNow("hull_damage")

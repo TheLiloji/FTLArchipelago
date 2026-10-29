@@ -168,6 +168,12 @@ local function makeShip(shipId)
         return n
     end
     function ship:StartFire(roomId) self._fires[#self._fires + 1] = roomId end
+    ship._breachRooms = {}
+    function ship.ship:BreachRandomHull(roomId)
+        ship._breaches = ship._breaches + 1
+        ship._breachRooms[#ship._breachRooms + 1] = roomId
+        return true
+    end
     function ship:DamageArea(_, damage)
         if damage.breachChance and damage.breachChance > 0 then
             self._breaches = self._breaches + 1

@@ -68,7 +68,15 @@ local TRAP_DELIVERY = {
         player:StartFire(room)
         return "trap.fire", { room = room }
     end,
+    -- A breach the game draws in a room, the way a hit opens one; a damage with no damage points opens none.
     breach = function(player)
+        for _ = 1, 4 do
+            local room = apRandomRoomId(player)
+            local ok, opened = pcall(function() return player.ship:BreachRandomHull(room) end)
+            if ok and opened and room ~= nil then
+                return "trap.breach", { room = room }
+            end
+        end
         local damage = Hyperspace.Damage()
         damage.iDamage = 0
         damage.breachChance = 100
