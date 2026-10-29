@@ -172,7 +172,7 @@
     "energylink.part.fuel": "{n} de combustível",
     "energylink.part.scrap": "{n} de sucata",
     "energylink.received": "Recebido: {n} de combustível, da reserva comum",
-    "energylink.sent": "{what} despejado na reserva comum.",
+    "energylink.sent": "{what} despejado na reserva comum: {net} de combustível após a perda de 25%.",
     "event.gift.nothing": "Nenhum pacote em fila: nada foi enviado, recebem de volta {scrap} de sucata.",
     "event.gift.sent": "Pacote enviado: {item}, endereçado a {slot}",
     "event.hijack.self": "Uma nave pirata agarrou-se a um repetidor Archipelago. Apanhou o teu próprio pacote e pede 20 de sucata para o largar.",
@@ -446,6 +446,9 @@
     "loadout.no_room": "Sem espaço a bordo para {name}: liberta primeiro um espaço de arma ou de porão.",
     "event.trap.own": "Sobrecarga de sinal",
     "dash.links.energy": "EnergyLink: {n} combustível",
-    "energylink.others": "Outros jogadores colocaram {n} de combustível na reserva compartilhada."
+    "energylink.others": "Outros jogadores colocaram {n} de combustível na reserva compartilhada.",
+    "crew.waiting": "{name} espera um lugar livre e embarca assim que sua tripulação tiver espaço.",
+    "crew.seated": "{name} embarca: um lugar ficou livre.",
+    "loadout.system.swap": "{name} (substitui {old})"
   }
 }

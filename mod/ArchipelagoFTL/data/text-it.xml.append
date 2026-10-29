@@ -63,6 +63,15 @@
 <text name="ap_evt_hijack_deadcrew_text" language="it">L'equipaggio pirata è morto. Mandi il pacco a destinazione, poi spogli la loro nave.</text>
 <text name="ap_trap_asb_text" language="it">Una batteria di difesa planetaria si attiva e aggancia la tua nave. Qualcuno ha dato loro il tuo codice transponder.</text>
 <text name="ap_trap_surge_text" language="it">Il reattore della nave nemica urla. Qualcuno ha mandato loro un sovraccarico dell'ammiraglia.</text>
+<text name="ap_trap_breach_text" language="it">Allarme scafo. Una parte della corazza si è aperta da sola: qualcuno voleva farvi respirare il vuoto.</text>
+<text name="ap_swap_clonebay_text" language="it">È arrivato il progetto della Sala clonazione, ma la tua Infermeria occupa il suo posto. Scambiarle? Il progetto dell'Infermeria resta tuo.</text>
+<text name="ap_swap_medbay_text" language="it">È arrivato il progetto dell'Infermeria, ma la tua Sala clonazione occupa il suo posto. Scambiarle? Il progetto della Sala clonazione resta tuo.</text>
+<text name="ap_swap_keep_medbay" language="it">Tenere l'Infermeria.</text>
+<text name="ap_swap_keep_clonebay" language="it">Tenere la Sala clonazione.</text>
+<text name="ap_swap_to_clonebay" language="it">Installare la Sala clonazione.</text>
+<text name="ap_swap_to_medbay" language="it">Installare l'Infermeria.</text>
+<text name="ap_swap_done_clonebay" language="it">La Sala clonazione ora sta dove c'era l'Infermeria.</text>
+<text name="ap_swap_done_medbay" language="it">L'Infermeria ora sta dove c'era la Sala clonazione.</text>
 <text name="ap_trap_asb_end_text" language="it">La batteria di difesa planetaria si spegne. Il combattimento è finito.</text>
 <text name="ap_trap_hazard_text" language="it">Qualcuno ha passato una falsa correzione di rotta al tuo computer di navigazione. Questo segnale non è tranquillo come dicevano le mappe.</text>
 <text name="ap_trap_hazard_end_text" language="it">Finito il combattimento, lo spazio attorno al segnale si calma.</text>

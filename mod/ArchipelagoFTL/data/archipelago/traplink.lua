@@ -88,6 +88,22 @@ function apTrapLinkPartnerSeen()
     return _G.apTrapLink ~= nil and _G.apTrapLink.enabled == true and state.partnerAge ~= nil
 end
 
+-- Another FTL on TrapLink announced itself: a partner without waiting for a trap. A first announce gets an answer,
+-- so the newcomer learns about us too.
+function apTrapLinkPartner(source, isReply)
+    if not _G.apTrapLink.enabled then
+        return false
+    end
+    if state.partnerAge == nil then
+        trapLog("TrapLink partner: " .. tostring(source))
+    end
+    state.partnerAge = 0
+    if not isReply and _G.apNetAnnounceTrapLink then
+        pcall(_G.apNetAnnounceTrapLink, true)
+    end
+    return true
+end
+
 -- Called on a disconnect: whoever was on the link may be gone by the time we are back.
 function apTrapLinkForgetPartner()
     state.partnerAge = nil
@@ -104,10 +120,22 @@ function apTrapLinkAgePartner(seconds)
     end
 end
 
+-- Every five minutes, a reminder to the other FTLs on the link: they keep counting us inside their window.
+local REMIND_EVERY = 300
+local sinceReminder = 0
+
 script.on_internal_event(Defines.InternalEvents.ON_TICK, function()
     local ok, factor = pcall(function() return Hyperspace.FPS.SpeedFactor end)
     factor = ok and tonumber(factor) or nil
-    apTrapLinkAgePartner((factor ~= nil and factor > 0) and math.min(factor * 0.0625, 0.25) or 1 / 60)
+    local seconds = (factor ~= nil and factor > 0) and math.min(factor * 0.0625, 0.25) or 1 / 60
+    apTrapLinkAgePartner(seconds)
+    sinceReminder = sinceReminder + seconds
+    if sinceReminder >= REMIND_EVERY then
+        sinceReminder = 0
+        if _G.apTrapLink.enabled and _G.apNetAnnounceTrapLink then
+            pcall(_G.apNetAnnounceTrapLink, true)
+        end
+    end
 end)
 
 function apTrapLinkOnTrap(descriptor)

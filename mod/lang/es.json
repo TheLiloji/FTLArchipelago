@@ -172,7 +172,7 @@
     "energylink.part.fuel": "{n} de combustible",
     "energylink.part.scrap": "{n} de chatarra",
     "energylink.received": "Recibido: {n} de combustible de la reserva común",
-    "energylink.sent": "{what} depositado en la reserva común.",
+    "energylink.sent": "{what} depositado en la reserva común: {net} de combustible tras la pérdida del 25 %.",
     "event.gift.nothing": "No hay paquetes en espera: no se envió nada y recuperas {scrap} de chatarra.",
     "event.gift.sent": "Paquete enviado: {item}, para {slot}",
     "event.hijack.self": "Una nave pirata se ha enganchado a un relé de Archipelago. Ha capturado tu propio paquete y pide 20 de chatarra para soltarlo.",
@@ -446,6 +446,9 @@
     "loadout.no_room": "No hay sitio a bordo para {name}: libera antes un hueco de arma o de bodega.",
     "event.trap.own": "Sobrecarga de señal",
     "dash.links.energy": "EnergyLink: {n} combustible",
-    "energylink.others": "Otros jugadores pusieron {n} de combustible en la reserva compartida."
+    "energylink.others": "Otros jugadores pusieron {n} de combustible en la reserva compartida.",
+    "crew.waiting": "{name} espera un sitio libre y sube a bordo en cuanto tu tripulación tenga espacio.",
+    "crew.seated": "{name} sube a bordo: se ha liberado un sitio.",
+    "loadout.system.swap": "{name} (sustituye {old})"
   }
 }

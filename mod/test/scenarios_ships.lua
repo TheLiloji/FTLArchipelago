@@ -744,3 +744,20 @@ test("kestrel key: a seed that locks the Kestrel refuses its runs until the key 
     equals(apShipReceived("PLAYER_SHIP_HARD"), "ok", "other seeds keep the Kestrel A")
     shipDone()
 end)
+
+test("in logic: after a reconnection, the items received before still count", function()
+    local logic = { layouts = { PLAYER_SHIP_ROCK = { "Rock Cruiser Key" } },
+                    checks = { ["PLAYER_SHIP_ROCK:sector:3"] = { ways = { { l = "PLAYER_SHIP_ROCK", i = {} } }, bp = 0, pass = 0 } },
+                    blueprint_items = {} }
+    shipConnect({ "Rock Cruiser Key" }, { logic = logic })
+    equals(apInLogic("PLAYER_SHIP_ROCK:sector:3"), true, "the Rock received: in logic")
+    sim.netEvent("disconnected", {})
+    sim.net.connected = false
+    sim.tick(60 * 6)
+    sim.netEvent("connected", { name = "Navigator", extra = shipSeed({ logic = logic }) })
+    sim.netEvent("item", { name = "Rock Cruiser Key", sender = "Nina", index = 0 })
+    sim.net.connected = true
+    sim.tick(1)
+    equals(apInLogic("PLAYER_SHIP_ROCK:sector:3"), true, "the server's replay of the Rock still counts once reconnected")
+    shipDone()
+end)

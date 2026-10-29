@@ -1138,6 +1138,32 @@ class TestSectorLocksWithShopBySector(FTLTestBase):
         self.assertTrue(rule(state), "once its key and blueprints are in, it does")
 
 
+class TestSectorLocksWithShopPerShip(FTLTestBase):
+    options = {"sector_locks": True, "layout_count": 4, "shop_by_sector": True, "shop_checks": 40,
+               "shop_per_ship": "per_layout"}
+
+    def test_only_the_owners_pass_opens_its_deep_slots(self) -> None:
+        owners = locations.shop_owners(self.world.options)
+        for slot in self.world.created_locations:
+            if slot.shop_slot is None or rules.location_depth(slot, True) < 5:
+                continue
+            owner = owners[data.shop_owner(slot.shop_slot, len(owners), True)]
+            other = next(layout for layout in self.world.selected_layouts if layout != owner)
+            rule = rules._sector_lock_rule(self.world, slot, self.world.selected_layouts)
+            state = CollectionState(self.multiworld)
+            for layout in (owner, other):
+                for name in rules.layout_requirements(self.world, layout):
+                    state.collect(self.world.create_item(name), True)
+            for _ in range(2):
+                state.collect(self.world.create_item(f"Sector Pass ({other.display})"), True)
+            self.assertFalse(rule(state), "another ship's pass does not open the owner's shop")
+            for _ in range(2):
+                state.collect(self.world.create_item(f"Sector Pass ({owner.display})"), True)
+            self.assertTrue(rule(state), "the owner's pass does")
+            return
+        self.fail("no deep shop slot")
+
+
 class TestSectorLocks(FTLTestBase):
     options = {"sector_locks": True, "layout_count": 4, "sector_logic": "strict"}
 

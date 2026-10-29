@@ -828,6 +828,12 @@ test("all five of the apworld's traps are applied", function()
 
     check(#sim.player._fires > 0, "fire: a fire started")
     check(sim.player._breaches > 0, "breach: a breach opened")
+    check(#sim.player._breachRooms > 0, "the game's own breach, in a room: a hit with no damage opens none")
+    local told = false
+    for _, name in ipairs(sim.loadedEvents or {}) do
+        if name == "AP_TRAP_BREACH" then told = true end
+    end
+    check(told, "and a message box tells the player, like the power surge")
     check(sim.player.fuel_count < 16, "fuel_leak: fuel disappeared")
     check(sim.logged("trap.system_damage"), "system_damage: a system was hit")
     equals(sim.pursuit, 1, "fleet_advance: the rebel fleet advanced")
@@ -1020,6 +1026,31 @@ test("scrap: EnergyLink only deposits what is above the threshold", function()
     equals(sim.player.currentScrap, 175, "25% of the 100 surplus, not a cent more")
     check(not sim.player._scrapWentNegative, "and never below zero")
     _G.apEnergyLink.depositScrapAbove = 0
+end)
+
+test("EnergyLink: the deposit message says what lands in the reserve once the loss is taken", function()
+    if _G.apEnergyLink == nil or _G.apEnergyLinkContribute == nil then
+        check(true, "EnergyLink absent from this build: nothing to check")
+        return
+    end
+    sim.startRun(true)
+    _G.apEnergyLink.enabled = true
+    _G.apEnergyLink.depositScrapAbove = 0
+    local above = _G.apEnergyLink.depositFuelAbove
+    sim.player.fuel_count = above + 12
+    sim.clearLog()
+    local restore = stub("apNetEnergyLinkDeposit", function() return true end)
+    pcall(_G.apEnergyLinkContribute)
+    restore()
+    check(sim.shown(apT("energylink.sent", { what = apT("energylink.part.fuel", { n = 12 }), net = "9" })),
+        "12 fuel given, 9 in the reserve: the dashboard's figure grows by 9")
+    sim.player.fuel_count = above + 2
+    sim.clearLog()
+    restore = stub("apNetEnergyLinkDeposit", function() return true end)
+    pcall(_G.apEnergyLinkContribute)
+    restore()
+    check(sim.shown(apT("energylink.sent", { what = apT("energylink.part.fuel", { n = 2 }), net = "1.5" })),
+        "2 fuel given, 1.5 in the reserve")
 end)
 
 test("scrap: below the threshold, EnergyLink takes nothing", function()
@@ -1281,6 +1312,7 @@ test("trap: when nothing more is possible, the mod says so", function()
     sim.player.StartFire = failing
     sim.player.DamageArea = failing
     sim.player.GetRandomRoomCenter = failing
+    sim.player.ship.BreachRandomHull = failing
 
     sim.clearLog()
     springTrapNow("hull_damage")
@@ -1969,6 +2001,41 @@ end
 local function seconds(count)
     sim.tick(count * 60)
 end
+
+test("TrapLink: each FTL on the link announces itself on connect, and the others count it as a partner", function()
+    apNetResetForTesting()
+    apContractResetForTesting()
+    apTrapLinkForgetPartner()
+    sim.net.calls = {}
+    apNetConnect("ws://localhost:38281", "Navigator", "")
+    sim.netEvent("connected", { name = "Navigator", extra = {
+        contract = CONTRACT, kinds = { "filler" }, kinds_required = {}, items = {}, loc = {},
+        links = { trap = { enabled = true } } } })
+    sim.net.connected = true
+    sim.tick(1)
+    local announced = false
+    for _, call in ipairs(sim.net.calls) do
+        if call[1] == "AnnounceTrapLink" and call.reply == false then announced = true end
+    end
+    check(announced, "the connection announces this FTL on TrapLink")
+    check(not apTrapLinkPartnerSeen(), "alone so far: no partner")
+    sim.net.calls = {}
+    sim.netEvent("trap_partner", { sender = "Axel", index = 0 })
+    sim.tick(1)
+    check(apTrapLinkPartnerSeen(), "another FTL announced itself: a partner, without any trap")
+    local answered = false
+    for _, call in ipairs(sim.net.calls) do
+        if call[1] == "AnnounceTrapLink" and call.reply == true then answered = true end
+    end
+    check(answered, "and it gets an answer, so it counts us too")
+    sim.net.calls = {}
+    sim.netEvent("trap_partner", { sender = "Axel", index = 1 })
+    sim.tick(1)
+    equals(sim.netCalls("AnnounceTrapLink"), 0, "an answer is not answered")
+    apTrapLinkForgetPartner()
+    _G.apTrapLink.enabled = false
+    apNetResetForTesting()
+end)
 
 test("network: a successful connection is told to the player", function()
     sim.startRun(true)

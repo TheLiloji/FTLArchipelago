@@ -303,6 +303,41 @@
     <environment type="PDS" target="player"/>
 </event>
 
+<!-- Medbay and Clone Bay share a place: a blueprint received for the one the ship lacks asks before swapping (systems.lua). -->
+<event name="AP_SWAP_TO_CLONEBAY">
+    <text id="ap_swap_clonebay_text"/>
+    <choice hidden="true">
+        <text id="ap_swap_keep_medbay"/>
+        <event/>
+    </choice>
+    <choice hidden="true">
+        <text id="ap_swap_to_clonebay"/>
+        <event load="AP_SWAP_TO_CLONEBAY_DO"/>
+    </choice>
+</event>
+<event name="AP_SWAP_TO_CLONEBAY_DO">
+    <text id="ap_swap_done_clonebay"/>
+</event>
+<event name="AP_SWAP_TO_MEDBAY">
+    <text id="ap_swap_medbay_text"/>
+    <choice hidden="true">
+        <text id="ap_swap_keep_clonebay"/>
+        <event/>
+    </choice>
+    <choice hidden="true">
+        <text id="ap_swap_to_medbay"/>
+        <event load="AP_SWAP_TO_MEDBAY_DO"/>
+    </choice>
+</event>
+<event name="AP_SWAP_TO_MEDBAY_DO">
+    <text id="ap_swap_done_medbay"/>
+</event>
+
+<!-- Hull Breach Trap: the breach itself is opened by the mod, this only tells the player. -->
+<event name="AP_TRAP_BREACH">
+    <text id="ap_trap_breach_text"/>
+</event>
+
 <!-- Power Surge Trap: the enemy of the fight unleashes a Flagship power surge. -->
 <event name="AP_TRAP_SURGE_LASER">
     <text id="ap_trap_surge_text"/>

@@ -739,11 +739,23 @@ bool Client::Connect(const std::string& uri, const std::string& slot, const std:
     });
 
     ap->set_bounced_handler([impl, ap](const nlohmann::json& packet) {
-        const auto tags = packet.find("tags");
-        if (tags == packet.end()) return;
-
         const auto data = packet.find("data");
         const bool hasData = data != packet.end();
+
+        // Another FTL client on TrapLink says it is there (index 1 when it answers our own announce).
+        if (hasData && data->is_object() && data->contains("ftl_traplink") && data->contains("source")) {
+            Event e;
+            e.kind = "trap_partner";
+            e.sender = (*data)["source"].get<std::string>();
+            e.index = (*data)["ftl_traplink"] == "reply" ? 1 : 0;
+            if (e.sender != ap->get_player_alias(ap->get_player_number())) {
+                impl->push(std::move(e));
+            }
+            return;
+        }
+
+        const auto tags = packet.find("tags");
+        if (tags == packet.end()) return;
 
         for (const auto& tag : *tags) {
             const std::string name = tag.get<std::string>();
@@ -927,6 +939,17 @@ bool Client::SendTrap(const std::string& trapName)
         {"trap_name", trapName},
     };
     return _impl->ap->Bounce(data, {}, {}, {{"TrapLink"}});
+}
+
+bool Client::AnnounceTrapLink(bool reply)
+{
+    if (!_impl->ap) return false;
+    nlohmann::json data = {
+        {"source", _impl->ap->get_player_alias(_impl->ap->get_player_number())},
+        {"ftl_traplink", reply ? "reply" : "hello"},
+    };
+    // Sent by game, not by tag: other games on TrapLink would read it as a trap.
+    return _impl->ap->Bounce(data, {"FTL: Faster Than Light", "FTL Multiverse"}, {}, {});
 }
 
 bool Client::EnergyDeposit(int64_t joules)

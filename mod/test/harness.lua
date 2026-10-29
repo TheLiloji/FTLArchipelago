@@ -175,6 +175,12 @@ local function makeShip(shipId)
         return n
     end
     function ship:StartFire(roomId) self._fires[#self._fires + 1] = roomId end
+    ship._breachRooms = {}
+    function ship.ship:BreachRandomHull(roomId)
+        ship._breaches = ship._breaches + 1
+        ship._breachRooms[#ship._breachRooms + 1] = roomId
+        return true
+    end
     function ship:DamageArea(_, damage)
         if damage.breachChance and damage.breachChance > 0 then
             self._breaches = self._breaches + 1
@@ -217,7 +223,13 @@ local function makeShip(shipId)
         end
         return nil
     end
-    function ship:RemoveSystem(systemType) ship._removed[#ship._removed + 1] = systemType end
+    function ship:RemoveSystem(systemType)
+        ship._removed[#ship._removed + 1] = systemType
+        if (ship._systemsHeld or {})[systemType] then
+            ship._systemsHeld[systemType] = nil
+            if sim.systemLimit ~= nil then sim.mainSystemsUsed = math.max(0, (sim.mainSystemsUsed or 0) - 1) end
+        end
+    end
     function ship:GetWeaponList() return vector(ship._weapons) end
     function ship:RemoveItem(name, _)
         for i, held in ipairs(ship._weapons) do
@@ -455,6 +467,10 @@ local function resetWorld()
         end,
         SendTrap = function(_, name)
             sim.net.calls[#sim.net.calls + 1] = { "SendTrap", name = name }
+            return true
+        end,
+        AnnounceTrapLink = function(_, reply)
+            sim.net.calls[#sim.net.calls + 1] = { "AnnounceTrapLink", reply = reply }
             return true
         end,
         EnergyDeposit = function(_, joules)

@@ -68,7 +68,19 @@ local TRAP_DELIVERY = {
         player:StartFire(room)
         return "trap.fire", { room = room }
     end,
+    -- A breach the game draws in a room, the way a hit opens one; a damage with no damage points opens none.
     breach = function(player)
+        for _ = 1, 4 do
+            local room = apRandomRoomId(player)
+            local ok, opened = pcall(function() return player.ship:BreachRandomHull(room) end)
+            if ok and opened and room ~= nil then
+                -- Told like the power surge, by a message box: a breach alone is easy to miss.
+                pcall(function()
+                    Hyperspace.CustomEventsParser.GetInstance():LoadEvent(Hyperspace.App.world, "AP_TRAP_BREACH", false, -1)
+                end)
+                return "trap.breach", { room = room }
+            end
+        end
         local damage = Hyperspace.Damage()
         damage.iDamage = 0
         damage.breachChance = 100
@@ -461,8 +473,13 @@ local function deliverOne(descriptor)
         local key = progress.n >= 3 and "crew.progress.expert"
             or progress.n == 2 and "crew.progress.menu" or "crew.progress.later"
         if progress.n == 1 and not descriptor.noDelivery and _G.apRecruitCrew then
-            local aboard = _G.apRecruitCrew(descriptor.race, nil)
-            if aboard then key = "crew.progress.aboard" end
+            local aboard, reason = _G.apRecruitCrew(descriptor.race, nil)
+            if aboard then
+                key = "crew.progress.aboard"
+            elseif reason == "crew full" and _G.apOweCrew then
+                apOweCrew(descriptor.race, nil)
+                key = "crew.waiting"
+            end
         end
         if _G.apNotifyStatus then
             _G.apNotifyStatus(apT(key, { name = tostring(name) }))
@@ -489,9 +506,13 @@ local function deliverOne(descriptor)
         local aboard, reason = _G.apRecruitCrew(descriptor.race, descriptor.skill)
         fillerLog("crew member " .. tostring(descriptor.display or descriptor.race)
             .. (aboard and " aboard" or (" catalog only: " .. tostring(reason))))
+        local waiting = not aboard and reason == "crew full" and _G.apOweCrew ~= nil
+        if waiting then
+            apOweCrew(descriptor.race, descriptor.skill)
+        end
         if _G.apNotifyStatus then
-            _G.apNotifyStatus(apT(aboard and "crew.received.aboard" or "crew.received.menu",
-                { name = tostring(descriptor.display or descriptor.race) }))
+            local key = aboard and "crew.received.aboard" or (waiting and "crew.waiting" or "crew.received.menu")
+            _G.apNotifyStatus(apT(key, { name = tostring(descriptor.display or descriptor.race) }))
         end
         return true
     end

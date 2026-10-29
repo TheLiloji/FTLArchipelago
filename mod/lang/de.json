@@ -172,7 +172,7 @@
     "energylink.part.fuel": "{n} Treibstoff",
     "energylink.part.scrap": "{n} Schrott",
     "energylink.received": "Erhalten: {n} Treibstoff aus der gemeinsamen Reserve",
-    "energylink.sent": "{what} in die gemeinsame Reserve.",
+    "energylink.sent": "{what} in die gemeinsame Reserve: {net} Treibstoff nach 25 % Verlust.",
     "event.gift.nothing": "Kein Paket in der Warteschlange: nichts wurde verschickt, eure {scrap} Schrott sind zurückerstattet.",
     "event.gift.sent": "Paket unterwegs: {item}, adressiert an {slot}",
     "event.hijack.self": "Ein Piratenschiff hat sich an ein Archipelago-Relais gehängt. Es hat dein eigenes Paket abgefangen und will 20 Schrott, um es freizugeben.",
@@ -446,6 +446,9 @@
     "loadout.no_room": "Kein Platz an Bord für {name}: mach zuerst einen Waffen- oder Frachtplatz frei.",
     "event.trap.own": "Signalstoß",
     "dash.links.energy": "EnergyLink: {n} Treibstoff",
-    "energylink.others": "Andere Spieler haben {n} Treibstoff in die gemeinsame Reserve gelegt."
+    "energylink.others": "Andere Spieler haben {n} Treibstoff in die gemeinsame Reserve gelegt.",
+    "crew.waiting": "{name} wartet auf einen freien Platz und kommt an Bord, sobald deine Crew Platz hat.",
+    "crew.seated": "{name} kommt an Bord: ein Platz ist frei geworden.",
+    "loadout.system.swap": "{name} (ersetzt {old})"
   }
 }

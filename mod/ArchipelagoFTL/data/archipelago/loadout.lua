@@ -123,7 +123,10 @@ local function receivedCatalog()
     local catalog = { weapon = {}, drone = {}, crew = {}, system = {} }
     local inventory = _G.apInventory or {}
     for _, name in ipairs(_G.apSystemInstallChoices and apSystemInstallChoices() or {}) do
-        catalog.system[#catalog.system + 1] = { system = name, label = apSystemLabel(name) }
+        local old = _G.apSystemSwapOf and apSystemSwapOf(name)
+        local label = old and apT("loadout.system.swap", { name = apSystemLabel(name), old = apSystemLabel(old) })
+            or apSystemLabel(name)
+        catalog.system[#catalog.system + 1] = { system = name, label = label }
     end
     for name, count in pairs(inventory.shopAvailability or {}) do
         if (tonumber(count) or 0) >= 2 then

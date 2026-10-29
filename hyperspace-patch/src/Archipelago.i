@@ -27,6 +27,7 @@
 %rename("%s") ArchipelagoFTL::Client::SendGoal;
 %rename("%s") ArchipelagoFTL::Client::SendDeath;
 %rename("%s") ArchipelagoFTL::Client::SendTrap;
+%rename("%s") ArchipelagoFTL::Client::AnnounceTrapLink;
 %rename("%s") ArchipelagoFTL::Client::EnergyDeposit;
 %rename("%s") ArchipelagoFTL::Client::EnergyRequest;
 %rename("%s") ArchipelagoFTL::Client::Say;

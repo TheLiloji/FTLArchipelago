@@ -306,10 +306,21 @@ function apInLogic(checkKey)
     if have < (entry.bp or 0) then
         return false
     end
+    -- With shop_per_ship, a deep shop slot is only sold aboard its owner: only the owner's passes open it.
+    -- Seeds made before this fix list every layout, so the owner is worked out here.
+    local owner, perClass
+    local slot = tonumber(tostring(checkKey):match("^shop:(%d+)$"))
+    local config = _G.apShopConfig or {}
+    if slot ~= nil and (entry.pass or 0) > 0 and config.owners ~= nil then
+        owner = config.owners[math.floor((slot - 1) / (config.sectors or 1)) % #config.owners + 1]
+        perClass = config.per == "per_class"
+    end
     -- One layout of the seed, received, past the sectors this check asks, with the systems it needs.
     for _, way in ipairs(entry.ways or {}) do
         local passName = (logic.passes or {})[way.l]
-        if hasAll(counts, (logic.layouts or {})[way.l]) and hasAll(counts, way.i)
+        local needs = (logic.layouts or {})[way.l]
+        local aboard = owner == nil or way.l == owner or (perClass and way.l:gsub("_[23]$", "") == owner)
+        if needs ~= nil and aboard and hasAll(counts, needs) and hasAll(counts, way.i)
             and ((entry.pass or 0) == 0 or (passName ~= nil and (counts[passName] or 0) >= entry.pass)) then
             return true
         end
@@ -317,10 +328,14 @@ function apInLogic(checkKey)
     return false
 end
 
-function apReceiveItem(itemName, sender, isReplay, index)
+function apNoteReceived(itemName, index)
     if index ~= nil and index >= 0 and state.receivedByIndex ~= nil then
         state.receivedByIndex[index] = tostring(itemName)
     end
+end
+
+function apReceiveItem(itemName, sender, isReplay, index)
+    apNoteReceived(itemName, index)
     -- A refused seed still sends its items; they come again once it is accepted.
     if state.refusal ~= nil then
         contractLog("item ignored, the seed is refused: " .. tostring(itemName))
