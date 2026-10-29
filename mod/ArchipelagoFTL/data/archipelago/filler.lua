@@ -69,11 +69,12 @@ local TRAP_DELIVERY = {
         return "trap.fire", { room = room }
     end,
     -- A breach the game draws in a room, the way a hit opens one; a damage with no damage points opens none.
+    -- BreachRandomHull says nothing back in Lua (seen in game): one call, one breach.
     breach = function(player)
-        for _ = 1, 4 do
-            local room = apRandomRoomId(player)
-            local ok, opened = pcall(function() return player.ship:BreachRandomHull(room) end)
-            if ok and opened and room ~= nil then
+        local room = apRandomRoomId(player)
+        if room ~= nil then
+            local ok = pcall(function() player.ship:BreachRandomHull(room) end)
+            if ok then
                 -- Told like the power surge, by a message box: a breach alone is easy to miss.
                 pcall(function()
                     Hyperspace.CustomEventsParser.GetInstance():LoadEvent(Hyperspace.App.world, "AP_TRAP_BREACH", false, -1)
