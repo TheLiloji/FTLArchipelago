@@ -443,6 +443,8 @@
     "loadout.no_room": "Pas de place à bord pour {name} : libérez d'abord un emplacement d'arme ou de soute.",
     "event.trap.own": "Surtension du signal",
     "dash.links.energy": "EnergyLink : {n} carburant",
-    "energylink.others": "D'autres joueurs ont mis {n} carburant dans la réserve commune."
+    "energylink.others": "D'autres joueurs ont mis {n} carburant dans la réserve commune.",
+    "crew.waiting": "{name} attend une place libre et monte à bord dès que l'équipage a de la place.",
+    "crew.seated": "{name} monte à bord : une place s'est libérée."
   }
 }

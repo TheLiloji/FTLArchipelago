@@ -444,6 +444,8 @@
     "loadout.no_room": "Sem espaço a bordo para {name}: liberta primeiro um espaço de arma ou de porão.",
     "event.trap.own": "Sobrecarga de sinal",
     "dash.links.energy": "EnergyLink: {n} combustível",
-    "energylink.others": "Outros jogadores colocaram {n} de combustível na reserva compartilhada."
+    "energylink.others": "Outros jogadores colocaram {n} de combustível na reserva compartilhada.",
+    "crew.waiting": "{name} espera um lugar livre e embarca assim que sua tripulação tiver espaço.",
+    "crew.seated": "{name} embarca: um lugar ficou livre."
   }
 }

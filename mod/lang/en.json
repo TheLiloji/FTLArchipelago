@@ -444,6 +444,8 @@
     "loadout.no_room": "No room aboard for {name}: free a weapon slot or a cargo slot first.",
     "event.trap.own": "Signal surge",
     "dash.links.energy": "EnergyLink: {n} fuel",
-    "energylink.others": "Other players put {n} fuel in the shared reserve."
+    "energylink.others": "Other players put {n} fuel in the shared reserve.",
+    "crew.waiting": "{name} waits for a free seat and comes aboard as soon as your crew has room.",
+    "crew.seated": "{name} comes aboard: a seat was free."
   }
 }

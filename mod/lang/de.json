@@ -444,6 +444,8 @@
     "loadout.no_room": "Kein Platz an Bord für {name}: mach zuerst einen Waffen- oder Frachtplatz frei.",
     "event.trap.own": "Signalstoß",
     "dash.links.energy": "EnergyLink: {n} Treibstoff",
-    "energylink.others": "Andere Spieler haben {n} Treibstoff in die gemeinsame Reserve gelegt."
+    "energylink.others": "Andere Spieler haben {n} Treibstoff in die gemeinsame Reserve gelegt.",
+    "crew.waiting": "{name} wartet auf einen freien Platz und kommt an Bord, sobald deine Crew Platz hat.",
+    "crew.seated": "{name} kommt an Bord: ein Platz ist frei geworden."
   }
 }

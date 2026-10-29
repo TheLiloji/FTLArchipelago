@@ -63,14 +63,49 @@ test("received crew member: comes aboard and enters the catalog", function()
     equals(#apInventory.crew, 1, "and it waits in the start-of-run menu")
 end)
 
-test("received crew member, full crew: waits in the menu, nothing lost", function()
+test("received crew member, full crew: waits for a free seat and in the menu, nothing lost", function()
     apInventoryClear()
     sim.startRun(true)
     sim.player._crewCap = 0
     apQueueItem({ kind = "crew", race = "mantis", display = "Mantis Crew" })
     drain()
     equals(#apInventory.crew, 1, "the catalog keeps it")
-    check(shownKey("crew.received.menu"), "and the player knows where to find it")
+    check(shownKey("crew.waiting"), "and the player knows it waits for a seat")
+    local before = sim.player.vCrewList:size()
+    sim.player._crewCap = nil
+    sim.tick(61)
+    equals(sim.player.vCrewList:size(), before + 1, "a seat frees up: the Mantis comes aboard")
+    equals(sim.player.vCrewList[sim.player.vCrewList:size() - 1].species, "mantis", "the right race")
+    check(shownKey("crew.seated"), "and the player is told")
+    sim.tick(61)
+    equals(sim.player.vCrewList:size(), before + 1, "only once")
+end)
+
+test("progressive crew member, full crew: the first copy comes aboard once someone leaves", function()
+    apInventoryClear()
+    sim.startRun(true)
+    local size = sim.player.vCrewList:size()
+    sim.player._crewCap = size
+    apQueueItem({ kind = "filler", res = "crew", n = 1 })
+    apQueueItem({ kind = "crew", race = "crystal", tiers = 3, display = "Progressive Crystal Crew" })
+    drain()
+    check(shownKey("crew.waiting"), "the Crystal waits for a seat")
+    sim.player.vCrewList[0].bDead = true
+    drain()
+    sim.tick(61)
+    local crystals = 0
+    for i = 0, sim.player.vCrewList:size() - 1 do
+        if sim.player.vCrewList[i].species == "crystal" then crystals = crystals + 1 end
+    end
+    equals(crystals, 0, "one seat: the crew member queued first takes it")
+    sim.player.vCrewList[1].bDead = true
+    sim.tick(61)
+    for i = 0, sim.player.vCrewList:size() - 1 do
+        if sim.player.vCrewList[i].species == "crystal" and not sim.player.vCrewList[i].bDead then
+            crystals = crystals + 1
+        end
+    end
+    equals(crystals, 1, "a second seat: the Crystal comes aboard")
     sim.player._crewCap = nil
 end)
 
