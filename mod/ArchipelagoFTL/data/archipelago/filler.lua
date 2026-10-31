@@ -843,6 +843,57 @@ local function springFightTrap()
     end
 end
 
+-- A pact that turns on you strikes in the next fight, not at the quiet shop beacon where a fire or a breach is
+-- repaired for free. Kept in the run's save, so quitting does not cancel it. At most two strike per fight.
+local DEAL_EFFECTS = { "fire", "breach", "system_damage", "hull_damage", "fuel_leak" }
+local DEAL_STRIKES_PER_FIGHT = 2
+local dealStrikesHere = 0
+
+function apDealBacklashArmed()
+    local ok, value = pcall(function() return Hyperspace.playerVariables.ap_deal_backlash end)
+    return ok and math.floor(tonumber(value) or 0) or 0
+end
+
+local function setDealBacklash(n)
+    pcall(function() Hyperspace.playerVariables.ap_deal_backlash = math.max(0, n) end)
+end
+
+function apArmDealBacklash()
+    setDealBacklash(apDealBacklashArmed() + 1)
+    fillerLog("pact backlash armed for the next fight (" .. apDealBacklashArmed() .. " waiting)")
+end
+
+local function strikeDealBacklash()
+    local armed = apDealBacklashArmed()
+    if armed <= 0 or dealStrikesHere >= DEAL_STRIKES_PER_FIGHT then
+        return
+    end
+    local ready = false
+    pcall(function()
+        local app = Hyperspace.App
+        local gui = app.gui
+        local enemy = Hyperspace.ships.enemy
+        local player = Hyperspace.ships.player
+        ready = app.world.bStartedGame and player ~= nil and not player.bDestroyed
+            and not (gui.choiceBoxOpen or gui.event_pause or gui.menu_pause)
+            and enemy ~= nil and not enemy.bDestroyed and enemy._targetable.hostile == true
+    end)
+    if not ready or not runCounts() then
+        return
+    end
+    setDealBacklash(armed - 1)
+    dealStrikesHere = dealStrikesHere + 1
+    local key, params = springTrap(Hyperspace.ships.player, DEAL_EFFECTS[math.random(1, #DEAL_EFFECTS)])
+    if key == nil then
+        fillerLog("pact backlash fizzled: all floors already reached")
+        return
+    end
+    fillerLog("pact backlash struck: " .. key)
+    if _G.apNotifyTrap then
+        _G.apNotifyTrap(apT("trap.named", { name = apT("deal.own_pact"), effect = apT(key, params) }))
+    end
+end
+
 -- The enemy surrendered, fled or is beaten: what the trap brought goes, it was not part of the beacon.
 local function fightOver()
     local enemy = Hyperspace.ships.enemy
@@ -890,12 +941,14 @@ script.on_internal_event(Defines.InternalEvents.JUMP_ARRIVE, function(shipManage
     if shipManager.iShipId == 0 then
         sprungHere = false
         cleanupHere = nil
+        dealStrikesHere = 0
     end
 end)
 
 script.on_init(function()
     sprungHere = false
     cleanupHere = nil
+    dealStrikesHere = 0
 end)
 
 local pollDivider = 0
@@ -907,6 +960,7 @@ script.on_internal_event(Defines.InternalEvents.ON_TICK, function()
     if pollDivider % 30 == 0 then
         apTry(TAG, springFightTrap)
         apTry(TAG, cleanUpTrap)
+        apTry(TAG, strikeDealBacklash)
     end
 end)
 
