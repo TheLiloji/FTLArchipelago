@@ -141,7 +141,7 @@
     "deal.blood.risk": "E em {chance}% das vezes, um tripulante morre de vez.\nNenhuma baía de clonagem o traz de volta. Nunca o último.",
     "deal.blood.taken": "O pacto de sangue leva {name}. Nenhuma baía de clonagem o trará de volta.",
     "deal.blood.title": "Pacto de sangue: +{scrap}",
-    "deal.body": "Você recebe {scrap} de sucata no momento em que assina.\nEm troca, uma destas é disparada:\nincêndio, rombo, vazamento de combustível, avaria\nou dano ao casco.\n\nCom Trap Link, duas em cada três vezes atinge outro\njogador. Senão, atinge você, no seu próximo combate.\nSó vai saber depois de assinar.",
+    "deal.body": "Você recebe {scrap} de sucata no momento em que assina. Em troca, uma destas é disparada: incêndio, rombo, vazamento de combustível, avaria ou dano ao casco.\n\nCom Trap Link, duas em cada três vezes atinge outro jogador. Senão, atinge você, no seu próximo combate. Só vai saber depois de assinar.",
     "deal.closed": "Este pacto já está assinado",
     "deal.closed.body": "Já assinado. Não há mais nada a tirar daqui.",
     "deal.closed.short": "Assinado",

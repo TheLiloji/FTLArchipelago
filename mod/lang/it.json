@@ -141,7 +141,7 @@
     "deal.blood.risk": "E il {chance}% delle volte, un membro dell'equipaggio muore per sempre.\nNessuna baia di clonazione lo riporta indietro. Mai l'ultimo.",
     "deal.blood.taken": "Il patto di sangue si prende {name}. Nessuna baia di clonazione lo riporterà indietro.",
     "deal.blood.title": "Patto di sangue: +{scrap}",
-    "deal.body": "Ricevi {scrap} rottami nel momento in cui firmi.\nIn cambio, scatta una di queste:\nincendio, falla, perdita di carburante, avaria\no danno allo scafo.\n\nCon Trap Link, due volte su tre tocca a un altro\ngiocatore. Altrimenti tocca a te, nel prossimo scontro.\nLo scoprirai solo dopo aver firmato.",
+    "deal.body": "Ricevi {scrap} rottami nel momento in cui firmi. In cambio, scatta una di queste: incendio, falla, perdita di carburante, avaria o danno allo scafo.\n\nCon Trap Link, due volte su tre tocca a un altro giocatore. Altrimenti tocca a te, nel prossimo scontro. Lo scoprirai solo dopo aver firmato.",
     "deal.closed": "Questo patto è già firmato",
     "deal.closed.body": "Già firmato. Non c'è più niente da ricavarne.",
     "deal.closed.short": "Firmato",

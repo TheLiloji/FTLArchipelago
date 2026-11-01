@@ -140,7 +140,7 @@
     "deal.blood.risk": "Et {chance} % du temps, un membre de votre équipage meurt pour de bon.\nAucune baie de clonage ne le ramène. Jamais le dernier.",
     "deal.blood.taken": "Le pacte de sang emporte {name}. Aucune baie de clonage ne le ramènera.",
     "deal.blood.title": "Pacte de sang : +{scrap}",
-    "deal.body": "Vous touchez {scrap} de ferraille à la signature.\nEn échange, l'un de ces malheurs se déclenche :\nincendie, brèche, fuite de carburant, avarie système\nou coque endommagée.\n\nAvec Trap Link, deux fois sur trois c'est un autre\njoueur qui paie. Sinon c'est vous, au prochain combat.\nVous ne le saurez qu'après avoir signé.",
+    "deal.body": "Vous touchez {scrap} de ferraille à la signature. En échange, l'un de ces malheurs se déclenche : incendie, brèche, fuite de carburant, avarie système ou coque endommagée.\n\nAvec Trap Link, deux fois sur trois c'est un autre joueur qui paie. Sinon c'est vous, au prochain combat. Vous ne le saurez qu'après avoir signé.",
     "deal.closed": "Ce pacte est déjà signé",
     "deal.closed.body": "Déjà signé. Il n'y a plus rien à en tirer.",
     "deal.closed.short": "Signé",
