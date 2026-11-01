@@ -3570,8 +3570,45 @@ test("a deal announces its payoff and its risks", function()
     check(desc.shortTitle.data:find("+", 1, true), "and in the box, which is narrow")
     check(desc.description.data:find("fire", 1, true), "the possible traps are listed")
     check(desc.description.data:find("hull breach", 1, true), "all of them, not just the first")
-    check(desc.description.data:find("Two times out of three", 1, true),
+    check(desc.description.data:find("two times out of three", 1, true),
         "and the odds of getting hit by one yourself")
+    check(desc.description.data:find("next fight", 1, true), "and when it hits")
+end)
+
+test("a pact that turns on us waits for the next fight, not the quiet shop beacon", function()
+    sim.reset()
+    apShopGiftsConfigure(DEMO)
+    _G.apTrapLink.enabled = false
+    sim.startRun(true)
+    sim.jumpArrive()
+    sim.enemy = nil
+    local hull = sim.player.ship.hullIntegrity.first
+    local fuel = sim.player.fuel_count
+    sim.clearLog()
+    sim.sign("AP_DEAL_1")
+    sim.sign("AP_DEAL_2")
+    sim.sign("AP_DEAL_3")
+    sim.tick(240)
+    equals(apDealBacklashArmed(), 3, "without Trap Link, every pact comes back to us")
+    check(not sim.logged("pact backlash struck"), "nothing strikes at the shop beacon")
+    equals(sim.player.ship.hullIntegrity.first, hull, "the hull is untouched")
+    equals(sim.player.fuel_count, fuel, "and so is the fuel")
+
+    sim.enemy = sim.makeShip(1)
+    sim.enemy._targetable.hostile = false
+    sim.tick(240)
+    equals(apDealBacklashArmed(), 3, "a ship that is not hostile is not a fight")
+
+    sim.enemy._targetable.hostile = true
+    sim.tick(240)
+    equals(apDealBacklashArmed(), 1, "two strike in the first fight")
+    check(sim.logged("pact backlash struck"), "the log says so")
+    check(sim.shown(apT("deal.own_pact")), "the player is told it is their own pact")
+
+    sim.jumpArrive()
+    sim.tick(240)
+    equals(apDealBacklashArmed(), 0, "the last one in the next fight")
+    sim.enemy = nil
 end)
 
 test("signing a deal earns scrap", function()

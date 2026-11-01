@@ -696,15 +696,11 @@ local function signDeal(index, blueprintName)
     end)
 
     local againstSelf = math.random(1, 100) <= DEAL_SELF_CHANCE
-    local effects = { "fire", "breach", "fuel_leak", "system_damage", "hull_damage" }
-    local effect = effects[math.random(1, #effects)]
 
     if againstSelf then
-        giftLog(string.format("deal %d: +%d scrap, and the trap is ON US (%s)",
-            index, reward, effect))
-        if _G.apQueueItem then
-            _G.apQueueItem({ kind = "trap", eff = effect,
-                             display = apT("deal.own_pact"), fromLink = true })
+        giftLog(string.format("deal %d: +%d scrap, and the trap is ON US, in the next fight", index, reward))
+        if _G.apArmDealBacklash then
+            _G.apArmDealBacklash()
         end
         if _G.apNotifyStatus then
             _G.apNotifyStatus(apT("deal.self", { scrap = reward }))
@@ -718,18 +714,15 @@ local function signDeal(index, blueprintName)
         end
 
         if sent then
-            giftLog(string.format("deal %d: +%d scrap, the trap goes to someone else (%s)",
-                index, reward, effect))
+            giftLog(string.format("deal %d: +%d scrap, the trap goes to someone else", index, reward))
             if _G.apNotifyStatus then
                 _G.apNotifyStatus(apT("deal.other", { scrap = reward }))
             end
         else
             giftLog(string.format(
-                "deal %d: +%d scrap, no one out there to take it, the trap comes back (%s)",
-                index, reward, effect))
-            if _G.apQueueItem then
-                _G.apQueueItem({ kind = "trap", eff = effect,
-                                 display = apT("deal.own_pact"), fromLink = true })
+                "deal %d: +%d scrap, no one out there to take it, the trap comes back in the next fight", index, reward))
+            if _G.apArmDealBacklash then
+                _G.apArmDealBacklash()
             end
             if _G.apNotifyStatus then
                 _G.apNotifyStatus(apT("deal.backfired", { scrap = reward }))
