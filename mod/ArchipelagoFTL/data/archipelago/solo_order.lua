@@ -121,7 +121,7 @@ _G.apSoloOrder = {
     { item = "Progressive Cloaking", location = "Crystal Cruiser: No Escape", sphere = 4 },
     { item = "Progressive Medbay", location = "Crystal Cruiser: Sweet Revenge", sphere = 4 },
     { item = "20 Scrap", location = "Crystal Cruiser B: Reach sector 5", sphere = 5 },
-    { item = "20 Scrap", location = "Crystal Cruiser B: Reach sector 8", sphere = 5 },
+    { item = "O2 Drain Trap", location = "Crystal Cruiser B: Reach sector 8", sphere = 5 },
     { item = "Layout B - Kestrel Cruiser", location = "Crystal Cruiser B: Defeat the Flagship", sphere = 8 },
     { item = "Missile Crate", location = "Federation Cruiser A: Reach sector 5", sphere = 2 },
     { item = "Fuel Cache", location = "Federation Cruiser A: Reach sector 8", sphere = 3 },
@@ -546,6 +546,11 @@ _G.apSoloSlotData = {
             ["c"] = "f",
             ["k"] = "filler",
             ["res"] = "crew",
+        },
+        ["O2 Drain Trap"] = {
+            ["c"] = "t",
+            ["eff"] = "o2_drain",
+            ["k"] = "trap",
         },
         ["Oxygen blueprint"] = {
             ["c"] = "p",
