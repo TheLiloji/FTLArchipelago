@@ -448,6 +448,8 @@
     "energylink.others": "D'autres joueurs ont mis {n} carburant dans la réserve commune.",
     "crew.waiting": "{name} attend une place libre et monte à bord dès que l'équipage a de la place.",
     "crew.seated": "{name} monte à bord : une place s'est libérée.",
-    "loadout.system.swap": "{name} (remplace {old})"
+    "loadout.system.swap": "{name} (remplace {old})",
+    "trap.o2_drain": "Toutes les vannes se sont ouvertes d'un coup. Plus d'air à bord, le système d'oxygène remplit à nouveau le vaisseau.",
+    "trap.title.o2_drain": "Piège à oxygène"
   }
 }

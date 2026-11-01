@@ -449,6 +449,8 @@
     "energylink.others": "Altri giocatori hanno messo {n} carburante nella riserva comune.",
     "crew.waiting": "{name} aspetta un posto libero e sale a bordo appena l'equipaggio ha spazio.",
     "crew.seated": "{name} sale a bordo: si è liberato un posto.",
-    "loadout.system.swap": "{name} (sostituisce {old})"
+    "loadout.system.swap": "{name} (sostituisce {old})",
+    "trap.o2_drain": "Tutte le valvole si sono aperte insieme. L'aria è sparita, il sistema dell'ossigeno sta riempiendo di nuovo la nave.",
+    "trap.title.o2_drain": "Trappola dell'ossigeno"
   }
 }

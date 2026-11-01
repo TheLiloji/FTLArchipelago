@@ -23,6 +23,9 @@ _G.apTrapLinkState = state
 local OUR_EFFECTS = { "fire", "breach", "fuel_leak", "system_damage", "fleet_advance", "hull_damage" }
 
 local KEYWORDS = {
+    { "oxygen", "o2_drain" },
+    { "suffocat", "o2_drain" },
+    { "vacuum", "o2_drain" },
     { "ice", "system_damage" },
     { "frost", "system_damage" },
     { "freeze", "system_damage" },

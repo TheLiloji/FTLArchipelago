@@ -449,6 +449,8 @@
     "energylink.others": "Outros jogadores colocaram {n} de combustível na reserva compartilhada.",
     "crew.waiting": "{name} espera um lugar livre e embarca assim que sua tripulação tiver espaço.",
     "crew.seated": "{name} embarca: um lugar ficou livre.",
-    "loadout.system.swap": "{name} (substitui {old})"
+    "loadout.system.swap": "{name} (substitui {old})",
+    "trap.o2_drain": "Todas as válvulas se abriram de uma vez. O ar acabou, o sistema de oxigênio está enchendo a nave de novo.",
+    "trap.title.o2_drain": "Armadilha de oxigênio"
   }
 }

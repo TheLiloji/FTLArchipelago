@@ -123,6 +123,26 @@ local function makeShip(shipId)
         makeSystem("oxygen", 1, 3, 4),
         makeSystem("pilot", 1, 3, 5),
     })
+    -- Every room full of air; the oxygen system is the one in vSystemList.
+    local oxygen = ship.vSystemList[3]
+    local levels = {}
+    for i = 1, #rooms do
+        levels[i] = 100
+    end
+    oxygen.oxygenLevels = vector(levels)
+    oxygen.Functioning = function(self)
+        return self.powerState.first > 0 and self.healthState.first > 0
+    end
+    -- Hyperspace hooks EmptyOxygen into doing nothing outside the ship builder.
+    oxygen.EmptyOxygen = function() end
+    oxygen.ModifyRoomOxygen = function(self, roomId, amount)
+        if roomId < 0 or roomId >= self.oxygenLevels:size() then
+            error("Invalid roomId: " .. tostring(roomId))
+        end
+        local store = self.oxygenLevels._store
+        store[roomId + 1] = math.max(0, math.min(100, store[roomId + 1] + amount))
+    end
+    ship.oxygenSystem = oxygen
     ship.vCrewList = vector({
         makeCrew("Ruwen", "human", 0),
         makeCrew("Zoltan", "energy", 0),

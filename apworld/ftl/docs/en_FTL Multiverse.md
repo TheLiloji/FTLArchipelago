@@ -293,7 +293,9 @@ quiet moment would not be a death link. The Anti-Ship Battery Trap, the Power Su
 armed at a quiet beacon too, then spring at the next beacon with a hostile ship: an anti-ship battery joins that
 fight, the enemy unleashes a Flagship power surge (its lasers or its drones, lighter in sectors 1 and 2), or the
 beacon gets a hazard it did not have (nebula, ion storm, asteroids, sun or pulsar). The battery and the hazard
-go away when the fight is over. One per fight, never in the Last Stand, and at most two of each can wait at once.
+go away when the fight is over. One per fight, never in the Last Stand, and at most two of each can wait at once. The O2 Drain
+Trap is an ordinary one: at a quiet beacon, every room loses its air at once and the oxygen system has to
+fill the ship again. It never hits a ship whose oxygen system is down; another trap takes its place.
 
 **A weapon arrives in your cargo hold, not in a slot.** You still have to equip it, and if your cargo is full
 the mod holds the item and delivers it later rather than dropping it.

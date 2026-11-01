@@ -1238,6 +1238,38 @@ test("trap: the fuel leak leaves enough to jump", function()
     end
 end)
 
+test("O2 drain trap: waits for a quiet beacon, then every room loses its air once", function()
+    sim.startRun(true)
+    local oxygen = sim.player.oxygenSystem
+    sim.enemy = sim.makeShip(1)
+    apQueueItem({ kind = "trap", eff = "o2_drain" })
+    drain()
+    equals(oxygen.oxygenLevels[0], 100, "no drain during a fight")
+    sim.enemy = nil
+    drain()
+    for room = 0, oxygen.oxygenLevels:size() - 1 do
+        equals(oxygen.oxygenLevels[room], 0, "room " .. room .. " has no air left")
+    end
+    check(shownKey("trap.o2_drain"), "the player is told")
+end)
+
+test("O2 drain trap: never without a working oxygen system, another trap instead", function()
+    sim.startRun(true)
+    local oxygen = sim.player.oxygenSystem
+    oxygen.healthState.first = 0
+    springTrapNow("o2_drain")
+    equals(oxygen.oxygenLevels[0], 100, "a broken oxygen system keeps the air in")
+    check(not sim.logged("trap.o2_drain"), "and the drain did not happen")
+    sim.player.oxygenSystem = nil
+    springTrapNow("o2_drain")
+    check(not sim.player.bDestroyed, "a ship without oxygen system takes another trap")
+end)
+
+test("TrapLink: an oxygen trap from another game drains the air", function()
+    equals(apTrapLinkTranslate("Oxygen Trap"), "o2_drain", "'Oxygen'")
+    equals(apTrapLinkTranslate("Suffocation Trap"), "o2_drain", "'Suffocation'")
+end)
+
 test("trap: the message names the system the way the game names it", function()
     sim.startRun(true)
     sim.clearLog()
