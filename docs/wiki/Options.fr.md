@@ -108,7 +108,7 @@ Archipelago : les colis vendus aux balises BOUTIQUE AP, qui contiennent les obje
 |---|---|
 | **Crew Names** | Les équipiers qui te rejoignent pendant une run prennent les noms des autres joueurs : `multiworld` (par défaut), `multiworld_and_team` (puis les noms des gens qui ont fait et testé le mod), ou `vanilla` (les noms de FTL) |
 | **Archipelago Shop Hints** | `seen` (par défaut) : les colis que tu vois à une balise Archipelago deviennent des indices, pour que leurs propriétaires sachent où leur objet attend. `off` garde la boutique secrète |
-| **Trap Chance** | Trois nouveaux pièges qui attendent ton prochain combat : une batterie anti-vaisseau, une surcharge du vaisseau amiral (plus légère aux secteurs 1 et 2), ou un danger (nébuleuse, tempête ionique, astéroïdes, soleil ou pulsar). La batterie et le danger s'en vont à la fin du combat |
+| **Trap Chance** | Trois nouveaux pièges qui attendent ton prochain combat : une batterie anti-vaisseau, une surcharge du vaisseau amiral (plus légère aux secteurs 1 et 2), ou un danger (nébuleuse, tempête ionique, astéroïdes, soleil ou pulsar). La batterie et le danger s'en vont à la fin du combat. Et un piège à oxygène : à une balise calme, toutes les salles perdent leur air d'un coup (jamais si le système d'oxygène est en panne) |
 | **Sector Logic** | `relaxed` s'appelle maintenant `none` : la logique n'attend rien, tu devras peut-être gagner avec très peu. Pour les joueurs expérimentés. `relaxed` marche toujours dans les anciens YAML |
 
 ## Options expertes

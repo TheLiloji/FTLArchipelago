@@ -143,6 +143,20 @@ local TRAP_DELIVERY = {
             { system = _G.apSystemLabel and _G.apSystemLabel(target.name) or tostring(target.name),
               n = amount }
     end,
+    -- Every room loses its air at once and the oxygen system fills the ship again. Never without a working
+    -- oxygen system: the crew would have nothing left to breathe.
+    o2_drain = function(player)
+        local oxygen = player.oxygenSystem
+        if oxygen == nil or not oxygen:Functioning() then
+            return nil
+        end
+        -- Not EmptyOxygen: Hyperspace makes it do nothing outside the ship builder (seen in game).
+        local levels = oxygen.oxygenLevels
+        for room = 0, levels:size() - 1 do
+            oxygen:ModifyRoomOxygen(room, -levels[room])
+        end
+        return "trap.o2_drain"
+    end,
     hull_damage = function(player)
         local hull = player.ship.hullIntegrity
         local amount = math.min(2, hull.first - TRAP_LIMITS.hullFloor)
@@ -216,7 +230,7 @@ local TRAP_TITLES = {
     fire = "trap.title.fire", breach = "trap.title.breach", fuel_leak = "trap.title.fuel_leak",
     system_damage = "trap.title.system_damage", fleet_advance = "trap.title.fleet_advance",
     hull_damage = "trap.title.hull_damage", boarding = "trap.title.boarding", asb = "trap.title.asb",
-    power_surge = "trap.title.power_surge", hazard = "trap.title.hazard",
+    power_surge = "trap.title.power_surge", hazard = "trap.title.hazard", o2_drain = "trap.title.o2_drain",
 }
 
 local TRAP_FALLBACK_ORDER = { "fire", "breach", "system_damage", "fuel_leak" }
