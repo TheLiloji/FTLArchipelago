@@ -21,6 +21,8 @@ REACTOR_CHECK_FORMAT = "reactor:{n}"
 
 KIND_SHIP = "ship"
 KIND_CAP = "cap"
+# Not an item kind: a seed where the first Progressive item unlocks its system asks the mod to know it.
+KIND_CAP_UNLOCK = "cap_unlock"
 KIND_START = "start"
 KIND_FILLER = "filler"
 KIND_TRAP = "trap"
@@ -43,6 +45,7 @@ KINDS_IMPLEMENTED = (
     KIND_SHOP, KIND_WEAPON, KIND_DRONE, KIND_AUGMENT, KIND_ARCHIVE, KIND_CREW, KIND_BUNDLE, KIND_LAYOUT,
     KIND_PROGRESSIVE_SHIP,
     KIND_PASS,
+    KIND_CAP_UNLOCK,
 )
 
 REACTOR_TARGET = "reactor"

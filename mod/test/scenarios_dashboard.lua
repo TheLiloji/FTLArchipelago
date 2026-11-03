@@ -663,6 +663,28 @@ test("in logic: a check is in logic once its layout's items and its blueprints a
     equals(apInLogic("PLAYER_SHIP_ROCK:sector:3"), nil, "a seed without the logic copy says nothing")
 end)
 
+test("progressive unlocks the system: the first Progressive item unlocks its system and is its blueprint in logic", function()
+    apContractResetForTesting()
+    _G.apInventory.blueprints = {}
+    applySeed({ kinds = { "ship", "cap", "cap_unlock" }, kinds_required = { "cap_unlock" },
+                loc = { ["PLAYER_SHIP_ROCK:sector:3"] = "Rock Cruiser A: Reach sector 3" },
+                items = { ["Rock Cruiser Key"] = { k = "ship", bp = "PLAYER_SHIP_ROCK" },
+                          ["Progressive Shields"] = { k = "cap", sys = "shields", ub = true } },
+                logic = { layouts = { PLAYER_SHIP_ROCK = { "Rock Cruiser Key" } },
+                          checks = { ["PLAYER_SHIP_ROCK:sector:3"] = { ways = { { l = "PLAYER_SHIP_ROCK",
+                                                                                  i = { "Shields blueprint" } } },
+                                                                        bp = 1, pass = 0 } },
+                          blueprint_items = { "Shields blueprint" },
+                          unlocks = { ["Progressive Shields"] = "Shields blueprint" } } })
+    check(not sim.logged("SEED REFUSED"), "the mod knows the seed's kind")
+    apReceiveItem("Rock Cruiser Key", "Nina", false, 0)
+    equals(apInLogic("PLAYER_SHIP_ROCK:sector:3"), false, "no shields yet")
+    apReceiveItem("Progressive Shields", "Nina", false, 1)
+    sim.tick(240)
+    equals(_G.apInventory.blueprints.shields, true, "the shields are unlocked")
+    equals(apInLogic("PLAYER_SHIP_ROCK:sector:3"), true, "and count as the blueprint: in logic")
+end)
+
 test("in logic: a shared shop slot past sector 4 needs one layout holding both its key and its pass", function()
     apContractResetForTesting()
     applySeed({ loc = { ["shop:6:1"] = "AP Store: Sector 6, slot 1" },

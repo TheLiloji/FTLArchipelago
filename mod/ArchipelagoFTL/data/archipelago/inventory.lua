@@ -300,6 +300,11 @@ function apInventoryAdd(descriptor)
             invLog("cap item without a system, ignored")
             return false
         end
+        -- Progressive Unlocks the System: the item also stands for the system's blueprint.
+        if descriptor.ub then
+            _G.apInventory.blueprints = _G.apInventory.blueprints or {}
+            _G.apInventory.blueprints[system] = true
+        end
         if type(descriptor.ship) == "string" then
             local caps = _G.apInventory.shipCaps
             caps[descriptor.ship] = caps[descriptor.ship] or {}
