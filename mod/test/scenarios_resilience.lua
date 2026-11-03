@@ -565,6 +565,35 @@ test("run start scrap: off by default", function()
     equals(apRunStartScrap(), 0, "nothing without the option")
 end)
 
+test("Multiverse: the run start scrap and the scrap waiting come after the start event that wipes scrap", function()
+    _G.apInventory = { ships = {}, systemCaps = {}, startingUpgrades = {}, shopAvailability = {} }
+    applySeed({ kinds = { "filler" }, options = { run_start_scrap = 50 } })
+    apQueueItem({ kind = "filler", res = "scrap", n = 40, display = "40 Scrap", isReplay = true })
+    apInventoryMarkSynced()
+    sim.holdStartEvent = true
+    sim.startRun(true)
+    apQueueItem({ kind = "filler", res = "scrap", n = 20, display = "20 Scrap" })
+    sim.tick(240)
+    equals(sim.player.currentScrap, 0, "nothing before Multiverse's start event")
+    sim.gameEvent(_G.apStartWipeEvent)
+    sim.tick(240)
+    equals(sim.player.currentScrap, 30 + 20, "half of the 60 scrap of the seed, and the 20 that waited")
+end)
+
+test("Multiverse: a start without the wiping event is not held back past the first jump", function()
+    _G.apInventory = { ships = {}, systemCaps = {}, startingUpgrades = {}, shopAvailability = {} }
+    applySeed({ kinds = { "filler" } })
+    apInventoryMarkSynced()
+    sim.holdStartEvent = true
+    sim.startRun(true)
+    apQueueItem({ kind = "filler", res = "scrap", n = 20, display = "20 Scrap" })
+    sim.tick(240)
+    equals(sim.player.currentScrap, 0, "held back at the start beacon")
+    sim.jumpArrive()
+    sim.tick(240)
+    equals(sim.player.currentScrap, 20, "given after the first jump")
+end)
+
 local function fightSeed(percent)
     _G.apInventory = { ships = {}, systemCaps = {}, startingUpgrades = {}, shopAvailability = {} }
     apContractResetForTesting()
