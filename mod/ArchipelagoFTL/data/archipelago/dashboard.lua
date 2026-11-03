@@ -237,9 +237,21 @@ end
 local JOURNAL_SAVED = 40
 local journalFor = nil
 
-local function journalKey()
-    return "ap_journal_" .. tostring(_G.apSeedFingerprint and apSeedFingerprint() or 0)
+-- Per seed and per slot: the slots of one multiworld share its seed, not their items.
+function apJournalKey()
+    local key = "ap_journal_" .. tostring(_G.apSeedFingerprint and apSeedFingerprint() or 0)
+    local slot = tostring(_G.apOwnSlotName and apOwnSlotName() or "")
+    if slot == "" then
+        return key
+    end
+    local fingerprint = 0
+    for index = 1, #slot do
+        fingerprint = (fingerprint * 31 + slot:byte(index)) % 2147483647
+    end
+    return key .. "_" .. fingerprint
 end
+
+local journalKey = apJournalKey
 
 -- The journal is kept per seed in the network module's memory, so it survives a restart.
 local function loadJournal()

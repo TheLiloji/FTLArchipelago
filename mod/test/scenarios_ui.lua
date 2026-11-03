@@ -117,7 +117,7 @@ test("journal: the items received survive a restart, per seed", function()
     applySeed({ seed_hash = "journal-seed" })
     _G.apReceivedHistory = {}
     apRecordReceived("Glaive Beam", "Axel")
-    local stored = sim.durable["ap_journal_" .. tostring(apSeedFingerprint())]
+    local stored = sim.durable[apJournalKey()]
     check(stored ~= nil and stored:find("Glaive Beam", 1, true), "the journal is written to the module's memory")
 
     _G.apReceivedHistory = {}
@@ -128,6 +128,25 @@ test("journal: the items received survive a restart, per seed", function()
     sim.renderGui()
     check(sim.drawnText("Glaive Beam"), "and read back for the same seed")
     apToggleHud()
+end)
+
+test("journal: two slots of the same multiworld keep their own items", function()
+    sim.startRun(true)
+    sim.durable = {}
+    apContractResetForTesting()
+    applySeed({ seed_hash = "shared-seed" }, "Alice")
+    _G.apReceivedHistory = {}
+    apRecordReceived("Glaive Beam", "Axel", 0)
+    local alice = apJournalKey()
+
+    apContractResetForTesting()
+    applySeed({ seed_hash = "shared-seed" }, "Bob")
+    check(apJournalKey() ~= alice, "another slot, another journal")
+    apRecordReceived("Hull Repair", "Axel", 0)
+    local stored = sim.durable[apJournalKey()] or ""
+    check(stored:find("Hull Repair", 1, true) ~= nil, "Bob's item is in Bob's journal")
+    check(stored:find("Glaive Beam", 1, true) == nil, "and Alice's is not")
+    check((sim.durable[alice] or ""):find("Hull Repair", 1, true) == nil, "nor Bob's in Alice's")
 end)
 
 test("seed question: keeping the progress reconnects by itself", function()
