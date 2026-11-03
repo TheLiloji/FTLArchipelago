@@ -61,6 +61,21 @@ Archipelago one, and a dated copy is kept next to it.
   count as two).
 - Does the seed need Archives? The goal waits until you have enough of them.
 
+## I left an AP STORE without buying a package
+
+It is not lost. A package you did not buy stays in the shop and comes back at a later AP STORE. With
+**Archipelago Shop per Ship**, it comes back at an AP STORE of a ship it belongs to.
+
+## How many layouts does Layouts in the Seed give me?
+
+It is the total number of layouts you can fly, your starting layout and the Kestrel Cruiser A included. With 7,
+you get those two plus 5 more drawn at random. A Type B or C only comes with its ship's Type A.
+
+## Does one Progressive upgrade count for every ship?
+
+Yes, by default: one "Progressive Shields" raises the shields of all your ships. With **Progressive Upgrades per
+Ship**, each upgrade belongs to one ship ("Kestrel Cruiser: Progressive Shields") and counts for all its layouts.
+
 ## Steam put FTL back to 1.6.14 (Windows)
 
 A Steam update can undo the switch to 1.6.9. Install Hyperspace again with ftlman, apply, and copy the

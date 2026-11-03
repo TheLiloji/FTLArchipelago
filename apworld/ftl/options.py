@@ -265,10 +265,11 @@ class MagicHat(Choice):
 
 
 class LayoutCount(Range):
-    """How many ship layouts are in the seed, drawn at random among those Ship Layouts allows.
+    """How many ship layouts you can fly in this seed, in total: your starting layout and the Kestrel
+    Cruiser A count in it. 7 means those two plus 5 more, drawn at random among those Ship Layouts allows.
 
-    Your starting ship and the Kestrel Cruiser A are always in, and a Type B or C only comes with its
-    ship's Type A. The others are left out: no key, no check. Raised to Victories Required if lower.
+    A Type B or C only comes with its ship's Type A. The layouts left out have no key and no check.
+    Raised to Victories Required if lower, and never below the layouts that are always in.
     """
 
     display_name = "Layouts in the Seed"
@@ -598,7 +599,8 @@ class SystemBlueprints(DefaultOnToggle):
 class ProgressiveSystems(DefaultOnToggle):
     """Whether progressive system upgrades are items.
 
-    Each copy raises how far you may upgrade that system, up to the vanilla maximum.
+    Each copy raises how far you may upgrade that system, up to the vanilla maximum. By default one item
+    counts for every ship: "Progressive Shields" raises the shields of all of them.
     """
 
     display_name = "Progressive System Upgrades"
@@ -606,8 +608,9 @@ class ProgressiveSystems(DefaultOnToggle):
 
 class ProgressiveSystemsPerShip(Toggle):
     """With Progressive System Upgrades on: the upgrades belong to one ship each, like "Kestrel Cruiser:
-    Progressive Shields", and only raise that ship's systems. Many more items: when the shop would pass 400
-    slots, the last copies of useful items are left out instead of refusing the seed.
+    Progressive Shields", and only raise that ship's systems, whatever its layout (A, B or C). Off, one
+    "Progressive Shields" counts for every ship. Many more items: when the shop would pass 400 slots, the
+    last copies of useful items are left out instead of refusing the seed.
     """
 
     display_name = "Progressive Upgrades per Ship"
@@ -959,7 +962,8 @@ class ShopHints(Choice):
 
 class ShopPerShip(Choice):
     """Each package of the Archipelago shop belongs to one ship, and is only sold while you fly it.
-    This adds no packages: the shop's packages are split between the ships.
+    This adds no packages: the shop's packages are split between the ships in the seed. A package you
+    did not buy is not lost: it comes back at a later AP STORE of a ship it belongs to.
 
     off: every ship sees the whole shop.
     per_class: one owner per ship, whatever its layout (Kestrel).
