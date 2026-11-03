@@ -100,7 +100,7 @@ end
 
 local CONTRACT = 2
 
-local function applySeed(fields)
+local function applySeed(fields, slotName)
     local seed = {
         contract = CONTRACT, kinds = { "filler" }, kinds_required = {},
         items = {}, loc = {},
@@ -108,7 +108,7 @@ local function applySeed(fields)
     for key, value in pairs(fields or {}) do
         seed[key] = value
     end
-    local accepted = apApplySlotData(seed)
+    local accepted = apApplySlotData(seed, slotName)
     check(accepted ~= false, "the test seed is accepted by the contract")
     if accepted ~= false and _G.apRunSeedForTesting then apRunSeedForTesting(apSeedFingerprint()) end
     return accepted

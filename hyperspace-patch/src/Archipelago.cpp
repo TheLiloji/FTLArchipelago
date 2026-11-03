@@ -477,12 +477,19 @@ bool Client::RelaunchWhenClosed()
     const std::string start = fromSteam
         ? "Start-Process 'steam://rungameid/212680'"
         : "Start-Process -FilePath " + quoted(exe) + " -WorkingDirectory " + quoted(dir);
-    // Steam keeps the game "running" a few seconds after the process ends and refuses a launch meanwhile.
+    // Steam keeps the game "running" a few seconds after the process ends and refuses a launch meanwhile, for
+    // longer on a slow PC: the launch is tried again until the game's process shows up (seen on Windows, one
+    // switch out of two stayed closed).
     const std::string pause = fromSteam ? "6" : "1";
+    std::string name = exe.substr(exe.find_last_of("\\/") + 1);
+    const size_t dot = name.find_last_of('.');
+    if (dot != std::string::npos) name = name.substr(0, dot);
     std::string command =
         "powershell.exe -NoProfile -NonInteractive -WindowStyle Hidden -Command \""
         "Wait-Process -Id " + std::to_string(static_cast<unsigned long>(GetCurrentProcessId())) +
-        " -ErrorAction SilentlyContinue; Start-Sleep -Seconds " + pause + "; " + start + "\"";
+        " -ErrorAction SilentlyContinue; Start-Sleep -Seconds " + pause + "; "
+        "for ($i = 0; $i -lt 5; $i++) { " + start + "; Start-Sleep -Seconds 10; "
+        "if (Get-Process -Name " + quoted(name) + " -ErrorAction SilentlyContinue) { break } }\"";
 
     STARTUPINFOA startup;
     ZeroMemory(&startup, sizeof(startup));
