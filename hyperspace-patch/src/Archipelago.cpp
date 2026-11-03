@@ -473,21 +473,23 @@ bool Client::RelaunchWhenClosed()
         return out + "'";
     };
 
-    const bool fromSteam = std::getenv("SteamAppId") != nullptr || std::getenv("SteamGameId") != nullptr;
-    const std::string start = fromSteam
-        ? "Start-Process 'steam://rungameid/212680'"
-        : "Start-Process -FilePath " + quoted(exe) + " -WorkingDirectory " + quoted(dir);
-    // Steam keeps the game "running" a few seconds after the process ends and refuses a launch meanwhile, for
-    // longer on a slow PC: the launch is tried again until the game's process shows up (seen on Windows, one
-    // switch out of two stayed closed).
-    const std::string pause = fromSteam ? "6" : "1";
+    // Always the game itself, even when Steam started it: the relauncher is a child of the game, and Steam counts
+    // the game as running while that child lives, so it refused every steam:// launch (seen on Windows, 3 out of
+    // 3). The launch is tried again until the game's process shows up.
     std::string name = exe.substr(exe.find_last_of("\\/") + 1);
     const size_t dot = name.find_last_of('.');
     if (dot != std::string::npos) name = name.substr(0, dot);
+    const std::string start = "Start-Process -FilePath " + quoted(exe) + " -WorkingDirectory " + quoted(dir);
+    // Wait-Process returned at once (both windows were open for 11 s): the wait polls the process itself, then
+    // every copy of the game, at most a minute.
     std::string command =
         "powershell.exe -NoProfile -NonInteractive -WindowStyle Hidden -Command \""
-        "Wait-Process -Id " + std::to_string(static_cast<unsigned long>(GetCurrentProcessId())) +
-        " -ErrorAction SilentlyContinue; Start-Sleep -Seconds " + pause + "; "
+        "for ($w = 0; $w -lt 200 -and (Get-Process -Id " +
+        std::to_string(static_cast<unsigned long>(GetCurrentProcessId())) +
+        " -ErrorAction SilentlyContinue); $w++) { Start-Sleep -Milliseconds 300 }; "
+        "for ($w = 0; $w -lt 200 -and (Get-Process -Name " + quoted(name) +
+        " -ErrorAction SilentlyContinue); $w++) { Start-Sleep -Milliseconds 300 }; "
+        "Start-Sleep -Seconds 1; "
         "for ($i = 0; $i -lt 5; $i++) { " + start + "; Start-Sleep -Seconds 10; "
         "if (Get-Process -Name " + quoted(name) + " -ErrorAction SilentlyContinue) { break } }\"";
 
