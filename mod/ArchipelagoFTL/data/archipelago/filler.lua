@@ -791,6 +791,8 @@ _G.apSupportedKinds = {
     ship = true, cap = true, start = true, filler = true, trap = true,
     weapon = true, drone = true, augment = true, shop = true, archive = true, crew = true, bundle = true,
     layout = true, progressive_ship = true, hat = true, pass = true,
+    -- Not delivered as such: the seed says its first Progressive items unlock their system (inventory.lua).
+    cap_unlock = true,
 }
 
 _G.apSupportedResources = {}

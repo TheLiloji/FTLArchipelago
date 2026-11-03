@@ -616,6 +616,15 @@ class ProgressiveSystemsPerShip(Toggle):
     display_name = "Progressive Upgrades per Ship"
 
 
+class ProgressiveUnlocksSystem(Toggle):
+    """With System Blueprints and Progressive System Upgrades on: the first Progressive item of a system also
+    unlocks that system, so it has no separate blueprint item. The next copies only raise its level. Fewer
+    items to wait for, so systems come sooner; a system with no Progressive item keeps its blueprint.
+    """
+
+    display_name = "Progressive Unlocks the System"
+
+
 class FullSystemUpgrades(Toggle):
     """Each Progressive system item gives every upgrade level of its system at once, instead of one level.
 
@@ -1183,6 +1192,7 @@ class FTLOptions(PerGameCommonOptions):
     fights_per_sector: FightsPerSector
     combat_check_scrap: CombatCheckScrap
     progressive_systems_per_ship: ProgressiveSystemsPerShip
+    progressive_unlocks_system: ProgressiveUnlocksSystem
     head_starts: HeadStarts
     trap_chance: TrapChance
     shop_weapons: ShopWeapons
@@ -1225,8 +1235,8 @@ ftl_option_groups = [
     ),
     OptionGroup(
         "Systems and Upgrades",
-        [SystemBlueprints, ProgressiveSystems, ProgressiveSystemsPerShip, FullSystemUpgrades, FreeUpgrades,
-         SystemInstall],
+        [SystemBlueprints, ProgressiveSystems, ProgressiveSystemsPerShip, ProgressiveUnlocksSystem,
+         FullSystemUpgrades, FreeUpgrades, SystemInstall],
         start_collapsed=True,
     ),
     OptionGroup(

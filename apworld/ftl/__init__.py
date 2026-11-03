@@ -86,6 +86,7 @@ class FTLWorld(World):
         else:
             self.shop_items = items.selected_shop_items(self.options, self.random)
         self.enabled_items = items.enabled_items(self.options, self.shop_items)
+        self.system_unlocks = items.system_unlocks(self.enabled_items, self.options)
         self.bundles = items.bundled_families(self.options, self.shop_items, self.random)
         if tracker is not None:
             self.bundles = {family: [tuple(data.SHOP_ITEMS_BY_BLUEPRINT[name] for name in bundle)
@@ -105,11 +106,23 @@ class FTLWorld(World):
         for message in self.logic.warnings:
             logging.getLogger("FTL").warning("FTL (%s) : %s", self.player_name, message)
 
+        # A blueprint given at the start stays a blueprint: its Progressive items only raise levels.
+        self.system_unlocks = {source: blueprint for source, blueprint in self.system_unlocks.items()
+                               if blueprint not in self.logic.starting_blueprints}
         for name in self.logic.starting_blueprints:
             self.push_precollected(self.create_item(name))
 
         for name in (*self.logic.early_blueprints, *self.logic.early_ship_keys):
-            self.multiworld.local_early_items[self.player][name] = 1
+            self.multiworld.local_early_items[self.player][self._unlocking_item(name)] = 1
+
+    def _unlocking_item(self, name: str) -> str:
+        """With Progressive Unlocks the System, a blueprint wanted early is the first Progressive item of its system,
+        the starting ship's own one when upgrades are per ship."""
+        sources = sorted(source for source, blueprint in self.system_unlocks.items() if blueprint == name)
+        if not sources:
+            return name
+        own = f"{self.start_ship.display}: "
+        return next((source for source in sources if source.startswith(own)), sources[0])
 
     def _check_option_combinations(self) -> None:
         """Refuses what would leave a slot unplayable, and says when an option is corrected or does nothing."""
@@ -237,6 +250,31 @@ class FTLWorld(World):
         if places:
             hint_data.setdefault(self.player, {}).update(places)
 
+    # Progressive Unlocks the System: the first copy of a Progressive item also counts as its system's blueprint,
+    # once, however many Progressive items of that system (one per ship) are held.
+    def _blueprint_credit(self, state, blueprint: str) -> int:
+        counts = state.prog_items[self.player]
+        return 1 if any(counts[name] > 0 for name, target in self.system_unlocks.items() if target == blueprint) else 0
+
+    def collect(self, state, item) -> bool:
+        blueprint = getattr(self, "system_unlocks", {}).get(item.name)
+        before = self._blueprint_credit(state, blueprint) if blueprint else 0
+        changed = super().collect(state, item)
+        if changed and blueprint:
+            state.prog_items[self.player][blueprint] += self._blueprint_credit(state, blueprint) - before
+        return changed
+
+    def remove(self, state, item) -> bool:
+        blueprint = getattr(self, "system_unlocks", {}).get(item.name)
+        before = self._blueprint_credit(state, blueprint) if blueprint else 0
+        changed = super().remove(state, item)
+        if changed and blueprint:
+            counts = state.prog_items[self.player]
+            counts[blueprint] += self._blueprint_credit(state, blueprint) - before
+            if counts[blueprint] <= 0:
+                del counts[blueprint]
+        return changed
+
     def fill_slot_data(self) -> Mapping[str, Any]:
         descriptors = {item.name: data.item_descriptor(item) for item in self._items_in_seed()}
         # Multiverse and the base game share blueprints: name each one as this seed's catalogue does.
@@ -254,6 +292,8 @@ class FTLWorld(World):
                 descriptor["k"] = data.KIND_PROGRESSIVE_SHIP
                 descriptor["bps"] = [layout.blueprint
                                      for layout in options.progressive_layouts(self.options, item.ship)]
+            if name in self.system_unlocks:
+                descriptor["ub"] = True
             if item.kind == data.KIND_BUNDLE:
                 members = self.bundles[item.family][int(name.rsplit(" ", 1)[1]) - 1]
                 descriptor["bps"] = [member.blueprint for member in members]
@@ -266,6 +306,10 @@ class FTLWorld(World):
             if data.ITEMS_BY_NAME[name].classification in (
                 "progression", "progression_skip_balancing", "useful")
         }
+        # A mod that does not know it would never unlock these systems: it refuses the seed instead.
+        if self.system_unlocks:
+            kinds.add(data.KIND_CAP_UNLOCK)
+            required_kinds.add(data.KIND_CAP_UNLOCK)
 
         slot_data: dict[str, Any] = {
             "contract": data.CONTRACT_VERSION,
@@ -336,6 +380,7 @@ class FTLWorld(World):
             "passes": {layout.blueprint: f"Sector Pass ({layout.display})" for layout in layouts},
             "checks": checks,
             "blueprint_items": sorted(item.name for item in data.ITEMS if item.group == data.GROUP_BLUEPRINTS),
+            "unlocks": dict(sorted(self.system_unlocks.items())),
         }
 
     def _tracker_data(self) -> dict[str, Any]:

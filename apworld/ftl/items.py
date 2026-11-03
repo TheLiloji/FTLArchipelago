@@ -28,6 +28,8 @@ ITEM_NAME_TO_ID: dict[str, int] = {item.name: item.code for item in data.ITEMS}
 
 
 def effective_classification(world: "FTLWorld", item: data.Item) -> str:
+    if item.name in getattr(world, "system_unlocks", {}):
+        return "progression"
     if item.group == data.GROUP_SYSTEM_LEVELS:
         options = getattr(world, "options", None)
         if options is not None and item.system in rules.systems_whose_levels_the_rules_read(options):
@@ -153,7 +155,20 @@ def enabled_items(options, shop_items: tuple[data.ShopItem, ...] = ()) -> tuple[
                 f"{item.name!r} belongs to group {group!r}, which items.enabled_items does not "
                 "know how to filter"
             )
-    return tuple(kept)
+    covered = set(system_unlocks(kept, options).values())
+    return tuple(item for item in kept if item.name not in covered)
+
+
+def system_unlocks(enabled, options) -> dict[str, str]:
+    """Progressive Unlocks the System: each Progressive item of the seed, and the blueprint its first copy gives."""
+    if not (options.progressive_unlocks_system and options.system_blueprints and options.progressive_systems):
+        return {}
+    return {
+        item.name: data.BLUEPRINT_ITEM_NAMES[item.system]
+        for item in enabled
+        if item.group in (data.GROUP_SYSTEM_LEVELS, data.GROUP_SHIP_SYSTEM_LEVELS)
+        and item.system in data.BLUEPRINT_ITEM_NAMES
+    }
 
 
 # Nice to have but not needed: when a seed has far more items than checks, these go first instead of

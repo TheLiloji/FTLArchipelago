@@ -273,6 +273,14 @@ local function receivedCounts()
     for _, name in pairs(state.receivedByIndex or {}) do
         counts[name] = (counts[name] or 0) + 1
     end
+    -- Progressive Unlocks the System: a Progressive item held counts as its blueprint, once.
+    local credited = {}
+    for source, blueprint in pairs(((state.logic or {}).unlocks) or {}) do
+        if (counts[source] or 0) > 0 and not credited[blueprint] then
+            credited[blueprint] = true
+            counts[blueprint] = (counts[blueprint] or 0) + 1
+        end
+    end
     return counts
 end
 
@@ -398,6 +406,7 @@ function apReceiveItem(itemName, sender, isReplay, index)
         tiers = descriptor.tiers,
         hat = descriptor.hat,
         n = descriptor.n or 1,
+        ub = descriptor.ub == true or nil,
         display = itemName,
         sender = sender,
         isReplay = isReplay == true,

@@ -76,6 +76,12 @@ you get those two plus 5 more drawn at random. A Type B or C only comes with its
 Yes, by default: one "Progressive Shields" raises the shields of all your ships. With **Progressive Upgrades per
 Ship**, each upgrade belongs to one ship ("Kestrel Cruiser: Progressive Shields") and counts for all its layouts.
 
+## I got a Progressive item but the system is still locked
+
+A Progressive item raises how far a system can be upgraded, its blueprint unlocks it. They are two items, so you
+can get levels before the system itself. Turn on **Progressive Unlocks the System** and the first Progressive item
+unlocks the system too.
+
 ## Steam put FTL back to 1.6.14 (Windows)
 
 A Steam update can undo the switch to 1.6.9. Install Hyperspace again with ftlman, apply, and copy the
