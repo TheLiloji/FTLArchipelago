@@ -1126,6 +1126,10 @@ function sim.startRun(newGame)
             sim.errors = (sim.errors or 0) + 1
         end
     end
+    -- Multiverse's own start event follows a new run, unless the test plays it itself.
+    if newGame ~= false and _G.apStartWipeEvent and not sim.holdStartEvent then
+        sim.gameEvent(_G.apStartWipeEvent)
+    end
 end
 
 function sim.jumpArrive(shipManager)
@@ -1207,6 +1211,7 @@ function sim.reset()
     sim.clearLog()
     sim.resetBlueprints()
     sim.started = false
+    sim.holdStartEvent = nil
     sim.ticks = 0
     sim.errors = 0
     resetWorld()
