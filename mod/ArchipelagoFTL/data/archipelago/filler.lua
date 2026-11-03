@@ -317,10 +317,38 @@ local function noRunStarted()
     return ok and not started
 end
 
+-- Multiverse's first event takes all scrap and fuel (game_mv.lua names it): what the seed gives at the start of a
+-- run waits for it, or it would be wiped. Kept in the run's save, set for a new run only.
+local function startWipeDue()
+    local ok, due = pcall(function() return Hyperspace.playerVariables.ap_start_wipe_due end)
+    return ok and math.floor(tonumber(due) or 0) == 1
+end
+
+if _G.apStartWipeEvent then
+    script.on_init(function(newGame)
+        if newGame then
+            pcall(function() Hyperspace.playerVariables.ap_start_wipe_due = 1 end)
+        end
+    end)
+    local function wipeOver()
+        if startWipeDue() then
+            pcall(function() Hyperspace.playerVariables.ap_start_wipe_due = 0 end)
+            fillerLog("start event over: run start resources can come")
+        end
+    end
+    script.on_game_event(_G.apStartWipeEvent, false, wipeOver)
+    -- A start that skips the event never blocks the run for good: the first jump ends the wait.
+    script.on_internal_event(Defines.InternalEvents.JUMP_ARRIVE, function(shipManager)
+        if shipManager.iShipId == 0 then
+            wipeOver()
+        end
+    end)
+end
+
 local function safeToDeliver()
     local ok, safe = pcall(function()
         local world = Hyperspace.App.world
-        if not world.bStartedGame then
+        if not world.bStartedGame or startWipeDue() then
             return false
         end
         local player = Hyperspace.ships.player
@@ -710,7 +738,7 @@ local function giveRunStartScrap()
     if not (_G.apInventorySynced and apInventorySynced()) then
         return
     end
-    if Hyperspace.ships.player == nil or noRunStarted() then
+    if Hyperspace.ships.player == nil or noRunStarted() or startWipeDue() then
         return
     end
     Hyperspace.playerVariables.ap_run_scrap_owed = 0
