@@ -330,6 +330,14 @@ local function owedCrew()
     return list
 end
 
+function apOwedCrewCount()
+    local count = 0
+    for _, entry in ipairs(owedCrew()) do
+        count = count + owedCount(entry.race, entry.skill)
+    end
+    return count
+end
+
 function apSeatOwedCrew()
     local player = Hyperspace.ships.player
     if player == nil then

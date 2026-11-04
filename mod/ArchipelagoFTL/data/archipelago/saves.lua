@@ -214,7 +214,7 @@ local function loadProfile(id)
     local relaunch = _G.apNetRelaunchWhenClosed and apNetRelaunchWhenClosed() or false
     status, statusTone = apT(relaunch and "saves.relaunch" or "saves.restart"), "good"
     savesLog("closing FTL to load " .. id .. (relaunch and ", relaunch planned" or ", relaunch by hand"))
-    pcall(function() Hyperspace.App:OnExit() end)
+    apQuitSoon(status, relaunch)
 end
 
 local function click(x, y)

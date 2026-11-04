@@ -101,6 +101,7 @@ Archipelago : les colis vendus aux balises BOUTIQUE AP, qui contiennent les obje
 | **Combat Checks per Ship** | Avec chaque vaisseau, les premiers combats gagnés d'une run envoient des checks. Ces combats rapportent moins de ferraille (**Combat Check Scrap**) |
 | **Victory Collects the Layout** | Ce qu'une victoire envoie en plus : `sectors` (par défaut) les checks de secteur du layout encore à faire, `everything` aussi les succès, les checks de systèmes et de combats de son vaisseau |
 | **Sector Logic** | Nouvelle valeur `power` : avant les secteurs lointains et le vaisseau amiral, la logique attend des couches de bouclier, des armes et des moteurs sur le vaisseau qui fait le check |
+| **Progressive Unlocks the System** | Désactivé par défaut. Le premier objet Progressive d'un système le débloque aussi, sans objet blueprint séparé : les systèmes arrivent plus tôt |
 
 ## Nouveau en 0.6
 

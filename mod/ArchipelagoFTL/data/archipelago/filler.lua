@@ -55,9 +55,34 @@ local TRAP_LIMITS = {
     pursuitCeiling = 6,
     boardingCrewFloor = 2,
     fightTrapCeiling = 2,
+    -- Air and a hole in the hull together kill a crew at a quiet beacon, with nothing to react to.
+    drainAirWithBreach = 40,
+    breachAirFloor = 40,
 }
 
 _G.apTrapLimits = TRAP_LIMITS
+
+-- The ship's air in percent, nil without an oxygen system.
+local function shipAir(player)
+    local oxygen = player.oxygenSystem
+    if oxygen == nil then
+        return nil
+    end
+    local levels = oxygen.oxygenLevels
+    if levels:size() == 0 then
+        return nil
+    end
+    local total = 0
+    for room = 0, levels:size() - 1 do
+        total = total + levels[room]
+    end
+    return total / levels:size()
+end
+
+local function hullBreached(player)
+    local ok, breached = pcall(function() return player.ship:GetHullBreaches(true):size() > 0 end)
+    return ok and breached
+end
 
 local TRAP_DELIVERY = {
     fire = function(player)
@@ -71,6 +96,9 @@ local TRAP_DELIVERY = {
     -- A breach the game draws in a room, the way a hit opens one; a damage with no damage points opens none.
     -- BreachRandomHull says nothing back in Lua (seen in game): one call, one breach.
     breach = function(player)
+        if (shipAir(player) or 100) < TRAP_LIMITS.breachAirFloor then
+            return nil
+        end
         local room = apRandomRoomId(player)
         if room ~= nil then
             local ok = pcall(function() player.ship:BreachRandomHull(room) end)
@@ -144,18 +172,26 @@ local TRAP_DELIVERY = {
               n = amount }
     end,
     -- Every room loses its air at once and the oxygen system fills the ship again. Never without a working
-    -- oxygen system: the crew would have nothing left to breathe.
+    -- oxygen system: the crew would have nothing left to breathe, so a fire takes its place and the player is
+    -- told why. With the hull breached, each room keeps some air.
     o2_drain = function(player)
         local oxygen = player.oxygenSystem
         if oxygen == nil or not oxygen:Functioning() then
-            return nil
+            local room = apRandomRoomId(player)
+            if room == nil then
+                return nil
+            end
+            player:StartFire(room)
+            return "trap.o2_drain.down", { room = room }
         end
+        local breached = hullBreached(player)
+        local floor = breached and TRAP_LIMITS.drainAirWithBreach or 0
         -- Not EmptyOxygen: Hyperspace makes it do nothing outside the ship builder (seen in game).
         local levels = oxygen.oxygenLevels
         for room = 0, levels:size() - 1 do
-            oxygen:ModifyRoomOxygen(room, -levels[room])
+            oxygen:ModifyRoomOxygen(room, -math.max(0, levels[room] - floor))
         end
-        return "trap.o2_drain"
+        return breached and "trap.o2_drain.breach" or "trap.o2_drain"
     end,
     hull_damage = function(player)
         local hull = player.ship.hullIntegrity

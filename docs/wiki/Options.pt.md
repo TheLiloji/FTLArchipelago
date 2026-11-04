@@ -93,6 +93,7 @@ vendidos nos faróis LOJA AP, com objetos de outros jogadores.
 | **Combat Checks per Ship** | Com cada nave, os primeiros combates ganhos numa partida enviam checks. Esses combates dão menos sucata (**Combat Check Scrap**) |
 | **Victory Collects the Layout** | O que uma vitória envia a mais: `sectors` (por omissão) os checks de setor do layout ainda por fazer, `everything` também as conquistas e os checks de sistemas e de combates da sua nave |
 | **Sector Logic** | Novo valor `power`: antes dos setores distantes e da nave-almirante, a lógica espera camadas de escudo, armas e motores na nave que faz o check |
+| **Progressive Unlocks the System** | Desativado por padrão. O primeiro item Progressive de um sistema também o desbloqueia, sem item de planta separado: os sistemas chegam mais cedo |
 
 ## Opções para especialistas
 

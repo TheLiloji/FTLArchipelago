@@ -93,6 +93,7 @@ venduti ai beacon NEGOZIO AP, con oggetti di altri giocatori.
 | **Combat Checks per Ship** | Con ogni nave, i primi combattimenti vinti in una partita mandano check. Quei combattimenti danno meno rottami (**Combat Check Scrap**) |
 | **Victory Collects the Layout** | Cosa manda in più una vittoria: `sectors` (predefinito) i check di settore del layout ancora da fare, `everything` anche gli obiettivi e i check di sistemi e di combattimenti della sua nave |
 | **Sector Logic** | Nuovo valore `power`: prima dei settori lontani e della nave ammiraglia, la logica si aspetta strati di scudo, armi e motori sulla nave che fa il check |
+| **Progressive Unlocks the System** | Disattivata di default. Il primo oggetto Progressive di un sistema lo sblocca anche, senza un oggetto progetto separato: i sistemi arrivano prima |
 
 ## Opzioni per esperti
 

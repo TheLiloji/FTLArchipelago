@@ -481,13 +481,16 @@ bool Client::RelaunchWhenClosed()
     if (dot != std::string::npos) name = name.substr(0, dot);
     const std::string start = "Start-Process -FilePath " + quoted(exe) + " -WorkingDirectory " + quoted(dir);
     // Wait-Process returned at once (both windows were open for 11 s): the wait polls the process itself, then
-    // every copy of the game, at most a minute.
+    // every copy of the game. A game still there after 12 s is stuck closing (seen: a frozen menu for a minute):
+    // its profile is already switched, it is ended.
     std::string command =
         "powershell.exe -NoProfile -NonInteractive -WindowStyle Hidden -Command \""
-        "for ($w = 0; $w -lt 200 -and (Get-Process -Id " +
+        "for ($w = 0; $w -lt 40 -and (Get-Process -Id " +
         std::to_string(static_cast<unsigned long>(GetCurrentProcessId())) +
         " -ErrorAction SilentlyContinue); $w++) { Start-Sleep -Milliseconds 300 }; "
-        "for ($w = 0; $w -lt 200 -and (Get-Process -Name " + quoted(name) +
+        "Stop-Process -Id " + std::to_string(static_cast<unsigned long>(GetCurrentProcessId())) +
+        " -Force -ErrorAction SilentlyContinue; "
+        "for ($w = 0; $w -lt 20 -and (Get-Process -Name " + quoted(name) +
         " -ErrorAction SilentlyContinue); $w++) { Start-Sleep -Milliseconds 300 }; "
         "Start-Sleep -Seconds 1; "
         "for ($i = 0; $i -lt 5; $i++) { " + start + "; Start-Sleep -Seconds 10; "
@@ -646,7 +649,7 @@ bool Client::Connect(const std::string& uri, const std::string& slot, const std:
     ap->set_socket_connected_handler([ap, impl]() {
         try {
             ap->ConnectSlot(impl->slot, impl->password, kItemsHandling,
-                            {"DeathLink", "TrapLink"}, {0, 5, 0});
+                            {"DeathLink", "TrapLink"}, {0, 6, 7});
         } catch (const std::exception& err) {
             Event e;
             e.kind = "error";

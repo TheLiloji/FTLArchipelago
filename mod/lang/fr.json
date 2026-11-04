@@ -137,8 +137,8 @@
     "dash.tile.starts": "BONUS DE DÉPART",
     "dash.tile.systems": "SYSTÈMES",
     "deal.backfired": "+{scrap} de ferraille. Personne dehors pour encaisser : le pacte vous frappera au prochain combat.",
-    "deal.blood.risk": "Et {chance} % du temps, un membre de votre équipage meurt pour de bon.\nAucune baie de clonage ne le ramène. Jamais le dernier.",
-    "deal.blood.taken": "Le pacte de sang emporte {name}. Aucune baie de clonage ne le ramènera.",
+    "deal.blood.risk": "Et {chance} % du temps, un membre de votre équipage meurt pour de bon.\nAucune salle des clones ne le ramène. Jamais le dernier.",
+    "deal.blood.taken": "Le pacte de sang emporte {name}. Aucune salle des clones ne le ramènera.",
     "deal.blood.title": "Pacte de sang : +{scrap}",
     "deal.body": "Vous touchez {scrap} de ferraille à la signature. En échange, l'un de ces malheurs se déclenche : incendie, brèche, fuite de carburant, avarie système ou coque endommagée.\n\nAvec Trap Link, deux fois sur trois c'est un autre joueur qui paie. Sinon c'est vous, au prochain combat. Vous ne le saurez qu'après avoir signé.",
     "deal.closed": "Ce pacte est déjà signé",
@@ -448,10 +448,14 @@
     "crew.seated": "{name} monte à bord : une place s'est libérée.",
     "dash.footer.hangar": "TAB ou Échap : fermer     Gauche / Droite ou 1-5 : pages     Molette : défiler",
     "dash.need_run": "Lancez une run pour voir ceci.",
+    "dash.run.crew_waiting": "Équipiers en attente d'une place : {n}",
     "dash.ships.filter": "Débloqués seulement (U)",
     "loadout.nothing_yet": "Menu de début de run : rien à choisir pour l'instant. Les armes et drones reçus deux fois, l'équipage et les systèmes apparaîtront ici.",
     "loadout.system.swap": "{name} (remplace {old})",
+    "restart.wait": "Cela peut prendre jusqu'à une minute.",
     "trap.o2_drain": "Toutes les vannes se sont ouvertes d'un coup. Plus d'air à bord, le système d'oxygène remplit à nouveau le vaisseau.",
+    "trap.o2_drain.breach": "Toutes les vannes se sont ouvertes, mais la brèche a déclenché la sécurité : les salles gardent un peu d'air.",
+    "trap.o2_drain.down": "Le système d'oxygène est hors service, pas d'air à voler : un incendie se déclare en salle {room} à la place.",
     "trap.title.o2_drain": "Piège à oxygène"
   }
 }

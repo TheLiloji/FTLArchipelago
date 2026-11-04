@@ -227,11 +227,12 @@ local function acceptReset()
         if relaunch and FIELDS[4].value ~= "" and _G.apNetRememberText then
             _G.apNetRememberText(RELAUNCH_PASSWORD_KEY, FIELDS[4].value)
         end
-        message, messageTone = apT(relaunch and "reset.relaunch" or "reset.asked"), "good"
+        local closingKey = profilesOn() and (relaunch and "saves.relaunch" or "saves.restart")
+            or (relaunch and "reset.relaunch" or "reset.asked")
+        message, messageTone = apT(closingKey), "good"
         connectLog((profilesOn() and "save switched for the next launch" or "profile erased, dated copy kept alongside")
             .. (relaunch and ", automatic relaunch planned" or ", relaunch by hand"))
-        local closed = pcall(function() Hyperspace.App:OnExit() end)
-        connectLog(closed and "game close requested" or "close failed, do it by hand")
+        apQuitSoon(message, relaunch)
     else
         message, messageTone = apT("reset.failed"), "warn"
         connectLog("reset failed: nothing was erased, progress is kept")
@@ -781,10 +782,55 @@ script.on_internal_event(Defines.InternalEvents.JUMP_ARRIVE, function()
     return Defines.Chain.CONTINUE
 end)
 
+-- FTL draws nothing more once it is told to close, and the closing can take a while: the player sees why the
+-- screen froze for a few frames first.
+local QUIT_AFTER_FRAMES = 3
+local quitting = nil
+
+local quitAfterFrames = QUIT_AFTER_FRAMES
+
+function apQuitFramesForTesting(frames)
+    quitAfterFrames = frames
+end
+
+local function drawQuitting()
+    local w, h = 620, 96
+    local x, y = math.floor((1280 - w) / 2), math.floor((720 - h) / 2)
+    apUi.rect(0, 0, 1280, 720, "shade")
+    apUi.rect(x, y, w, h, "window")
+    apUi.outline(x, y, w, h, "border", 2)
+    apUi.wrapped(12, x + 20, y + 18, w - 40, "title", quitting.text)
+    if quitting.relaunch then
+        apUi.text(10, x + 20, y + h - 26, w - 40, "dim", apT("restart.wait"))
+    end
+end
+
+local function followQuit()
+    pcall(drawQuitting)
+    quitting.frames = quitting.frames + 1
+    if quitting.frames >= quitAfterFrames then
+        if _G.apNetDisconnect then pcall(_G.apNetDisconnect) end
+        local closed = pcall(function() Hyperspace.App:OnExit() end)
+        connectLog(closed and "game close requested" or "close failed, do it by hand")
+        quitting = nil
+    end
+end
+
+function apQuitSoon(text, relaunch)
+    quitting = { text = tostring(text), relaunch = relaunch == true, frames = 0 }
+    if quitAfterFrames == 0 then
+        followQuit()
+    end
+end
+
 script.on_render_event(
     Defines.RenderEvents.MAIN_MENU,
     function() end,
     function()
+        if quitting then
+            followQuit()
+            return
+        end
         if not onMenu then
             pcall(resumeLast)
 
