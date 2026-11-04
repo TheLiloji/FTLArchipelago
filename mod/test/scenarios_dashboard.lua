@@ -802,3 +802,148 @@ test("EnergyLink: fuel the other players put in the shared reserve is announced,
     check(quiet, "our own deposit, already counted, is not taken for the others'")
     apEnergyLinkConfigure({ enabled = false })
 end)
+
+local function hangarWithSeed()
+    sim.started = true
+    sim.menuOpen = nil
+    sim.hangarOpen = true
+    dashboardSeed()
+end
+
+local function leaveHangar()
+    if apDashboardOpen() then apToggleHud() end
+    sim.hangarOpen = false
+end
+
+test("dashboard: TAB in the hangar opens it on the ships page, without pausing, and TAB or Esc closes it", function()
+    hangarWithSeed()
+    local gui = Hyperspace.App.gui
+    gui.bPaused = false
+    sim.keyDown(Defines.SDL.KEY_TAB)
+    check(apDashboardOpen(), "TAB opens it in the hangar")
+    sim.renderMenu()
+    check(sim.drawnText(apT("dash.ships.header", { done = 0, total = 28 }):sub(1, 10)), "on the ships page")
+    check(sim.drawnText(apT("dash.footer.hangar")), "and the footer does not say the game is paused")
+    equals(gui.bPaused, false, "there is no game to pause")
+    sim.keyDown(Defines.SDL.KEY_TAB)
+    check(not apDashboardOpen(), "TAB closes it")
+    sim.keyDown(Defines.SDL.KEY_TAB)
+    sim.keyDown(Defines.SDL.KEY_ESCAPE)
+    check(not apDashboardOpen(), "Esc closes it")
+    equals(gui.bPaused, false, "and nothing was left paused")
+    leaveHangar()
+end)
+
+test("dashboard: TAB does nothing on the title screen or in the hangar without a seed", function()
+    sim.started = true
+    sim.menuOpen = nil
+    sim.hangarOpen = false
+    dashboardSeed()
+    sim.keyDown(Defines.SDL.KEY_TAB)
+    check(not apDashboardOpen(), "the title screen keeps TAB for the connection form")
+    apContractResetForTesting()
+    sim.hangarOpen = true
+    sim.keyDown(Defines.SDL.KEY_TAB)
+    check(not apDashboardOpen(), "no seed, no dashboard in the hangar")
+    leaveHangar()
+end)
+
+test("dashboard: what depends on the run says to start one in the hangar", function()
+    hangarWithSeed()
+    sim.keyDown(Defines.SDL.KEY_TAB)
+    for _, page in ipairs({ "overview", "systems" }) do
+        apDashboardPage(page)
+            sim.renderMenu()
+        check(apDashboardOpen(), page .. " draws without a run")
+        check(sim.drawnText(apT("dash.need_run")), page .. " says to start a run")
+    end
+    leaveHangar()
+end)
+
+test("dashboard: starting a run with it open closes it and the run plays", function()
+    hangarWithSeed()
+    sim.keyDown(Defines.SDL.KEY_TAB)
+    sim.hangarOpen = false
+    sim.startRun(true)
+    check(not apDashboardOpen(), "the run starts with the dashboard closed")
+    local gui = Hyperspace.App.gui
+    gui.bPaused = false
+    sim.keyDown(Defines.SDL.KEY_TAB)
+    equals(gui.bPaused, true, "in the run TAB pauses again")
+    sim.keyDown(Defines.SDL.KEY_TAB)
+    equals(gui.bPaused, false, "and resumes")
+end)
+
+test("dashboard: the title screen closes a dashboard left open in the hangar", function()
+    hangarWithSeed()
+    sim.keyDown(Defines.SDL.KEY_TAB)
+    sim.hangarOpen = false
+    sim.renderMenu()
+    check(not apDashboardOpen(), "closed once the hangar is gone")
+end)
+
+local function shipsDrawn()
+    local names = {}
+    sim.renderMenu()
+    for _, draw in ipairs(sim.draws) do
+        names[#names + 1] = tostring(draw.text)
+    end
+    return names
+end
+
+local function positionOf(names, wanted)
+    for index, name in ipairs(names) do
+        if name == wanted then return index end
+    end
+    return nil
+end
+
+test("dashboard: ships go by checks left, none left at the very end, and U or the button hides the locked ones", function()
+    hangarWithSeed()
+    apDashboardResetFilterForTesting()
+    local label = function(name) return apShipLabel(name) end
+    _G.apInventory.ships = { "PLAYER_SHIP_HARD", "PLAYER_SHIP_FED", "PLAYER_SHIP_STEALTH" }
+    local contract = _G.apContractState
+    contract.locNames = {
+        ["PLAYER_SHIP_FED:sector:2"] = "a",
+        ["PLAYER_SHIP_HARD:sector:2"] = "b", ["PLAYER_SHIP_HARD:sector:3"] = "c",
+        ["PLAYER_SHIP_ROCK:sector:2"] = "d", ["PLAYER_SHIP_ROCK:sector:3"] = "e", ["PLAYER_SHIP_ROCK:sector:4"] = "f",
+    }
+    sim.keyDown(Defines.SDL.KEY_TAB)
+    local names = shipsDrawn()
+    check(positionOf(names, label("PLAYER_SHIP_HARD")) < positionOf(names, label("PLAYER_SHIP_FED")),
+        "the most checks left comes first")
+    check(positionOf(names, label("PLAYER_SHIP_FED")) < positionOf(names, label("PLAYER_SHIP_STEALTH")),
+        "a ship with nothing left goes last")
+    check(positionOf(names, label("PLAYER_SHIP_ROCK")) == nil, "from the hangar, ships not unlocked are hidden")
+
+    sim.keyDown(Defines.SDL.KEY_u)
+    names = shipsDrawn()
+    check(positionOf(names, label("PLAYER_SHIP_ROCK")) ~= nil, "U shows them again")
+    check(positionOf(names, label("PLAYER_SHIP_FED")) < positionOf(names, label("PLAYER_SHIP_ROCK")),
+        "after what can be flown, even with more checks left")
+    check(positionOf(names, label("PLAYER_SHIP_ROCK")) < positionOf(names, label("PLAYER_SHIP_STEALTH")),
+        "but before what has nothing left")
+
+    local filter = apDashboardAreaForTesting("filter:1")
+    sim.click(filter.x + 4, filter.y + 4)
+    names = shipsDrawn()
+    check(positionOf(names, label("PLAYER_SHIP_ROCK")) == nil, "the button hides them")
+    _G.apInventory.ships = {}
+    apDashboardResetFilterForTesting()
+    leaveHangar()
+end)
+
+test("dashboard: from a run the ships page keeps every ship, until the filter is asked for, and it stays", function()
+    apDashboardResetFilterForTesting()
+    sim.startRun(true)
+    dashboardSeed()
+    openDashboard("ships")
+    check(sim.drawnText(apShipLabel("PLAYER_SHIP_ROCK")), "a run lists the ships not unlocked")
+    sim.keyDown(Defines.SDL.KEY_u)
+    closeDashboard()
+    openDashboard("ships")
+    check(not sim.drawnText(apShipLabel("PLAYER_SHIP_ROCK")), "the choice holds when it opens again")
+    closeDashboard()
+    apDashboardResetFilterForTesting()
+end)
