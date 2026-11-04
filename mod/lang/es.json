@@ -449,6 +449,10 @@
     "energylink.others": "Otros jugadores pusieron {n} de combustible en la reserva compartida.",
     "crew.waiting": "{name} espera un sitio libre y sube a bordo en cuanto tu tripulación tenga espacio.",
     "crew.seated": "{name} sube a bordo: se ha liberado un sitio.",
+    "dash.footer.hangar": "TAB o Esc: cerrar     Izquierda / Derecha o 1-5: páginas     Rueda: desplazar",
+    "dash.need_run": "Empieza una partida para ver esto.",
+    "dash.ships.filter": "Solo desbloqueadas (U)",
+    "loadout.nothing_yet": "Menú de inicio: aún no hay nada que elegir. Aquí aparecerán las armas y drones recibidos dos veces, la tripulación y los sistemas.",
     "loadout.system.swap": "{name} (sustituye {old})",
     "trap.o2_drain": "Todas las válvulas se abrieron a la vez. No queda aire, el sistema de oxígeno vuelve a llenar la nave.",
     "trap.title.o2_drain": "Trampa de oxígeno"

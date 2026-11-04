@@ -441,6 +441,21 @@ local function handleClick(x, y)
     return ui.inside(PANEL, x, y)
 end
 
+-- Said once a session: a seed starts empty for many runs, and the player only needs to learn it once.
+local toldNothingYet = false
+local function sayNothingYet()
+    local contract = _G.apContractState
+    if toldNothingYet or contract == nil or contract.connected ~= true then
+        return
+    end
+    toldNothingYet = true
+    if _G.apNotifyStatus then apNotifyStatus(apT("loadout.nothing_yet")) end
+end
+
+function apLoadoutResetToldForTesting()
+    toldNothingYet = false
+end
+
 script.on_init(function(newGame)
     taken = {}
     pages = {}
@@ -504,6 +519,7 @@ script.on_render_event(
         if pending and not open and uiFree() and runCounts() then
             if catalogEmpty(receivedCatalog()) then
                 pending = false
+                sayNothingYet()
             else
                 open = true
                 menuLog("start-of-run menu opened")

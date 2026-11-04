@@ -562,7 +562,7 @@ local function resetWorld()
             menu = setmetatable({}, {
                 __index = function(_, key)
                     if key == "shipBuilder" then return { bOpen = sim.hangarOpen == true } end
-                    if key == "bOpen" then return sim.menuOpen ~= false end
+                    if key == "bOpen" then return sim.menuOpen == nil or sim.menuOpen == true end
                     if key == "bScoreScreen" then return sim.subScreen == "scores" end
                     if key == "bCreditScreen" then return sim.subScreen == "credits" end
                     if key == "bSelectSave" then return sim.subScreen == "sauvegardes" end
@@ -1003,6 +1003,10 @@ function sim.renderGui()
 end
 
 function sim.renderMenu()
+    -- Drawing the menu means the run is over, unless the test closed the menu itself.
+    if sim.menuOpen == "closed by the run" then
+        sim.menuOpen = nil
+    end
     replayRender("MAIN_MENU")
 end
 
@@ -1126,6 +1130,7 @@ end
 
 function sim.startRun(newGame)
     sim.started = true
+    sim.menuOpen = "closed by the run"
     if newGame ~= false then
         sim.runVariables = {}
     end

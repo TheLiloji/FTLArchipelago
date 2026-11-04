@@ -14,7 +14,7 @@ FTL_KEY_ROLES = {
 }
 
 LETTER = re.compile(r"Defines\.SDL\.KEY_([a-z])\b")
-GUARD_MARKERS = ("not keyAllowed(", "if not onMenu")
+GUARD_MARKERS = ("not keyAllowed(", "if not onMenu", "if not state.open")
 GUARD_DEFINITION = "keyAllowed"
 BLOCK_START = re.compile(r"^(?:local\s+)?function\s+([A-Za-z_][A-Za-z0-9_.]*)|^script\.")
 

@@ -83,6 +83,38 @@ test("start-of-run menu: nothing to offer, nothing on screen", function()
     check(not menuShown(), "a weapon received only once is not yet in the menu")
 end)
 
+local function saidNothingYet()
+    local count = 0
+    for _, toast in ipairs(apToastsForTesting()) do
+        if toast.text == apT("loadout.nothing_yet") then count = count + 1 end
+    end
+    return count
+end
+
+test("start-of-run menu: with nothing to offer it says so once, and only for a connected run", function()
+    apNotifyResetForTesting()
+    apLoadoutResetToldForTesting()
+    apContractResetForTesting()
+    catalog({})
+    sim.startRun(true)
+    menuShown()
+    equals(saidNothingYet(), 0, "no seed, no message")
+    applySeed({ goal = { kind = "victories", count = 1 } })
+    catalog({})
+    sim.startRun(true)
+    menuShown()
+    equals(saidNothingYet(), 1, "a connected run is told why no menu opens")
+    sim.startRun(true)
+    menuShown()
+    equals(saidNothingYet(), 1, "and only once")
+    catalog({ LASER_BURST_3 = 2 })
+    apLoadoutResetToldForTesting()
+    apNotifyResetForTesting()
+    sim.startRun(true)
+    menuShown()
+    equals(saidNothingYet(), 0, "a menu with something in it needs no message")
+end)
+
 test("start-of-run menu: a click gives the weapon, only one per run", function()
     catalog({ LASER_BURST_3 = 2, BEAM_2 = 2 })
     sim.startRun(true)
