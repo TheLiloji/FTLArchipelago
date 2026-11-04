@@ -95,6 +95,7 @@ Archipelago: los paquetes que se venden en las balizas TIENDA AP, con objetos de
 | **Combat Checks per Ship** | Con cada nave, los primeros combates ganados en una partida envían checks. Esos combates dan menos chatarra (**Combat Check Scrap**) |
 | **Victory Collects the Layout** | Lo que una victoria envía además: `sectors` (por defecto) los checks de sector del layout aún pendientes, `everything` también los logros y los checks de sistemas y de combates de su nave |
 | **Sector Logic** | Nuevo valor `power`: antes de los sectores lejanos y de la nave insignia, la lógica espera capas de escudo, armas y motores en la nave que hace el check |
+| **Progressive Unlocks the System** | Desactivado por defecto. El primer objeto Progressive de un sistema también lo desbloquea, sin objeto de plano aparte: los sistemas llegan antes |
 
 ## Opciones para expertos
 

@@ -196,6 +196,10 @@ local function makeShip(shipId)
     end
     function ship:StartFire(roomId) self._fires[#self._fires + 1] = roomId end
     ship._breachRooms = {}
+    function ship.ship:GetHullBreaches(onlyDamaged)
+        return vector(sim.hullBreaches or {})
+    end
+
     function ship.ship:BreachRandomHull(roomId)
         ship._breaches = ship._breaches + 1
         ship._breachRooms[#ship._breachRooms + 1] = roomId
@@ -1223,6 +1227,7 @@ function sim.clearLog()
 end
 
 function sim.reset()
+    if _G.apQuitFramesForTesting then apQuitFramesForTesting(0) end
     sim.clearLog()
     sim.resetBlueprints()
     sim.started = false

@@ -1009,6 +1009,29 @@ test("dashboard: ships go by checks left, none left at the very end, and U or th
     leaveHangar()
 end)
 
+test("dashboard: checks left count every layout of a class, and a class with an underscore in its name", function()
+    sim.startRun(true)
+    applySeed({
+        goal = { kind = "victories", count = 1 },
+        layouts = { "PLAYER_SHIP_HARD" },
+        loc = { ["PLAYER_SHIP_HARD:victory"] = "a", ["PLAYER_SHIP_HARD_2:victory"] = "b",
+                ["PLAYER_SHIP_HARD_3:sector:2"] = "c" },
+    })
+    openDashboard("ships")
+    check(sim.drawnText(apT("dash.ships.remaining", { n = 3 })), "A, B and C count for the class")
+    closeDashboard()
+    local saved = _G.apGameData.ships
+    _G.apGameData.ships = { { name = "PLAYER_SHIP_AUTO_FED", layouts = 1 } }
+    applySeed({
+        goal = { kind = "victories", count = 1 },
+        loc = { ["PLAYER_SHIP_AUTO_FED:victory"] = "a", ["PLAYER_SHIP_AUTO_FED_2:victory"] = "b" },
+    })
+    openDashboard("ships")
+    _G.apGameData.ships = saved
+    check(sim.drawnText(apT("dash.ships.remaining", { n = 2 })), "the whole name counts")
+    closeDashboard()
+end)
+
 test("dashboard: from a run the ships page keeps every ship, until the filter is asked for, and it stays", function()
     apDashboardResetFilterForTesting()
     sim.startRun(true)
@@ -1021,4 +1044,15 @@ test("dashboard: from a run the ships page keeps every ship, until the filter is
     check(not sim.drawnText(apShipLabel("PLAYER_SHIP_ROCK")), "the choice holds when it opens again")
     closeDashboard()
     apDashboardResetFilterForTesting()
+end)
+
+test("dashboard: the run card counts the crew waiting for a free seat", function()
+    sim.startRun(true)
+    dashboardSeed()
+    local restore = _G.apOwedCrewCount
+    _G.apOwedCrewCount = function() return 2 end
+    openDashboard("overview")
+    _G.apOwedCrewCount = restore
+    check(sim.drawnText(apT("dash.run.crew_waiting", { n = 2 })), "the wait stays visible after the message")
+    closeDashboard()
 end)

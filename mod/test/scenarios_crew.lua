@@ -71,6 +71,7 @@ test("received crew member, full crew: waits for a free seat and in the menu, no
     drain()
     equals(#apInventory.crew, 1, "the catalog keeps it")
     check(shownKey("crew.waiting"), "and the player knows it waits for a seat")
+    equals(apOwedCrewCount(), 1, "and it is counted for the dashboard")
     local before = sim.player.vCrewList:size()
     sim.player._crewCap = nil
     sim.tick(61)

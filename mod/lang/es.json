@@ -140,7 +140,7 @@
     "dash.tile.starts": "BONOS INICIALES",
     "dash.tile.systems": "SISTEMAS",
     "deal.backfired": "+{scrap} de chatarra. No hay nadie más que pague el precio: el pacto te golpeará en tu próximo combate.",
-    "deal.blood.risk": "Y el {chance} % de las veces, un tripulante muere para siempre.\nNinguna bahía de clonación lo trae de vuelta. Nunca el último.",
+    "deal.blood.risk": "Y el {chance} % de las veces, un tripulante muere para siempre.\nNinguna sala de clonación lo trae de vuelta. Nunca el último.",
     "deal.blood.taken": "El pacto de sangre se lleva a {name}. Ninguna bahía clon lo traerá de vuelta.",
     "deal.blood.title": "Pacto de sangre: +{scrap}",
     "deal.body": "Recibes {scrap} de chatarra al firmar. A cambio, ocurre una de estas cosas: incendio, brecha, fuga de combustible, avería o daño al casco.\n\nCon Trap Link, dos de cada tres veces le ocurre a otro jugador. Si no, te ocurre a ti, en tu próximo combate. Solo lo sabrás después de firmar.",
@@ -451,10 +451,14 @@
     "crew.seated": "{name} sube a bordo: se ha liberado un sitio.",
     "dash.footer.hangar": "TAB o Esc: cerrar     Izquierda / Derecha o 1-5: páginas     Rueda: desplazar",
     "dash.need_run": "Empieza una partida para ver esto.",
+    "dash.run.crew_waiting": "Tripulantes esperando un sitio libre: {n}",
     "dash.ships.filter": "Solo desbloqueadas (U)",
     "loadout.nothing_yet": "Menú de inicio: aún no hay nada que elegir. Aquí aparecerán las armas y drones recibidos dos veces, la tripulación y los sistemas.",
     "loadout.system.swap": "{name} (sustituye {old})",
+    "restart.wait": "Esto puede tardar hasta un minuto.",
     "trap.o2_drain": "Todas las válvulas se abrieron a la vez. No queda aire, el sistema de oxígeno vuelve a llenar la nave.",
+    "trap.o2_drain.breach": "Todas las válvulas se abrieron, pero la brecha activó el seguro: las salas conservan algo de aire.",
+    "trap.o2_drain.down": "El sistema de oxígeno está caído, no hay aire que robar: en su lugar, un incendio en la sala {room}.",
     "trap.title.o2_drain": "Trampa de oxígeno"
   }
 }

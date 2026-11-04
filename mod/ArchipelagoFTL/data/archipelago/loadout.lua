@@ -377,9 +377,12 @@ local function draw()
                 end
                 local stats = (category == "weapon" or category == "drone") and statsLine(entry, category) or nil
                 if stats then
-                    ui.text(10, area.x + ICON_W + 16, area.y + 9, area.w - ICON_W - 24,
+                    -- A long name takes two lines: the first one rises, the stats stay where they are.
+                    local labelW = area.w - ICON_W - 24
+                    local tall = ui.width(10, entry.label) > labelW
+                    ui.textTwoLines(10, area.x + ICON_W + 16, area.y + (tall and 10 or 9), labelW, 14,
                         isChosen and "good" or (available and "text" or "dim"), entry.label)
-                    ui.text(9, area.x + ICON_W + 16, area.y + 27, area.w - ICON_W - 24, "dim", shortStats(entry))
+                    ui.text(9, area.x + ICON_W + 16, area.y + (tall and 31 or 27), labelW, "dim", shortStats(entry))
                 else
                     ui.textTwoLines(10, area.x + ICON_W + 16, area.y + 17, area.w - ICON_W - 24, 14,
                         isChosen and "good" or (available and "text" or "dim"), entry.label)

@@ -1259,10 +1259,46 @@ test("O2 drain trap: never without a working oxygen system, another trap instead
     oxygen.healthState.first = 0
     springTrapNow("o2_drain")
     equals(oxygen.oxygenLevels[0], 100, "a broken oxygen system keeps the air in")
-    check(not sim.logged("trap.o2_drain"), "and the drain did not happen")
     sim.player.oxygenSystem = nil
     springTrapNow("o2_drain")
     check(not sim.player.bDestroyed, "a ship without oxygen system takes another trap")
+end)
+
+test("O2 drain trap: a broken oxygen system lights a fire and says why", function()
+    sim.startRun(true)
+    apNotifyResetForTesting()
+    sim.player.oxygenSystem.healthState.first = 0
+    apQueueItem({ kind = "trap", eff = "o2_drain" })
+    drain()
+    local told = false
+    for room = 0, 20 do
+        told = told or shownKey("trap.o2_drain.down", { room = room })
+    end
+    check(told, "the player knows why it is a fire")
+end)
+
+test("O2 drain trap: with the hull breached the rooms keep some air", function()
+    sim.startRun(true)
+    apNotifyResetForTesting()
+    sim.hullBreaches = { {} }
+    local oxygen = sim.player.oxygenSystem
+    apQueueItem({ kind = "trap", eff = "o2_drain" })
+    drain()
+    sim.hullBreaches = nil
+    equals(oxygen.oxygenLevels[0], apTrapLimits.drainAirWithBreach, "the air stops at the floor")
+    check(shownKey("trap.o2_drain.breach"), "and the player is told")
+end)
+
+test("hull breach trap: not on a ship short of air, a fire instead", function()
+    sim.startRun(true)
+    local oxygen = sim.player.oxygenSystem
+    for room = 0, oxygen.oxygenLevels:size() - 1 do
+        oxygen:ModifyRoomOxygen(room, -100)
+    end
+    local before = sim.player.ship.breaches and #sim.player.ship.breaches or 0
+    springTrapNow("breach")
+    check(sim.logged("falling back to fire"), "the breach gives way to a fire")
+    equals(sim.player.ship.breaches and #sim.player.ship.breaches or 0, before, "no hole in the hull")
 end)
 
 test("TrapLink: an oxygen trap from another game drains the air", function()

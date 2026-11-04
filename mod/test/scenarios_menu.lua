@@ -738,3 +738,18 @@ test("sector skip: the extra pick says so, stays open when there is no room, and
     sim.renderGui()
     check(not apLoadoutOpen(), "closed with Finish, the extra pick is gone: it never comes back beacon after beacon")
 end)
+
+test("closing FTL for a save: the screen says so for a few frames first, and the link is closed before", function()
+    apQuitFramesForTesting(3)
+    sim.quitCalled = false
+    apQuitSoon(apT("saves.relaunch"), true)
+    sim.renderMenu()
+    check(not sim.quitCalled, "FTL is still open")
+    check(sim.drawnText(apT("saves.relaunch")), "and says what happens")
+    check(sim.drawnText(apT("restart.wait")), "and that it can take a while")
+    sim.renderMenu()
+    sim.renderMenu()
+    check(sim.quitCalled, "then it closes")
+    equals(sim.netCalls("Disconnect") > 0, true, "the connection went first")
+    apQuitFramesForTesting(0)
+end)

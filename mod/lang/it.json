@@ -140,8 +140,8 @@
     "dash.tile.starts": "BONUS INIZIALI",
     "dash.tile.systems": "SISTEMI",
     "deal.backfired": "+{scrap} di rottami. Nessuno là fuori per incassare: il patto ti colpirà nel prossimo combattimento.",
-    "deal.blood.risk": "E il {chance}% delle volte, un membro dell'equipaggio muore per sempre.\nNessuna baia di clonazione lo riporta indietro. Mai l'ultimo.",
-    "deal.blood.taken": "Il patto di sangue si prende {name}. Nessuna baia di clonazione lo riporterà indietro.",
+    "deal.blood.risk": "E il {chance}% delle volte, un membro dell'equipaggio muore per sempre.\nNessuna sala clonazione lo riporta indietro. Mai l'ultimo.",
+    "deal.blood.taken": "Il patto di sangue si prende {name}. Nessuna sala clonazione lo riporterà indietro.",
     "deal.blood.title": "Patto di sangue: +{scrap}",
     "deal.body": "Ricevi {scrap} rottami nel momento in cui firmi. In cambio, scatta una di queste: incendio, falla, perdita di carburante, avaria o danno allo scafo.\n\nCon Trap Link, due volte su tre tocca a un altro giocatore. Altrimenti tocca a te, nel prossimo scontro. Lo scoprirai solo dopo aver firmato.",
     "deal.closed": "Questo patto è già firmato",
@@ -451,10 +451,14 @@
     "crew.seated": "{name} sale a bordo: si è liberato un posto.",
     "dash.footer.hangar": "TAB o Esc: chiudi     Sinistra / Destra o 1-5: pagine     Rotella: scorri",
     "dash.need_run": "Inizia una partita per vederlo.",
+    "dash.run.crew_waiting": "Equipaggio in attesa di un posto: {n}",
     "dash.ships.filter": "Solo sbloccate (U)",
     "loadout.nothing_yet": "Menu di inizio partita: ancora niente da scegliere. Armi e droni ricevuti due volte, equipaggio e sistemi appariranno qui.",
     "loadout.system.swap": "{name} (sostituisce {old})",
+    "restart.wait": "Può richiedere fino a un minuto.",
     "trap.o2_drain": "Tutte le valvole si sono aperte insieme. L'aria è sparita, il sistema dell'ossigeno sta riempiendo di nuovo la nave.",
+    "trap.o2_drain.breach": "Tutte le valvole si sono aperte, ma la breccia ha attivato la sicura: le stanze conservano un po' d'aria.",
+    "trap.o2_drain.down": "Il sistema dell'ossigeno è fuori uso, niente aria da rubare: al suo posto, un incendio nella stanza {room}.",
     "trap.title.o2_drain": "Trappola dell'ossigeno"
   }
 }

@@ -171,7 +171,8 @@ local function shipRows()
             end
         end
         for key in pairs(book) do
-            local prefix = tostring(key):match("^(PLAYER_SHIP_[A-Z0-9_]-):")
+            -- A class name can hold an underscore itself (Multiverse's PLAYER_SHIP_AUTO_FED).
+            local prefix = tostring(key):match("^(PLAYER_SHIP_[%w_]+)")
             if prefix and prefix:gsub("_[23]$", "") == ship.name and not sentCheck(key) then
                 row.remaining = row.remaining + 1
             end
@@ -481,6 +482,10 @@ local function runLines()
         return { { key = "dash.need_run", tone = "dim" } }
     end
     local option = function(name) return tonumber(_G.apSeedOption and apSeedOption(name) or 0) or 0 end
+    local waiting = _G.apOwedCrewCount and apOwedCrewCount() or 0
+    if waiting > 0 then
+        lines[#lines + 1] = { key = "dash.run.crew_waiting", params = { n = waiting }, tone = "warn" }
+    end
     local status = hasSeed() and _G.apCombatStatus and apCombatStatus() or nil
     if status and status.total > 0 then
         local key = status.nextSends and "dash.run.fights.next" or "dash.run.fights"

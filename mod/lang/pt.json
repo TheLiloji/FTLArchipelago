@@ -140,8 +140,8 @@
     "dash.tile.starts": "BÓNUS INICIAIS",
     "dash.tile.systems": "SISTEMAS",
     "deal.backfired": "+{scrap} de sucata. Ninguém lá fora para receber: o pacto vai te atingir no seu próximo combate.",
-    "deal.blood.risk": "E em {chance}% das vezes, um tripulante morre de vez.\nNenhuma baía de clonagem o traz de volta. Nunca o último.",
-    "deal.blood.taken": "O pacto de sangue leva {name}. Nenhuma baía de clonagem o trará de volta.",
+    "deal.blood.risk": "E em {chance}% das vezes, um tripulante morre de vez.\nNenhuma sala de clonagem o traz de volta. Nunca o último.",
+    "deal.blood.taken": "O pacto de sangue leva {name}. Nenhuma sala de clonagem o trará de volta.",
     "deal.blood.title": "Pacto de sangue: +{scrap}",
     "deal.body": "Você recebe {scrap} de sucata no momento em que assina. Em troca, uma destas é disparada: incêndio, rombo, vazamento de combustível, avaria ou dano ao casco.\n\nCom Trap Link, duas em cada três vezes atinge outro jogador. Senão, atinge você, no seu próximo combate. Só vai saber depois de assinar.",
     "deal.closed": "Este pacto já está assinado",
@@ -451,10 +451,14 @@
     "crew.seated": "{name} embarca: um lugar ficou livre.",
     "dash.footer.hangar": "TAB ou Esc: fechar     Esquerda / Direita ou 1-5: páginas     Roda: deslizar",
     "dash.need_run": "Comece uma partida para ver isto.",
+    "dash.run.crew_waiting": "Tripulantes à espera de lugar: {n}",
     "dash.ships.filter": "Só desbloqueadas (U)",
     "loadout.nothing_yet": "Menu de início: ainda não há nada para escolher. Armas e drones recebidos duas vezes, tripulação e sistemas aparecerão aqui.",
     "loadout.system.swap": "{name} (substitui {old})",
+    "restart.wait": "Isto pode levar até um minuto.",
     "trap.o2_drain": "Todas as válvulas se abriram de uma vez. O ar acabou, o sistema de oxigênio está enchendo a nave de novo.",
+    "trap.o2_drain.breach": "Todas as válvulas abriram, mas a brecha ativou a segurança: as salas mantêm algum ar.",
+    "trap.o2_drain.down": "O sistema de oxigênio está fora de serviço, não há ar para roubar: em vez disso, um incêndio na sala {room}.",
     "trap.title.o2_drain": "Armadilha de oxigênio"
   }
 }

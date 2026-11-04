@@ -95,6 +95,7 @@ die Pakete an den AP-SHOP-Baken, die Gegenstände anderer Spieler enthalten.
 | **Combat Checks per Ship** | Mit jedem Schiff verschicken die ersten gewonnenen Kämpfe eines Runs Checks. Diese Kämpfe bringen weniger Schrott (**Combat Check Scrap**) |
 | **Victory Collects the Layout** | Was ein Sieg zusätzlich verschickt: `sectors` (Standard) die noch offenen Sektor-Checks des Layouts, `everything` auch die Errungenschaften, System- und Kampf-Checks seines Schiffs |
 | **Sector Logic** | Neuer Wert `power`: Vor tiefen Sektoren und dem Flaggschiff erwartet die Logik Schildschichten, Waffen und Antrieb auf dem Schiff, das den Check macht |
+| **Progressive Unlocks the System** | Standardmäßig aus. Der erste Progressive-Gegenstand eines Systems schaltet es auch frei, es gibt keinen eigenen Blaupausen-Gegenstand: Systeme kommen früher |
 
 ## Expertenoptionen
 
