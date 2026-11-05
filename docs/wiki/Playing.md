@@ -20,10 +20,14 @@ Once connected, the panel shows your checks and a **Disconnect** button, and the
 
 ![The seed change question](../images/seed-change.jpg)
 
-FTL can unlock a ship but never lock it again. So when you join a new seed with a profile that already played
-another one, the mod asks first. **Yes** keeps a dated copy of the profile, wipes the Archipelago progress and
-restarts FTL: the new seed starts clean. **No** keeps the old ships, which makes the new seed easier than it
-should be.
+FTL can unlock a ship but never lock it again. So each seed gets its own FTL save. When you join a new seed, the
+mod asks first. **Use its own save** restarts FTL on a fresh save for that seed, and the old one stays exactly as
+it was. **No, keep it** stays on the current save, offline.
+
+The **Saves** button on the panel lists them: one per seed, plus solo, with the checks and the last time played.
+**Load** restarts FTL on that save, run in progress included. Your FTL save without Archipelago is never touched.
+
+![The Archipelago saves window](../images/saves.png)
 
 ## The hangar
 
@@ -31,6 +35,9 @@ should be.
 
 Only the ships you own can be picked. The others stay locked until their key arrives, and new ships show up the
 next time you are back in the hangar, never in the middle of a run. Type B and C layouts are items of their own. In the ship list, a layout the seed left out is marked **NOT IN SEED**: it never unlocks.
+Press **TAB** in the hangar to open the dashboard on its Ships page: the ships with the most checks left come
+first, and those with nothing left go to the bottom. **U** or the button shows or hides the ships you do not own.
+
 FTL cannot unlock ships by itself: the mod refuses it, and locks again at the main menu a ship FTL unlocked
 before. If one is playable all the same, it is marked **NOT RECEIVED**, and a run with it counts for
 nothing, no checks and no victory.

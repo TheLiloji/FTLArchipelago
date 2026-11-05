@@ -449,6 +449,7 @@
     "energylink.others": "Andere Spieler haben {n} Treibstoff in die gemeinsame Reserve gelegt.",
     "crew.waiting": "{name} wartet auf einen freien Platz und kommt an Bord, sobald deine Crew Platz hat.",
     "crew.seated": "{name} kommt an Bord: ein Platz ist frei geworden.",
+    "crew.waiting.new": "Ein neues Crewmitglied wartet auf einen freien Platz und kommt an Bord, sobald Platz ist.",
     "dash.footer.hangar": "TAB oder Esc: schließen     Links / Rechts oder 1-5: Seiten     Mausrad: scrollen",
     "dash.need_run": "Starte einen Run, um das zu sehen.",
     "dash.run.crew_waiting": "Crew wartet auf einen freien Platz: {n}",

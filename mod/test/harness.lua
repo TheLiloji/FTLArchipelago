@@ -1227,7 +1227,7 @@ function sim.clearLog()
 end
 
 function sim.reset()
-    if _G.apQuitFramesForTesting then apQuitFramesForTesting(0) end
+    if _G.apQuitDelayForTesting then apQuitDelayForTesting(0) end
     sim.clearLog()
     sim.resetBlueprints()
     sim.started = false

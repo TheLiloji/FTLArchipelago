@@ -120,6 +120,21 @@ More in the wiki: [playing](docs/wiki/Playing.md), [options](docs/wiki/Options.m
 [Multiverse](docs/wiki/Multiverse.md),
 [hosting a seed](docs/wiki/Hosting-a-seed.md), [FAQ](docs/wiki/FAQ.md).
 
+## FTL: Multiverse
+
+Archipelago also runs on top of **FTL: Multiverse 5.5** as its own game, **FTL Multiverse** (`ftl_mv.apworld` and
+`FTLArchipelago-MV.ftl`, on the releases named `-mv`). Everything from the base mod is there, plus all the Multiverse
+ships, the Magic Hat to reroute to the sector you choose, Multiverse endings and ship quests as checks, and the
+AP STORE in the secret sectors too.
+
+| | |
+|---|---|
+| ![Multiverse main menu](docs/images/mv-main-menu.jpg) | ![AP STORE and Archipelago beacons on a Multiverse map](docs/images/mv-sector-map.jpg) |
+| ![Magic Hat destinations](docs/images/mv-magic-hat-secret.jpg) | ![The eighteen Multiverse races on the dashboard](docs/images/dashboard-first-crew-mv.png) |
+
+Install Hyperspace, the two Multiverse zips (Assets, then Data), then `FTLArchipelago-MV.ftl` last in ftlman, and put
+`ftl_mv.apworld` in `custom_worlds`.
+
 ## Languages
 
 English, French, Spanish, German, Italian and Portuguese, following FTL's own language. The French text was

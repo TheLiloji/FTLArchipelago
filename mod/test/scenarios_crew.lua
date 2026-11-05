@@ -404,3 +404,25 @@ test("DeathLink: a crew member left on the enemy ship when it goes is a death", 
     sent.restore()
     equals(sent.n, 1, "boarders lost with the enemy ship")
 end)
+
+test("New Crew Member with the crew full: the player is told once and the dashboard counts it", function()
+    sim.startRun(true)
+    apNotifyResetForTesting()
+    local full = sim.player.IsCrewFull
+    sim.player.IsCrewFull = function() return true end
+    apQueueItem({ kind = "filler", res = "crew", n = 1 })
+    sim.jumpArrive()
+    sim.tick(2)
+    sim.jumpArrive()
+    sim.tick(2)
+    equals(apOwedCrewCount(), 1, "it waits in the count")
+    local told = 0
+    for _, toast in ipairs(apToastsForTesting()) do
+        if toast.text == apT("crew.waiting.new") then told = told + 1 end
+    end
+    equals(told, 1, "one message, not one per try")
+    sim.player.IsCrewFull = full
+    sim.jumpArrive()
+    sim.tick(2)
+    equals(apOwedCrewCount(), 0, "and it boards once there is room")
+end)

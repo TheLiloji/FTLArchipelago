@@ -16,6 +16,21 @@ players' games. You get them from your friends, and you send them theirs by play
 - [Hosting a seed](Hosting-a-seed.md): generating and running a room with FTL in it
 - [FAQ and problems](FAQ.md)
 
+## FTL: Multiverse
+
+Archipelago also runs on top of **FTL: Multiverse 5.5** as its own game, **FTL Multiverse** (`ftl_mv.apworld` and
+`FTLArchipelago-MV.ftl`, on the releases named `-mv`). Everything from the base mod is there, plus all the Multiverse
+ships, the Magic Hat to reroute to the sector you choose, Multiverse endings and ship quests as checks, and the
+AP STORE in the secret sectors too.
+
+| | |
+|---|---|
+| ![Multiverse main menu](../images/mv-main-menu.jpg) | ![AP STORE and Archipelago beacons on a Multiverse map](../images/mv-sector-map.jpg) |
+| ![Magic Hat destinations](../images/mv-magic-hat-secret.jpg) | ![The eighteen Multiverse races on the dashboard](../images/dashboard-first-crew-mv.png) |
+
+Install Hyperspace, the two Multiverse zips (Assets, then Data), then `FTLArchipelago-MV.ftl` last in ftlman, and put
+`ftl_mv.apworld` in `custom_worlds`.
+
 ## In one minute
 
 1. Install Hyperspace and the mod with ftlman, then put this project's Hyperspace library in the game folder.

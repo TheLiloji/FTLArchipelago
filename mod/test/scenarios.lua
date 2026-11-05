@@ -1289,6 +1289,20 @@ test("O2 drain trap: with the hull breached the rooms keep some air", function()
     check(shownKey("trap.o2_drain.breach"), "and the player is told")
 end)
 
+test("O2 drain trap: a badly hurt crew member gets air back, a healthy one does not", function()
+    sim.startRun(true)
+    local oxygen = sim.player.oxygenSystem
+    local hurt, fine = sim.player.vCrewList[0], sim.player.vCrewList[1]
+    hurt.iRoomId, fine.iRoomId = 0, 1
+    hurt.health.first, hurt.health.second = 20, 100
+    fine.health.first, fine.health.second = 100, 100
+    apQueueItem({ kind = "trap", eff = "o2_drain" })
+    drain()
+    sim.tick(12)
+    check(oxygen.oxygenLevels[0] >= apTrapLimits.drainGuardAir, "the hurt one has air")
+    equals(oxygen.oxygenLevels[1], 0, "the other room stays empty")
+end)
+
 test("hull breach trap: not on a ship short of air, a fire instead", function()
     sim.startRun(true)
     local oxygen = sim.player.oxygenSystem

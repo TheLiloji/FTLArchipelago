@@ -449,6 +449,7 @@
     "energylink.others": "Other players put {n} fuel in the shared reserve.",
     "crew.waiting": "{name} waits for a free seat and comes aboard as soon as your crew has room.",
     "crew.seated": "{name} comes aboard: a seat was free.",
+    "crew.waiting.new": "A new crew member waits for a free seat and comes aboard as soon as your crew has room.",
     "dash.footer.hangar": "TAB or Esc: close     Left / Right or 1-5: pages     Wheel: scroll",
     "dash.need_run": "Start a run to see this.",
     "dash.run.crew_waiting": "Crew waiting for a free seat: {n}",

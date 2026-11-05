@@ -88,6 +88,20 @@ function apSavesDescribe()
         return
     end
     local solo = _G.apSoloEnabled == true
+    -- A refused seed leaves its slot name behind while this save still belongs to another one.
+    if not solo then
+        local contract = _G.apContractState
+        if contract == nil or contract.connected ~= true then
+            return
+        end
+        if _G.apSeedChangeLeftovers and apSeedChangeLeftovers() then
+            return
+        end
+        local current = apSavesCurrent()
+        if current:sub(1, 5) == "seed-" and current ~= apSavesIdFor(apSeedFingerprint()) then
+            return
+        end
+    end
     local label
     if solo then
         label = apT("saves.solo")

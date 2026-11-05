@@ -739,17 +739,43 @@ test("sector skip: the extra pick says so, stays open when there is no room, and
     check(not apLoadoutOpen(), "closed with Finish, the extra pick is gone: it never comes back beacon after beacon")
 end)
 
+test("save profiles: a refused seed does not rename the save in use", function()
+    sim.profiles.on = true
+    sim.profiles.current = "seed-1"
+    sim.profiles.details = { ["seed-1.label"] = "Captain on A", ["seed-1.checks"] = "9/163" }
+    apContractResetForTesting()
+    local restore = stub("apOwnSlotName", function() return "Navigator" end)
+    apSavesDescribe()
+    equals(sim.profiles.details["seed-1.label"], "Captain on A", "no seed loaded, the name stays")
+    sim.profiles.current = "main"
+    sim.profiles.details["main.label"] = "Captain on A"
+    apSavesDescribe()
+    equals(sim.profiles.details["main.label"], "Captain on A", "the first save too")
+    sim.profiles.current = "seed-1"
+    applySeed({ goal = { kind = "victories", count = 1 }, seed_hash = "another-seed" })
+    apSavesDescribe()
+    equals(sim.profiles.details["seed-1.label"], "Captain on A", "another seed's slot does not take this save")
+    equals(sim.profiles.details["seed-1.checks"], "9/163", "nor its checks")
+    sim.profiles.current = apSavesIdFor(apSeedFingerprint())
+    apSavesDescribe()
+    equals(sim.profiles.details[sim.profiles.current .. ".label"] ~= nil, true, "its own save does")
+    restore()
+    sim.profiles.on = false
+end)
+
 test("closing FTL for a save: the screen says so for a few frames first, and the link is closed before", function()
-    apQuitFramesForTesting(3)
+    apQuitDelayForTesting(0.05)
     sim.quitCalled = false
     apQuitSoon(apT("saves.relaunch"), true)
     sim.renderMenu()
     check(not sim.quitCalled, "FTL is still open")
     check(sim.drawnText(apT("saves.relaunch")), "and says what happens")
     check(sim.drawnText(apT("restart.wait")), "and that it can take a while")
-    sim.renderMenu()
-    sim.renderMenu()
+    local clicksBefore = sim.netCalls("ConnectSlot")
+    sim.click(130, 586)
+    equals(sim.netCalls("ConnectSlot"), clicksBefore, "and nothing on the menu answers meanwhile")
+    for _ = 1, 8 do sim.renderMenu() end
     check(sim.quitCalled, "then it closes")
     equals(sim.netCalls("Disconnect") > 0, true, "the connection went first")
-    apQuitFramesForTesting(0)
+    apQuitDelayForTesting(0)
 end)
