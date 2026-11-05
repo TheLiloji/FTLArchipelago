@@ -32,6 +32,9 @@ local RESOURCE_DELIVERY = {
         for _ = 1, n do
             if player:IsCrewFull() then
                 fillerLog("crew full: " .. (n - added) .. " crew member(s) not delivered")
+                if added == 0 and _G.apNotifyStatusOnce then
+                    apNotifyStatusOnce(apT("crew.waiting.new"))
+                end
                 break
             end
             local room = apRandomRoomId(player)
@@ -58,6 +61,10 @@ local TRAP_LIMITS = {
     -- Air and a hole in the hull together kill a crew at a quiet beacon, with nothing to react to.
     drainAirWithBreach = 40,
     breachAirFloor = 40,
+    -- After a drain, a crew member this hurt gets enough air back where they stand: it hurts, it does not kill.
+    drainGuardSeconds = 120,
+    drainGuardHealth = 0.35,
+    drainGuardAir = 10,
 }
 
 _G.apTrapLimits = TRAP_LIMITS
@@ -83,6 +90,36 @@ local function hullBreached(player)
     local ok, breached = pcall(function() return player.ship:GetHullBreaches(true):size() > 0 end)
     return ok and breached
 end
+
+local drainGuardTicks = 0
+
+local function guardCrewFromDrain(player)
+    local oxygen = player.oxygenSystem
+    local crew = player.vCrewList
+    if oxygen == nil then
+        return
+    end
+    local levels = oxygen.oxygenLevels
+    for i = 0, crew:size() - 1 do
+        local member = crew[i]
+        local room = member ~= nil and member.iRoomId or -1
+        if member ~= nil and member.iShipId == 0 and not member.bDead and room >= 0 and room < levels:size()
+            and member.health.first < member.health.second * TRAP_LIMITS.drainGuardHealth
+            and levels[room] < TRAP_LIMITS.drainGuardAir then
+            oxygen:ModifyRoomOxygen(room, TRAP_LIMITS.drainGuardAir - levels[room])
+        end
+    end
+end
+
+script.on_internal_event(Defines.InternalEvents.ON_TICK, function()
+    if drainGuardTicks <= 0 then
+        return
+    end
+    drainGuardTicks = drainGuardTicks - 1
+    if drainGuardTicks % 10 == 0 and Hyperspace.ships.player ~= nil then
+        apTry(TAG, guardCrewFromDrain, Hyperspace.ships.player)
+    end
+end)
 
 local TRAP_DELIVERY = {
     fire = function(player)
@@ -191,6 +228,7 @@ local TRAP_DELIVERY = {
         for room = 0, levels:size() - 1 do
             oxygen:ModifyRoomOxygen(room, -math.max(0, levels[room] - floor))
         end
+        drainGuardTicks = TRAP_LIMITS.drainGuardSeconds * 60
         return breached and "trap.o2_drain.breach" or "trap.o2_drain"
     end,
     hull_damage = function(player)
@@ -621,6 +659,17 @@ local function deliverOne(descriptor)
     end
 
     return false
+end
+
+-- New Crew Member items waiting in the queue for a free seat.
+function apFillerCrewWaiting()
+    local count = 0
+    for _, descriptor in ipairs(pending) do
+        if descriptor.kind == "filler" and descriptor.res == "crew" then
+            count = count + (tonumber(descriptor.n) or 1)
+        end
+    end
+    return count
 end
 
 -- Whether a delivery pass can hand things out now (in a run that counts, no fight).

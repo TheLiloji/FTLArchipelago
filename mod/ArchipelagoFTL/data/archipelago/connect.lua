@@ -1,3 +1,6 @@
+-- Set while FTL closes itself: nothing on the menu answers any more.
+local quitting = nil
+
 local TAG = "[AP-connect] "
 
 local function connectLog(message)
@@ -648,6 +651,9 @@ script.on_internal_event(Defines.InternalEvents.ON_KEY_UP, function(key)
 end)
 
 script.on_internal_event(Defines.InternalEvents.ON_KEY_DOWN, function(key)
+    if quitting then
+        return Defines.Chain.PREEMPT
+    end
     if not onMenu or seedActive() then
         return Defines.Chain.CONTINUE
     end
@@ -725,6 +731,9 @@ script.on_internal_event(Defines.InternalEvents.ON_KEY_DOWN, function(key)
 end)
 
 script.on_internal_event(Defines.InternalEvents.ON_MOUSE_L_BUTTON_DOWN, function(x, y)
+    if quitting then
+        return Defines.Chain.PREEMPT
+    end
     if not onMenu then
         return Defines.Chain.CONTINUE
     end
@@ -782,15 +791,19 @@ script.on_internal_event(Defines.InternalEvents.JUMP_ARRIVE, function()
     return Defines.Chain.CONTINUE
 end)
 
--- FTL draws nothing more once it is told to close, and the closing can take a while: the player sees why the
--- screen froze for a few frames first.
-local QUIT_AFTER_FRAMES = 3
-local quitting = nil
+-- FTL draws nothing more once it is told to close: the player gets the time to read why the game goes away.
+local QUIT_AFTER_SECONDS = 2
 
-local quitAfterFrames = QUIT_AFTER_FRAMES
+local quitAfterSeconds = QUIT_AFTER_SECONDS
 
-function apQuitFramesForTesting(frames)
-    quitAfterFrames = frames
+function apQuitDelayForTesting(seconds)
+    quitAfterSeconds = seconds
+end
+
+local function frameSeconds()
+    local ok, factor = pcall(function() return Hyperspace.FPS.SpeedFactor end)
+    factor = ok and tonumber(factor) or nil
+    return (factor and factor > 0) and math.min(factor * 0.0625, 0.25) or 1 / 60
 end
 
 local function drawQuitting()
@@ -807,8 +820,8 @@ end
 
 local function followQuit()
     pcall(drawQuitting)
-    quitting.frames = quitting.frames + 1
-    if quitting.frames >= quitAfterFrames then
+    quitting.age = quitting.age + frameSeconds()
+    if quitting.age >= quitAfterSeconds then
         if _G.apNetDisconnect then pcall(_G.apNetDisconnect) end
         local closed = pcall(function() Hyperspace.App:OnExit() end)
         connectLog(closed and "game close requested" or "close failed, do it by hand")
@@ -817,8 +830,8 @@ local function followQuit()
 end
 
 function apQuitSoon(text, relaunch)
-    quitting = { text = tostring(text), relaunch = relaunch == true, frames = 0 }
-    if quitAfterFrames == 0 then
+    quitting = { text = tostring(text), relaunch = relaunch == true, age = 0 }
+    if quitAfterSeconds == 0 then
         followQuit()
     end
 end

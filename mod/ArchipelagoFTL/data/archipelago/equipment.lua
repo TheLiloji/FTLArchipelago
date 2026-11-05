@@ -331,7 +331,7 @@ local function owedCrew()
 end
 
 function apOwedCrewCount()
-    local count = 0
+    local count = _G.apFillerCrewWaiting and apFillerCrewWaiting() or 0
     for _, entry in ipairs(owedCrew()) do
         count = count + owedCount(entry.race, entry.skill)
     end

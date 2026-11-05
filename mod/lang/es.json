@@ -447,6 +447,7 @@
     "energylink.others": "Otros jugadores pusieron {n} de combustible en la reserva compartida.",
     "crew.waiting": "{name} espera un sitio libre y sube a bordo en cuanto tu tripulación tenga espacio.",
     "crew.seated": "{name} sube a bordo: se ha liberado un sitio.",
+    "crew.waiting.new": "Un tripulante nuevo espera un sitio libre y subirá a bordo en cuanto haya lugar.",
     "dash.footer.hangar": "TAB o Esc: cerrar     Izquierda / Derecha o 1-5: páginas     Rueda: desplazar",
     "dash.need_run": "Empieza una partida para ver esto.",
     "dash.run.crew_waiting": "Tripulantes esperando un sitio libre: {n}",

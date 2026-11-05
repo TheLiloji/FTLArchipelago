@@ -234,6 +234,16 @@ function apNotifyStatus(message)
     push(message, "title")
 end
 
+-- For something retried every jump: a message already on screen is not stacked again.
+function apNotifyStatusOnce(message)
+    for _, toast in ipairs(toasts) do
+        if toast.text == tostring(message) then
+            return
+        end
+    end
+    apNotifyStatus(message)
+end
+
 function apNotifyKept(message)
     print(apT("status.prefix", { message = message }))
     push(message, "good", true)
