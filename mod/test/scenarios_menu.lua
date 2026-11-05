@@ -808,6 +808,21 @@ test("save profiles: a save named after its seed alone stays with the slot that 
     sim.profiles.on = false
 end)
 
+test("save profiles: the first save is found again by its slot, not made twice", function()
+    sim.profiles.on = true
+    sim.profiles.current = "seed-5-77"
+    sim.profiles.ids = { "main", "seed-5-77" }
+    sim.profiles.details = { ["main.slot"] = "Captain", ["seed-5-77.slot"] = "Navigator" }
+    local tag = stub("apNetSeedTagOf", function(id) return (id == "main" or id == "seed-5-77") and 5 or 0 end)
+    equals(apSavesIdFor(5, false, "Captain"), "main", "Captain goes back to the first save")
+    equals(apSavesIdFor(5, false, "Navigator"), "seed-5-77", "Navigator to its own")
+    check(apSavesIdFor(6, false, "Captain") ~= "main", "on another seed, the same name is another save")
+    check(apSavesIdFor(5, false, "Third") ~= "main", "a third slot gets a save of its own")
+    tag()
+    sim.profiles.ids = {}
+    sim.profiles.on = false
+end)
+
 test("save profiles: another slot of the same seed asks the question, and keeping leaves the save alone", function()
     sim.profiles.on = true
     sim.profiles.pending = nil

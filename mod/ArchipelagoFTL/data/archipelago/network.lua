@@ -269,12 +269,15 @@ local SEED_KEY_BASE = "ap_seed_tag"
 
 -- Each save profile remembers its own seed: a save made for one seed asks again when another one connects.
 -- The first save ("main", the only one before 0.6) keeps the old key.
-local function seedKey()
-    local profile = _G.apSavesSupported and apSavesSupported() and apSavesCurrent() or "main"
+local function seedKeyOf(profile)
     if profile == "main" then
         return SEED_KEY_BASE
     end
     return SEED_KEY_BASE .. "@" .. profile
+end
+
+local function seedKey()
+    return seedKeyOf(_G.apSavesSupported and apSavesSupported() and apSavesCurrent() or "main")
 end
 
 local durableStore = nil
@@ -317,6 +320,10 @@ end
 
 function apNetSeedTag()
     return meta(seedKey())
+end
+
+function apNetSeedTagOf(profile)
+    return meta(seedKeyOf(profile))
 end
 
 function apNetRecall(key)
