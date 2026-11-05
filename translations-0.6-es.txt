@@ -1,0 +1,495 @@
+connect.keys
+EN: TAB next field, ENTER connect, Ctrl+V paste. In game: TAB dashboard.
+ES: TAB: siguiente campo. ENTER: conectar. Ctrl+V: pegar. Durante la partida: TAB abre el panel.
+
+crew.character.hint  (Multiverse)
+EN: {name} joins your crew, and knows where something is: a free hint.
+ES: {name} se une a tu tripulación y sabe dónde está algo: una pista gratis.
+
+dash.ships.species  (Multiverse)
+EN: {ship} ({species})
+ES: {ship} ({species})
+
+deal.backfired
+EN: +{scrap} scrap. No one out there to take it: the pact strikes you in your next fight.
+ES: +{scrap} de chatarra. No hay nadie más que pague el precio: el pacto te golpeará en tu próximo combate.
+
+deal.blood.risk
+EN: And {chance}% of the time, one of your crew dies for good. / No Clone Bay brings them back. Never your last one.
+ES: Y el {chance} % de las veces, un tripulante muere para siempre. / Ninguna sala de clonación lo trae de vuelta. Nunca el último.
+
+deal.body
+EN: You gain {scrap} scrap the moment you sign. In exchange, one of these is sprung: fire, hull breach, fuel leak, system damage or hull damage. / With Trap Link, two times out of three it hits another player. Otherwise it hits you, in your next fight. You find out only after signing.
+ES: Recibes {scrap} de chatarra al firmar. A cambio, ocurre una de estas cosas: incendio, brecha, fuga de combustible, avería o daño al casco. / Con Trap Link, dos de cada tres veces le ocurre a otro jugador. Si no, te ocurre a ti, en tu próximo combate. Solo lo sabrás después de firmar.
+
+deal.self
+EN: +{scrap} scrap. The pact turned on you: it strikes in your next fight.
+ES: +{scrap} de chatarra. El pacto se volvió en tu contra: golpeará en tu próximo combate.
+
+energylink.sent
+EN: {what} into the shared reserve: {net} fuel once the 25% loss is taken.
+ES: {what} depositado en la reserva común: {net} de combustible tras la pérdida del 25 %.
+
+event.hijack.self
+EN: A pirate ship sits on an Archipelago relay. It has grabbed your own package and wants 20 scrap to let it go.
+ES: Una nave pirata se ha enganchado a un relé de Archipelago. Ha capturado tu propio paquete y pide 20 de chatarra para soltarlo.
+
+event.hijack.hint.progression
+EN: The crate hums with power. Someone out there needs it badly.
+ES: La caja vibra de energía. Alguien la necesita de verdad.
+
+event.hijack.hint.useful
+EN: The crate is well packed. It must be worth something.
+ES: La caja está bien embalada. Debe valer algo.
+
+event.hijack.hint.filler
+EN: Honestly, it looks like junk.
+ES: Sinceramente, parece chatarra.
+
+event.hijack.hint.trap
+EN: Something about this crate feels off.
+ES: Algo en esta caja no cuadra.
+
+event.hijack.text
+EN: A pirate ship sits on an Archipelago relay. It has grabbed {slot}'s package and wants 20 scrap to let it go.
+ES: Una nave pirata se ha enganchado a un relé de Archipelago. Ha capturado el paquete de {slot} y pide 20 de chatarra para soltarlo.
+
+event.trap.nobody
+EN: No one out there to take the surge: it hits your ship.
+ES: No hay nadie que reciba la sobrecarga: golpea tu nave.
+
+loadout.column.system
+EN: Systems
+ES: Sistemas
+
+loadout.free_slots
+EN: {n} free
+ES: {n} libres
+
+loadout.empty.system
+EN: No system left to pick.
+ES: No queda ningún sistema por elegir.
+
+loadout.hint.systems
+EN: Take one weapon, one drone and one crew member from what you have received, once per run. Some systems can come aboard for free: pick the ones you want, up to the free slots.
+ES: Toma un arma, un dron y un tripulante de lo que has recibido, una vez por partida. Algunos sistemas pueden subir a bordo gratis: elige los que quieras, hasta llenar los huecos libres.
+
+loadout.power
+EN: {n} power
+ES: {n} energía
+
+loadout.weapon.stats
+EN: {damage}x{shots} dmg, {cooldown}s
+ES: {damage}x{shots} daño, {cooldown}s
+
+loadout.weapon.missile
+EN: {damage}x{shots} dmg, {cooldown}s, missile
+ES: {damage}x{shots} daño, {cooldown}s, misil
+
+solo.started
+EN: Solo mode started: a fixed demo seed, not your YAML. {count} items to unlock, one per check. TAB for status.
+ES: Modo solo iniciado: una seed de demostración fija, no tu YAML. {count} objetos por desbloquear, uno por check. TAB para el estado.
+
+trap.asb
+EN: Planetary defenses will open fire in your next fight. Somebody gave them your transponder code.
+ES: Unas defensas planetarias abrirán fuego en tu próximo combate. Alguien les dio tu código de transpondedor.
+
+trap.hazard
+EN: Someone fed your nav computer a bad course: your next fight's beacon will not be a quiet one.
+ES: Alguien alteró tu navegación: la baliza de tu próximo combate no será tranquila.
+
+trap.power_surge
+EN: Someone wired the next enemy you fight with a Flagship power surge.
+ES: Alguien equipó a tu próximo enemigo con una sobrecarga de la nave insignia.
+
+trap.title.fire
+EN: Fire Trap
+ES: Trampa de incendio
+
+trap.title.breach
+EN: Hull Breach Trap
+ES: Trampa de brecha
+
+trap.title.fuel_leak
+EN: Fuel Leak Trap
+ES: Trampa de fuga de combustible
+
+trap.title.hazard
+EN: Hazard Trap
+ES: Trampa de peligro
+
+trap.title.system_damage
+EN: System Damage Trap
+ES: Trampa de avería
+
+trap.title.fleet_advance
+EN: Rebel Fleet Trap
+ES: Trampa de la flota rebelde
+
+trap.title.hull_damage
+EN: Hull Damage Trap
+ES: Trampa de casco
+
+trap.title.boarding
+EN: Boarding Party Trap
+ES: Trampa de abordaje
+
+trap.title.asb
+EN: Anti-Ship Battery Trap
+ES: Trampa de batería antinave
+
+trap.title.power_surge
+EN: Power Surge Trap
+ES: Trampa de sobrecarga
+
+connect.button.busy
+EN: Connecting...
+ES: Conectando...
+
+connect.paste_hint
+EN: Copy the address from your room page, then press Ctrl+V in a field to paste it.
+ES: Copia la dirección de la página de tu sala y pulsa Ctrl+V en un campo para pegarla.
+
+connect.paste_empty
+EN: Nothing to paste: the clipboard is empty.
+ES: Nada que pegar: el portapapeles está vacío.
+
+connect.paste_empty.linux
+EN: Clipboard empty or unreadable: on Linux, install wl-clipboard or xclip.
+ES: Portapapeles vacío o ilegible: en Linux, instala wl-clipboard o xclip.
+
+check.label.sector_fight
+EN: Sector {sector} fight {n} won with {ship}
+ES: Combate {n} del sector {sector} ganado con {ship}
+
+flagship.sabotaged
+EN: The Flagship arrives sabotaged by the multiworld (level {n}).
+ES: La nave insignia llega saboteada por el multiworld (nivel {n}).
+
+check.label.reactor
+EN: Reactor power {n}
+ES: Reactor con {n} de energía
+
+sector_skip.offered
+EN: Sector {n} already crossed with this ship: this beacon is an exit. Jump to the next sector now for {scrap} scrap, or explore as usual.
+ES: Sector {n} ya cruzado con esta nave: esta baliza es una salida. Salta al siguiente sector ya por {scrap} de chatarra, o explora como siempre.
+
+sector_skip.done
+EN: Sector {n} skipped: +{scrap} scrap, and one more pick from what you received.
+ES: Sector {n} saltado: +{scrap} de chatarra y una elección más entre lo que has recibido.
+
+saves.button
+EN: Saves
+ES: Partidas
+
+saves.title
+EN: Archipelago saves
+ES: Partidas de Archipelago
+
+saves.intro
+EN: Each seed, and solo mode, keeps its own FTL save: unlocked ships, achievements and the run in progress. Your FTL save without Archipelago is never touched. Loading a save restarts FTL.
+ES: Cada seed, y el modo solo, tiene su propia partida de FTL: naves desbloqueadas, logros y la partida en curso. Tu partida de FTL sin Archipelago nunca se toca. Cargar una partida reinicia FTL.
+
+saves.current
+EN: In use
+ES: En uso
+
+saves.pending
+EN: Next launch
+ES: Al próximo inicio
+
+saves.load
+EN: Load
+ES: Cargar
+
+saves.archive
+EN: Archive
+ES: Archivar
+
+saves.archive.sure
+EN: Sure?
+ES: ¿Seguro?
+
+saves.close
+EN: Close
+ES: Cerrar
+
+saves.main
+EN: First save
+ES: Primera partida
+
+saves.solo
+EN: Solo mode
+ES: Modo solo
+
+saves.unnamed
+EN: Save without a name yet
+ES: Partida aún sin nombre
+
+saves.label
+EN: {slot} on {host}
+ES: {slot} en {host}
+
+saves.checks
+EN: Checks {checks}
+ES: Checks {checks}
+
+saves.last
+EN: Last played {date}
+ES: Jugada el {date}
+
+saves.empty
+EN: Not played yet
+ES: Aún sin jugar
+
+saves.relaunch
+EN: FTL closes and opens again on this save.
+ES: FTL se cierra y se vuelve a abrir con esta partida.
+
+saves.restart
+EN: FTL closes: open it again to play this save.
+ES: FTL se cierra: ábrelo de nuevo para jugar esta partida.
+
+saves.failed
+EN: That did not work: nothing was changed.
+ES: No ha funcionado: no se ha cambiado nada.
+
+saves.archived
+EN: Archived: kept in the ap_profiles/archived folder, nothing deleted.
+ES: Archivada: guardada en la carpeta ap_profiles/archived, no se ha borrado nada.
+
+reset.question.profile
+EN: This seed is not the one this save was made for. It gets its own save, and this one stays exactly as it is: you can come back to it from the Saves menu. FTL restarts to switch.
+ES: Esta seed no es la de esta partida. Tendrá su propia partida, y esta queda exactamente como está: puedes volver a ella desde el menú Partidas. FTL se reinicia para cambiar.
+
+reset.question.profile.solo
+EN: Solo mode gets its own save, and this one stays exactly as it is: you can come back to it from the Saves menu. FTL restarts to switch.
+ES: El modo solo tiene su propia partida, y esta queda exactamente como está: puedes volver a ella desde el menú Partidas. FTL se reinicia para cambiar.
+
+reset.yes.profile
+EN: Use its own save
+ES: Usar su partida
+
+sector_locks.closed
+EN: This exit is shut: this ship needs Sector Pass {n} to leave sector {sector}. It opens as soon as the pass comes in.
+ES: Esta salida está cerrada: esta nave necesita el Sector Pass {n} para salir del sector {sector}. Se abre en cuanto llega el pase.
+
+sector_locks.open
+EN: Sector Pass received: the exit is open.
+ES: Sector Pass recibido: la salida está abierta.
+
+reset.kept.profile
+EN: Kept: this save stays with its own seed. Load another save, or connect to this save's seed.
+ES: Guardada: esta partida se queda con su seed. Carga otra partida o conéctate a la seed de esta.
+
+deal.off
+EN: There are no deals in this seed
+ES: No hay pactos en esta seed
+
+loadout.hint.extra
+EN: One more pick for the sector you skipped: take a weapon, a drone or a crew member from what you have received.
+ES: Una elección más por el sector saltado: toma un arma, un dron o un tripulante de lo que has recibido.
+
+loadout.no_room
+EN: No room aboard for {name}: free a weapon slot or a cargo slot first.
+ES: No hay sitio a bordo para {name}: libera antes un hueco de arma o de bodega.
+
+event.trap.own
+EN: Signal surge
+ES: Sobrecarga de señal
+
+dash.links.energy
+EN: EnergyLink: {n} fuel
+ES: EnergyLink: {n} combustible
+
+energylink.others
+EN: Other players put {n} fuel in the shared reserve.
+ES: Otros jugadores pusieron {n} de combustible en la reserva compartida.
+
+crew.waiting
+EN: {name} waits for a free seat and comes aboard as soon as your crew has room.
+ES: {name} espera un sitio libre y sube a bordo en cuanto tu tripulación tenga espacio.
+
+crew.seated
+EN: {name} comes aboard: a seat was free.
+ES: {name} sube a bordo: se ha liberado un sitio.
+
+crew.waiting.new
+EN: A new crew member waits for a free seat and comes aboard as soon as your crew has room.
+ES: Un tripulante nuevo espera un sitio libre y subirá a bordo en cuanto haya lugar.
+
+dash.footer.hangar
+EN: TAB or Esc: close     Left / Right or 1-5: pages     Wheel: scroll
+ES: TAB o Esc: cerrar     Izquierda / Derecha o 1-5: páginas     Rueda: desplazar
+
+dash.need_run
+EN: Start a run to see this.
+ES: Empieza una partida para ver esto.
+
+dash.run.crew_waiting
+EN: Crew waiting for a free seat: {n}
+ES: Tripulantes esperando un sitio libre: {n}
+
+dash.ships.filter
+EN: Unlocked only (U)
+ES: Solo desbloqueadas (U)
+
+loadout.nothing_yet
+EN: Run start menu: nothing to pick yet. Weapons and Drones received twice, crew and systems will show up here.
+ES: Menú de inicio: aún no hay nada que elegir. Aquí aparecerán las armas y drones recibidos dos veces, la tripulación y los sistemas.
+
+loadout.system.swap
+EN: {name} (replaces {old})
+ES: {name} (sustituye {old})
+
+restart.wait
+EN: This can take up to a minute.
+ES: Esto puede tardar hasta un minuto.
+
+trap.o2_drain
+EN: Every vent opened at once. The air is gone, life support is filling the ship again.
+ES: Todas las válvulas se abrieron a la vez. No queda aire, el sistema de oxígeno vuelve a llenar la nave.
+
+trap.o2_drain.breach
+EN: Every vent opened at once, but the breached hull tripped the safety: the rooms keep some air.
+ES: Todas las válvulas se abrieron, pero la brecha activó el seguro: las salas conservan algo de aire.
+
+trap.o2_drain.down
+EN: Life support is down, so there is no air to steal: a fire breaks out in room {room} instead.
+ES: El sistema de oxígeno está caído, no hay aire que robar: en su lugar, un incendio en la sala {room}.
+
+trap.title.o2_drain
+EN: O2 Drain Trap
+ES: Trampa de oxígeno
+
+ap_evt_zoltan_tithe_c1
+EN: Pay the tithe. 1 more fuel goes to the shared reserve.
+ES: Pagar el diezmo. 1 de combustible más va a la reserva compartida.
+
+ap_evt_zoltan_toll_c1
+EN: Pay the tithe.
+ES: Pagar el diezmo.
+
+ap_evt_zoltan_toll_c1_text
+EN: The officer accepts it without counting it, which is more awkward than if he had. In return he hands over three fuel cells sealed in the Ring's name.
+ES: El oficial la acepta sin contarla, lo cual resulta más incómodo que si lo hubiera hecho. A cambio, te entrega tres celdas de combustible selladas en nombre del Anillo.
+
+ap_trap_asb_text
+EN: A planetary defense battery wakes up and locks onto your ship. Somebody gave them your transponder code.
+ES: Una batería de defensa planetaria se activa y fija tu nave como objetivo. Alguien les dio tu código de transpondedor.
+
+ap_trap_surge_text
+EN: The enemy ship's reactor howls. Somebody sent them a Flagship power surge.
+ES: El reactor de la nave enemiga ruge. Alguien les envió una sobrecarga de la nave insignia.
+
+ap_trap_breach_text
+EN: Hull alarm. A section of the plating tore open by itself: somebody wanted you breathing vacuum.
+ES: Alarma de casco. Una parte del blindaje se ha abierto sola: alguien quería que respiraras vacío.
+
+ap_swap_clonebay_text
+EN: The Clone Bay blueprint came in, but your Medbay takes its place. Swap them? The Medbay blueprint stays yours.
+ES: Ha llegado el plano de la Sala de clonación, pero tu Enfermería ocupa su sitio. ¿Cambiarlas? El plano de la Enfermería sigue siendo tuyo.
+
+ap_swap_medbay_text
+EN: The Medbay blueprint came in, but your Clone Bay takes its place. Swap them? The Clone Bay blueprint stays yours.
+ES: Ha llegado el plano de la Enfermería, pero tu Sala de clonación ocupa su sitio. ¿Cambiarlas? El plano de la Sala de clonación sigue siendo tuyo.
+
+ap_swap_keep_medbay
+EN: Keep the Medbay.
+ES: Quedarse con la Enfermería.
+
+ap_swap_keep_clonebay
+EN: Keep the Clone Bay.
+ES: Quedarse con la Sala de clonación.
+
+ap_swap_to_clonebay
+EN: Install the Clone Bay.
+ES: Instalar la Sala de clonación.
+
+ap_swap_to_medbay
+EN: Install the Medbay.
+ES: Instalar la Enfermería.
+
+ap_swap_done_clonebay
+EN: The Clone Bay now stands where the Medbay was.
+ES: La Sala de clonación ocupa ahora el sitio de la Enfermería.
+
+ap_swap_done_medbay
+EN: The Medbay now stands where the Clone Bay was.
+ES: La Enfermería ocupa ahora el sitio de la Sala de clonación.
+
+ap_trap_asb_end_text
+EN: The planetary defense battery powers down. The fight is over.
+ES: La batería de defensa planetaria se apaga. El combate ha terminado.
+
+ap_trap_hazard_text
+EN: Your nav computer took a bad course correction from someone. This beacon is not as quiet as the charts said.
+ES: Alguien le pasó una corrección de rumbo falsa a tu ordenador de navegación. Esta baliza no es tan tranquila como decían las cartas.
+
+ap_trap_hazard_end_text
+EN: With the fight over, the space around the beacon settles down.
+ES: Terminado el combate, el espacio alrededor de la baliza se calma.
+
+ap_evt_overclock_text
+EN: An Engi technician hails you from a cramped workshop pod. "Your reactor is running cautious. We could make it sing. Or melt. Usually sing." They name a price and a bet.
+ES: Un técnico engi te llama desde un módulo taller estrecho. «Tu reactor va con prudencia. Podríamos hacerlo cantar. O fundirse. Normalmente, cantar.» Te dice un precio y una apuesta.
+
+ap_evt_overclock_c1
+EN: Bet 30 scrap on the overclock.
+ES: Apostar 30 de chatarra al overclock.
+
+ap_evt_overclock_c1_text
+EN: The technician plugs in with alarming enthusiasm. The reactor hums higher and higher.
+ES: El técnico se conecta con un entusiasmo inquietante. El reactor zumba cada vez más agudo.
+
+ap_evt_overclock_c2
+EN: Let them test it on the engines instead.
+ES: Dejar que lo pruebe en los motores.
+
+ap_evt_overclock_c2_text
+EN: The test goes half right: the engines cough and spark, but the technician hands over three fuel cells for the trouble.
+ES: La prueba sale a medias: los motores tosen y echan chispas, pero el técnico te da tres células de combustible por las molestias.
+
+ap_evt_overclock_c3
+EN: Thank them and leave.
+ES: Darle las gracias e irse.
+
+ap_evt_overclock_c3_text
+EN: The technician looks disappointed, then waves you off and goes back to their wires.
+ES: El técnico parece decepcionado, luego te despide con la mano y vuelve a sus cables.
+
+ap_evt_overclock_win
+EN: The overclock holds. The technician whoops, wins nothing, and pays you back twice over from a side bet on your ship.
+ES: El overclock aguanta. El técnico grita de alegría, no gana nada y te paga el doble con una apuesta paralela sobre tu nave.
+
+ap_evt_overclock_lose
+EN: Something pops. Then something else. The reactor settles back to normal, but parts of the ship did not enjoy the trip.
+ES: Algo revienta. Luego otra cosa. El reactor vuelve a la normalidad, pero partes de la nave no disfrutaron del viaje.
+
+ap_evt_arms_text
+EN: A heavily armed freighter idles at the beacon. Its captain smiles too much. "Fine weapons, fair prices, no questions. Today only."
+ES: Un carguero muy armado espera en la baliza. Su capitán sonríe demasiado. «Buenas armas, precios justos, sin preguntas. Solo hoy.»
+
+ap_evt_arms_c1
+EN: Buy a weapon for 45 scrap.
+ES: Comprar un arma por 45 de chatarra.
+
+ap_evt_arms_c1_text
+EN: The captain picks a crate without looking at it and has it hauled over. No refunds.
+ES: El capitán elige una caja sin mirarla y la hace trasladar. Sin devoluciones.
+
+ap_evt_arms_c2
+EN: Trade 4 fuel for one of his gadgets.
+ES: Cambiar 4 de combustible por uno de sus aparatos.
+
+ap_evt_arms_c2_text
+EN: The fuel goes over, a small sealed box comes back. It is, he swears, very rare.
+ES: El combustible se va, vuelve una cajita sellada. Muy rara, jura.
+
+ap_evt_arms_c3
+EN: Decline and keep moving.
+ES: Rechazar y seguir.
+
+ap_evt_arms_c3_text
+EN: "Your loss," the captain says, already looking for the next customer.
+ES: «Usted se lo pierde», dice el capitán, ya buscando al siguiente cliente.

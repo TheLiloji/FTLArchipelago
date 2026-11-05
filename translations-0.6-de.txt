@@ -1,0 +1,739 @@
+check.label.fight
+EN: Fight {n} won with {ship}
+DE: Kampf {n} gewonnen mit {ship}
+
+connect.keys
+EN: TAB next field, ENTER connect, Ctrl+V paste. In game: TAB dashboard.
+DE: TAB nächstes Feld, ENTER verbinden, Strg+V einfügen. Im Spiel: TAB Übersicht.
+
+contract.refused
+EN: This seed cannot be played: {reason}
+DE: Dieser Seed lässt sich nicht spielen: {reason}
+
+crew.character.hint  (Multiverse)
+EN: {name} joins your crew, and knows where something is: a free hint.
+DE: {name} schließt sich deiner Crew an und weiß, wo etwas liegt: ein kostenloser Hinweis.
+
+crew.skill.engines
+EN: engines expert
+DE: Experte für Antrieb
+
+dash.cat.fight
+EN: Fights won
+DE: Gewonnene Kämpfe
+
+dash.run.fights
+EN: Fights won: {n}. {left} fight check(s) left for this ship
+DE: Gewonnene Kämpfe: {n}. Noch {left} Kampf-Check(s) für dieses Schiff
+
+dash.run.fights.next
+EN: Fights won: {n}. The next one sends a check ({left} left)
+DE: Gewonnene Kämpfe: {n}. Der nächste sendet einen Check ({left} übrig)
+
+dash.run.free_upgrades
+EN: Upgrades you receive are free
+DE: Erhaltene Upgrades sind kostenlos
+
+dash.run.install.now
+EN: Unlocked systems come aboard at once
+DE: Freigeschaltete Systeme sofort an Bord
+
+dash.run.install.start
+EN: Unlocked systems come aboard each run
+DE: Freigeschaltete Systeme in jedem Lauf an Bord
+
+dash.run.scrap
+EN: Next run starts with +{n} scrap
+DE: Der nächste Lauf startet mit +{n} Schrott
+
+dash.run.title
+EN: THIS RUN
+DE: DIESER LAUF
+
+filler.run_start_scrap
+EN: Run start: +{n} scrap from the scrap you received.
+DE: Rundenstart: +{n} Schrott aus dem erhaltenen Schrott.
+
+dash.class.p
+EN: progression
+DE: Fortschritt
+
+dash.class.u
+EN: useful
+DE: nützlich
+
+dash.class.t
+EN: trap
+DE: Falle
+
+dash.class.f
+EN: filler
+DE: Füller
+
+dash.ships.species  (Multiverse)
+EN: {ship} ({species})
+DE: {ship} ({species})
+
+deal.backfired
+EN: +{scrap} scrap. No one out there to take it: the pact strikes you in your next fight.
+DE: +{scrap} Schrott. Niemand da draußen, der es nimmt: der Pakt trifft dich im nächsten Kampf.
+
+deal.blood.risk
+EN: And {chance}% of the time, one of your crew dies for good. / No Clone Bay brings them back. Never your last one.
+DE: Und in {chance} % der Fälle stirbt ein Crewmitglied endgültig. / Keine Klonstation holt es zurück. Nie das letzte.
+
+deal.blood.taken
+EN: The blood pact takes {name}. No Clone Bay will bring them back.
+DE: Der Blutpakt nimmt {name}. Keine Klonstation bringt es zurück.
+
+deal.blood.title
+EN: Blood pact: +{scrap} scrap
+DE: Blutpakt: +{scrap} Schrott
+
+deal.body
+EN: You gain {scrap} scrap the moment you sign. In exchange, one of these is sprung: fire, hull breach, fuel leak, system damage or hull damage. / With Trap Link, two times out of three it hits another player. Otherwise it hits you, in your next fight. You find out only after signing.
+DE: Du bekommst {scrap} Schrott, sobald du unterschreibst. Dafür wird eines davon ausgelöst: Feuer, Hüllenbruch, Treibstoffleck, Systemschaden oder Hüllenschaden. / Mit Trap Link trifft es zwei von drei Malen einen anderen Spieler. Sonst trifft es dich, im nächsten Kampf. Du erfährst es erst nach der Unterschrift.
+
+deal.self
+EN: +{scrap} scrap. The pact turned on you: it strikes in your next fight.
+DE: +{scrap} Schrott. Der Pakt hat sich gegen dich gewendet: er schlägt im nächsten Kampf zu.
+
+energylink.sent
+EN: {what} into the shared reserve: {net} fuel once the 25% loss is taken.
+DE: {what} in die gemeinsame Reserve: {net} Treibstoff nach 25 % Verlust.
+
+event.hijack.self
+EN: A pirate ship sits on an Archipelago relay. It has grabbed your own package and wants 20 scrap to let it go.
+DE: Ein Piratenschiff hat sich an ein Archipelago-Relais gehängt. Es hat dein eigenes Paket abgefangen und will 20 Schrott, um es freizugeben.
+
+event.hijack.hint.progression
+EN: The crate hums with power. Someone out there needs it badly.
+DE: Die Kiste summt vor Energie. Irgendwer braucht sie dringend.
+
+event.hijack.hint.useful
+EN: The crate is well packed. It must be worth something.
+DE: Die Kiste ist sorgfältig verpackt. Sie muss etwas wert sein.
+
+event.hijack.hint.filler
+EN: Honestly, it looks like junk.
+DE: Ehrlich gesagt sieht das nach Schrott aus.
+
+event.hijack.hint.trap
+EN: Something about this crate feels off.
+DE: Irgendetwas stimmt mit dieser Kiste nicht.
+
+event.hijack.text
+EN: A pirate ship sits on an Archipelago relay. It has grabbed {slot}'s package and wants 20 scrap to let it go.
+DE: Ein Piratenschiff hat sich an ein Archipelago-Relais gehängt. Es hat das Paket von {slot} abgefangen und will 20 Schrott, um es freizugeben.
+
+event.trap.nobody
+EN: No one out there to take the surge: it hits your ship.
+DE: Niemand da draußen, der den Stoß abfängt: er trifft dein Schiff.
+
+hud.goal.rule
+EN: A different ship layout for each victory
+DE: Für jeden Sieg ein anderes Layout
+
+hud.no_seed
+EN: No seed loaded.
+DE: Kein Seed geladen.
+
+loadout.column.system
+EN: Systems
+DE: Systeme
+
+loadout.free_slots
+EN: {n} free
+DE: {n} frei
+
+loadout.empty.system
+EN: No system left to pick.
+DE: Kein System mehr zur Auswahl.
+
+loadout.hint.systems
+EN: Take one weapon, one drone and one crew member from what you have received, once per run. Some systems can come aboard for free: pick the ones you want, up to the free slots.
+DE: Nimm eine Waffe, eine Drohne und ein Crewmitglied aus dem, was du erhalten hast, einmal pro Run. Einige Systeme können kostenlos an Bord kommen: wähle die, die du willst, so viele freie Plätze es gibt.
+
+loadout.power
+EN: {n} power
+DE: {n} Energie
+
+loadout.weapon.stats
+EN: {damage}x{shots} dmg, {cooldown}s
+DE: {damage}x{shots} Schaden, {cooldown}s
+
+loadout.weapon.missile
+EN: {damage}x{shots} dmg, {cooldown}s, missile
+DE: {damage}x{shots} Schaden, {cooldown}s, Rakete
+
+shop.slot.waiting.body
+EN: The server has not said yet what this shop sells. It fills in by itself, give it a moment.
+DE: Der Server hat noch nicht gesagt, was dieser Laden verkauft. Er füllt sich von selbst, gib ihm einen Moment.
+
+shop.slot.waiting.short
+EN: Waiting
+DE: Warten
+
+shop.slot.waiting.title
+EN: Waiting for the server
+DE: Warte auf den Server
+
+shop.slot.sector.body
+EN: The packages left in this shop are sold at the AP STORE beacon of sector {n}.
+DE: Die übrigen Pakete dieses Ladens gibt es an der AP-SHOP-Bake von Sektor {n}.
+
+shop.slot.sector.short
+EN: Sector {n}
+DE: Sektor {n}
+
+shop.slot.sector.title
+EN: Next packages: sector {n}
+DE: Nächste Pakete: Sektor {n}
+
+shop.slot.ship.body
+EN: The packages left in this shop are sold while you fly: {ship}.
+DE: Die übrigen Pakete dieses Ladens gibt es, wenn du fliegst: {ship}.
+
+shop.slot.ship.short
+EN: Other ship
+DE: Anderes Schiff
+
+shop.slot.ship.title
+EN: Sold aboard another ship
+DE: Mit einem anderen Schiff
+
+shop.slot.later.body
+EN: The packages left belong to sectors behind you: buy them in a next run, at those sectors' AP STORE beacons.
+DE: Die übrigen Pakete gehören zu Sektoren hinter dir: Kauf sie in einem nächsten Run an den AP-SHOP-Baken dieser Sektoren.
+
+shop.slot.later.short
+EN: Next run
+DE: Nächster Run
+
+shop.slot.later.title
+EN: Next run
+DE: Nächster Run
+
+solo.started
+EN: Solo mode started: a fixed demo seed, not your YAML. {count} items to unlock, one per check. TAB for status.
+DE: Solomodus gestartet: ein fester Demo-Seed, nicht dein YAML. {count} Gegenstände, einer pro Check. TAB für den Stand.
+
+system.free_levels
+EN: {name}: level {level} installed for free.
+DE: {name}: Stufe {level} kostenlos eingebaut.
+
+system.installed_free
+EN: Installed for free: {list}.
+DE: Kostenlos eingebaut: {list}.
+
+system.upgrade_locked
+EN: {name} is at its Archipelago limit (level {level}): no upgrade.
+DE: {name}: Archipelago-Grenze erreicht (Stufe {level}), keine Verbesserung.
+
+system.upgrade_locked.refunded
+EN: {name} is at its Archipelago limit (level {level}): no upgrade, {refund} scrap kept.
+DE: {name}: Archipelago-Grenze erreicht (Stufe {level}), keine Verbesserung, {refund} Schrott behalten.
+
+trap.asb
+EN: Planetary defenses will open fire in your next fight. Somebody gave them your transponder code.
+DE: Planetare Verteidigungsanlagen eröffnen in deinem nächsten Kampf das Feuer. Jemand hat ihnen deinen Transpondercode gegeben.
+
+trap.hazard
+EN: Someone fed your nav computer a bad course: your next fight's beacon will not be a quiet one.
+DE: Jemand hat deine Navigation manipuliert: die Bake deines nächsten Kampfes wird nicht ruhig sein.
+
+trap.power_surge
+EN: Someone wired the next enemy you fight with a Flagship power surge.
+DE: Jemand hat deinen nächsten Gegner mit einer Energiewelle des Flaggschiffs ausgestattet.
+
+trap.title.fire
+EN: Fire Trap
+DE: Feuerfalle
+
+trap.title.breach
+EN: Hull Breach Trap
+DE: Hüllenbruchfalle
+
+trap.title.fuel_leak
+EN: Fuel Leak Trap
+DE: Treibstoffleckfalle
+
+trap.title.hazard
+EN: Hazard Trap
+DE: Gefahrenfalle
+
+trap.title.system_damage
+EN: System Damage Trap
+DE: Systemschadenfalle
+
+trap.title.fleet_advance
+EN: Rebel Fleet Trap
+DE: Rebellenflottenfalle
+
+trap.title.hull_damage
+EN: Hull Damage Trap
+DE: Hüllenschadenfalle
+
+trap.title.boarding
+EN: Boarding Party Trap
+DE: Enterfalle
+
+trap.title.asb
+EN: Anti-Ship Battery Trap
+DE: Anti-Schiff-Batterie-Falle
+
+trap.title.power_surge
+EN: Power Surge Trap
+DE: Energiewellenfalle
+
+dash.checks.any_ship
+EN: Any ship
+DE: Jedes Schiff
+
+dash.checks.general
+EN: General
+DE: Allgemein
+
+dash.checks.ship
+EN: THIS SHIP: {ship}
+DE: DIESES SCHIFF: {ship}
+
+dash.checks.ship_clear
+EN: Nothing left here for this ship
+DE: Hier nichts mehr für dieses Schiff
+
+dash.checks.ship_sector
+EN: {n} in this sector
+DE: davon {n} in diesem Sektor
+
+dash.checks.hover
+EN: Point at a box to see what it is, and what it gave once done.
+DE: Zeig auf ein Feld, um zu sehen, was es ist und was es nach dem Erledigen gab.
+
+dash.checks.gave
+EN: {item} for {slot}
+DE: {item} für {slot}
+
+dash.crew.done
+EN: Aboard
+DE: An Bord
+
+dash.crew.waiting
+EN: Not met yet
+DE: Noch nicht getroffen
+
+connect.button.busy
+EN: Connecting...
+DE: Verbinde...
+
+connect.paste_hint
+EN: Copy the address from your room page, then press Ctrl+V in a field to paste it.
+DE: Kopiere die Adresse von deiner Raumseite und drücke Strg+V in einem Feld, um sie einzufügen.
+
+connect.paste_empty
+EN: Nothing to paste: the clipboard is empty.
+DE: Nichts zum Einfügen: Die Zwischenablage ist leer.
+
+connect.paste_empty.linux
+EN: Clipboard empty or unreadable: on Linux, install wl-clipboard or xclip.
+DE: Zwischenablage leer oder unlesbar: unter Linux wl-clipboard oder xclip installieren.
+
+check.label.sector_fight
+EN: Sector {sector} fight {n} won with {ship}
+DE: Kampf {n} in Sektor {sector} gewonnen mit {ship}
+
+flagship.sabotaged
+EN: The Flagship arrives sabotaged by the multiworld (level {n}).
+DE: Das Flaggschiff kommt sabotiert vom Multiworld an (Stufe {n}).
+
+check.label.reactor
+EN: Reactor power {n}
+DE: Reaktorleistung {n}
+
+sector_skip.offered
+EN: Sector {n} already crossed with this ship: this beacon is an exit. Jump to the next sector now for {scrap} scrap, or explore as usual.
+DE: Sektor {n} mit diesem Schiff schon durchquert: dieses Leuchtfeuer ist ein Ausgang. Spring jetzt in den nächsten Sektor für {scrap} Schrott, oder erkunde wie gewohnt.
+
+sector_skip.done
+EN: Sector {n} skipped: +{scrap} scrap, and one more pick from what you received.
+DE: Sektor {n} übersprungen: +{scrap} Schrott und eine weitere Wahl aus dem, was du erhalten hast.
+
+saves.button
+EN: Saves
+DE: Spielstände
+
+saves.title
+EN: Archipelago saves
+DE: Archipelago-Spielstände
+
+saves.intro
+EN: Each seed, and solo mode, keeps its own FTL save: unlocked ships, achievements and the run in progress. Your FTL save without Archipelago is never touched. Loading a save restarts FTL.
+DE: Jeder Seed und der Solomodus haben ihren eigenen FTL-Spielstand: freigeschaltete Schiffe, Erfolge und der laufende Run. Dein FTL-Spielstand ohne Archipelago wird nie angefasst. Einen Spielstand laden startet FTL neu.
+
+saves.current
+EN: In use
+DE: Aktiv
+
+saves.pending
+EN: Next launch
+DE: Beim nächsten Start
+
+saves.load
+EN: Load
+DE: Laden
+
+saves.archive
+EN: Archive
+DE: Archivieren
+
+saves.archive.sure
+EN: Sure?
+DE: Sicher?
+
+saves.close
+EN: Close
+DE: Schließen
+
+saves.main
+EN: First save
+DE: Erster Spielstand
+
+saves.solo
+EN: Solo mode
+DE: Solomodus
+
+saves.unnamed
+EN: Save without a name yet
+DE: Spielstand noch ohne Namen
+
+saves.label
+EN: {slot} on {host}
+DE: {slot} auf {host}
+
+saves.checks
+EN: Checks {checks}
+DE: Checks {checks}
+
+saves.last
+EN: Last played {date}
+DE: Zuletzt gespielt {date}
+
+saves.empty
+EN: Not played yet
+DE: Noch nicht gespielt
+
+saves.relaunch
+EN: FTL closes and opens again on this save.
+DE: FTL schließt sich und öffnet sich mit diesem Spielstand wieder.
+
+saves.restart
+EN: FTL closes: open it again to play this save.
+DE: FTL schließt sich: öffne es wieder, um diesen Spielstand zu spielen.
+
+saves.failed
+EN: That did not work: nothing was changed.
+DE: Das hat nicht geklappt: nichts wurde geändert.
+
+saves.archived
+EN: Archived: kept in the ap_profiles/archived folder, nothing deleted.
+DE: Archiviert: im Ordner ap_profiles/archived aufbewahrt, nichts gelöscht.
+
+reset.question.profile
+EN: This seed is not the one this save was made for. It gets its own save, and this one stays exactly as it is: you can come back to it from the Saves menu. FTL restarts to switch.
+DE: Dieser Seed ist nicht der dieses Spielstands. Er bekommt einen eigenen Spielstand, und dieser bleibt genau so: du kannst über das Menü Spielstände zurückkehren. FTL startet zum Wechseln neu.
+
+reset.question.profile.solo
+EN: Solo mode gets its own save, and this one stays exactly as it is: you can come back to it from the Saves menu. FTL restarts to switch.
+DE: Der Solomodus bekommt einen eigenen Spielstand, und dieser bleibt genau so: du kannst über das Menü Spielstände zurückkehren. FTL startet zum Wechseln neu.
+
+reset.yes.profile
+EN: Use its own save
+DE: Eigenen Spielstand nutzen
+
+sector_locks.closed
+EN: This exit is shut: this ship needs Sector Pass {n} to leave sector {sector}. It opens as soon as the pass comes in.
+DE: Dieser Ausgang ist zu: dieses Schiff braucht Sector Pass {n}, um Sektor {sector} zu verlassen. Er öffnet sich, sobald der Pass ankommt.
+
+sector_locks.open
+EN: Sector Pass received: the exit is open.
+DE: Sector Pass erhalten: der Ausgang ist offen.
+
+reset.kept.profile
+EN: Kept: this save stays with its own seed. Load another save, or connect to this save's seed.
+DE: Behalten: dieser Spielstand bleibt bei seinem Seed. Lade einen anderen Spielstand oder verbinde dich mit dem Seed dieses Spielstands.
+
+deal.off
+EN: There are no deals in this seed
+DE: In diesem Seed gibt es keine Pakte
+
+loadout.hint.extra
+EN: One more pick for the sector you skipped: take a weapon, a drone or a crew member from what you have received.
+DE: Eine weitere Wahl für den übersprungenen Sektor: nimm eine Waffe, eine Drohne oder ein Crewmitglied aus dem, was du erhalten hast.
+
+loadout.no_room
+EN: No room aboard for {name}: free a weapon slot or a cargo slot first.
+DE: Kein Platz an Bord für {name}: mach zuerst einen Waffen- oder Frachtplatz frei.
+
+event.trap.own
+EN: Signal surge
+DE: Signalstoß
+
+dash.links.energy
+EN: EnergyLink: {n} fuel
+DE: EnergyLink: {n} Treibstoff
+
+energylink.others
+EN: Other players put {n} fuel in the shared reserve.
+DE: Andere Spieler haben {n} Treibstoff in die gemeinsame Reserve gelegt.
+
+crew.waiting
+EN: {name} waits for a free seat and comes aboard as soon as your crew has room.
+DE: {name} wartet auf einen freien Platz und kommt an Bord, sobald deine Crew Platz hat.
+
+crew.seated
+EN: {name} comes aboard: a seat was free.
+DE: {name} kommt an Bord: ein Platz ist frei geworden.
+
+crew.waiting.new
+EN: A new crew member waits for a free seat and comes aboard as soon as your crew has room.
+DE: Ein neues Crewmitglied wartet auf einen freien Platz und kommt an Bord, sobald Platz ist.
+
+dash.footer.hangar
+EN: TAB or Esc: close     Left / Right or 1-5: pages     Wheel: scroll
+DE: TAB oder Esc: schließen     Links / Rechts oder 1-5: Seiten     Mausrad: scrollen
+
+dash.need_run
+EN: Start a run to see this.
+DE: Starte einen Run, um das zu sehen.
+
+dash.run.crew_waiting
+EN: Crew waiting for a free seat: {n}
+DE: Crew wartet auf einen freien Platz: {n}
+
+dash.ships.filter
+EN: Unlocked only (U)
+DE: Nur freigeschaltete (U)
+
+loadout.nothing_yet
+EN: Run start menu: nothing to pick yet. Weapons and Drones received twice, crew and systems will show up here.
+DE: Startmenü: noch nichts zur Auswahl. Zweimal erhaltene Waffen und Drohnen, Crew und Systeme erscheinen hier.
+
+loadout.system.swap
+EN: {name} (replaces {old})
+DE: {name} (ersetzt {old})
+
+restart.wait
+EN: This can take up to a minute.
+DE: Das kann bis zu einer Minute dauern.
+
+trap.o2_drain
+EN: Every vent opened at once. The air is gone, life support is filling the ship again.
+DE: Alle Ventile haben sich auf einmal geöffnet. Die Luft ist weg, das Sauerstoffsystem füllt das Schiff wieder auf.
+
+trap.o2_drain.breach
+EN: Every vent opened at once, but the breached hull tripped the safety: the rooms keep some air.
+DE: Alle Ventile öffneten sich, aber das Leck löste die Sicherung aus: Die Räume behalten etwas Luft.
+
+trap.o2_drain.down
+EN: Life support is down, so there is no air to steal: a fire breaks out in room {room} instead.
+DE: Das Sauerstoffsystem ist aus, es gibt keine Luft zu stehlen: Stattdessen bricht in Raum {room} ein Feuer aus.
+
+trap.title.o2_drain
+EN: O2 Drain Trap
+DE: Sauerstofffalle
+
+ap_evt_zoltan_tithe_c1
+EN: Pay the tithe. 1 more fuel goes to the shared reserve.
+DE: Den Zehnt zahlen. 1 weiterer Treibstoff geht an die gemeinsame Reserve.
+
+ap_evt_zoltan_toll_c1
+EN: Pay the tithe.
+DE: Den Zehnt zahlen.
+
+ap_store_label
+EN: AP STORE
+DE: AP-SHOP
+
+ap_evt_zoltan_toll_c1_text
+EN: The officer accepts it without counting it, which is more awkward than if he had. In return he hands over three fuel cells sealed in the Ring's name.
+DE: Der Offizier nimmt sie an, ohne nachzuzählen, was peinlicher ist, als wenn er gezählt hätte. Im Gegenzug überreicht er drei Treibstoffzellen, versiegelt im Namen des Rings.
+
+ap_evt_another_world_pass
+EN: Let it pass, and move on.
+DE: Sie vorbeiziehen lassen und weiterfliegen.
+
+ap_evt_another_world_pass_text
+EN: You keep the relay shut and let the surge roll past. It fades out before the next jump. Nothing gained, nothing lost.
+DE: Du hältst das Relais geschlossen und lässt die Überspannung vorbeiziehen. Vor dem nächsten Sprung ist sie verklungen. Nichts gewonnen, nichts verloren.
+
+ap_evt_hijack_text
+EN: A pirate ship sits on an Archipelago relay. It has grabbed a package bound for another world and wants 20 scrap to let it go.
+DE: Ein Piratenschiff hat sich an ein Archipelago-Relais gehängt. Es hat ein Paket für eine andere Welt abgefangen und will 20 Schrott, um es freizugeben.
+
+ap_evt_hijack_c1
+EN: Attack them and take the package.
+DE: Angreifen und das Paket holen.
+
+ap_evt_hijack_c1_text
+EN: The pirates power up their weapons. The package is in their hold.
+DE: Die Piraten fahren ihre Waffen hoch. Das Paket liegt in ihrem Frachtraum.
+
+ap_evt_hijack_c2
+EN: Pay the 20 scrap.
+DE: Die 20 Schrott zahlen.
+
+ap_evt_hijack_c2_text
+EN: The pirates take your scrap and release the package. It goes out, exactly as if you had bought it in the Archipelago shop.
+DE: Die Piraten nehmen deinen Schrott und geben das Paket frei. Es geht raus, genau so, als hättest du es im Archipelago-Laden gekauft.
+
+ap_evt_hijack_c3
+EN: Leave them alone.
+DE: Sie in Ruhe lassen.
+
+ap_evt_hijack_c3_text
+EN: You leave the relay behind. The package will wait for someone else.
+DE: Du lässt das Relais hinter dir. Das Paket wartet auf jemand anderen.
+
+ap_evt_hijack_surrender_text
+EN: The pirates hail you. They give up and offer to hand over the package if you stop firing.
+DE: Die Piraten funken dich an. Sie geben auf und bieten dir das Paket an, wenn du das Feuer einstellst.
+
+ap_evt_hijack_surrender_c1
+EN: Accept and take the package.
+DE: Annehmen und das Paket nehmen.
+
+ap_evt_hijack_surrender_c2
+EN: Keep firing.
+DE: Weiterfeuern.
+
+ap_evt_hijack_yield_text
+EN: They push the package out of an airlock. You pick it up and send it on its way.
+DE: Sie stoßen das Paket aus einer Luftschleuse. Du sammelst es ein und schickst es weiter.
+
+ap_evt_hijack_destroyed_text
+EN: The pirate ship breaks apart. You pull the package from the wreck and send it on its way.
+DE: Das Piratenschiff bricht auseinander. Du ziehst das Paket aus dem Wrack und schickst es weiter.
+
+ap_evt_hijack_deadcrew_text
+EN: The pirate crew is dead. You send the package on its way, then strip their ship.
+DE: Die Piratencrew ist tot. Du schickst das Paket weiter und nimmst dann ihr Schiff aus.
+
+ap_trap_asb_text
+EN: A planetary defense battery wakes up and locks onto your ship. Somebody gave them your transponder code.
+DE: Eine planetare Verteidigungsbatterie erwacht und erfasst dein Schiff. Jemand hat ihnen deinen Transpondercode gegeben.
+
+ap_trap_surge_text
+EN: The enemy ship's reactor howls. Somebody sent them a Flagship power surge.
+DE: Der Reaktor des feindlichen Schiffs heult auf. Jemand hat ihnen eine Energiewelle des Flaggschiffs geschickt.
+
+ap_trap_breach_text
+EN: Hull alarm. A section of the plating tore open by itself: somebody wanted you breathing vacuum.
+DE: Hüllenalarm. Ein Stück der Panzerung ist von selbst aufgerissen: Jemand wollte, dass ihr Vakuum atmet.
+
+ap_swap_clonebay_text
+EN: The Clone Bay blueprint came in, but your Medbay takes its place. Swap them? The Medbay blueprint stays yours.
+DE: Der Bauplan der Klonstation ist da, aber deine Krankenstation belegt ihren Platz. Tauschen? Der Bauplan der Krankenstation bleibt dir.
+
+ap_swap_medbay_text
+EN: The Medbay blueprint came in, but your Clone Bay takes its place. Swap them? The Clone Bay blueprint stays yours.
+DE: Der Bauplan der Krankenstation ist da, aber deine Klonstation belegt ihren Platz. Tauschen? Der Bauplan der Klonstation bleibt dir.
+
+ap_swap_keep_medbay
+EN: Keep the Medbay.
+DE: Die Krankenstation behalten.
+
+ap_swap_keep_clonebay
+EN: Keep the Clone Bay.
+DE: Die Klonstation behalten.
+
+ap_swap_to_clonebay
+EN: Install the Clone Bay.
+DE: Die Klonstation einbauen.
+
+ap_swap_to_medbay
+EN: Install the Medbay.
+DE: Die Krankenstation einbauen.
+
+ap_swap_done_clonebay
+EN: The Clone Bay now stands where the Medbay was.
+DE: Die Klonstation steht jetzt, wo die Krankenstation war.
+
+ap_swap_done_medbay
+EN: The Medbay now stands where the Clone Bay was.
+DE: Die Krankenstation steht jetzt, wo die Klonstation war.
+
+ap_trap_asb_end_text
+EN: The planetary defense battery powers down. The fight is over.
+DE: Die planetare Verteidigungsbatterie schaltet ab. Der Kampf ist vorbei.
+
+ap_trap_hazard_text
+EN: Your nav computer took a bad course correction from someone. This beacon is not as quiet as the charts said.
+DE: Jemand hat deinem Navigationscomputer eine falsche Kurskorrektur untergeschoben. Diese Bake ist nicht so ruhig, wie die Karten behaupten.
+
+ap_trap_hazard_end_text
+EN: With the fight over, the space around the beacon settles down.
+DE: Nach dem Kampf beruhigt sich der Raum um die Bake.
+
+ap_evt_overclock_text
+EN: An Engi technician hails you from a cramped workshop pod. "Your reactor is running cautious. We could make it sing. Or melt. Usually sing." They name a price and a bet.
+DE: Ein Engi-Techniker funkt Sie aus einer engen Werkstattkapsel an. "Ihr Reaktor läuft vorsichtig. Wir könnten ihn singen lassen. Oder schmelzen. Meistens singen." Er nennt einen Preis und eine Wette.
+
+ap_evt_overclock_c1
+EN: Bet 30 scrap on the overclock.
+DE: 30 Schrott auf das Übertakten setzen.
+
+ap_evt_overclock_c1_text
+EN: The technician plugs in with alarming enthusiasm. The reactor hums higher and higher.
+DE: Der Techniker stöpselt sich mit beunruhigender Begeisterung ein. Der Reaktor summt immer höher.
+
+ap_evt_overclock_c2
+EN: Let them test it on the engines instead.
+DE: Ihn lieber an den Triebwerken testen lassen.
+
+ap_evt_overclock_c2_text
+EN: The test goes half right: the engines cough and spark, but the technician hands over three fuel cells for the trouble.
+DE: Der Test klappt halb: die Triebwerke husten und sprühen Funken, aber der Techniker gibt Ihnen drei Brennstoffzellen für die Mühe.
+
+ap_evt_overclock_c3
+EN: Thank them and leave.
+DE: Danken und weiterfliegen.
+
+ap_evt_overclock_c3_text
+EN: The technician looks disappointed, then waves you off and goes back to their wires.
+DE: Der Techniker wirkt enttäuscht, winkt dann ab und kehrt zu seinen Kabeln zurück.
+
+ap_evt_overclock_win
+EN: The overclock holds. The technician whoops, wins nothing, and pays you back twice over from a side bet on your ship.
+DE: Die Übertaktung hält. Der Techniker jubelt, gewinnt nichts und zahlt Ihnen dank einer Nebenwette auf Ihr Schiff das Doppelte zurück.
+
+ap_evt_overclock_lose
+EN: Something pops. Then something else. The reactor settles back to normal, but parts of the ship did not enjoy the trip.
+DE: Etwas knallt. Dann noch etwas. Der Reaktor beruhigt sich wieder, aber Teile des Schiffs fanden die Reise nicht gut.
+
+ap_evt_arms_text
+EN: A heavily armed freighter idles at the beacon. Its captain smiles too much. "Fine weapons, fair prices, no questions. Today only."
+DE: Ein schwer bewaffneter Frachter wartet am Leuchtfeuer. Sein Kapitän lächelt zu viel. "Gute Waffen, faire Preise, keine Fragen. Nur heute."
+
+ap_evt_arms_c1
+EN: Buy a weapon for 45 scrap.
+DE: Eine Waffe für 45 Schrott kaufen.
+
+ap_evt_arms_c1_text
+EN: The captain picks a crate without looking at it and has it hauled over. No refunds.
+DE: Der Kapitän greift eine Kiste, ohne hinzusehen, und lässt sie herüberschaffen. Kein Umtausch.
+
+ap_evt_arms_c2
+EN: Trade 4 fuel for one of his gadgets.
+DE: 4 Treibstoff gegen eines seiner Geräte tauschen.
+
+ap_evt_arms_c2_text
+EN: The fuel goes over, a small sealed box comes back. It is, he swears, very rare.
+DE: Der Treibstoff geht hinüber, eine kleine versiegelte Kiste kommt zurück. Sehr selten, schwört er.
+
+ap_evt_arms_c3
+EN: Decline and keep moving.
+DE: Ablehnen und weiterfliegen.
+
+ap_evt_arms_c3_text
+EN: "Your loss," the captain says, already looking for the next customer.
+DE: "Ihr Pech", sagt der Kapitän und sucht schon den nächsten Kunden.
