@@ -8,7 +8,8 @@
 <text name="ap_evt_package_c3_text" language="fr">Vous gardez votre ferraille et le relais s'éloigne. Les colis trouveront une autre fenêtre.</text>
 
 <text name="ap_evt_zoltan_tithe_text" language="fr">Le poste de contrôle, c'est un croiseur zoltan et beaucoup de paperasse. « Tout bâtiment traversant le Troisième Anneau contribue à l'Anneau », explique l'officier, avec la patience de quelqu'un qui l'a expliqué dix mille fois. « La contribution n'est pas un péage. Un péage se prélève. Une contribution se donne. »</text>
-<text name="ap_evt_zoltan_tithe_c1" language="fr">Verser la contribution.</text>
+<text name="ap_evt_zoltan_tithe_c1" language="fr">Verser la contribution. 1 carburant de plus va à la réserve commune.</text>
+<text name="ap_evt_zoltan_toll_c1" language="fr">Verser la contribution.</text>
 <text name="ap_evt_zoltan_tithe_c1_text" language="fr">L'officier l'accepte sans la compter, ce qui est plus gênant que s'il l'avait comptée. L'Anneau redirige l'énergie vers l'extérieur, dans la réserve commune où puisent tous les joueurs d'Archipelago. Vous compris, un jour.</text>
 <text name="ap_evt_zoltan_tithe_c2" language="fr">Invoquer le droit de passage.</text>
 <text name="ap_evt_zoltan_tithe_c2_text" language="fr">C'est votre droit, l'officier le confirme, et il vous laisse prendre ce que l'Anneau détient. Personne ne vous arrête. Les Zoltan se contentent de le noter. Quelque part là-dehors, quelqu'un trouvera la réserve plus vide qu'il ne l'avait laissée.</text>
@@ -40,7 +41,7 @@
 
 
 <text name="ap_store_text" language="fr">Un marchand vous hèle sur une fréquence inconnue. Son manifeste liste des noms que vous ne reconnaissez pas, et des marchandises adressées à des gens qui ne sont pas à bord.</text>
-<text name="ap_evt_zoltan_toll_c1_text" language="fr">L'officier l'accepte sans la compter, ce qui est plus gênant que s'il l'avait comptée. En échange, il vous remet trois cellules de carburant scellées au nom de l'Anneau. Tout est noté.</text>
+<text name="ap_evt_zoltan_toll_c1_text" language="fr">L'officier l'accepte sans la compter, ce qui est plus gênant que s'il l'avait comptée. En échange, il vous remet trois cellules de carburant scellées au nom de l'Anneau.</text>
 <text name="ap_evt_zoltan_toll_c3" language="fr">Passer votre chemin.</text>
 <text name="ap_evt_zoltan_toll_c3_text" language="fr">L'officier note votre refus sans commentaire et vous laisse passer. Les Zoltan notent tout.</text>
 <text name="ap_evt_another_world_void" language="fr">La décharger dans le vide.</text>

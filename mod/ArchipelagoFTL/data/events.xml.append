@@ -87,7 +87,7 @@
         <event name="AP_EVT_ZOLTAN_TITHE_A">
             <text id="ap_evt_zoltan_tithe_c1_text"/>
             <item_modify>
-                <item type="scrap" min="-35" max="-35"/>
+                <item type="scrap" min="-20" max="-20"/>
                 <item type="fuel" min="3" max="3"/>
             </item_modify>
         </event>
@@ -105,11 +105,11 @@
     <img back="AP_BACKGROUND" planet="AP_PLANET"/>
     <beaconType load="AP_BEACON_SIGNAL"/>
     <choice>
-        <text id="ap_evt_zoltan_tithe_c1"/>
+        <text id="ap_evt_zoltan_toll_c1"/>
         <event name="AP_EVT_ZOLTAN_TOLL_A">
             <text id="ap_evt_zoltan_toll_c1_text"/>
             <item_modify>
-                <item type="scrap" min="-35" max="-35"/>
+                <item type="scrap" min="-15" max="-15"/>
                 <item type="fuel" min="3" max="3"/>
             </item_modify>
         </event>
