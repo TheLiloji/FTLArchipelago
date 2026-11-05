@@ -8,7 +8,8 @@
 <text name="ap_evt_package_c3_text" language="pt">Ficais com a vossa sucata e o repetidor afasta-se. Os pacotes encontrarão outra janela.</text>
 
 <text name="ap_evt_zoltan_tithe_text" language="pt">O posto de controlo é um único cruzador zoltan e muita papelada. "Todas as naves que atravessam o Terceiro Anel contribuem para o Anel", explica o oficial com a paciência de quem já explicou isto dez mil vezes. "A contribuição não é uma portagem. A portagem tira-se. A contribuição dá-se."</text>
-<text name="ap_evt_zoltan_tithe_c1" language="pt">Pagar o dízimo.</text>
+<text name="ap_evt_zoltan_tithe_c1" language="pt">Pagar o dízimo. Mais 1 de combustível vai para a reserva partilhada.</text>
+<text name="ap_evt_zoltan_toll_c1" language="pt">Pagar o dízimo.</text>
 <text name="ap_evt_zoltan_tithe_c1_text" language="pt">O oficial aceita sem contar, o que inquieta mais do que se tivesse contado. O Anel encaminha a energia para fora, para a reserva comum de que todos os jogadores de Archipelago bebem. Vocês também, mais cedo ou mais tarde.</text>
 <text name="ap_evt_zoltan_tithe_c2" language="pt">Invocar o direito de passagem.</text>
 <text name="ap_evt_zoltan_tithe_c2_text" language="pt">É um direito vosso, o próprio oficial o diz, e deixa-vos levar o que o Anel guarda. Ninguém vos trava. Os zoltan limitam-se a registar. Algures, outra pessoa vai encontrar a reserva mais vazia do que a deixou.</text>
@@ -40,7 +41,7 @@
 
 
 <text name="ap_store_text" language="pt">Um mercador chama-vos numa frequência desconhecida. O manifesto dele lista nomes que não reconhecem e mercadorias endereçadas a gente que não está a bordo.</text>
-<text name="ap_evt_zoltan_toll_c1_text" language="pt">O oficial aceita-a sem a contar, o que é mais constrangedor do que se a tivesse contado. Em troca entrega-te três células de combustível seladas em nome do Anel. Tudo fica registado.</text>
+<text name="ap_evt_zoltan_toll_c1_text" language="pt">O oficial aceita-a sem a contar, o que é mais constrangedor do que se a tivesse contado. Em troca entrega-te três células de combustível seladas em nome do Anel.</text>
 <text name="ap_evt_zoltan_toll_c3" language="pt">Seguir o teu caminho.</text>
 <text name="ap_evt_zoltan_toll_c3_text" language="pt">O oficial regista a tua recusa sem comentários e deixa-te passar. Os Zoltan registam tudo.</text>
 <text name="ap_evt_another_world_void" language="pt">Descarregá-la no vazio.</text>

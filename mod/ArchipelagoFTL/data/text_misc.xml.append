@@ -8,7 +8,8 @@
 <text name="ap_evt_package_c3_text">You keep your scrap and the relay drifts out of range. The packages will find another window.</text>
 
 <text name="ap_evt_zoltan_tithe_text">The checkpoint is a single Zoltan cruiser and a great deal of paperwork. "All vessels crossing the Third Ring contribute to the Ring," the officer explains, with the patience of someone who has explained it ten thousand times. "The contribution is not a toll. A toll is taken. A contribution is given."</text>
-<text name="ap_evt_zoltan_tithe_c1">Pay the tithe.</text>
+<text name="ap_evt_zoltan_tithe_c1">Pay the tithe. 1 more fuel goes to the shared reserve.</text>
+<text name="ap_evt_zoltan_toll_c1">Pay the tithe.</text>
 <text name="ap_evt_zoltan_tithe_c1_text">The officer accepts it without counting, which is more unsettling than if he had counted. The Ring routes the energy outward, into the shared reserve every Archipelago player draws from. Yours included, eventually.</text>
 <text name="ap_evt_zoltan_tithe_c2">Invoke right of passage.</text>
 <text name="ap_evt_zoltan_tithe_c2_text">It is your right, and the officer says so, and lets you take what the Ring holds. Nobody stops you. The Zoltan simply write it down. Somewhere out there, someone else will find the reserve emptier than they left it.</text>
@@ -40,7 +41,7 @@
 
 
 <text name="ap_store_text">A trader hails you on an unfamiliar frequency. Their manifest lists names you do not recognise, and goods addressed to people who are not aboard.</text>
-<text name="ap_evt_zoltan_toll_c1_text">The officer accepts it without counting it, which is more awkward than if he had. In return he hands over three fuel cells sealed in the Ring's name. Everything is noted.</text>
+<text name="ap_evt_zoltan_toll_c1_text">The officer accepts it without counting it, which is more awkward than if he had. In return he hands over three fuel cells sealed in the Ring's name.</text>
 <text name="ap_evt_zoltan_toll_c3">Go your way.</text>
 <text name="ap_evt_zoltan_toll_c3_text">The officer notes your refusal without comment and waves you through. The Zoltan note everything.</text>
 <text name="ap_evt_another_world_void">Discharge it into the void.</text>

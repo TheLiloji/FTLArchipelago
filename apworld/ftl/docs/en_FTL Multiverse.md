@@ -312,7 +312,8 @@ Five encounters of the mod's own appear at beacons marked ARCHIPELAGO, each a ch
   package to route, the scrap is refunded.
 - **Pirates holding a package**, preferably one for another player. Pay them 20 scrap, or fight them: win, and the
   package goes out for free on top of the usual loot.
-- **A Zoltan checkpoint** asks for a tithe to the shared Energy Link reserve, or lets you draw fuel from it.
+- **A Zoltan checkpoint** sells 3 fuel for 15 scrap. With Energy Link it costs 20 and also adds 1 fuel to the shared
+  reserve, or you can draw fuel from the reserve instead. Paying has no other effect.
 - **A Slug** sells a hint for 20 scrap: a real Archipelago hint about one of your unvisited locations, recorded on
   the server like any other. Without a server, or with nothing left to find, the scrap is refunded.
 - **A surge from another world** you can absorb, or push back out as a trap on Trap Link.

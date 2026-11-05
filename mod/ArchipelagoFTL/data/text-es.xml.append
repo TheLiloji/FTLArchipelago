@@ -7,7 +7,8 @@
 <text name="ap_evt_package_c3_text" language="es">Te quedas con tu chatarra y el relé se aleja. Los paquetes encontrarán otra ventana.</text>
 
 <text name="ap_evt_zoltan_tithe_text" language="es">El puesto de control consiste en un solo crucero zoltan y una montaña de papeleo. "Toda nave que cruza el Tercer Anillo contribuye al Anillo", explica el oficial con la paciencia de alguien que ya lo ha explicado diez mil veces. "La contribución no es un peaje. El peaje se cobra. La contribución se entrega."</text>
-<text name="ap_evt_zoltan_tithe_c1" language="es">Pagar el diezmo.</text>
+<text name="ap_evt_zoltan_tithe_c1" language="es">Pagar el diezmo. 1 de combustible más va a la reserva compartida.</text>
+<text name="ap_evt_zoltan_toll_c1" language="es">Pagar el diezmo.</text>
 <text name="ap_evt_zoltan_tithe_c1_text" language="es">El oficial lo acepta sin contarlo, lo cual resulta más inquietante que si lo hubiera contado. El Anillo envía la energía al exterior, a la reserva común de la que se abastece cada jugador de Archipelago. Tú también, tarde o temprano.</text>
 <text name="ap_evt_zoltan_tithe_c2" language="es">Invocar el derecho de paso.</text>
 <text name="ap_evt_zoltan_tithe_c2_text" language="es">Es tu derecho, según confirma el oficial, y te permite tomar lo que guarda el Anillo. Nadie te detiene. Los zoltan simplemente lo registran. En algún lugar, alguien encontrará la reserva más vacía de lo que la dejó.</text>
@@ -38,7 +39,7 @@
 <text name="ap_signal_visited" language="es">Señal de Archipelago.</text>
 
 <text name="ap_store_text" language="es">Un mercader te contacta a través de una frecuencia desconocida. Su manifiesto enumera nombres que no reconoces y mercancías destinadas a personas que no están a bordo.</text>
-<text name="ap_evt_zoltan_toll_c1_text" language="es">El oficial la acepta sin contarla, lo cual resulta más incómodo que si lo hubiera hecho. A cambio, te entrega tres celdas de combustible selladas en nombre del Anillo. Todo queda registrado.</text>
+<text name="ap_evt_zoltan_toll_c1_text" language="es">El oficial la acepta sin contarla, lo cual resulta más incómodo que si lo hubiera hecho. A cambio, te entrega tres celdas de combustible selladas en nombre del Anillo.</text>
 <text name="ap_evt_zoltan_toll_c3" language="es">Seguir tu camino.</text>
 <text name="ap_evt_zoltan_toll_c3_text" language="es">El oficial registra tu negativa sin hacer comentarios y te deja pasar. Los zoltan lo registran todo.</text>
 <text name="ap_evt_another_world_void" language="es">Descargarla en el vacío.</text>

@@ -8,7 +8,8 @@
 <text name="ap_evt_package_c3_text" language="it">Tenete i vostri rottami e il ripetitore si allontana. I pacchi troveranno un'altra finestra.</text>
 
 <text name="ap_evt_zoltan_tithe_text" language="it">Il posto di blocco è un solo incrociatore zoltan e moltissime scartoffie. "Ogni nave che attraversa il Terzo Anello contribuisce all'Anello", spiega l'ufficiale con la pazienza di chi l'ha spiegato diecimila volte. "Il contributo non è un pedaggio. Il pedaggio si prende. Il contributo si dà."</text>
-<text name="ap_evt_zoltan_tithe_c1" language="it">Pagare la decima.</text>
+<text name="ap_evt_zoltan_tithe_c1" language="it">Pagare la decima. 1 di carburante in più va alla riserva comune.</text>
+<text name="ap_evt_zoltan_toll_c1" language="it">Pagare la decima.</text>
 <text name="ap_evt_zoltan_tithe_c1_text" language="it">L'ufficiale accetta senza contare, il che inquieta più che se avesse contato. L'Anello manda l'energia verso l'esterno, nella riserva comune da cui attinge ogni giocatore di Archipelago. Anche voi, prima o poi.</text>
 <text name="ap_evt_zoltan_tithe_c2" language="it">Invocare il diritto di passaggio.</text>
 <text name="ap_evt_zoltan_tithe_c2_text" language="it">È un vostro diritto, lo dice l'ufficiale stesso, e vi lascia prendere quello che l'Anello custodisce. Nessuno vi ferma. Gli zoltan si limitano ad annotarlo. Da qualche parte, qualcun altro troverà la riserva più vuota di come l'aveva lasciata.</text>
@@ -40,7 +41,7 @@
 
 
 <text name="ap_store_text" language="it">Un mercante vi chiama su una frequenza sconosciuta. Il suo manifesto elenca nomi che non riconoscete e merci indirizzate a persone che non sono a bordo.</text>
-<text name="ap_evt_zoltan_toll_c1_text" language="it">L'ufficiale la accetta senza contarla, il che è più imbarazzante che se l'avesse contata. In cambio ti consegna tre celle di carburante sigillate a nome dell'Anello. Tutto viene annotato.</text>
+<text name="ap_evt_zoltan_toll_c1_text" language="it">L'ufficiale la accetta senza contarla, il che è più imbarazzante che se l'avesse contata. In cambio ti consegna tre celle di carburante sigillate a nome dell'Anello.</text>
 <text name="ap_evt_zoltan_toll_c3" language="it">Proseguire per la tua strada.</text>
 <text name="ap_evt_zoltan_toll_c3_text" language="it">L'ufficiale annota il tuo rifiuto senza commenti e ti fa passare. Gli Zoltan annotano tutto.</text>
 <text name="ap_evt_another_world_void" language="it">Scaricarla nel vuoto.</text>
