@@ -73,10 +73,16 @@ function apSavesIdFor(fingerprint, solo, slot)
         return "solo"
     end
     local id = "seed-" .. tostring(fingerprint or 0)
-    if slot == nil or slot == "" or oldSaveIsSlots(id, tostring(slot)) then
+    if slot == nil or slot == "" then
         return id
     end
-    return id .. "-" .. tostring(apSlotNumber(slot))
+    -- The first save ("main") or a save of an older beta: named otherwise, but this slot's on this seed.
+    for _, other in ipairs(list()) do
+        if apNetSeedTagOf(other) == fingerprint and oldSaveIsSlots(other, tostring(slot)) then
+            return other
+        end
+    end
+    return oldSaveIsSlots(id, tostring(slot)) and id or (id .. "-" .. tostring(apSlotNumber(slot)))
 end
 
 -- A save named after its seed alone, or the first one, comes from before saves went per slot: what is kept under
