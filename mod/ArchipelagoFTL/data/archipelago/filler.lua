@@ -6,6 +6,8 @@ end
 
 local pending = {}
 
+local toldCrewFull = false
+
 local RESOURCE_DELIVERY = {
     scrap = function(player, n)
         player:ModifyScrapCount(n, false)
@@ -32,8 +34,10 @@ local RESOURCE_DELIVERY = {
         for _ = 1, n do
             if player:IsCrewFull() then
                 fillerLog("crew full: " .. (n - added) .. " crew member(s) not delivered")
-                if added == 0 and _G.apNotifyStatusOnce then
-                    apNotifyStatusOnce(apT("crew.waiting.new"))
+                -- Tried again at every delivery pass: said for the first try only.
+                if added == 0 and not toldCrewFull and _G.apNotifyStatus then
+                    toldCrewFull = true
+                    apNotifyStatus(apT("crew.waiting.new"))
                 end
                 break
             end
@@ -47,6 +51,7 @@ local RESOURCE_DELIVERY = {
         if added == 0 then
             return nil
         end
+        toldCrewFull = false
         return "filler.crew", { n = added }
     end,
 }

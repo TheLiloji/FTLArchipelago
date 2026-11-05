@@ -756,10 +756,77 @@ test("save profiles: a refused seed does not rename the save in use", function()
     apSavesDescribe()
     equals(sim.profiles.details["seed-1.label"], "Captain on A", "another seed's slot does not take this save")
     equals(sim.profiles.details["seed-1.checks"], "9/163", "nor its checks")
-    sim.profiles.current = apSavesIdFor(apSeedFingerprint())
+    sim.profiles.current = apSavesIdFor(apSeedFingerprint(), false, "Navigator")
     apSavesDescribe()
     equals(sim.profiles.details[sim.profiles.current .. ".label"] ~= nil, true, "its own save does")
     restore()
+    sim.profiles.on = false
+end)
+
+test("save profiles: two slots of one seed get a save each", function()
+    sim.profiles.on = true
+    sim.profiles.pending = nil
+    sim.profiles.current = "seed-1"
+    sim.profiles.details = {}
+    apContractResetForTesting()
+    applySeed({ goal = { kind = "victories", count = 1 }, seed_hash = "shared-seed" })
+    local seed = apSeedFingerprint()
+    local captain = apSavesIdFor(seed, false, "Captain")
+    check(captain ~= apSavesIdFor(seed, false, "Navigator"), "the slot is part of the save's name")
+    sim.profiles.current = captain
+    local restore = stub("apOwnSlotName", function() return "Captain" end)
+    apSavesDescribe()
+    restore()
+    equals(sim.profiles.details[captain .. ".slot"], "Captain", "the save remembers its slot")
+    check(apSavesOtherSlot("Navigator"), "the other slot is told apart")
+    check(not apSavesOtherSlot("Captain"), "its own slot is at home")
+    restore = stub("apOwnSlotName", function() return "Navigator" end)
+    sim.profiles.details[captain .. ".label"] = "Captain on A"
+    apSavesDescribe()
+    restore()
+    equals(sim.profiles.details[captain .. ".label"], "Captain on A", "the other slot cannot rename it")
+    sim.profiles.current = "main"
+    sim.profiles.details["main.slot"] = "Captain"
+    sim.profiles.details["main.label"] = "Captain on A"
+    restore = stub("apOwnSlotName", function() return "Navigator" end)
+    apSavesDescribe()
+    equals(sim.profiles.details["main.label"], "Captain on A", "the first save neither")
+    sim.profiles.details["main.slot"] = nil
+    sim.profiles.pending = "seed-9"
+    apSavesDescribe()
+    restore()
+    equals(sim.profiles.details["main.label"], "Captain on A", "nor a slot on its way to another save")
+    sim.profiles.pending = nil
+    sim.profiles.on = false
+end)
+
+test("save profiles: a save named after its seed alone stays with the slot that played it", function()
+    sim.profiles.on = true
+    sim.profiles.details = { ["seed-5.label"] = "Captain on A" }
+    equals(apSavesIdFor(5, false, "Captain"), "seed-5", "its slot finds it")
+    check(apSavesIdFor(5, false, "Navigator") ~= "seed-5", "the other slot gets its own")
+    sim.profiles.on = false
+end)
+
+test("save profiles: another slot of the same seed asks the question, and keeping leaves the save alone", function()
+    sim.profiles.on = true
+    sim.profiles.pending = nil
+    sim.profiles.details = {}
+    apContractResetForTesting()
+    local tag = stub("apNetSeedTag", function() return apSeedFingerprint({ hash = "shared-seed" }) end)
+    local online = stub("apNetConnected", function() return true end)
+    sim.profiles.current = "seed-1"
+    sim.profiles.details["seed-1.slot"] = "Captain"
+    sim.profiles.details["seed-1.label"] = "Captain on A"
+    apApplySlotData({ contract = 3, goal = { kind = "victories", count = 1 }, seed_hash = "shared-seed",
+                      kinds = {}, kinds_required = {}, loc = {}, items = {} }, "Navigator")
+    check(apSeedChangeLeftovers(), "the question is asked")
+    equals(apSeedChangeSlot(), "Navigator", "for that slot")
+    apSeedChangeAcknowledged()
+    apSavesDescribe()
+    equals(sim.profiles.details["seed-1.label"], "Captain on A", "the save keeps its name")
+    online()
+    tag()
     sim.profiles.on = false
 end)
 

@@ -77,11 +77,14 @@ function apApplySlotData(slotData, slotName, solo)
         -- With save profiles, a save that already belongs to a seed asks on any other seed, progress or not:
         -- the answer gives that seed its own save. Without them, only a profile with ships has something to lose.
         local bound = _G.apSavesSupported ~= nil and apSavesSupported() and stored ~= 0
-        if incoming ~= stored
-            and (bound or (_G.apProfileHasShips and _G.apProfileHasShips())) then
+        -- Two slots of one seed share its fingerprint, but not their progress: each has its own save.
+        local otherSlot = incoming == stored and _G.apSavesOtherSlot ~= nil and apSavesOtherSlot(identity.slot)
+        if otherSlot or (incoming ~= stored
+            and (bound or (_G.apProfileHasShips and _G.apProfileHasShips()))) then
             state.seedChangedWithUnlocks = true
             state.seedChangeReason = stored == 0 and "foreign" or "seedchange"
             state.refusedFingerprint = incoming
+            state.refusedSlot = identity.slot
             if onServer and _G.apNetDisconnect then pcall(_G.apNetDisconnect) end
             if state.seedChangeReason == "foreign" then
                 return refuse(apT("contract.reason.foreign"))
@@ -524,6 +527,10 @@ end
 
 function apSeedChangeFingerprint()
     return state.refusedFingerprint
+end
+
+function apSeedChangeSlot()
+    return state.refusedSlot
 end
 
 function apOwnSlotName()
