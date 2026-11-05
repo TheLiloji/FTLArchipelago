@@ -93,6 +93,8 @@ local onMenu = false
 local AUTO_KEY = "ap_autoconnect"
 -- The password typed before a seed change relaunches FTL, kept for that one relaunch only.
 local RELAUNCH_PASSWORD_KEY = "relaunch_password"
+-- The player picked that seed's save: the next launch connects to it, automatic connection or not.
+local RELAUNCH_CONNECT_KEY = "ap_relaunch_connect"
 local autoTried = false
 local soloTried = false
 
@@ -224,6 +226,7 @@ local function acceptReset()
         if done and solo and _G.apSoloForgetProgress then _G.apSoloForgetProgress(true) end
     end
     if autoBefore and _G.apNetRemember then _G.apNetRemember(AUTO_KEY, 1) end
+    if done and not solo and _G.apNetRemember then _G.apNetRemember(RELAUNCH_CONNECT_KEY, 1) end
     if _G.apSeedChangeAcknowledged then _G.apSeedChangeAcknowledged() end
     if done then
         local relaunch = _G.apNetRelaunchWhenClosed and _G.apNetRelaunchWhenClosed() or false
@@ -511,6 +514,11 @@ local function followAttempt()
     end
 end
 
+function apConnectResetAutoForTesting()
+    autoTried = false
+    onMenu = false
+end
+
 function apConnectNow()
     local values = {}
     for _, field in ipairs(FIELDS) do values[field.key] = field.value end
@@ -661,6 +669,10 @@ script.on_internal_event(Defines.InternalEvents.ON_KEY_DOWN, function(key)
     if quitting then
         return Defines.Chain.PREEMPT
     end
+    -- A question stands until it is answered: nothing behind it answers.
+    if onMenu and currentQuestion() ~= nil then
+        return Defines.Chain.PREEMPT
+    end
     if not onMenu or seedActive() then
         return Defines.Chain.CONTINUE
     end
@@ -759,6 +771,7 @@ script.on_internal_event(Defines.InternalEvents.ON_MOUSE_L_BUTTON_DOWN, function
             question.decline()
             return Defines.Chain.PREEMPT
         end
+        return Defines.Chain.PREEMPT
     end
     if question == nil and profilesOn() and inside(seedActive() and g.savesStatus or g.saves, x, y) then
         apSavesOpen()
@@ -862,7 +875,9 @@ script.on_render_event(
                 end
             end
 
-            if not autoTried and autoActive() and not seedActive() then
+            local chosen = _G.apNetRecall ~= nil and _G.apNetRecall(RELAUNCH_CONNECT_KEY) == 1
+            if chosen then _G.apNetRemember(RELAUNCH_CONNECT_KEY, 0) end
+            if not autoTried and (autoActive() or chosen) and not seedActive() then
                 autoTried = true
                 local state = apConnectState()
                 if state.slot ~= "" then
