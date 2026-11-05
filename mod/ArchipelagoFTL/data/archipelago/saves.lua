@@ -58,12 +58,42 @@ local function detail(id, key)
     return value ~= nil and tostring(value) or ""
 end
 
--- The profile a seed or solo plays in. The first profile ("main") is the one players had before 0.6.
-function apSavesIdFor(fingerprint, solo)
+local function slotNumber(slot)
+    local number = 0
+    for index = 1, #slot do
+        number = (number * 31 + slot:byte(index)) % 2147483647
+    end
+    return number
+end
+
+-- A save of a beta before saves went per slot is named after its seed alone, and still is that slot's.
+local function oldSaveIsSlots(id, slot)
+    local owner, label = detail(id, "slot"), detail(id, "label")
+    if owner ~= "" then
+        return owner == slot
+    end
+    return label ~= "" and label:find(slot, 1, true) ~= nil
+end
+
+-- The profile a seed's slot or solo plays in. The first profile ("main") is the one players had before 0.6.
+function apSavesIdFor(fingerprint, solo, slot)
     if solo then
         return "solo"
     end
-    return "seed-" .. tostring(fingerprint or 0)
+    local id = "seed-" .. tostring(fingerprint or 0)
+    if slot == nil or slot == "" or oldSaveIsSlots(id, tostring(slot)) then
+        return id
+    end
+    return id .. "-" .. tostring(slotNumber(tostring(slot)))
+end
+
+-- The save in use was made for another slot, of this seed or not. A save nobody played yet is free.
+function apSavesOtherSlot(slot)
+    if not apSavesSupported() or slot == nil then
+        return false
+    end
+    local owner = detail(apSavesCurrent(), "slot")
+    return owner ~= "" and owner ~= tostring(slot)
 end
 
 -- Switches at the next launch: the caller closes FTL, which saves the current profile on its way out.
@@ -97,8 +127,16 @@ function apSavesDescribe()
         if _G.apSeedChangeLeftovers and apSeedChangeLeftovers() then
             return
         end
+        -- Leaving for another save: this one keeps what it says.
+        if tostring(call("PendingProfile") or "") ~= "" then
+            return
+        end
         local current = apSavesCurrent()
-        if current:sub(1, 5) == "seed-" and current ~= apSavesIdFor(apSeedFingerprint()) then
+        local ownSlot = _G.apOwnSlotName and apOwnSlotName() or nil
+        if apSavesOtherSlot(ownSlot) then
+            return
+        end
+        if current:sub(1, 5) == "seed-" and current ~= apSavesIdFor(apSeedFingerprint(), false, ownSlot) then
             return
         end
     end
@@ -117,6 +155,9 @@ function apSavesDescribe()
     call("DescribeProfile", "label", label)
     call("DescribeProfile", "checks", tostring(counts.sent) .. "/" .. tostring(counts.total))
     call("DescribeProfile", "solo", solo and "1" or "0")
+    if not solo then
+        call("DescribeProfile", "slot", tostring(_G.apOwnSlotName and apOwnSlotName() or ""))
+    end
 end
 
 local describeTicks = 0

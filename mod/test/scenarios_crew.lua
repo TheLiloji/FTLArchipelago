@@ -413,14 +413,19 @@ test("New Crew Member with the crew full: the player is told once and the dashbo
     apQueueItem({ kind = "filler", res = "crew", n = 1 })
     sim.jumpArrive()
     sim.tick(2)
+    local function told()
+        local count = 0
+        for _, toast in ipairs(apToastsForTesting()) do
+            if toast.text == apT("crew.waiting.new") then count = count + 1 end
+        end
+        return count
+    end
+    equals(told(), 1, "the player is told")
+    apNotifyResetForTesting()
     sim.jumpArrive()
     sim.tick(2)
     equals(apOwedCrewCount(), 1, "it waits in the count")
-    local told = 0
-    for _, toast in ipairs(apToastsForTesting()) do
-        if toast.text == apT("crew.waiting.new") then told = told + 1 end
-    end
-    equals(told, 1, "one message, not one per try")
+    equals(told(), 0, "and it is not said again once the message has gone")
     sim.player.IsCrewFull = full
     sim.jumpArrive()
     sim.tick(2)
