@@ -91,7 +91,7 @@ local deliveredOnce = {}
 -- A first copy that could not come aboard yet is owed. The list is kept in the profile: a game closed in
 -- between replays the item at the menu, where it would only fill the catalogue, and the copy would be lost.
 local function owedKey(fingerprint)
-    return "ap_owed_" .. tostring(fingerprint or 0)
+    return apNetSlotKey("ap_owed_" .. tostring(fingerprint or 0))
 end
 
 local function seedFingerprint()

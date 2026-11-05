@@ -58,14 +58,6 @@ local function detail(id, key)
     return value ~= nil and tostring(value) or ""
 end
 
-local function slotNumber(slot)
-    local number = 0
-    for index = 1, #slot do
-        number = (number * 31 + slot:byte(index)) % 2147483647
-    end
-    return number
-end
-
 -- A save of a beta before saves went per slot is named after its seed alone, and still is that slot's.
 local function oldSaveIsSlots(id, slot)
     local owner, label = detail(id, "slot"), detail(id, "label")
@@ -84,7 +76,30 @@ function apSavesIdFor(fingerprint, solo, slot)
     if slot == nil or slot == "" or oldSaveIsSlots(id, tostring(slot)) then
         return id
     end
-    return id .. "-" .. tostring(slotNumber(tostring(slot)))
+    return id .. "-" .. tostring(apSlotNumber(slot))
+end
+
+-- A save named after its seed alone, or the first one, comes from before saves went per slot: what is kept under
+-- the seed's name is its own. A save with its slot in its name never was.
+function apSavesPredatesSlots()
+    if not apSavesSupported() then
+        return true
+    end
+    local current = apSavesCurrent()
+    return current == "main" or current:match("^seed%-%d+$") ~= nil
+end
+
+-- Where the current save was last connected: the panel goes back there, a save loaded from the menu included.
+function apSavesLastPlace()
+    if not apSavesSupported() then
+        return nil
+    end
+    local current = apSavesCurrent()
+    local slot = detail(current, "slot")
+    if slot == "" then
+        return nil
+    end
+    return { slot = slot, uri = detail(current, "uri"), port = detail(current, "port") }
 end
 
 -- The save in use was made for another slot, of this seed or not. A save nobody played yet is free.
@@ -156,7 +171,10 @@ function apSavesDescribe()
     call("DescribeProfile", "checks", tostring(counts.sent) .. "/" .. tostring(counts.total))
     call("DescribeProfile", "solo", solo and "1" or "0")
     if not solo then
+        local place = _G.apConnectState and apConnectState() or {}
         call("DescribeProfile", "slot", tostring(_G.apOwnSlotName and apOwnSlotName() or ""))
+        call("DescribeProfile", "uri", tostring(place.uri or ""))
+        call("DescribeProfile", "port", tostring(place.port or ""))
     end
 end
 

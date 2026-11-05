@@ -184,7 +184,7 @@ end)
 local earned, earnedFor = {}, nil
 
 local function earnedKey()
-    return "ap_earned_layouts_" .. tostring(_G.apSeedFingerprint and apSeedFingerprint() or 0)
+    return apNetSlotKey("ap_earned_layouts_" .. tostring(_G.apSeedFingerprint and apSeedFingerprint() or 0))
 end
 
 local function loadEarned()

@@ -341,10 +341,41 @@ function apNetRecallText(key)
     return ok and value ~= nil and tostring(value) or ""
 end
 
+-- The key of something kept per seed, for this slot. What an older version kept under the seed alone moves to the
+-- slot of the save that played it, once: a slot on a save of its own never takes it.
+function apNetSlotKey(base)
+    local suffix = _G.apSlotSuffix and apSlotSuffix() or ""
+    if suffix == "" then
+        return base
+    end
+    local key = base .. suffix
+    if _G.apSavesPredatesSlots and not apSavesPredatesSlots() then
+        return key
+    end
+    local ap = store()
+    if ap ~= nil then
+        local ok, old = pcall(function() return ap:RecallState(base) end)
+        if ok and old ~= nil and old ~= "" and old ~= "0" then
+            if tostring(ap:RecallState(key) or "") == "" then
+                ap:RememberState(key, old)
+            end
+            ap:RememberState(base, "")
+            pcall(function() Hyperspace.metaVariables[base] = 0 end)
+        end
+    else
+        local ok, old = pcall(function() return Hyperspace.metaVariables[base] end)
+        if ok and tonumber(old) and tonumber(old) > 0 then
+            if meta(key) == 0 then writeMeta(key, tonumber(old)) end
+            writeMeta(base, 0)
+        end
+    end
+    return key
+end
+
 -- Each seed keeps its own count of consumed items, so coming back to a seed played before does not hand out
 -- its scrap and traps a second time.
 local function consumedKey(fingerprint)
-    return CONSUMED_KEY .. "_" .. tostring(fingerprint or 0)
+    return apNetSlotKey(CONSUMED_KEY .. "_" .. tostring(fingerprint or 0))
 end
 
 -- Older versions kept one count for whichever seed was current: it moves to that seed's own count.
@@ -368,7 +399,7 @@ end
 -- Items delivered past the first one still waiting (a weapon held back for a few jumps) are kept too, or
 -- the next session would hand out their scrap and traps again.
 local function deliveredKey(fingerprint)
-    return "ap_delivered_" .. tostring(fingerprint or 0)
+    return apNetSlotKey("ap_delivered_" .. tostring(fingerprint or 0))
 end
 
 local function saveDelivered(fingerprint)

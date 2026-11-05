@@ -537,6 +537,24 @@ function apOwnSlotName()
     return (state.identity or {}).slot
 end
 
+function apSlotNumber(slot)
+    local number = 0
+    slot = tostring(slot)
+    for index = 1, #slot do
+        number = (number * 31 + slot:byte(index)) % 2147483647
+    end
+    return number
+end
+
+-- Two slots of one seed share its fingerprint, not their progress: what is kept per seed is kept per slot too.
+function apSlotSuffix()
+    local slot = apOwnSlotName()
+    if slot == nil or slot == "" then
+        return ""
+    end
+    return "_" .. tostring(apSlotNumber(slot))
+end
+
 function apSeedSummary()
     if not state.connected then
         return nil
