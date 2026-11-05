@@ -255,16 +255,7 @@ local journalFor = nil
 
 -- Per seed and per slot: the slots of one multiworld share its seed, not their items.
 function apJournalKey()
-    local key = "ap_journal_" .. tostring(_G.apSeedFingerprint and apSeedFingerprint() or 0)
-    local slot = tostring(_G.apOwnSlotName and apOwnSlotName() or "")
-    if slot == "" then
-        return key
-    end
-    local fingerprint = 0
-    for index = 1, #slot do
-        fingerprint = (fingerprint * 31 + slot:byte(index)) % 2147483647
-    end
-    return key .. "_" .. fingerprint
+    return "ap_journal_" .. tostring(_G.apSeedFingerprint and apSeedFingerprint() or 0) .. apSlotSuffix()
 end
 
 local journalKey = apJournalKey

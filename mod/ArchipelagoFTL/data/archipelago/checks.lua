@@ -729,7 +729,7 @@ local goalAnnounced = false
 local victoriesFor = nil
 
 local function victoryKey(layout)
-    return "ap_goalwin_" .. tostring(_G.apSeedFingerprint and apSeedFingerprint() or 0) .. "_" .. layout
+    return apNetSlotKey("ap_goalwin_" .. tostring(_G.apSeedFingerprint and apSeedFingerprint() or 0) .. "_" .. layout)
 end
 
 local function allLayouts()

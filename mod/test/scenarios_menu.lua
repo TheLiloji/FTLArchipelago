@@ -830,6 +830,49 @@ test("save profiles: another slot of the same seed asks the question, and keepin
     sim.profiles.on = false
 end)
 
+test("slots of one seed: each counts its own items, and the old count stays with the save that played it", function()
+    apContractResetForTesting()
+    applySeed({ goal = { kind = "victories", count = 1 }, seed_hash = "shared-seed" })
+    local base = "ap_items_done_" .. tostring(apSeedFingerprint())
+    local slot = stub("apOwnSlotName", function() return "Captain" end)
+    apNetRemember(base, 4)
+    local captain = apNetSlotKey(base)
+    check(captain ~= base, "the slot is in the key")
+    equals(apNetRecall(captain), 4, "the old count moves to the slot")
+    equals(apNetRecall(base), 0, "and leaves the seed's name")
+    slot()
+    slot = stub("apOwnSlotName", function() return "Navigator" end)
+    check(apNetSlotKey(base) ~= captain, "the other slot has its own")
+    equals(apNetRecall(apNetSlotKey(base)), 0, "starting from zero")
+    apNetRemember(base, 7)
+    sim.profiles.on = true
+    sim.profiles.current = "seed-1-99"
+    apNetSlotKey(base)
+    equals(apNetRecall(base), 7, "a save with its slot in its name never takes an old count")
+    sim.profiles.on = false
+    slot()
+end)
+
+test("save profiles: the panel comes back on the slot of the save loaded, not the last one connected", function()
+    sim.profiles.on = true
+    sim.profiles.current = "seed-1"
+    sim.profiles.details = { ["seed-1.slot"] = "Captain", ["seed-1.uri"] = "other.host", ["seed-1.port"] = "1234" }
+    sim.net.last = { uri = "localhost:38281", slot = "Navigator" }
+    apContractResetForTesting()
+    sim.renderGui()
+    sim.hangarOpen = true
+    sim.renderMenu()
+    sim.hangarOpen = false
+    local place = apSavesLastPlace()
+    equals(place.slot, "Captain", "the save knows its slot")
+    sim.renderMenu()
+    sim.renderMenu()
+    equals(apConnectState().slot, "Captain", "the slot field follows")
+    equals(apConnectState().uri, "other.host", "and the address")
+    equals(apConnectState().port, "1234", "and the port")
+    sim.profiles.on = false
+end)
+
 test("closing FTL for a save: the screen says so for a few frames first, and the link is closed before", function()
     apQuitDelayForTesting(0.05)
     sim.quitCalled = false

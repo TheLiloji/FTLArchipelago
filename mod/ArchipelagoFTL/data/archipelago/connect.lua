@@ -463,6 +463,13 @@ local function resumeLast()
         FIELDS[3].value = last.slot
         focus = 4
     end
+    local place = _G.apSavesLastPlace and apSavesLastPlace() or nil
+    if place ~= nil then
+        FIELDS[3].value = place.slot
+        focus = 4
+        if place.uri ~= "" then FIELDS[1].value = place.uri end
+        if place.port ~= "" then FIELDS[2].value = place.port end
+    end
 end
 
 local connectedMessage = nil
