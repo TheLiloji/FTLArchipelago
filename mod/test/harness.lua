@@ -1065,6 +1065,17 @@ function fire(id, ...)
     end
 end
 
+-- Fires like the game: the first handler that preempts stops the event, and the caller sees it.
+function sim.fireForTesting(id, ...)
+    for _, fn in ipairs(sim.handlers[id] or {}) do
+        local ok, chain = pcall(fn, ...)
+        if ok and chain == Defines.Chain.PREEMPT then
+            return chain
+        end
+    end
+    return Defines.Chain.CONTINUE
+end
+
 local function watchResources()
     local player = sim.player
     if player == nil or player._noteNegative == nil then

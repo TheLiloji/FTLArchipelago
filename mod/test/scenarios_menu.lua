@@ -888,6 +888,38 @@ test("save profiles: the panel comes back on the slot of the save loaded, not th
     sim.profiles.on = false
 end)
 
+test("seed question: nothing behind it answers until it is answered, New Game included", function()
+    sim.net.last = { uri = "", slot = "" }
+    sim.profiles.on = true
+    sim.profiles.current = "seed-1"
+    apContractResetForTesting()
+    local leftovers = stub("apSeedChangeLeftovers", function() return true end)
+    sim.renderMenu()
+    equals(sim.fireForTesting("ON_MOUSE_L_BUTTON_DOWN", 1078, 364), Defines.Chain.PREEMPT, "a click on New Game stops here")
+    equals(sim.fireForTesting("ON_KEY_DOWN", Defines.SDL.KEY_RETURN), Defines.Chain.PREEMPT, "and so does a key")
+    leftovers()
+    apSeedChangeAcknowledged()
+    sim.renderMenu()
+    equals(sim.fireForTesting("ON_MOUSE_L_BUTTON_DOWN", 1078, 364), Defines.Chain.CONTINUE, "once answered, the menu works")
+    sim.profiles.on = false
+end)
+
+test("seed question: its own save connects at the next launch, once, automatic connection off", function()
+    apNetRemember("ap_autoconnect", 0)
+    apNetRemember("ap_relaunch_connect", 1)
+    sim.net.last = { uri = "localhost:38281", slot = "Captain" }
+    apConnectResetAutoForTesting()
+    apContractResetForTesting()
+    local connected = 0
+    local tried = stub("apConnectNow", function() connected = connected + 1 end)
+    sim.mainMenu()
+    sim.renderGui()
+    sim.renderMenu()
+    tried()
+    equals(connected, 1, "it connects by itself")
+    equals(apNetRecall("ap_relaunch_connect"), 0, "and only for that launch")
+end)
+
 test("closing FTL for a save: the screen says so for a few frames first, and the link is closed before", function()
     apQuitDelayForTesting(0.05)
     sim.quitCalled = false
