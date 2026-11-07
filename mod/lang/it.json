@@ -460,6 +460,11 @@
     "trap.o2_drain": "Tutte le valvole si sono aperte insieme. L'aria è sparita, il sistema dell'ossigeno sta riempiendo di nuovo la nave.",
     "trap.o2_drain.breach": "Tutte le valvole si sono aperte, ma la breccia ha attivato la sicura: le stanze conservano un po' d'aria.",
     "trap.o2_drain.down": "Il sistema dell'ossigeno è fuori uso, niente aria da rubare: al suo posto, un incendio nella stanza {room}.",
-    "trap.title.o2_drain": "Trappola dell'ossigeno"
+    "trap.title.o2_drain": "Trappola dell'ossigeno",
+    "shop.locked.tip": "Non ancora sbloccato: prima devi riceverlo da Archipelago.",
+    "deathlink.turned_on": "DeathLink attivo.",
+    "deathlink.turned_off": "DeathLink disattivato.",
+    "dash.links.death_off": "DeathLink: disattivato",
+    "dash.links.toggle": "Clicca per attivare o disattivare DeathLink."
   }
 }

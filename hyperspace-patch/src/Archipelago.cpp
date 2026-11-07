@@ -29,6 +29,32 @@ namespace ArchipelagoFTL
 
 namespace
 {
+#ifdef _WIN32
+const char kPreviousGame[] = "FTLAP_PREVIOUS_GAME";
+
+// A game relaunched by the one before it starts here, while the DLL loads, before FTL opens anything. A game still
+// there after 12 s is stuck closing (seen: a frozen menu for a minute): its profile is already switched, it is ended.
+struct PreviousGameWait
+{
+    PreviousGameWait()
+    {
+        char id[32];
+        const DWORD length = GetEnvironmentVariableA(kPreviousGame, id, sizeof(id));
+        if (length == 0 || length >= sizeof(id)) return;
+        SetEnvironmentVariableA(kPreviousGame, nullptr);
+        HANDLE previous = OpenProcess(SYNCHRONIZE | PROCESS_TERMINATE, FALSE, std::strtoul(id, nullptr, 10));
+        if (previous == nullptr) return;
+        if (WaitForSingleObject(previous, 12000) == WAIT_TIMEOUT) {
+            TerminateProcess(previous, 0);
+            WaitForSingleObject(previous, 3000);
+        }
+        CloseHandle(previous);
+        Sleep(1000);
+    }
+};
+PreviousGameWait previousGameWait;
+#endif
+
 // The game this client plays: the Multiverse build of the mod sets its own before connecting.
 std::string kGameName = "FTL: Faster Than Light";
 
@@ -463,49 +489,21 @@ bool Client::RelaunchWhenClosed()
     const std::string exe(path);
     const std::string dir = exe.substr(0, exe.find_last_of("\\/"));
 
-    // PowerShell takes single-quoted literals, where a quote is escaped by doubling it.
-    auto quoted = [](const std::string& text) {
-        std::string out = "'";
-        for (size_t i = 0; i < text.size(); ++i) {
-            out += text[i];
-            if (text[i] == '\'') out += '\'';
-        }
-        return out + "'";
-    };
-
-    // Always the game itself, even when Steam started it: the relauncher is a child of the game, and Steam counts
-    // the game as running while that child lives, so it refused every steam:// launch (seen on Windows, 3 out of
-    // 3). The launch is tried again until the game's process shows up.
-    std::string name = exe.substr(exe.find_last_of("\\/") + 1);
-    const size_t dot = name.find_last_of('.');
-    if (dot != std::string::npos) name = name.substr(0, dot);
-    const std::string start = "Start-Process -FilePath " + quoted(exe) + " -WorkingDirectory " + quoted(dir);
-    // Wait-Process returned at once (both windows were open for 11 s): the wait polls the process itself, then
-    // every copy of the game. A game still there after 12 s is stuck closing (seen: a frozen menu for a minute):
-    // its profile is already switched, it is ended.
-    std::string command =
-        "powershell.exe -NoProfile -NonInteractive -WindowStyle Hidden -Command \""
-        "for ($w = 0; $w -lt 40 -and (Get-Process -Id " +
-        std::to_string(static_cast<unsigned long>(GetCurrentProcessId())) +
-        " -ErrorAction SilentlyContinue); $w++) { Start-Sleep -Milliseconds 300 }; "
-        "Stop-Process -Id " + std::to_string(static_cast<unsigned long>(GetCurrentProcessId())) +
-        " -Force -ErrorAction SilentlyContinue; "
-        "for ($w = 0; $w -lt 20 -and (Get-Process -Name " + quoted(name) +
-        " -ErrorAction SilentlyContinue); $w++) { Start-Sleep -Milliseconds 300 }; "
-        "Start-Sleep -Seconds 1; "
-        "for ($i = 0; $i -lt 5; $i++) { " + start + "; Start-Sleep -Seconds 10; "
-        "if (Get-Process -Name " + quoted(name) + " -ErrorAction SilentlyContinue) { break } }\"";
+    // Always the game itself, even when Steam started it: Steam counts the game as running while its child lives,
+    // so it refused every steam:// launch (seen on Windows, 3 out of 3). The new game waits for this one before it
+    // does anything (see PreviousGameWait): no helper process, and no script for an antivirus to take for malware.
+    SetEnvironmentVariableA(kPreviousGame, std::to_string(static_cast<unsigned long>(GetCurrentProcessId())).c_str());
 
     STARTUPINFOA startup;
     ZeroMemory(&startup, sizeof(startup));
     startup.cb = sizeof(startup);
     PROCESS_INFORMATION process;
     ZeroMemory(&process, sizeof(process));
-    if (!CreateProcessA(nullptr, &command[0], nullptr, nullptr, FALSE,
-                        CREATE_NO_WINDOW | CREATE_NEW_PROCESS_GROUP, nullptr, nullptr,
-                        &startup, &process)) {
-        return false;
-    }
+    std::string command = "\"" + exe + "\"";
+    const BOOL started = CreateProcessA(exe.c_str(), &command[0], nullptr, nullptr, FALSE, CREATE_NEW_PROCESS_GROUP,
+                                        nullptr, dir.c_str(), &startup, &process);
+    SetEnvironmentVariableA(kPreviousGame, nullptr);
+    if (!started) return false;
     CloseHandle(process.hThread);
     CloseHandle(process.hProcess);
     return true;

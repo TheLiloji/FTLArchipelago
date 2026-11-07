@@ -579,6 +579,10 @@ function apSlotSuffix()
     return "_" .. tostring(apSlotNumber(slot))
 end
 
+function apSeedLoaded()
+    return state.connected == true
+end
+
 function apSeedSummary()
     if not state.connected then
         return nil
@@ -589,7 +593,7 @@ function apSeedSummary()
         goal = state.goal,
         options = state.options or {},
         links = {
-            death = _G.apDeathLink and _G.apDeathLink.enabled or false,
+            death = _G.apDeathLink and _G.apDeathLink.offered or false,
             energy = _G.apEnergyLink and _G.apEnergyLink.enabled or false,
             trap = _G.apTrapLink and _G.apTrapLink.enabled or false,
         },

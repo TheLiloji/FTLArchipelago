@@ -15,7 +15,7 @@ PACKAGE_NAME = "ftl_mv"
 
 CONTAINER_VERSION = 7
 
-EXCLUDED_PARTS = {"__pycache__"}
+EXCLUDED_PARTS = {"__pycache__", "test"}
 EXCLUDED_SUFFIXES = {".pyc", ".pyo"}
 
 
@@ -24,7 +24,7 @@ def files_to_pack() -> list[Path]:
         path
         for path in PACKAGE.rglob("*")
         if path.is_file()
-        and not EXCLUDED_PARTS.intersection(path.parts)
+        and not EXCLUDED_PARTS.intersection(path.relative_to(PACKAGE).parts)
         and path.suffix not in EXCLUDED_SUFFIXES
     )
 

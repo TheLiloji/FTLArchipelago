@@ -53,6 +53,9 @@
 %rename("%s") ArchipelagoFTL::Client::SetShipLock;
 %rename("%s") ArchipelagoFTL::Client::UnlockShip;
 %rename("%s") ArchipelagoFTL::Client::LockShips;
+%rename("%s") ArchipelagoFTL::Client::SetShopLock;
+%rename("%s") ArchipelagoFTL::Client::ClearShopLocks;
+%rename("%s") ArchipelagoFTL::Client::SetShopLockTip;
 %rename("%s") ArchipelagoFTL::Client::AchievementStatus;
 %rename("%s") ArchipelagoFTL::Client::HideBeaconLabel;
 %rename("%s") ArchipelagoFTL::Client::SetGame;

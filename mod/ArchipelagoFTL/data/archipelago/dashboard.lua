@@ -452,16 +452,28 @@ local function drawLinksCard(x, y, w, h)
     end
     local chipX = x + 16
     for _, name in ipairs(links) do
+        local death = name == "DeathLink"
+        local active = not death or _G.apDeathLink.enabled
         if name == "EnergyLink" then
             -- The shared pool, in fuel like the mod gives it.
             local fuel = _G.apEnergyLinkPoolFuel and apEnergyLinkPoolFuel() or nil
             name = apT("dash.links.energy", { n = fuel ~= nil and tostring(fuel) or "?" })
+        elseif not active then
+            name = apT("dash.links.death_off")
         end
         local chipW = width(10, name) + 20
         if chipX + chipW > x + w - 16 then break end
-        rect(chipX, y + 32, chipW, 22, "faint")
-        rect(chipX, y + 32, 3, 22, "good")
-        text(10, chipX + 11, y + 36, chipW - 14, "text", name)
+        local toggled = death and _G.apDeathLink.toggle ~= false
+        if toggled then
+            local area = { x = chipX, y = y + 32, w = chipW, h = 22 }
+            state.areas["deathlink"] = area
+            if hovered(area) then
+                textRight(9, x + w - 16, y + 12, w - 120, "dim", apT("dash.links.toggle"))
+            end
+        end
+        rect(chipX, y + 32, chipW, 22, toggled and hovered(state.areas["deathlink"]) and "hover" or "faint")
+        rect(chipX, y + 32, 3, 22, active and "good" or "border")
+        text(10, chipX + 11, y + 36, chipW - 14, active and "text" or "dim", name)
         chipX = chipX + chipW + 8
     end
 end
@@ -1632,7 +1644,9 @@ script.on_internal_event(Defines.InternalEvents.ON_MOUSE_L_BUTTON_DOWN, function
     for name, area in pairs(state.areas) do
         if inside(area, x, y) then
             local kind, index = name:match("^(%a+):(%d+)$")
-            if kind == "tab" then
+            if name == "deathlink" then
+                apDeathLinkToggle()
+            elseif kind == "tab" then
                 state.page = tonumber(index)
             elseif kind == "cat" then
                 state.category = tonumber(index)
