@@ -458,6 +458,11 @@
     "trap.o2_drain": "Alle Ventile haben sich auf einmal geöffnet. Die Luft ist weg, das Sauerstoffsystem füllt das Schiff wieder auf.",
     "trap.o2_drain.breach": "Alle Ventile öffneten sich, aber das Leck löste die Sicherung aus: Die Räume behalten etwas Luft.",
     "trap.o2_drain.down": "Das Sauerstoffsystem ist aus, es gibt keine Luft zu stehlen: Stattdessen bricht in Raum {room} ein Feuer aus.",
-    "trap.title.o2_drain": "Sauerstofffalle"
+    "trap.title.o2_drain": "Sauerstofffalle",
+    "shop.locked.tip": "Noch nicht freigeschaltet: Erhalte es zuerst von Archipelago.",
+    "deathlink.turned_on": "DeathLink an.",
+    "deathlink.turned_off": "DeathLink aus.",
+    "dash.links.death_off": "DeathLink: aus",
+    "dash.links.toggle": "Klicken, um DeathLink ein- oder auszuschalten."
   }
 }

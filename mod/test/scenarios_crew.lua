@@ -354,9 +354,112 @@ test("DeathLink: a crew member left on the enemy ship when it goes is a death", 
     sim.player.vCrewList[0].currentShipId = 1
     sim.tick(60)
     table.remove(sim.player.vCrewList._store, 1)
-    sim.tick(60)
+    sim.tick(300)
     sent.restore()
     equals(sent.n, 1, "boarders lost with the enemy ship")
+end)
+
+test("DeathLink: a crew member teleporting back from the enemy ship is not a death", function()
+    local sent = deathLinkRun()
+    local member = sim.player.vCrewList[0]
+    member.currentShipId = 1
+    sim.tick(60)
+    table.remove(sim.player.vCrewList._store, 1)
+    sim.tick(120)
+    equals(sent.n, 0, "on neither ship during the teleport: nothing yet")
+    member.currentShipId = 0
+    table.insert(sim.player.vCrewList._store, member)
+    sim.tick(300)
+    sent.restore()
+    equals(sent.n, 0, "back aboard: nobody died")
+end)
+
+test("DeathLink: a crew member seen dead on the enemy ship does not wait for the teleport delay", function()
+    local sent = deathLinkRun()
+    local member = sim.player.vCrewList[0]
+    member.currentShipId = 1
+    sim.tick(60)
+    member.health.first = 0
+    sim.tick(30)
+    table.remove(sim.player.vCrewList._store, 1)
+    sim.tick(30)
+    sent.restore()
+    equals(sent.n, 1, "seen dying: it goes out at once")
+end)
+
+test("DeathLink: turned off from the dashboard, nothing goes out or comes in, and the choice is kept", function()
+    local sent = deathLinkRun()
+    check(apDeathLinkToggle(), "the seed lets the player choose")
+    equals(_G.apDeathLink.enabled, false, "off")
+    sim.tick(60)
+    local member = sim.player.vCrewList[0]
+    member.health.first = 0
+    sim.tick(30)
+    member.bDead = true
+    sim.tick(30)
+    table.remove(sim.player.vCrewList._store, 1)
+    sim.tick(60)
+    equals(sent.n, 0, "no death sent")
+    equals(apDeathLinkReceive("Other", "fell"), false, "no death received")
+    apDeathLinkConfigure({ enabled = true })
+    equals(_G.apDeathLink.enabled, false, "still off after a reconnection")
+    equals(_G.apDeathLink.offered, true, "the dashboard still shows it")
+    check(apDeathLinkToggle(), "and back on")
+    equals(_G.apDeathLink.enabled, true, "on again")
+    sent.restore()
+end)
+
+test("DeathLink: a seed that forbids the toggle stays as it is", function()
+    apDeathLinkConfigure({ enabled = true, toggle = false })
+    equals(apDeathLinkToggle(), false, "refused")
+    equals(_G.apDeathLink.enabled, true, "still on")
+    apDeathLinkConfigure({ toggle = true })
+end)
+
+test("locked shops: a new sector's reset does not bring back what the seed locked", function()
+    sim.weaponBlueprints.LOCK_TEST = 3
+    sim.resetBlueprints()
+    sim.net.shopLocks = {}
+    _G.apInventory = { ships = {}, shopAvailability = {} }
+    apShopForgetSeed()
+    apShopConfigure({ mode = "locked", deliver = false, baseline = { "LOCK_TEST" } })
+    sim.startRun(true)
+    local desc = sim.rarityFor("LOCK_TEST", 3)
+    equals(sim.net.shopLocks.LOCK_TEST, true, "the stores leave it out")
+    equals(desc.rarity, 3, "never a rarity of 0: a whole family at 0 crashes the game")
+    equals(desc.baseRarity, 3, "in both fields")
+    sim.newSectorRarities()
+    equals(sim.net.shopLocks.LOCK_TEST, true, "a new map changes nothing to the lock")
+    apApplyShopItem({ bp = "LOCK_TEST", n = 1, noDelivery = true })
+    equals(sim.net.shopLocks.LOCK_TEST, nil, "received: on sale")
+    check(desc.rarity > 0, "and in the random picks")
+    sim.newSectorRarities()
+    equals(desc.rarity, 3, "a received item survives the reset")
+    sim.newSectorRarities({ LOCK_TEST = 0 })
+    sim.tick(1)
+    equals(desc.rarity, 3, "and the sector's own list, from the next tick")
+    apShopForgetSeed()
+    equals(desc.rarity, 3, "a new seed gets the game's rarity back")
+    equals(desc.baseRarity, 3, "in both fields")
+    _G.apShopConfig.mode = "rarity_boost"
+    _G.apShopConfig.baseline = {}
+end)
+
+test("a system without its blueprint stays off the store shelves until it comes in", function()
+    sim.resetBlueprints()
+    sim.net.shopLocks = {}
+    local unlocked, loaded = _G.apSystemUnlocked, _G.apSeedLoaded
+    local owned = {}
+    _G.apSystemUnlocked = function(name) return owned[name] == true end
+    _G.apSeedLoaded = function() return true end
+    _G.apInventory = { ships = {}, shopAvailability = {} }
+    apApplyShopRules()
+    equals(sim.net.shopLocks.cloaking, true, "locked")
+    owned.cloaking = true
+    sim.tick(60)
+    equals(sim.net.shopLocks.cloaking, nil, "the blueprint opens it within a second")
+    _G.apSystemUnlocked, _G.apSeedLoaded = unlocked, loaded
+    apShopForgetSeed()
 end)
 
 test("New Crew Member with the crew full: the player is told once and the dashboard counts it", function()

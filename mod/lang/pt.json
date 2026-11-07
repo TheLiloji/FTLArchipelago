@@ -458,6 +458,11 @@
     "trap.o2_drain": "Todas as válvulas se abriram de uma vez. O ar acabou, o sistema de oxigênio está enchendo a nave de novo.",
     "trap.o2_drain.breach": "Todas as válvulas abriram, mas a brecha ativou a segurança: as salas mantêm algum ar.",
     "trap.o2_drain.down": "O sistema de oxigênio está fora de serviço, não há ar para roubar: em vez disso, um incêndio na sala {room}.",
-    "trap.title.o2_drain": "Armadilha de oxigênio"
+    "trap.title.o2_drain": "Armadilha de oxigênio",
+    "shop.locked.tip": "Ainda não desbloqueado: primeiro receba do Archipelago.",
+    "deathlink.turned_on": "DeathLink ligado.",
+    "deathlink.turned_off": "DeathLink desligado.",
+    "dash.links.death_off": "DeathLink: desligado",
+    "dash.links.toggle": "Clique para ligar ou desligar o DeathLink."
   }
 }

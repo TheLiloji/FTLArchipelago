@@ -1794,11 +1794,11 @@ test("in locked mode, the object disappears from shops until its item arrives", 
     _G.apInventory = { ships = {}, shopAvailability = {} }
     apShopConfigure({ mode = "locked", deliver = false, baseline = { "BEAM_2" } })
     sim.startRun(true)
-    equals(sim.rarityFor("BEAM_2", 4).rarity, 0, "the object is unfindable at first")
+    equals(sim.net.shopLocks.BEAM_2, true, "the object is unfindable at first")
 
     apQueueItem({ kind = "shop", bp = "BEAM_2" })
     drain()
-    check(sim.rarityFor("BEAM_2", 4).rarity > 0, "the received item makes it appear")
+    equals(sim.net.shopLocks.BEAM_2, nil, "the received item makes it appear")
 end)
 
 test("a reconnect doesn't relock what's already unlocked", function()
@@ -1820,7 +1820,7 @@ test("unlocking an object gives back its original rarity, no more, no less", fun
     sim.resetBlueprints()
     apShopConfigure({ mode = "locked", deliver = false, baseline = { "COMBAT_1" } })
     sim.startRun(true)
-    equals(sim.rarityFor("COMBAT_1", 2).rarity, 0, "removed from shops at first")
+    equals(sim.net.shopLocks.COMBAT_1, true, "removed from shops at first")
 
     apQueueItem({ kind = "shop", bp = "COMBAT_1" })
     drain()
@@ -5893,7 +5893,7 @@ test("slot_data does lock shops before any item", function()
     apApplySlotData(slotData({
         shop = { mode = "locked", deliver = false, baseline = { "BEAM_2" } },
     }))
-    equals(sim.rarityFor("BEAM_2", 4).rarity, 0, "the object is removed from shops")
+    equals(sim.net.shopLocks.BEAM_2, true, "the object is removed from shops")
 end)
 
 test("a received item is translated into a game action", function()

@@ -485,6 +485,7 @@ class FTLWorld(World):
         return {
             "death": {
                 "enabled": bool(self.options.death_link),
+                "toggle": bool(self.options.death_link_toggle),
                 "trigger": self.options.death_link_trigger.current_key,
                 "cloned": bool(self.options.death_link_cloned_crew),
                 "effect": self.options.death_link_effect.current_key,

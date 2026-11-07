@@ -846,7 +846,8 @@ class ShopUnlockMode(Choice):
 
     locked: the item is removed from every shop until you receive it. Harsher, and much more of
     a moment when it finally arrives - this is the mode where finding a Burst Laser II in a shop
-    means another world sent it to you.
+    means another world sent it to you. Only the items of your seed are concerned: with a lower
+    shop_weapons, shop_drones or shop_augments, the others stay in shops.
     """
 
     display_name = "Shop Unlock Mode"
@@ -985,6 +986,16 @@ class DeathLinkClonedCrew(Toggle):
     display_name = "Death Link Cloned Crew"
 
 
+class DeathLinkToggle(DefaultOnToggle):
+    """With Death Link on: whether you can turn it off and on again during the game, by clicking it on the first
+    page of the TAB dashboard. While it is off you send no death and receive none.
+
+    Turn this off for a group that wants everyone tied together for the whole seed.
+    """
+
+    display_name = "Death Link Toggle"
+
+
 class DeathLinkEffect(Choice):
     """With Death Link on: what a death from another player does to you. None of them can
     destroy your ship or kill your last crew member.
@@ -1074,6 +1085,7 @@ class FTLOptions(PerGameCommonOptions):
     death_link: DeathLink
     death_link_trigger: DeathLinkTrigger
     death_link_cloned_crew: DeathLinkClonedCrew
+    death_link_toggle: DeathLinkToggle
     death_link_effect: DeathLinkEffect
     energy_link: EnergyLink
     trap_link: TrapLink
@@ -1189,7 +1201,7 @@ ftl_option_groups = [
     ),
     OptionGroup(
         "Playing with Others",
-        [DeathLink, DeathLinkTrigger, DeathLinkClonedCrew, DeathLinkEffect, EnergyLink, TrapLink, TrapChance,
+        [DeathLink, DeathLinkTrigger, DeathLinkClonedCrew, DeathLinkToggle, DeathLinkEffect, EnergyLink, TrapLink, TrapChance,
          CrewNames],
     ),
     OptionGroup(

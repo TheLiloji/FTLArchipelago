@@ -85,6 +85,11 @@ public:
     bool UnlockShip(const std::string& blueprint, bool silent);
     // Locks again every listed layout the profile has, then saves the profile once. Returns how many.
     int LockShips(const std::vector<std::string>& blueprints);
+    // What a store must not sell for now, by blueprint name: left out of the store's random picks, and greyed out
+    // where a store shows it anyway (guaranteed systems, Multiverse's fixed store lists).
+    void SetShopLock(const std::string& name, bool locked);
+    void ClearShopLocks();
+    void SetShopLockTip(const std::string& text);
 
     // FTL's own achievements (difficulty it was earned on, -1 if not), which Hyperspace's tracker of
     // custom achievements does not hold.
@@ -109,6 +114,8 @@ void FinishPendingProfile();
 // Used by the hooks: whether this unlock may go through, and telling Lua about one that did not.
 bool ShipUnlockAllowed(const std::string& blueprint);
 void ShipUnlockDenied(const std::string& blueprint);
+bool ShopLocked(const std::string& name);
+const std::string& ShopLockTip();
 
 struct Archipelago {
     static Client& Instance() { return ::ArchipelagoFTL::Instance(); }

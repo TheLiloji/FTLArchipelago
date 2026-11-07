@@ -8,6 +8,8 @@ local TICKS_PER_SECOND = 60
 
 _G.apDeathLink = {
     enabled = false,
+    offered = false,
+    toggle = true,
     trigger = "both",
     effect = "major_incident",
     cloned = false,
@@ -30,20 +32,56 @@ local state = {
     knownCrew = nil,
     dying = {},
     cloning = {},
+    away = {},
     applying = false,
 }
 
 _G.apDeathLinkState = state
+
+local function mutedKey()
+    return apNetSlotKey("ap_deathlink_off_" .. tostring(_G.apSeedFingerprint and apSeedFingerprint() or 0))
+end
+
+function apDeathLinkRemembered()
+    return _G.apNetRecallText ~= nil and apNetRecallText(mutedKey()) == "1"
+end
+
+-- The player's own choice for this slot, from the dashboard. The seed's death_link_toggle can forbid it.
+function apDeathLinkToggle()
+    local config = _G.apDeathLink
+    if not config.offered or config.toggle == false then
+        return false
+    end
+    config.enabled = not config.enabled
+    if _G.apNetRememberText then
+        apNetRememberText(mutedKey(), config.enabled and "" or "1")
+    end
+    state.knownCrew = nil
+    state.cloning = {}
+    state.away = {}
+    if _G.apNetAnnounceTags then
+        apNetAnnounceTags()
+    end
+    deathLog("toggled from the dashboard: " .. (config.enabled and "on" or "off"))
+    if _G.apNotifyStatus then
+        _G.apNotifyStatus(apT(config.enabled and "deathlink.turned_on" or "deathlink.turned_off"))
+    end
+    return true
+end
 
 function apDeathLinkConfigure(settings)
     if type(settings) ~= "table" then
         return false
     end
     local config = _G.apDeathLink
-    for _, key in ipairs({ "enabled", "trigger", "effect", "cloned", "graceSeconds" }) do
+    for _, key in ipairs({ "enabled", "toggle", "trigger", "effect", "cloned", "graceSeconds" }) do
         if settings[key] ~= nil then
             config[key] = settings[key]
         end
+    end
+    config.offered = config.enabled == true
+    if config.offered and config.toggle ~= false and apDeathLinkRemembered() then
+        config.enabled = false
     end
     deathLog(string.format("configure: enabled=%s trigger=%s effect=%s cloned=%s grace=%ss",
         tostring(config.enabled), config.trigger, config.effect, tostring(config.cloned),
@@ -122,6 +160,7 @@ local SENT_CAUSES = {
 function apDeathLinkOnRunEnd(cause, detail)
     local _, waiting = next(state.cloning)
     state.cloning = {}
+    state.away = {}
     if cause == "victory" or cause == "menu" then
         return false
     end
@@ -398,6 +437,22 @@ local function seenDying(key, last, dead)
     return dead[key] ~= nil or state.dying[key] == true or last.onEnemy == true
 end
 
+-- Crew teleporting are on neither ship for a moment. Leaving the enemy ship, that looks like dying there.
+local AWAY_SECONDS = 4
+
+local function maybeTeleporting(key, last, dead)
+    return last.onEnemy == true and dead[key] == nil and state.dying[key] ~= true
+end
+
+local function crewLost(key, last, dead, queued)
+    if queued[key] then
+        deathLog(tostring(last.name) .. " waits for the Clone Bay")
+        state.cloning[key] = last
+    else
+        apDeathLinkCrewDied(last.name, last.species)
+    end
+end
+
 -- The hangar keeps bStartedGame on while you browse ships, and each ship shown comes with its own crew.
 local function runInProgress()
     local ok, started = pcall(function()
@@ -424,6 +479,15 @@ local function sampleCrew()
     end
 
     local queued = _G.apDeathLink.cloned and {} or cloneQueue(dead)
+    for key, away in pairs(state.away) do
+        if current[key] ~= nil then
+            deathLog(tostring(away.last.name) .. " came back: no DeathLink")
+            state.away[key] = nil
+        elseif dead[key] ~= nil or state.ticks - away.since >= AWAY_SECONDS * TICKS_PER_SECOND then
+            state.away[key] = nil
+            crewLost(key, away.last, dead, queued)
+        end
+    end
     for key, last in pairs(state.cloning) do
         if current[key] ~= nil then
             deathLog(tostring(last.name) .. " came back from the Clone Bay: no DeathLink")
@@ -456,11 +520,11 @@ local function sampleCrew()
                     deathLog(tostring(last.name) .. " was dismissed: no DeathLink")
                 elseif not seenDying(key, last, dead) then
                     deathLog(tostring(last.name) .. " left the crew without dying (an event or a new race): no DeathLink")
-                elseif queued[key] then
-                    deathLog(tostring(last.name) .. " waits for the Clone Bay")
-                    state.cloning[key] = last
+                elseif maybeTeleporting(key, last, dead) then
+                    deathLog(tostring(last.name) .. " left the enemy ship: a teleport, or lost with it?")
+                    state.away[key] = { last = last, since = state.ticks }
                 else
-                    apDeathLinkCrewDied(last.name, last.species)
+                    crewLost(key, last, dead, queued)
                 end
                 state.dying[key] = nil
             end
@@ -502,6 +566,7 @@ script.on_init(function()
     state.knownCrew = nil
     state.dying = {}
     state.cloning = {}
+    state.away = {}
     state.crewScreenAt = nil
     state.lastSentAt = nil
     state.lastReceivedAt = nil

@@ -962,6 +962,30 @@ function apNetProfileCall(method, ...)
     return moduleCall(method, ...)
 end
 
+-- A library from before 0.6 beta.16 cannot grey out a store box: the rarities still do most of the work.
+function apNetShopLock(name, locked)
+    local ap = client()
+    if ap == nil or ap.SetShopLock == nil then
+        return false
+    end
+    moduleCall("SetShopLock", name, locked == true)
+    return true
+end
+
+function apNetShopLockTip()
+    local ap = client()
+    if ap ~= nil and ap.SetShopLockTip ~= nil then
+        moduleCall("SetShopLockTip", apT("shop.locked.tip"))
+    end
+end
+
+function apNetClearShopLocks()
+    local ap = client()
+    if ap ~= nil and ap.ClearShopLocks ~= nil then
+        moduleCall("ClearShopLocks")
+    end
+end
+
 -- Whether the module can lock at all.
 function apNetShipLock(on)
     local ap = client()

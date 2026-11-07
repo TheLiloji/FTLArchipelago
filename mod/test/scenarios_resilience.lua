@@ -63,11 +63,11 @@ test("seed: changing seed gives shops back what the old one had removed", functi
     sim.rarityFor("BEAM_2", 4)
     applySeed({ seed_hash = "OLD",
                 shop = { mode = "locked", deliver = false, baseline = { "BEAM_2" } } })
-    equals(sim.rarityFor("BEAM_2", 4).rarity, 0, "locked by the first seed")
+    equals(sim.net.shopLocks.BEAM_2, true, "locked by the first seed")
 
     applySeed({ seed_hash = "NEW",
                 shop = { mode = "locked", deliver = false, baseline = {} } })
-    check(sim.rarityFor("BEAM_2", 4).rarity > 0,
+    check(sim.net.shopLocks.BEAM_2 == nil,
         "the new seed doesn't lock it: it's back on the shelf")
 end)
 

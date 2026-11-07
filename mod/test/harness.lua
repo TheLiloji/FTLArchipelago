@@ -376,6 +376,12 @@ local function resetWorld()
         LastUri = function() return sim.net.last.uri end,
         LastSlot = function() return sim.net.last.slot end,
         Clipboard = function() return sim.clipboard or "" end,
+        SetShopLock = function(_, name, locked)
+            sim.net.shopLocks = sim.net.shopLocks or {}
+            sim.net.shopLocks[name] = locked or nil
+        end,
+        ClearShopLocks = function() sim.net.shopLocks = {} end,
+        SetShopLockTip = function(_, text) sim.net.shopLockTip = text end,
         Platform = function() return sim.platform or "windows" end,
         Connect = function(_, uri, slot, password)
             sim.net.calls[#sim.net.calls + 1] =
@@ -871,6 +877,19 @@ end
 
 function sim.resetBlueprints()
     descCache = {}
+end
+
+-- What FTL does on every new map, then the sector's own rarity list on top.
+function sim.newSectorRarities(sectorList)
+    for _, desc in pairs(descCache) do
+        desc.rarity = desc.baseRarity
+    end
+    for name, rarity in pairs(sectorList or {}) do
+        if descCache[name] ~= nil then
+            descCache[name].rarity = rarity
+        end
+    end
+    sim.starMap.worldLevel = sim.starMap.worldLevel + 1
 end
 
 _G.Defines = {
