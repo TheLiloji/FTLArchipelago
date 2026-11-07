@@ -203,6 +203,7 @@ end
 -- A race as the ship shows it: the first frame of its sprite sheet, facing down. Works for Multiverse races too.
 local CREW_FRAME = 35
 function ui.raceSprite(race, x, y, size, alpha)
+    race = (_G.apRaceNames or {})[race] or race
     local texture = race and ui.image("people/" .. tostring(race) .. "_base.png")
     if texture == nil or (texture.width or 0) < CREW_FRAME then return false end
     ui.blit(texture, x, y, size, size, alpha, 0, CREW_FRAME / texture.width, 0, CREW_FRAME / texture.height)

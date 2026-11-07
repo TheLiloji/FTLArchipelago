@@ -266,6 +266,12 @@ end
 
 local SKILLS = { pilot = 0, engines = 1, shields = 2, weapons = 3, repair = 4, combat = 5 }
 
+-- The seed names races as the base game does; a mod can call one differently. FTL gives a human for a race it does
+-- not know, without a word.
+function apRaceInGame(race)
+    return (_G.apRaceNames or {})[race] or race
+end
+
 function apRecruitCrew(race, skill)
     local player = Hyperspace.ships.player
     if player == nil then
@@ -276,7 +282,7 @@ function apRecruitCrew(race, skill)
         return false, "crew full"
     end
     local ok, member = pcall(function()
-        return player:AddCrewMemberFromString("", race, false, 0, false, math.random(0, 1) == 0)
+        return player:AddCrewMemberFromString("", apRaceInGame(race), false, 0, false, math.random(0, 1) == 0)
     end)
     if not ok or member == nil then
         return false, "recruit failed"

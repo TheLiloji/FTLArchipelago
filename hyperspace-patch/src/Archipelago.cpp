@@ -758,9 +758,20 @@ bool Client::Connect(const std::string& uri, const std::string& slot, const std:
             e.kind = "trap_partner";
             e.sender = (*data)["source"].get<std::string>();
             e.index = (*data)["ftl_traplink"] == "reply" ? 1 : 0;
+            e.value = data->value("slot", 0);
             if (e.sender != ap->get_player_alias(ap->get_player_number())) {
                 impl->push(std::move(e));
             }
+            return;
+        }
+
+        // A trap aimed at this slot alone, by another FTL client.
+        if (hasData && data->is_object() && data->contains("ftl_trap") && data->contains("source")) {
+            Event e;
+            e.kind = "trap";
+            e.sender = (*data)["source"].get<std::string>();
+            e.name = (*data)["ftl_trap"].get<std::string>();
+            impl->push(std::move(e));
             return;
         }
 
@@ -951,11 +962,24 @@ bool Client::SendTrap(const std::string& trapName)
     return _impl->ap->Bounce(data, {}, {}, {{"TrapLink"}});
 }
 
+// TrapLink goes to everyone on it. A pact promises one victim, and a slot only hears a Bounce with no tag if it is
+// aimed at it, so this one reaches a single FTL client.
+bool Client::SendTrapTo(int slot, const std::string& trapName)
+{
+    if (!_impl->ap) return false;
+    nlohmann::json data = {
+        {"source", _impl->ap->get_player_alias(_impl->ap->get_player_number())},
+        {"ftl_trap", trapName},
+    };
+    return _impl->ap->Bounce(data, {}, {slot}, {});
+}
+
 bool Client::AnnounceTrapLink(bool reply)
 {
     if (!_impl->ap) return false;
     nlohmann::json data = {
         {"source", _impl->ap->get_player_alias(_impl->ap->get_player_number())},
+        {"slot", _impl->ap->get_player_number()},
         {"ftl_traplink", reply ? "reply" : "hello"},
     };
     // Sent by game, not by tag: other games on TrapLink would read it as a trap.
