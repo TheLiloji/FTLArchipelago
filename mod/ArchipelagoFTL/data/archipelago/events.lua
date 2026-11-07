@@ -66,13 +66,9 @@ local function drainTheLink(eventName)
 end
 
 local function sendTrapOutward(eventName)
-    local sent = false
-    if _G.apTrapLinkPartnerSeen ~= nil and apTrapLinkPartnerSeen() and _G.apNetSendTrap ~= nil then
-        local ok, result = pcall(_G.apNetSendTrap, "Archipelago Signal Surge")
-        sent = ok and result ~= false
-    end
+    local sent = _G.apTrapLinkSendToOne ~= nil and apTrapLinkSendToOne("Archipelago Signal Surge")
     if sent then
-        record(eventName, "trap broadcast to others")
+        record(eventName, "trap sent to another player")
     else
         -- No one seen on the link: the surge comes back, like a pact.
         local effects = { "fire", "breach", "fuel_leak", "system_damage", "hull_damage" }

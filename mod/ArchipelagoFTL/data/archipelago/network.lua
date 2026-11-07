@@ -247,6 +247,15 @@ function apNetSendTrap(trapName)
     return whenConnected(function(ap) return ap:SendTrap(tostring(trapName or "Trap")) end)
 end
 
+-- nil when the library predates it (0.6 beta.17): the caller goes back to the whole link.
+function apNetSendTrapTo(slot, trapName)
+    local ap = client()
+    if ap == nil or ap.SendTrapTo == nil then
+        return nil
+    end
+    return whenConnected(function(linked) return linked:SendTrapTo(slot, tostring(trapName or "Trap")) end)
+end
+
 function apNetEnergyLinkDeposit(joules)
     return whenConnected(function(ap) return ap:EnergyDeposit(math.floor(joules)) end)
 end
@@ -844,7 +853,7 @@ local HANDLERS = {
 
     trap_partner = function(event)
         if _G.apTrapLinkPartner then
-            _G.apTrapLinkPartner(event.sender, event.index == 1)
+            _G.apTrapLinkPartner(event.sender, event.index == 1, event.value)
         end
     end,
 

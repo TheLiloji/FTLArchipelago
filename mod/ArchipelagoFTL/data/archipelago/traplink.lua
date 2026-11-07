@@ -14,6 +14,8 @@ local state = {
     -- Seconds since the last trap from another slot, nil when none came since connecting. Archipelago never says who
     -- is on the link: a trap that came in recently is the only sign someone still is.
     partnerAge = nil,
+    -- FTL clients on the link, by slot: seconds since each one was last heard.
+    partners = {},
 }
 
 local PARTNER_WINDOW = 600
@@ -93,7 +95,7 @@ end
 
 -- Another FTL on TrapLink announced itself: a partner without waiting for a trap. A first announce gets an answer,
 -- so the newcomer learns about us too.
-function apTrapLinkPartner(source, isReply)
+function apTrapLinkPartner(source, isReply, slot)
     if not _G.apTrapLink.enabled then
         return false
     end
@@ -101,6 +103,9 @@ function apTrapLinkPartner(source, isReply)
         trapLog("TrapLink partner: " .. tostring(source))
     end
     state.partnerAge = 0
+    if tonumber(slot) ~= nil and tonumber(slot) > 0 then
+        state.partners[math.floor(tonumber(slot))] = 0
+    end
     if not isReply and _G.apNetAnnounceTrapLink then
         pcall(_G.apNetAnnounceTrapLink, true)
     end
@@ -110,9 +115,36 @@ end
 -- Called on a disconnect: whoever was on the link may be gone by the time we are back.
 function apTrapLinkForgetPartner()
     state.partnerAge = nil
+    state.partners = {}
+end
+
+-- A pact or a surge lands on one player, not on the whole link: a random FTL client when one is known. Other games
+-- can only be reached through the link itself, and each of them gets it.
+function apTrapLinkSendToOne(name)
+    if not apTrapLinkPartnerSeen() then
+        return false
+    end
+    local slots = {}
+    for slot in pairs(state.partners) do
+        slots[#slots + 1] = slot
+    end
+    if #slots > 0 and _G.apNetSendTrapTo then
+        table.sort(slots)
+        local slot = slots[math.random(1, #slots)]
+        local ok, result = pcall(_G.apNetSendTrapTo, slot, name)
+        if ok and result ~= nil then
+            trapLog(string.format("'%s' sent to slot %d alone", tostring(name), slot))
+            return result ~= false
+        end
+    end
+    local ok, result = pcall(_G.apNetSendTrap, name)
+    return ok and result ~= false
 end
 
 function apTrapLinkAgePartner(seconds)
+    for slot, age in pairs(state.partners) do
+        state.partners[slot] = age + seconds <= PARTNER_WINDOW and age + seconds or nil
+    end
     if state.partnerAge == nil then
         return
     end

@@ -488,6 +488,10 @@ local function resetWorld()
             sim.net.calls[#sim.net.calls + 1] = { "SendDeath", cause = cause }
             return true
         end,
+        SendTrapTo = function(_, slot, name)
+            sim.net.calls[#sim.net.calls + 1] = { "SendTrapTo", slot = slot, name = name }
+            return true
+        end,
         SendTrap = function(_, name)
             sim.net.calls[#sim.net.calls + 1] = { "SendTrap", name = name }
             return true

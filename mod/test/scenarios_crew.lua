@@ -416,6 +416,73 @@ test("DeathLink: a seed that forbids the toggle stays as it is", function()
     apDeathLinkConfigure({ toggle = true })
 end)
 
+local trapLog = {}
+
+local function trapStubs()
+    trapLog = {}
+    local aimed = stub("apNetSendTrapTo", function(slot, name)
+        trapLog[#trapLog + 1] = { "SendTrapTo", slot = slot, name = name }
+        return true
+    end)
+    local whole = stub("apNetSendTrap", function(name)
+        trapLog[#trapLog + 1] = { "SendTrap", name = name }
+        return true
+    end)
+    return function() aimed() whole() end
+end
+
+test("a pact lands on one FTL player, never on the whole link", function()
+    _G.apTrapLink.enabled = true
+    apTrapLinkForgetPartner()
+    apTrapLinkPartner("Nina", true, 2)
+    apTrapLinkPartner("Bers", true, 3)
+    local restore = trapStubs()
+    check(apTrapLinkSendToOne("Archipelago Deal"), "sent")
+    restore()
+    local calls = trapLog
+    equals(#calls, 1, "one trap")
+    equals(calls[1][1], "SendTrapTo", "aimed")
+    check(calls[1].slot == 2 or calls[1].slot == 3, "at a partner")
+    _G.apTrapLink.enabled = false
+    apTrapLinkForgetPartner()
+end)
+
+test("a pact goes through the link when only other games were seen on it", function()
+    _G.apTrapLink.enabled = true
+    apTrapLinkForgetPartner()
+    apTrapLinkReceive("Other game", "Ice Trap")
+    local restore = trapStubs()
+    check(apTrapLinkSendToOne("Archipelago Deal"), "sent")
+    restore()
+    local calls = trapLog
+    equals(#calls, 1, "one trap")
+    equals(calls[1][1], "SendTrap", "through the link")
+    _G.apTrapLink.enabled = false
+    apTrapLinkForgetPartner()
+end)
+
+test("a partner not heard for ten minutes is not aimed at any more", function()
+    _G.apTrapLink.enabled = true
+    apTrapLinkForgetPartner()
+    apTrapLinkPartner("Nina", true, 2)
+    apTrapLinkAgePartner(601)
+    local restore = trapStubs()
+    equals(apTrapLinkSendToOne("Archipelago Deal"), false, "no one left: the pact comes back")
+    restore()
+    equals(#trapLog, 0, "nothing sent")
+    _G.apTrapLink.enabled = false
+    apTrapLinkForgetPartner()
+end)
+
+test("a race a mod calls differently is recruited under the game's own name", function()
+    sim.startRun(true)
+    _G.apRaceNames = { anaerobic = "lanius" }
+    local before = sim.player.vCrewList:size()
+    check(apRecruitCrew("anaerobic"), "recruited")
+    equals(sim.player.vCrewList[before].species, "lanius", "the game's own race")
+    _G.apRaceNames = nil
+end)
+
 test("locked shops: a new sector's reset does not bring back what the seed locked", function()
     sim.weaponBlueprints.LOCK_TEST = 3
     sim.resetBlueprints()

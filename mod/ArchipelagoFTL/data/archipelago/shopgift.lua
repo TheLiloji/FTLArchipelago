@@ -706,12 +706,7 @@ local function signDeal(index, blueprintName)
             _G.apNotifyStatus(apT("deal.self", { scrap = reward }))
         end
     else
-        local sent = false
-        local linked = _G.apTrapLinkPartnerSeen ~= nil and apTrapLinkPartnerSeen()
-        if linked and _G.apNetSendTrap then
-            local ok, result = pcall(_G.apNetSendTrap, "Archipelago Deal")
-            sent = ok and result ~= false
-        end
+        local sent = _G.apTrapLinkSendToOne ~= nil and apTrapLinkSendToOne("Archipelago Deal")
 
         if sent then
             giftLog(string.format("deal %d: +%d scrap, the trap goes to someone else", index, reward))

@@ -182,6 +182,7 @@ function apRaceLabel(name)
     if name == nil or name == "" then
         return "?"
     end
+    name = (_G.apRaceNames or {})[name] or name
     local text = textLibraryLookup("crew_" .. name .. "_title")
     if text then return text end
     -- Multiverse writes its race names in the crew blueprints, not in the text library.
