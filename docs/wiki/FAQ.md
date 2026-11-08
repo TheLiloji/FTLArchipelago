@@ -87,6 +87,16 @@ unlocks the system too.
 A Steam update can undo the switch to 1.6.9. Install Hyperspace again with ftlman, apply, and copy the
 Archipelago `Hyperspace.dll` again.
 
+## I have FTL from Epic Games (Windows)
+
+ftlman cannot switch the Epic version of FTL to 1.6.9, the only Windows version Hyperspace runs on. Put FTL 1.6.9
+in place yourself, following [Hyperspace's own install guide](https://github.com/FTL-Hyperspace/FTL-Hyperspace), then follow the Windows setup as usual.
+
+## Which Hyperspace file do I need?
+
+On Windows, only `Hyperspace.dll`. The `Hyperspace.1.6.12.amd64.so` and `Hyperspace.1.6.13.amd64.so` files of the
+release are for Linux: 1.6.13 for the Steam version, 1.6.12 for GOG and Humble.
+
 ## The game hangs on the loading screen
 
 A known Hyperspace problem with a profile that was created but never played. Delete `ae_prof.sav` and any
