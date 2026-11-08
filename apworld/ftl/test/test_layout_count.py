@@ -41,6 +41,16 @@ class TestLayoutCountDefault(FTLTestBase):
         self.assertNotIn("ACH_UNLOCK_ALL", names)
 
 
+class TestFleetAchievementLeftOutWithoutEveryShip(FTLTestBase):
+    options = {"cross_run_achievements": True, "general_achievements": "all", "layout_count": 10}
+
+    def test_the_fleet_achievement_needs_every_ship(self) -> None:
+        ships = {layout.ship for layout in self.world.selected_layouts}
+        self.assertLess(len(ships), len(data.SHIPS), "this seed does not hold every ship")
+        names = {location.achievement for location in self.world.created_locations}
+        self.assertNotIn("ACH_UNLOCK_ALL", names, "Your Own Fleet would need keys the seed does not have")
+
+
 class TestLayoutCountDiffersBySeed(FTLTestBase):
     run_default_tests = False
 
