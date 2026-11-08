@@ -1054,14 +1054,26 @@ function apNetClipboard()
     return text ~= nil and tostring(text) or ""
 end
 
--- Typed text read with the player's keyboard layout, held by the module while on. False when the module is
+-- Typed text read with the player's keyboard layout, held by the module while someone wants it (the connection
+-- panel, the dashboard's chat): one owner letting go does not stop it for the other. False when the module is
 -- older than 0.7 and has no such capture: the caller then reads the keys itself.
-function apNetCaptureText(on)
+local captureOwners, captureOn, captureClient = {}, false, nil
+
+function apNetCaptureResetForTesting()
+    captureOwners, captureOn, captureClient = {}, false, nil
+end
+
+function apNetCaptureText(owner, on)
     local ap = client()
     if ap == nil or ap.CaptureText == nil or ap.TakeText == nil then
         return false
     end
-    moduleCall("CaptureText", on == true)
+    captureOwners[owner] = on == true or nil
+    local wanted = next(captureOwners) ~= nil
+    if wanted ~= captureOn or ap ~= captureClient then
+        captureOn, captureClient = wanted, ap
+        moduleCall("CaptureText", wanted)
+    end
     return true
 end
 

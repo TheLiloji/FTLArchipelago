@@ -7051,12 +7051,34 @@ local function onTheAddressField()
     for _ = 1, 20 do sim.keyDown(Defines.SDL.KEY_BACKSPACE) end
 end
 
-test("home screen: an address can be typed on a French keyboard", function()
+test("home screen: with an older module, an address can be typed on a French keyboard", function()
+    sim.net.client.CaptureText, sim.net.client.TakeText = nil, nil
     onTheAddressField()
     -- "a.b" then ":1" the French way: Shift + the ";" key for the dot, the ":" key of its own.
     typeKeys({ Defines.SDL.KEY_a, { Defines.SDL.KEY_SEMICOLON }, Defines.SDL.KEY_b,
                Defines.SDL.KEY_COLON, Defines.SDL.KEY_1 })
     equals(apConnectState().uri, "a.b:1", "the dot and the colon come out right")
+end)
+
+test("home screen: the panel takes the text typed with the player's keyboard layout (AZERTY)", function()
+    onTheHomeScreen()
+    equals(sim.net.capture, true, "the panel asks the module for the typed text")
+    sim.layoutText = false
+    -- AZERTY: Shift and the "&" key types "1". The key codes say "&", the text says "1".
+    sim.keyDown(Defines.SDL.KEY_LSHIFT)
+    sim.net.typed = "Zac 1\195\169"
+    sim.keyDown(string.byte("&"))
+    sim.keyUp(Defines.SDL.KEY_LSHIFT)
+    sim.renderMenu()
+    equals(apConnectState().slot, "Zac 1", "the text goes in, the accent the field cannot hold left out")
+    sim.keyDown(Defines.SDL.KEY_UP)
+    for _ = 1, 10 do sim.keyDown(Defines.SDL.KEY_BACKSPACE) end
+    sim.net.typed = "38a281"
+    sim.renderMenu()
+    equals(apConnectState().port, "38281", "the port keeps only digits")
+    sim.layoutText = nil
+    sim.startRun(true)
+    equals(sim.net.capture, false, "a run gives the game its text back")
 end)
 
 test("home screen: the numeric keypad types digits and dots", function()

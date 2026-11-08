@@ -1027,6 +1027,7 @@ test("chat: the text comes from the keyboard layout, not from the key codes (AZE
     sim.startRun(true)
     openDashboard("chat")
     equals(sim.net.capture, true, "the Chat page asks the module for the typed text")
+    sim.layoutText = false
     -- On AZERTY the key that types "1" with Shift has the code of "&", and "é" has none of its own.
     sim.keyDown(304)
     sim.keyDown(string.byte("&"))
@@ -1036,12 +1037,23 @@ test("chat: the text comes from the keyboard layout, not from the key codes (AZE
     sim.net.typed = sim.net.typed .. "\195\169"
     sim.renderGui()
     sim.keyDown(Defines.SDL.KEY_BACKSPACE)
+    sim.layoutText = nil
     sim.type("e!")
     sim.keyDown(Defines.SDL.KEY_RETURN)
     equals(sim.net.said and sim.net.said[1], "1e!", "what FTL read is typed, and Backspace takes a whole letter")
     apDashboardPage("overview")
     sim.renderGui()
     equals(sim.net.capture, false, "another page lets the game have its text again")
+    closeDashboard()
+end)
+
+test("dashboard: the top row turns the pages on an AZERTY keyboard too", function()
+    sim.startRun(true)
+    openDashboard("overview")
+    sim.keyDown(string.byte("("))
+    equals(apDashboardPageForTesting(), "journal", "the ( key, where 5 is, opens page 5")
+    sim.keyDown(233)
+    equals(apDashboardPageForTesting(), "ships", "and the key of 2 types an e with an accent")
     closeDashboard()
 end)
 
