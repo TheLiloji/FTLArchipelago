@@ -782,6 +782,9 @@ local function resetWorld()
                 GetAchievementStatus = function(_, name)
                     return sim.customAchievements[name] or -1
                 end,
+                SetAchievement = function(_, name)
+                    sim.customAchievements[name] = 0
+                end,
             },
         },
         TextString = function() return { data = "", isLiteral = false } end,

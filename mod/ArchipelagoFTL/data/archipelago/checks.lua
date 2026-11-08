@@ -837,6 +837,20 @@ function apGoalProgress()
     }
 end
 
+-- Hyperspace achievements of the mod (its own page in the achievements menu): a counted victory, and the goal.
+function apAwardAchievement(name)
+    local ok, err = pcall(function()
+        local tracker = Hyperspace.CustomAchievementTracker.instance
+        if tracker:GetAchievementStatus(name) < 0 then
+            tracker:SetAchievement(name, false)
+            checkLog("achievement earned: " .. name)
+        end
+    end)
+    if not ok then
+        checkLog("achievement " .. tostring(name) .. " not set: " .. tostring(err))
+    end
+end
+
 function apVictoryWith(layout)
     loadVictories()
     if layout == nil or victories[layout] then
@@ -869,6 +883,7 @@ function apVictoryWith(layout)
 
     victories[layout] = true
     if _G.apNetRemember then apNetRemember(victoryKey(layout), 1) end
+    apAwardAchievement("ACH_AP_VICTORY")
 
     local reached, counted = goalIsReached()
     local goal = _G.apGoal and _G.apGoal() or nil
@@ -902,6 +917,7 @@ function apDeclareGoal()
     if not reached then
         return false
     end
+    apAwardAchievement("ACH_AP_GOAL")
 
     local goalSent = false
     if _G.apNetSendGoal then
