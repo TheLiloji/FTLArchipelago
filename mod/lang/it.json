@@ -468,6 +468,9 @@
     "chat.placeholder": "Scrivi un messaggio o un comando: !hint <oggetto>, !release, !help. Invio per inviare.",
     "chat.empty": "Ancora niente. I messaggi del server e degli altri giocatori arrivano qui, e quello che scrivi va nella stanza come nel client di testo di Archipelago.",
     "chat.offline": "Non inviato: non sei connesso.",
-    "dash.footer.chat": "TAB o Esc: chiudi     Invio: invia     Ctrl+V: incolla     Rotella: scorri"
+    "dash.footer.chat": "TAB o Esc: chiudi     Invio: invia     Ctrl+V: incolla     Rotella: scorri",
+    "event.runner.hint": "I registri del corriere sono decifrati. L'indizio va al server e appare appena risponde.",
+    "event.runner.nothing": "I registri del corriere non contengono niente di nuovo: nessun server, o non resta niente da trovare.",
+    "event.runner.bought_nothing": "Il corriere non ha mandato niente di utile: nessun server, o non resta niente da trovare. I tuoi {scrap} rottami sono rimborsati."
   }
 }

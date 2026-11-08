@@ -468,6 +468,9 @@
     "chat.placeholder": "Type a message or a command: !hint <item>, !release, !help. Enter sends it.",
     "chat.empty": "Nothing yet. Messages from the server and the other players show up here, and what you type goes to the room like in the Archipelago text client.",
     "chat.offline": "Not sent: you are not connected.",
-    "dash.footer.chat": "TAB or Esc: close     Enter: send     Ctrl+V: paste     Wheel: scroll"
+    "dash.footer.chat": "TAB or Esc: close     Enter: send     Ctrl+V: paste     Wheel: scroll",
+    "event.runner.hint": "The courier's logs are decoded. The hint goes to the server and shows up as soon as it answers.",
+    "event.runner.nothing": "The courier's logs hold nothing new: no server, or nothing left to find.",
+    "event.runner.bought_nothing": "The courier sent nothing worth reading: no server, or nothing left to find. Your {scrap} scrap is refunded."
   }
 }

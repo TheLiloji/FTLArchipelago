@@ -92,3 +92,12 @@
 <text name="ap_evt_arms_c2_text">The fuel goes over, a small sealed box comes back. It is, he swears, very rare.</text>
 <text name="ap_evt_arms_c3">Decline and keep moving.</text>
 <text name="ap_evt_arms_c3_text">"Your loss," the captain says, already looking for the next customer.</text>
+<text name="ap_evt_runner_text">A small courier drops out of FTL right next to you, takes one look at your weapons and spools its drive up again. Its comms are full of Archipelago traffic: somewhere in there is the location of something worth having.</text>
+<text name="ap_evt_runner_c1">Run it down before it jumps.</text>
+<text name="ap_evt_runner_c1_text">Its engines flare. You have until its drive is charged.</text>
+<text name="ap_evt_runner_c3">Let it go.</text>
+<text name="ap_evt_runner_c3_text">It is gone in a flash, and whatever it knew went with it.</text>
+<text name="ap_runner_caught_text">The courier's logs survive the fight. Your crew digs a location out of the relay chatter: an Archipelago hint, for free.</text>
+<text name="ap_runner_gone_text">The courier jumps away. Whatever it knew is somebody else's problem now.</text>
+<text name="ap_evt_runner_c2">Hail it and buy its logs: 25 scrap.</text>
+<text name="ap_evt_runner_c2_text">The courier's captain takes the scrap and sends a data packet before jumping away.</text>

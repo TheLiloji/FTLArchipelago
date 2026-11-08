@@ -468,6 +468,9 @@
     "chat.placeholder": "Escreve uma mensagem ou um comando: !hint <item>, !release, !help. Enter envia.",
     "chat.empty": "Nada por enquanto. As mensagens do servidor e dos outros jogadores aparecem aqui, e o que escreves vai para a sala como no cliente de texto do Archipelago.",
     "chat.offline": "Não enviado: não estás ligado.",
-    "dash.footer.chat": "TAB ou Esc: fechar     Enter: enviar     Ctrl+V: colar     Roda: rolar"
+    "dash.footer.chat": "TAB ou Esc: fechar     Enter: enviar     Ctrl+V: colar     Roda: rolar",
+    "event.runner.hint": "Os registos do mensageiro foram descodificados. A pista vai para o servidor e aparece assim que ele responder.",
+    "event.runner.nothing": "Os registos do mensageiro não têm nada de novo: não há servidor, ou não resta nada para encontrar.",
+    "event.runner.bought_nothing": "O mensageiro não enviou nada de útil: não há servidor, ou não resta nada para encontrar. Os teus {scrap} de sucata são devolvidos."
   }
 }

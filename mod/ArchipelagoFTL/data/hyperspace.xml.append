@@ -105,6 +105,9 @@
     <event name="AP_EVT_ARMS_DEALER">
         <changeBackground>AP_BACKGROUND</changeBackground>
     </event>
+    <event name="AP_EVT_RUNNER">
+        <changeBackground>AP_BACKGROUND</changeBackground>
+    </event>
     <event name="AP_EVT_ANOTHER_WORLD">
         <changeBackground>AP_BACKGROUND</changeBackground>
     </event>

@@ -467,6 +467,9 @@
     "chat.placeholder": "Écrivez un message ou une commande : !hint <objet>, !release, !help. Entrée pour envoyer.",
     "chat.empty": "Rien pour l'instant. Les messages du serveur et des autres joueurs arrivent ici, et ce que vous tapez part dans la partie comme avec le client texte d'Archipelago.",
     "chat.offline": "Pas envoyé : vous n'êtes pas connecté.",
-    "dash.footer.chat": "TAB ou Échap : fermer     Entrée : envoyer     Ctrl+V : coller     Molette : défiler"
+    "dash.footer.chat": "TAB ou Échap : fermer     Entrée : envoyer     Ctrl+V : coller     Molette : défiler",
+    "event.runner.hint": "Les journaux du coursier sont décodés. L'indice part au serveur et s'affiche dès qu'il répond.",
+    "event.runner.nothing": "Les journaux du coursier ne contiennent rien de neuf : pas de serveur, ou plus rien à trouver.",
+    "event.runner.bought_nothing": "Le coursier n'a rien envoyé d'utile : pas de serveur, ou plus rien à trouver. Vos {scrap} ferraille sont remboursés."
   }
 }

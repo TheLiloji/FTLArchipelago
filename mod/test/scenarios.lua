@@ -5447,8 +5447,9 @@ test("event: every wired branch carries a branch name from the XML", function()
     local count = 0
     for branch, effect in pairs(_G.apEventBranchEffects) do
         check(type(effect) == "function", branch .. " has an effect")
-        check(branch:match("^AP_EVT_[A-Z_]+_[AB]$") ~= nil or branch:match("^AP_HIJACK_[A-Z]+$") ~= nil,
-              branch .. " follows the form AP_EVT_<name>_<A|B>, or ends the pirates' fight")
+        check(branch:match("^AP_EVT_[A-Z_]+_[AB]$") ~= nil or branch:match("^AP_HIJACK_[A-Z]+$") ~= nil
+              or branch:match("^AP_RUNNER_[A-Z]+$") ~= nil,
+              branch .. " follows the form AP_EVT_<name>_<A|B>, or ends the pirates' or the runner's fight")
         count = count + 1
     end
     check(count >= 6, "at least six branches have an Archipelago effect (" .. count .. ")")

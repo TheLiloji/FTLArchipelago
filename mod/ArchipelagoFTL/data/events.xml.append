@@ -542,3 +542,51 @@
     <event load="AP_EVT_PACKAGE"/>
     <event load="AP_EVT_HIJACK"/>
 </eventList>
+
+<!-- The runner (issue #18, idea of Tom): a courier that flees at once. Caught, it gives a free hint. -->
+<ship name="AP_SHIP_RUNNER" auto_blueprint="SHIPS_REBEL">
+    <escape timer="60" min="30" max="30"/>
+    <gotaway load="AP_RUNNER_GONE"/>
+    <destroyed load="AP_RUNNER_CAUGHT"/>
+    <deadCrew load="AP_RUNNER_CAUGHT"/>
+</ship>
+
+<event name="AP_RUNNER_CAUGHT">
+    <beaconType load="AP_BEACON_SIGNAL"/>
+    <text id="ap_runner_caught_text"/>
+    <autoReward level="LOW">scrap_only</autoReward>
+</event>
+
+<event name="AP_RUNNER_GONE">
+    <beaconType load="AP_BEACON_SIGNAL"/>
+    <text id="ap_runner_gone_text"/>
+</event>
+
+<event name="AP_EVT_RUNNER">
+    <preventQuest/>
+    <text id="ap_evt_runner_text"/>
+    <img back="AP_BACKGROUND" planet="AP_PLANET"/>
+    <beaconType load="AP_BEACON_SIGNAL"/>
+    <choice>
+        <text id="ap_evt_runner_c1"/>
+        <event name="AP_EVT_RUNNER_A">
+            <text id="ap_evt_runner_c1_text"/>
+            <ship load="AP_SHIP_RUNNER" hostile="true"/>
+        </event>
+    </choice>
+    <choice>
+        <text id="ap_evt_runner_c2"/>
+        <event name="AP_EVT_RUNNER_B">
+            <text id="ap_evt_runner_c2_text"/>
+            <item_modify>
+                <item type="scrap" min="-25" max="-25"/>
+            </item_modify>
+        </event>
+    </choice>
+    <choice>
+        <text id="ap_evt_runner_c3"/>
+        <event name="AP_EVT_RUNNER_C">
+            <text id="ap_evt_runner_c3_text"/>
+        </event>
+    </choice>
+</event>

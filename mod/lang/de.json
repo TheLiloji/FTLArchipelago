@@ -468,6 +468,9 @@
     "chat.placeholder": "Schreib eine Nachricht oder einen Befehl: !hint <Gegenstand>, !release, !help. Enter sendet.",
     "chat.empty": "Noch nichts. Nachrichten vom Server und von den anderen Spielern erscheinen hier, und was du tippst, geht an den Raum wie im Text-Client von Archipelago.",
     "chat.offline": "Nicht gesendet: du bist nicht verbunden.",
-    "dash.footer.chat": "TAB oder Esc: schließen     Enter: senden     Strg+V: einfügen     Mausrad: scrollen"
+    "dash.footer.chat": "TAB oder Esc: schließen     Enter: senden     Strg+V: einfügen     Mausrad: scrollen",
+    "event.runner.hint": "Die Logbücher des Kuriers sind entschlüsselt. Der Hinweis geht an den Server und erscheint, sobald er antwortet.",
+    "event.runner.nothing": "Die Logbücher des Kuriers enthalten nichts Neues: kein Server, oder nichts mehr zu finden.",
+    "event.runner.bought_nothing": "Der Kurier hat nichts Brauchbares geschickt: kein Server, oder nichts mehr zu finden. Deine {scrap} Schrott werden erstattet."
   }
 }
