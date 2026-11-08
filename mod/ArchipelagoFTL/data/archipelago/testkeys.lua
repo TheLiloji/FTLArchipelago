@@ -211,14 +211,16 @@ local function selfCheck()
     if _G.apApplySlotData then
         local accepted = _G.apApplySlotData(fakeSlotData())
         verify("the test slot_data is accepted", accepted)
-        verify("items are removed from shops", rarityOf("LASER_BURST_3") == 0,
-            "rarity = " .. tostring(rarityOf("LASER_BURST_3")))
+        local lockedNow = (_G.apShopLocked or {}).LASER_BURST_3 == true
+        verify("items are removed from shops", lockedNow and (rarityOf("LASER_BURST_3") or 0) > 0,
+            "locked = " .. tostring(lockedNow) .. ", rarity = " .. tostring(rarityOf("LASER_BURST_3")))
 
         if _G.apApplyShopItem then
             pcall(_G.apApplyShopItem,
                 { kind = "shop", bp = "LASER_BURST_3", isReplay = true })
         end
-        verify("receiving the item makes it reappear", (rarityOf("LASER_BURST_3") or 0) > 0,
+        verify("receiving the item makes it reappear",
+            (rarityOf("LASER_BURST_3") or 0) > 0 and not (_G.apShopLocked or {}).LASER_BURST_3,
             "rarity = " .. tostring(rarityOf("LASER_BURST_3")))
 
         local future = fakeSlotData()

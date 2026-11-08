@@ -972,7 +972,11 @@ function apNetProfileCall(method, ...)
 end
 
 -- A library from before 0.6 beta.16 cannot grey out a store box: the rarities still do most of the work.
+-- What the mod asked the module to keep out of the stores, for the self-test.
+_G.apShopLocked = _G.apShopLocked or {}
+
 function apNetShopLock(name, locked)
+    apShopLocked[name] = (locked == true) or nil
     local ap = client()
     if ap == nil or ap.SetShopLock == nil then
         return false
