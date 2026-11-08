@@ -807,10 +807,11 @@ local function drawSystems(x, y, w, h)
         end
         text(10, cx + 14, cy + 10, innerW, row.locked and "dim" or "text", row.name)
         local status
-        -- A system the ship starts with counts its upgrades like the others, its blueprint still missing.
-        if row.locked and row.aboard and known then
+        -- A system the ship starts with, or whose upgrades came before its blueprint, counts them like the others.
+        local counted = row.aboard or row.received > 0
+        if row.locked and counted and known then
             status = apT("dash.system.aboard", { received = row.received, total = row.total })
-        elseif row.locked and row.aboard then
+        elseif row.locked and counted then
             status = apT("dash.system.aboard", { received = row.received, total = "?" })
         elseif row.locked then
             status = apT("dash.system.locked")
@@ -822,7 +823,7 @@ local function drawSystems(x, y, w, h)
             status = apT("hud.system.received", { n = row.received })
         end
         text(9, cx + 14, cy + 28, innerW, row.locked and "dim" or (full and "good" or "dim"), status)
-        if known and (not row.locked or row.aboard) then
+        if known and (not row.locked or counted) then
             local pipGap = 3
             local pipW = math.max(4, math.min(18, math.floor((innerW - 2 - pipGap * (row.total - 1)) / row.total)))
             for pip = 1, row.total do
