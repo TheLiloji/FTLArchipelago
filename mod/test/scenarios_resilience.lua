@@ -688,6 +688,32 @@ test("combat checks per sector: each sector counts its own fights from 1", funct
     sim.enemy = nil
 end)
 
+test("combat checks cumulative: fights add up across runs, sector 1 left out", function()
+    _G.apInventory = { ships = {}, systemCaps = {}, startingUpgrades = {}, shopAvailability = {} }
+    apContractResetForTesting()
+    apForgetChecksForTesting()
+    applySeed({ seed_hash = "CUMUL", loc = { ["PLAYER_SHIP_HARD:fight:1"] = "Kestrel Cruiser: Fight 1 won",
+                        ["PLAYER_SHIP_HARD:fight:2"] = "Kestrel Cruiser: Fight 2 won" },
+                options = { combat_checks_mode = 2 } })
+    sim.startRun(true)
+    sim.starMap.worldLevel = 0
+    sim.jumpArrive()
+    winFight(30)
+    check(not apCheckAlreadySent("PLAYER_SHIP_HARD:fight:1"), "a fight in sector 1 does not count")
+    sim.starMap.worldLevel = 1
+    sim.jumpArrive()
+    winFight(30)
+    check(apCheckAlreadySent("PLAYER_SHIP_HARD:fight:1"), "the first fight of sector 2 is fight 1")
+    sim.startRun(true)
+    sim.starMap.worldLevel = 1
+    sim.jumpArrive()
+    winFight(30)
+    check(apCheckAlreadySent("PLAYER_SHIP_HARD:fight:2"), "a new run goes on from fight 2")
+    equals(apCombatFightsTotal("PLAYER_SHIP_HARD"), 2, "two fights counted for the Kestrel")
+    sim.starMap.worldLevel = 0
+    sim.enemy = nil
+end)
+
 test("combat checks: a new run counts from fight 1 again, and an already sent check costs nothing", function()
     fightSeed(50)
     winFight(30)
@@ -1250,6 +1276,32 @@ test("reactor checks: each threshold the reactor reaches sends its check", funct
     check(apCheckAlreadySent("reactor:10"), "10 reached")
     check(not apCheckAlreadySent("reactor:15"), "15 not yet")
     sim.powerManager.currentPower.second = 8
+end)
+
+test("beacon checks: beacons count across runs, every 25 sends its check", function()
+    apContractResetForTesting()
+    apForgetChecksForTesting()
+    applySeed({ loc = { ["beacons:25"] = "Explore 25 Beacons", ["beacons:50"] = "Explore 50 Beacons" } })
+    sim.startRun(true)
+    for _ = 1, 24 do sim.jumpArrive() end
+    equals(apBeaconsExplored(), 24, "24 beacons counted")
+    check(not apCheckAlreadySent("beacons:25"), "not yet")
+    sim.startRun(true)
+    sim.jumpArrive()
+    check(apCheckAlreadySent("beacons:25"), "the 25th, in another run, sends the check")
+    check(not apCheckAlreadySent("beacons:50"), "50 not yet")
+    sim.jumpArrive(sim.enemy or { iShipId = 1 })
+    equals(apBeaconsExplored(), 25, "the enemy's jumps do not count")
+end)
+
+test("beacon checks: a seed without them counts nothing", function()
+    apContractResetForTesting()
+    apForgetChecksForTesting()
+    applySeed({})
+    sim.startRun(true)
+    local before = apBeaconsExplored()
+    sim.jumpArrive()
+    equals(apBeaconsExplored(), before, "no beacon checks, no count")
 end)
 
 test("sector skip: a sector the layout already crossed opens its first beacon as an exit, and the jump pays", function()

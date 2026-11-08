@@ -473,6 +473,7 @@
     "dash.footer.chat": "TAB o Esc: cerrar     Enter: enviar     Ctrl+V: pegar     Rueda: desplazar",
     "event.runner.hint": "Los registros del mensajero están descifrados. La pista va al servidor y aparece en cuanto responda.",
     "event.runner.nothing": "Los registros del mensajero no tienen nada nuevo: no hay servidor, o no queda nada por encontrar.",
-    "event.runner.bought_nothing": "El mensajero no envió nada útil: no hay servidor, o no queda nada por encontrar. Te devuelven tus {scrap} de chatarra."
+    "event.runner.bought_nothing": "El mensajero no envió nada útil: no hay servidor, o no queda nada por encontrar. Te devuelven tus {scrap} de chatarra.",
+    "check.label.beacons": "Explorar {n} balizas"
   }
 }

@@ -4849,11 +4849,15 @@ test("goal: any two victories trigger the declaration", function()
     local sent = 0
     local restore = stub("apNetSendGoal", function() sent = sent + 1 end)
 
+    sim.customAchievements = {}
     apVictoryWith("PLAYER_SHIP_HARD")
     equals(sent, 0, "a single victory isn't enough")
+    equals(sim.customAchievements.ACH_AP_VICTORY, 0, "a counted victory earns the mod's Hyperspace achievement")
+    equals(sim.customAchievements.ACH_AP_GOAL, nil, "the goal's one waits")
     apVictoryWith("PLAYER_SHIP_ROCK")
     equals(sent, 1, "the second one triggers the declaration")
     check(shownKey("goal.reached"), "and the player sees it")
+    equals(sim.customAchievements.ACH_AP_GOAL, 0, "and earns the goal's achievement")
 
     apVictoryWith("PLAYER_SHIP_MANTIS")
     equals(sent, 1, "one more victory doesn't resend it")

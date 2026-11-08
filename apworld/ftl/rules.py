@@ -143,6 +143,9 @@ def location_depth(location: data.Location, shop_by_sector: bool = False) -> int
         return CREW_RACE_DEPTH[location.race]
     if location.group in (data.GROUP_SECTORS, data.GROUP_SECTOR_FIGHTS, data.GROUP_REACTOR):
         return location.sector or 0
+    if location.group == data.GROUP_BEACONS:
+        # Counted across runs: no ship power needed, but 25 beacons take about a run as deep as sector 4.
+        return min(8, (location.fight or 0) * 2)
     if location.group == data.GROUP_FIGHTS:
         # A run wins about four fights per sector: the tenth one is a third-sector check.
         return (location.fight + 3) // 4

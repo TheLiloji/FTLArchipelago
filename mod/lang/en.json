@@ -473,6 +473,7 @@
     "dash.footer.chat": "TAB or Esc: close     Enter: send     Ctrl+V: paste     Wheel: scroll",
     "event.runner.hint": "The courier's logs are decoded. The hint goes to the server and shows up as soon as it answers.",
     "event.runner.nothing": "The courier's logs hold nothing new: no server, or nothing left to find.",
-    "event.runner.bought_nothing": "The courier sent nothing worth reading: no server, or nothing left to find. Your {scrap} scrap is refunded."
+    "event.runner.bought_nothing": "The courier sent nothing worth reading: no server, or nothing left to find. Your {scrap} scrap is refunded.",
+    "check.label.beacons": "Explore {n} beacons"
   }
 }

@@ -1471,6 +1471,23 @@ local function drawChat(x, y, w, h)
     local listH = h - 44 - GAP
     card(x, listY, w, listH)
     local lines = _G.apChatLines and apChatLines() or {}
+    -- Long server lines wrap on words; the continuation is indented under its line.
+    local rows = {}
+    local room = w - 32 - 14
+    for _, line in ipairs(lines) do
+        local current, indent = "", ""
+        for word in line.text:gmatch("%S+") do
+            local candidate = current == "" and word or (current .. " " .. word)
+            if current ~= "" and width(10, indent .. candidate) > room then
+                rows[#rows + 1] = { text = indent .. current, tone = line.tone }
+                current, indent = word, "    "
+            else
+                current = candidate
+            end
+        end
+        rows[#rows + 1] = { text = indent .. current, tone = line.tone }
+    end
+    lines = rows
     if #lines == 0 then
         Graphics.CSurface.GL_SetColor(color("dim"))
         Graphics.freetype.easy_printAutoNewlines(10, x + 16, listY + 14, w - 32, apT("chat.empty"))

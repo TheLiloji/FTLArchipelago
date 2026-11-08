@@ -423,3 +423,25 @@
     <script>data/archipelago/loadout.lua</script>
     <script>data/archipelago/testkeys.lua</script>
 </scripts>
+
+<!-- The mod's own achievements, on their own page of the achievements menu. -->
+<achievements>
+    <page>
+        <section text="Archipelago" hidden="false">
+            <achievement name="ACH_AP_VICTORY">
+                <name>Special Delivery</name>
+                <description>Defeat the Flagship in a run that counts for an Archipelago seed.</description>
+                <icon>ach_ap_victory</icon>
+                <multiDifficulty>false</multiDifficulty>
+                <sound>achievement</sound>
+            </achievement>
+            <achievement name="ACH_AP_GOAL">
+                <name>Multiworld Hero</name>
+                <description>Complete the goal of an Archipelago seed.</description>
+                <icon>ach_ap_goal</icon>
+                <multiDifficulty>false</multiDifficulty>
+                <sound>achievement</sound>
+            </achievement>
+        </section>
+    </page>
+</achievements>

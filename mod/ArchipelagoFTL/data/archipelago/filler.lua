@@ -883,6 +883,8 @@ _G.apSupportedKinds = {
     layout = true, progressive_ship = true, hat = true, pass = true,
     -- Not delivered as such: the seed says its first Progressive items unlock their system (inventory.lua).
     cap_unlock = true,
+    -- Not an item either: the seed counts explored beacons (checks.lua).
+    beacon_checks = true,
 }
 
 _G.apSupportedResources = {}

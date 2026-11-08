@@ -473,6 +473,7 @@
     "dash.footer.chat": "TAB oder Esc: schließen     Enter: senden     Strg+V: einfügen     Mausrad: scrollen",
     "event.runner.hint": "Die Logbücher des Kuriers sind entschlüsselt. Der Hinweis geht an den Server und erscheint, sobald er antwortet.",
     "event.runner.nothing": "Die Logbücher des Kuriers enthalten nichts Neues: kein Server, oder nichts mehr zu finden.",
-    "event.runner.bought_nothing": "Der Kurier hat nichts Brauchbares geschickt: kein Server, oder nichts mehr zu finden. Deine {scrap} Schrott werden erstattet."
+    "event.runner.bought_nothing": "Der Kurier hat nichts Brauchbares geschickt: kein Server, oder nichts mehr zu finden. Deine {scrap} Schrott werden erstattet.",
+    "check.label.beacons": "{n} Leuchtfeuer erkunden"
   }
 }

@@ -160,11 +160,15 @@ def selected_locations(options) -> tuple[data.Location, ...]:
             if multiverse(options) and options.crew_checks:
                 kept.append(location)
         elif location.group == data.GROUP_FIGHTS:
-            per_run = options.combat_checks_mode == options.combat_checks_mode.option_per_run
+            # Cumulative fights use the same checks as per_run ones, only counted across runs.
+            per_run = options.combat_checks_mode != options.combat_checks_mode.option_per_sector
             if per_run and location.ship in ships and (location.fight or 0) <= options.combat_checks.value:
                 kept.append(location)
         elif location.group == data.GROUP_REACTOR:
             if options.reactor_checks:
+                kept.append(location)
+        elif location.group == data.GROUP_BEACONS:
+            if (location.fight or 0) <= options.beacon_checks.value:
                 kept.append(location)
         elif location.group == data.GROUP_EVENTS:
             if (location.fight or 0) <= options.event_checks.value:

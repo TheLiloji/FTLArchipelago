@@ -473,6 +473,7 @@
     "dash.footer.chat": "TAB o Esc: chiudi     Invio: invia     Ctrl+V: incolla     Rotella: scorri",
     "event.runner.hint": "I registri del corriere sono decifrati. L'indizio va al server e appare appena risponde.",
     "event.runner.nothing": "I registri del corriere non contengono niente di nuovo: nessun server, o non resta niente da trovare.",
-    "event.runner.bought_nothing": "Il corriere non ha mandato niente di utile: nessun server, o non resta niente da trovare. I tuoi {scrap} rottami sono rimborsati."
+    "event.runner.bought_nothing": "Il corriere non ha mandato niente di utile: nessun server, o non resta niente da trovare. I tuoi {scrap} rottami sono rimborsati.",
+    "check.label.beacons": "Esplorare {n} fari"
   }
 }
