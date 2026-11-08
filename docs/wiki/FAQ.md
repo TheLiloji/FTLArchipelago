@@ -97,6 +97,12 @@ in place yourself, following [Hyperspace's own install guide](https://github.com
 On Windows, only `Hyperspace.dll`. The `Hyperspace.1.6.12.amd64.so` and `Hyperspace.1.6.13.amd64.so` files of the
 release are for Linux: 1.6.13 for the Steam version, 1.6.12 for GOG and Humble.
 
+## The console does not open on an AZERTY keyboard
+
+Hyperspace opens its console with the `\` key, and reads the key itself, not the character. On a French keyboard
+`\` is AltGr+8, which is the `8` key for the game, so the console never opens. Give the console another key in
+**Options**, **Controls** (Insert works well), or in the `console` line of `hyperspace.xml`.
+
 ## The game hangs on the loading screen
 
 A known Hyperspace problem with a profile that was created but never played. Delete `ae_prof.sav` and any
