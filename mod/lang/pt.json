@@ -96,7 +96,7 @@
     "dash.checks.remaining": "Faltam {n}",
     "dash.checks.remaining.one": "Falta {n}",
     "dash.checks.title": "CHECKS",
-    "dash.footer": "TAB ou Esc: fechar     Esquerda / Direita ou 1-5: páginas     Roda: deslizar     O jogo está em pausa",
+    "dash.footer": "TAB ou Esc: fechar     Esquerda / Direita ou 1-6: páginas     Roda: deslizar     O jogo está em pausa",
     "dash.fraction": "{done} / {total}",
     "dash.goal.title": "OBJETIVO",
     "dash.goal.unknown": "Esta seed não tem objetivo de vitórias.",
@@ -450,7 +450,7 @@
     "crew.waiting": "{name} espera um lugar livre e embarca assim que sua tripulação tiver espaço.",
     "crew.seated": "{name} embarca: um lugar ficou livre.",
     "crew.waiting.new": "Um novo tripulante espera um lugar livre e embarca assim que houver espaço.",
-    "dash.footer.hangar": "TAB ou Esc: fechar     Esquerda / Direita ou 1-5: páginas     Roda: deslizar",
+    "dash.footer.hangar": "TAB ou Esc: fechar     Esquerda / Direita ou 1-6: páginas     Roda: deslizar",
     "dash.need_run": "Comece uma partida para ver isto.",
     "dash.run.crew_waiting": "Tripulantes à espera de lugar: {n}",
     "dash.ships.filter": "Só desbloqueadas (U)",
@@ -465,6 +465,14 @@
     "deathlink.turned_on": "DeathLink ligado.",
     "deathlink.turned_off": "DeathLink desligado.",
     "dash.links.death_off": "DeathLink: desligado",
-    "dash.links.toggle": "Clique para ligar ou desligar o DeathLink."
+    "dash.links.toggle": "Clique para ligar ou desligar o DeathLink.",
+    "dash.tab.chat": "{n}  Chat",
+    "chat.placeholder": "Escreve uma mensagem ou um comando: !hint <item>, !release, !help. Enter envia.",
+    "chat.empty": "Nada por enquanto. As mensagens do servidor e dos outros jogadores aparecem aqui, e o que escreves vai para a sala como no cliente de texto do Archipelago.",
+    "chat.offline": "Não enviado: não estás ligado.",
+    "dash.footer.chat": "TAB ou Esc: fechar     Enter: enviar     Ctrl+V: colar     Roda: rolar",
+    "event.runner.hint": "Os registos do mensageiro foram descodificados. A pista vai para o servidor e aparece assim que ele responder.",
+    "event.runner.nothing": "Os registos do mensageiro não têm nada de novo: não há servidor, ou não resta nada para encontrar.",
+    "event.runner.bought_nothing": "O mensageiro não enviou nada de útil: não há servidor, ou não resta nada para encontrar. Os teus {scrap} de sucata são devolvidos."
   }
 }

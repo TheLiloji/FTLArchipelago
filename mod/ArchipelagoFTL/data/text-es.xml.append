@@ -90,3 +90,12 @@
 <text name="ap_evt_arms_c2_text" language="es">El combustible se va, vuelve una cajita sellada. Muy rara, jura.</text>
 <text name="ap_evt_arms_c3" language="es">Rechazar y seguir.</text>
 <text name="ap_evt_arms_c3_text" language="es">«Usted se lo pierde», dice el capitán, ya buscando al siguiente cliente.</text>
+<text name="ap_evt_runner_text" language="es">Un pequeño mensajero sale de FTL justo a tu lado, mira tus armas y vuelve a cargar su motor enseguida. Sus comunicaciones están llenas de tráfico de Archipelago: en algún sitio ahí dentro está la ubicación de algo que vale la pena.</text>
+<text name="ap_evt_runner_c1" language="es">Atraparlo antes de que salte.</text>
+<text name="ap_evt_runner_c1_text" language="es">Sus motores se encienden. Tienes hasta que su motor FTL esté cargado.</text>
+<text name="ap_evt_runner_c3" language="es">Dejarlo ir.</text>
+<text name="ap_evt_runner_c3_text" language="es">Desaparece en un destello, y lo que sabía se va con él.</text>
+<text name="ap_runner_caught_text" language="es">Los registros del mensajero sobreviven al combate. Tu tripulación saca una ubicación del tráfico del relé: una pista de Archipelago, gratis.</text>
+<text name="ap_runner_gone_text" language="es">El mensajero salta. Lo que sabía ahora es problema de otro.</text>
+<text name="ap_evt_runner_c2" language="es">Llamarlo y comprar sus registros: 25 de chatarra.</text>
+<text name="ap_evt_runner_c2_text" language="es">El capitán del mensajero coge la chatarra y envía un paquete de datos antes de saltar.</text>

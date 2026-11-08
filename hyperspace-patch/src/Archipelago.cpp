@@ -687,7 +687,23 @@ bool Client::Connect(const std::string& uri, const std::string& slot, const std:
         impl->push(std::move(e));
     };
 
-    ap->set_print_json_handler([pushHint](const APClient::PrintJSONArgs& args) {
+    ap->set_print_json_handler([impl, ap, pushHint](const APClient::PrintJSONArgs& args) {
+        // The in-game text client: what a player reads in a text client, items sent and joins left out.
+        static const char* const shown[] = {"Chat", "ServerChat", "CommandResult", "AdminCommandResult", "Hint",
+                                            "Countdown", "Goal", "Release", "Collect", "Tutorial"};
+        for (const char* type : shown) {
+            if (args.type != type) continue;
+            Event chat;
+            chat.kind = "chat";
+            chat.name = args.type;
+            try {
+                chat.extra = ap->render_json(args.data, APClient::RenderFormat::TEXT);
+            } catch (...) {
+                chat.extra.clear();
+            }
+            if (!chat.extra.empty()) impl->push(std::move(chat));
+            break;
+        }
         if (args.type != "Hint" || args.item == nullptr || args.receiving == nullptr) return;
         pushHint(*args.receiving, args.item->player, args.item->item, args.item->location,
                  args.found != nullptr && *args.found, false);

@@ -256,6 +256,15 @@ function apNetSendTrapTo(slot, trapName)
     return whenConnected(function(linked) return linked:SendTrapTo(slot, tostring(trapName or "Trap")) end)
 end
 
+-- A chat line or a server command ("!hint Burst Laser II"), as a text client would send it.
+function apNetSay(text)
+    text = tostring(text or "")
+    if text == "" then
+        return false
+    end
+    return whenConnected(function(ap) return ap:Say(text) end) == true
+end
+
 function apNetEnergyLinkDeposit(joules)
     return whenConnected(function(ap) return ap:EnergyDeposit(math.floor(joules)) end)
 end
@@ -810,6 +819,13 @@ local HANDLERS = {
                 found = tonumber(event.value) == 1,
                 known = tonumber(event.index) == 1,
             })
+        end
+    end,
+
+    -- A line of the server's text (chat, command results, hints): the in-game text client shows it.
+    chat = function(event)
+        if _G.apChatReceive then
+            _G.apChatReceive(tostring(event.name or ""), tostring(event.extra or ""))
         end
     end,
 

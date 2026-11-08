@@ -96,7 +96,7 @@
     "dash.checks.remaining": "Quedan {n}",
     "dash.checks.remaining.one": "Queda {n}",
     "dash.checks.title": "CHECKS",
-    "dash.footer": "TAB o Esc: cerrar     Izquierda / Derecha o 1-5: páginas     Rueda: desplazar     Juego en pausa",
+    "dash.footer": "TAB o Esc: cerrar     Izquierda / Derecha o 1-6: páginas     Rueda: desplazar     Juego en pausa",
     "dash.fraction": "{done} / {total}",
     "dash.goal.title": "OBJETIVO",
     "dash.goal.unknown": "Esta seed no tiene un objetivo de victorias.",
@@ -450,7 +450,7 @@
     "crew.waiting": "{name} espera un sitio libre y sube a bordo en cuanto tu tripulación tenga espacio.",
     "crew.seated": "{name} sube a bordo: se ha liberado un sitio.",
     "crew.waiting.new": "Un tripulante nuevo espera un sitio libre y subirá a bordo en cuanto haya lugar.",
-    "dash.footer.hangar": "TAB o Esc: cerrar     Izquierda / Derecha o 1-5: páginas     Rueda: desplazar",
+    "dash.footer.hangar": "TAB o Esc: cerrar     Izquierda / Derecha o 1-6: páginas     Rueda: desplazar",
     "dash.need_run": "Empieza una partida para ver esto.",
     "dash.run.crew_waiting": "Tripulantes esperando un sitio libre: {n}",
     "dash.ships.filter": "Solo desbloqueadas (U)",
@@ -465,6 +465,14 @@
     "deathlink.turned_on": "DeathLink activado.",
     "deathlink.turned_off": "DeathLink desactivado.",
     "dash.links.death_off": "DeathLink: desactivado",
-    "dash.links.toggle": "Haz clic para activar o desactivar DeathLink."
+    "dash.links.toggle": "Haz clic para activar o desactivar DeathLink.",
+    "dash.tab.chat": "{n}  Chat",
+    "chat.placeholder": "Escribe un mensaje o un comando: !hint <objeto>, !release, !help. Enter para enviar.",
+    "chat.empty": "Nada por ahora. Los mensajes del servidor y de los otros jugadores aparecen aquí, y lo que escribes va a la sala como en el cliente de texto de Archipelago.",
+    "chat.offline": "No enviado: no estás conectado.",
+    "dash.footer.chat": "TAB o Esc: cerrar     Enter: enviar     Ctrl+V: pegar     Rueda: desplazar",
+    "event.runner.hint": "Los registros del mensajero están descifrados. La pista va al servidor y aparece en cuanto responda.",
+    "event.runner.nothing": "Los registros del mensajero no tienen nada nuevo: no hay servidor, o no queda nada por encontrar.",
+    "event.runner.bought_nothing": "El mensajero no envió nada útil: no hay servidor, o no queda nada por encontrar. Te devuelven tus {scrap} de chatarra."
   }
 }

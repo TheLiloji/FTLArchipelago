@@ -105,6 +105,9 @@
     <event name="AP_EVT_ARMS_DEALER">
         <changeBackground>AP_BACKGROUND</changeBackground>
     </event>
+    <event name="AP_EVT_RUNNER">
+        <changeBackground>AP_BACKGROUND</changeBackground>
+    </event>
     <event name="AP_EVT_ANOTHER_WORLD">
         <changeBackground>AP_BACKGROUND</changeBackground>
     </event>
@@ -413,6 +416,7 @@
     <script>data/archipelago/solo_order.lua</script>
     <script>data/archipelago/solo.lua</script>
     <script>data/archipelago/hud.lua</script>
+    <script>data/archipelago/chat.lua</script>
     <script>data/archipelago/dashboard.lua</script>
     <script>data/archipelago/saves.lua</script>
     <script>data/archipelago/connect.lua</script>

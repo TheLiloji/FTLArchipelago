@@ -13,7 +13,7 @@ local IMPORTANT_EVENTS = { "AP_EVT_PACKAGE", "AP_EVT_HIJACK", "AP_HIJACK_YIELD",
 local OTHER_EVENTS = {
     "AP_EVT_ZOLTAN_TITHE", "AP_EVT_ZOLTAN_TITHE_LINK", "AP_EVT_ZOLTAN_TOLL", "AP_EVT_SLUG_WHISPER",
     "AP_EVT_ANOTHER_WORLD", "AP_EVT_ANOTHER_WORLD_LINK", "AP_EVT_ANOTHER_WORLD_PLAIN",
-    "AP_EVT_OVERCLOCK", "AP_EVT_ARMS_DEALER",
+    "AP_EVT_OVERCLOCK", "AP_EVT_ARMS_DEALER", "AP_EVT_RUNNER", "AP_RUNNER_CAUGHT", "AP_RUNNER_GONE",
 }
 
 local beaconsMode = "marked"
@@ -85,7 +85,7 @@ end
 
 
 local offeredPackages = { a = nil, b = nil }
-local PRICE = { ["AP_EVT_PACKAGE"] = 15, ["AP_EVT_SLUG_WHISPER"] = 20, ["AP_EVT_HIJACK"] = 20 }
+local PRICE = { ["AP_EVT_PACKAGE"] = 15, ["AP_EVT_SLUG_WHISPER"] = 20, ["AP_EVT_HIJACK"] = 20, ["AP_EVT_RUNNER"] = 25 }
 local scrapBefore = {}
 
 local function scrap()
@@ -106,19 +106,36 @@ local function refund(eventName)
     return refunded
 end
 
-local function buyHint(eventName)
+-- A hint paid in scrap: the Slug's, or the runner's logs bought over comms. Refunded when none can be given.
+local function buyHint(eventName, priceEvent, askedKey, nothingKey)
+    priceEvent = priceEvent or "AP_EVT_SLUG_WHISPER"
     if _G.apHintPurchase and _G.apHintPurchase() then
-        scrapBefore["AP_EVT_SLUG_WHISPER"] = nil
+        scrapBefore[priceEvent] = nil
         record(eventName, _G.apSoloEnabled and "hint given from the solo seed" or "hint requested from server")
         if _G.apNotifyStatus and not _G.apSoloEnabled then
-            _G.apNotifyStatus(apT("event.hint.asked"))
+            _G.apNotifyStatus(apT(askedKey or "event.hint.asked"))
         end
         return
     end
-    local refunded = refund("AP_EVT_SLUG_WHISPER")
+    local refunded = refund(priceEvent)
     record(eventName, "no hint possible, " .. refunded .. " scrap refunded")
     if _G.apNotifyStatus then
-        _G.apNotifyStatus(apT("event.hint.nothing", { scrap = refunded }))
+        _G.apNotifyStatus(apT(nothingKey or "event.hint.nothing", { scrap = refunded }))
+    end
+end
+
+-- The runner caught: a free hint, like the Slug's without the price.
+local function runnerHint(eventName)
+    if _G.apHintPurchase and _G.apHintPurchase() then
+        record(eventName, _G.apSoloEnabled and "free hint from the solo seed" or "free hint requested from server")
+        if _G.apNotifyStatus and not _G.apSoloEnabled then
+            _G.apNotifyStatus(apT("event.runner.hint"))
+        end
+        return
+    end
+    record(eventName, "no hint possible")
+    if _G.apNotifyStatus then
+        _G.apNotifyStatus(apT("event.runner.nothing"))
     end
 end
 
@@ -301,6 +318,10 @@ local BRANCH_EFFECTS = {
     AP_HIJACK_WON = function(name) freeHijacked(name) end,
     AP_HIJACK_DEADCREW = function(name) freeHijacked(name) end,
     AP_HIJACK_YIELD = function(name) freeHijacked(name) end,
+    AP_RUNNER_CAUGHT = function(name) runnerHint(name) end,
+    AP_EVT_RUNNER_B = function(name)
+        buyHint(name, "AP_EVT_RUNNER", "event.runner.hint", "event.runner.bought_nothing")
+    end,
 }
 
 _G.apEventBranchEffects = BRANCH_EFFECTS

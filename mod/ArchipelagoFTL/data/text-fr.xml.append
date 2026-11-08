@@ -92,3 +92,12 @@
 <text name="ap_evt_arms_c2_text" language="fr">Le carburant part, une petite boîte scellée revient. Très rare, jure-t-il.</text>
 <text name="ap_evt_arms_c3" language="fr">Refuser et continuer.</text>
 <text name="ap_evt_arms_c3_text" language="fr">« Tant pis pour vous », dit le capitaine, qui cherche déjà le client suivant.</text>
+<text name="ap_evt_runner_text" language="fr">Un petit coursier sort de FTL juste à côté de vous, jette un œil à vos armes et relance aussitôt son moteur. Ses communications débordent de trafic Archipelago : quelque part là-dedans se trouve l'emplacement de quelque chose qui vaut le coup.</text>
+<text name="ap_evt_runner_c1" language="fr">Le rattraper avant qu'il saute.</text>
+<text name="ap_evt_runner_c1_text" language="fr">Ses moteurs s'emballent. Vous avez jusqu'à ce que son moteur FTL soit chargé.</text>
+<text name="ap_evt_runner_c3" language="fr">Le laisser partir.</text>
+<text name="ap_evt_runner_c3_text" language="fr">Il disparaît dans un éclair, et ce qu'il savait part avec lui.</text>
+<text name="ap_runner_caught_text" language="fr">Les journaux du coursier survivent au combat. Votre équipage en tire un emplacement : un indice Archipelago, gratuit.</text>
+<text name="ap_runner_gone_text" language="fr">Le coursier saute. Ce qu'il savait, c'est le problème de quelqu'un d'autre maintenant.</text>
+<text name="ap_evt_runner_c2" language="fr">Le héler et acheter ses journaux : 25 ferraille.</text>
+<text name="ap_evt_runner_c2_text" language="fr">Le capitaine du coursier prend la ferraille et envoie un paquet de données avant de sauter.</text>

@@ -92,3 +92,12 @@
 <text name="ap_evt_arms_c2_text" language="pt">O combustível vai, volta uma caixinha selada. Muito rara, jura ele.</text>
 <text name="ap_evt_arms_c3" language="pt">Recusar e seguir caminho.</text>
 <text name="ap_evt_arms_c3_text" language="pt">«Azar o seu», diz o capitão, já à procura do próximo cliente.</text>
+<text name="ap_evt_runner_text" language="pt">Um pequeno mensageiro sai do FTL mesmo ao teu lado, olha para as tuas armas e volta logo a carregar o motor. As comunicações dele estão cheias de tráfego Archipelago: algures ali está a localização de algo que vale a pena.</text>
+<text name="ap_evt_runner_c1" language="pt">Apanhá-lo antes que salte.</text>
+<text name="ap_evt_runner_c1_text" language="pt">Os motores dele acendem-se. Tens até o motor FTL dele carregar.</text>
+<text name="ap_evt_runner_c3" language="pt">Deixá-lo ir.</text>
+<text name="ap_evt_runner_c3_text" language="pt">Desaparece num clarão, e o que sabia vai com ele.</text>
+<text name="ap_runner_caught_text" language="pt">Os registos do mensageiro sobrevivem ao combate. A tua tripulação tira dali uma localização: uma pista Archipelago, de graça.</text>
+<text name="ap_runner_gone_text" language="pt">O mensageiro salta. O que sabia é agora problema de outro.</text>
+<text name="ap_evt_runner_c2" language="pt">Chamá-lo e comprar os registos dele: 25 de sucata.</text>
+<text name="ap_evt_runner_c2_text" language="pt">O capitão do mensageiro fica com a sucata e envia um pacote de dados antes de saltar.</text>

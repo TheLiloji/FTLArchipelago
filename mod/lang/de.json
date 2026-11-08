@@ -96,7 +96,7 @@
     "dash.checks.remaining": "{n} übrig",
     "dash.checks.remaining.one": "{n} übrig",
     "dash.checks.title": "CHECKS",
-    "dash.footer": "TAB oder Esc: schließen     Links / Rechts oder 1-5: Seiten     Mausrad: scrollen     Das Spiel ist pausiert",
+    "dash.footer": "TAB oder Esc: schließen     Links / Rechts oder 1-6: Seiten     Mausrad: scrollen     Das Spiel ist pausiert",
     "dash.fraction": "{done} / {total}",
     "dash.goal.title": "ZIEL",
     "dash.goal.unknown": "Dieser Seed hat kein Siegesziel.",
@@ -450,7 +450,7 @@
     "crew.waiting": "{name} wartet auf einen freien Platz und kommt an Bord, sobald deine Crew Platz hat.",
     "crew.seated": "{name} kommt an Bord: ein Platz ist frei geworden.",
     "crew.waiting.new": "Ein neues Crewmitglied wartet auf einen freien Platz und kommt an Bord, sobald Platz ist.",
-    "dash.footer.hangar": "TAB oder Esc: schließen     Links / Rechts oder 1-5: Seiten     Mausrad: scrollen",
+    "dash.footer.hangar": "TAB oder Esc: schließen     Links / Rechts oder 1-6: Seiten     Mausrad: scrollen",
     "dash.need_run": "Starte einen Run, um das zu sehen.",
     "dash.run.crew_waiting": "Crew wartet auf einen freien Platz: {n}",
     "dash.ships.filter": "Nur freigeschaltete (U)",
@@ -465,6 +465,14 @@
     "deathlink.turned_on": "DeathLink an.",
     "deathlink.turned_off": "DeathLink aus.",
     "dash.links.death_off": "DeathLink: aus",
-    "dash.links.toggle": "Klicken, um DeathLink ein- oder auszuschalten."
+    "dash.links.toggle": "Klicken, um DeathLink ein- oder auszuschalten.",
+    "dash.tab.chat": "{n}  Chat",
+    "chat.placeholder": "Schreib eine Nachricht oder einen Befehl: !hint <Gegenstand>, !release, !help. Enter sendet.",
+    "chat.empty": "Noch nichts. Nachrichten vom Server und von den anderen Spielern erscheinen hier, und was du tippst, geht an den Raum wie im Text-Client von Archipelago.",
+    "chat.offline": "Nicht gesendet: du bist nicht verbunden.",
+    "dash.footer.chat": "TAB oder Esc: schließen     Enter: senden     Strg+V: einfügen     Mausrad: scrollen",
+    "event.runner.hint": "Die Logbücher des Kuriers sind entschlüsselt. Der Hinweis geht an den Server und erscheint, sobald er antwortet.",
+    "event.runner.nothing": "Die Logbücher des Kuriers enthalten nichts Neues: kein Server, oder nichts mehr zu finden.",
+    "event.runner.bought_nothing": "Der Kurier hat nichts Brauchbares geschickt: kein Server, oder nichts mehr zu finden. Deine {scrap} Schrott werden erstattet."
   }
 }

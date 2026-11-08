@@ -92,3 +92,12 @@
 <text name="ap_evt_arms_c2_text" language="de">Der Treibstoff geht hinüber, eine kleine versiegelte Kiste kommt zurück. Sehr selten, schwört er.</text>
 <text name="ap_evt_arms_c3" language="de">Ablehnen und weiterfliegen.</text>
 <text name="ap_evt_arms_c3_text" language="de">&quot;Ihr Pech&quot;, sagt der Kapitän und sucht schon den nächsten Kunden.</text>
+<text name="ap_evt_runner_text" language="de">Ein kleiner Kurier fällt direkt neben dir aus dem FTL, wirft einen Blick auf deine Waffen und fährt seinen Antrieb sofort wieder hoch. Sein Funk ist voller Archipelago-Verkehr: irgendwo darin steckt der Fundort von etwas Wertvollem.</text>
+<text name="ap_evt_runner_c1" language="de">Ihn stellen, bevor er springt.</text>
+<text name="ap_evt_runner_c1_text" language="de">Seine Triebwerke flammen auf. Du hast Zeit, bis sein Antrieb geladen ist.</text>
+<text name="ap_evt_runner_c3" language="de">Ihn ziehen lassen.</text>
+<text name="ap_evt_runner_c3_text" language="de">Er ist in einem Blitz verschwunden, und was er wusste, mit ihm.</text>
+<text name="ap_runner_caught_text" language="de">Die Logbücher des Kuriers überstehen den Kampf. Deine Crew holt einen Fundort aus dem Funkverkehr: ein Archipelago-Hinweis, gratis.</text>
+<text name="ap_runner_gone_text" language="de">Der Kurier springt davon. Was er wusste, ist jetzt das Problem von jemand anderem.</text>
+<text name="ap_evt_runner_c2" language="de">Ihn anfunken und seine Logbücher kaufen: 25 Schrott.</text>
+<text name="ap_evt_runner_c2_text" language="de">Der Kapitän des Kuriers nimmt den Schrott und schickt ein Datenpaket, bevor er springt.</text>

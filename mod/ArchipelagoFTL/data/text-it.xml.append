@@ -92,3 +92,12 @@
 <text name="ap_evt_arms_c2_text" language="it">Il carburante va, torna una scatolina sigillata. Rarissima, giura.</text>
 <text name="ap_evt_arms_c3" language="it">Rifiutare e proseguire.</text>
 <text name="ap_evt_arms_c3_text" language="it">«Peggio per te», dice il capitano, già in cerca del prossimo cliente.</text>
+<text name="ap_evt_runner_text" language="it">Un piccolo corriere esce dall'FTL proprio accanto a te, dà un'occhiata alle tue armi e riavvia subito il motore. Le sue comunicazioni sono piene di traffico Archipelago: lì dentro c'è la posizione di qualcosa che vale la pena.</text>
+<text name="ap_evt_runner_c1" language="it">Prenderlo prima che salti.</text>
+<text name="ap_evt_runner_c1_text" language="it">I suoi motori si accendono. Hai tempo finché il suo motore FTL non è carico.</text>
+<text name="ap_evt_runner_c3" language="it">Lasciarlo andare.</text>
+<text name="ap_evt_runner_c3_text" language="it">Sparisce in un lampo, e quello che sapeva se ne va con lui.</text>
+<text name="ap_runner_caught_text" language="it">I registri del corriere sopravvivono allo scontro. Il tuo equipaggio ne tira fuori una posizione: un indizio Archipelago, gratis.</text>
+<text name="ap_runner_gone_text" language="it">Il corriere salta via. Quello che sapeva ora è un problema di qualcun altro.</text>
+<text name="ap_evt_runner_c2" language="it">Chiamarlo e comprare i suoi registri: 25 rottami.</text>
+<text name="ap_evt_runner_c2_text" language="it">Il capitano del corriere prende i rottami e manda un pacchetto di dati prima di saltare via.</text>
