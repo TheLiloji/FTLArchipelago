@@ -103,7 +103,8 @@ LOCATION_OFFSET_FIGHT = 90_000
 LOCATION_OFFSET_SECTOR_FIGHT = 100_000
 LOCATION_OFFSET_EVENT = 105_000
 LOCATION_OFFSET_REACTOR = 106_000
-LOCATION_OFFSET_BEACONS = 107_000
+# 107_000 and 108_000 are the Multiverse endings and ship quests, on the Multiverse branch: never reuse them.
+LOCATION_OFFSET_BEACONS = 109_000
 
 # Combat checks: the first fights a ship wins in a run, at most this many per ship.
 MAX_FIGHTS_PER_SHIP = 10
