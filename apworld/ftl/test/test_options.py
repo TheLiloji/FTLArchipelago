@@ -1179,3 +1179,14 @@ class TestNoBeaconChecksByDefault(FTLTestBase):
         self.assertFalse(any(location.name.startswith("Explore ")
                              for location in self.multiworld.get_locations(self.player)))
         self.assertNotIn(data.KIND_BEACON_CHECKS, self.world.fill_slot_data()["kinds_required"])
+
+
+class TestCumulativeCombatChecks(FTLTestBase):
+    options = {"combat_checks": 3, "combat_checks_mode": "cumulative"}
+
+    def test_cumulative_fights_use_the_per_run_checks(self) -> None:
+        names = {location.name for location in self.multiworld.get_locations(self.player)}
+        self.assertTrue(any(name.endswith("Fight 3 won") for name in names), "the fight checks are there")
+        self.assertFalse(any("Sector 2 fight" in name for name in names), "no per-sector ones")
+        self.assertEqual(self.world.fill_slot_data()["options"]["combat_checks_mode"], 2,
+                         "the mod is told to count across runs")

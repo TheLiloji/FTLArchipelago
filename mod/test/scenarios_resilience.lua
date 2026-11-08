@@ -659,6 +659,32 @@ test("combat checks per sector: each sector counts its own fights from 1", funct
     sim.enemy = nil
 end)
 
+test("combat checks cumulative: fights add up across runs, sector 1 left out", function()
+    _G.apInventory = { ships = {}, systemCaps = {}, startingUpgrades = {}, shopAvailability = {} }
+    apContractResetForTesting()
+    apForgetChecksForTesting()
+    applySeed({ seed_hash = "CUMUL", loc = { ["PLAYER_SHIP_HARD:fight:1"] = "Kestrel Cruiser: Fight 1 won",
+                        ["PLAYER_SHIP_HARD:fight:2"] = "Kestrel Cruiser: Fight 2 won" },
+                options = { combat_checks_mode = 2 } })
+    sim.startRun(true)
+    sim.starMap.worldLevel = 0
+    sim.jumpArrive()
+    winFight(30)
+    check(not apCheckAlreadySent("PLAYER_SHIP_HARD:fight:1"), "a fight in sector 1 does not count")
+    sim.starMap.worldLevel = 1
+    sim.jumpArrive()
+    winFight(30)
+    check(apCheckAlreadySent("PLAYER_SHIP_HARD:fight:1"), "the first fight of sector 2 is fight 1")
+    sim.startRun(true)
+    sim.starMap.worldLevel = 1
+    sim.jumpArrive()
+    winFight(30)
+    check(apCheckAlreadySent("PLAYER_SHIP_HARD:fight:2"), "a new run goes on from fight 2")
+    equals(apCombatFightsTotal("PLAYER_SHIP_HARD"), 2, "two fights counted for the Kestrel")
+    sim.starMap.worldLevel = 0
+    sim.enemy = nil
+end)
+
 test("combat checks: a new run counts from fight 1 again, and an already sent check costs nothing", function()
     fightSeed(50)
     winFight(30)

@@ -110,7 +110,7 @@ packages sold at the AP STORE beacons, which hold other players' items.
 | **Trap Chance** | Three new traps that wait for your next fight: an anti-ship battery, a Flagship power surge (lighter in sectors 1 and 2), or a hazard (nebula, ion storm, asteroids, sun or pulsar). The battery and the hazard go away when the fight is over. Also an O2 Drain Trap: at a quiet beacon, every room loses its air at once (never on a ship whose oxygen system is down) |
 | **Sector Logic** | `relaxed` is now called `none`: the logic expects nothing, you may have to win with very little. For experienced players. `relaxed` still works in old YAMLs |
 | **Progressive Unlocks the System** | Off by default. The first Progressive item of a system also unlocks it, so there is no separate blueprint item for it: systems come sooner |
-| **Combat Checks Mode** | `per_run` (the default): the first fights of a run send checks. `per_sector`: the first fights of each sector send their own, up to **Fights per Sector** (1 to 5, default 2) |
+| **Combat Checks Mode** | `per_run` (the default): the first fights of a run send checks. `per_sector`: the first fights of each sector send their own, up to **Fights per Sector** (1 to 5, default 2). `cumulative`: the fights a ship wins add up across its runs, sector 1 left out |
 | **Archipelago Event Checks** | 0 to 20 (default 5): the packages of the relay and pirate events become checks of their own, "Archipelago Event 1", 2... before the events take the shop's packages |
 | **Reactor Checks** | Off by default. Reactor power 10, 15, 20 and 25 send checks |
 | **Beacon Checks** | 0 to 10 (default 0): exploring beacons sends checks, "Explore 25 Beacons", 50, 75... Beacons count across every run of the seed, with any ship |

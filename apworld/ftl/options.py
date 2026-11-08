@@ -421,11 +421,14 @@ class CombatChecksMode(Choice):
     per_sector: in each sector of a run, the first fights won send "Sector 3 fight 1 won"... up to Fights per
     Sector, so a run that reaches sector 8 can send checks in every sector. Combat Checks per Ship only needs
     to be above 0 to turn them on.
+    cumulative: the fights won with a ship add up across its runs, sector 1 left out, and send "Fight 1 won",
+    "Fight 2 won"... up to Combat Checks per Ship: a lost run still counts.
     """
 
     display_name = "Combat Checks Mode"
     option_per_run = 0
     option_per_sector = 1
+    option_cumulative = 2
     default = option_per_run
 
 

@@ -83,11 +83,28 @@ local function currentShip()
     return ok and name and (tostring(name):gsub("_[23]$", "")) or nil
 end
 
+-- combat_checks_mode cumulative: the fights a ship wins add up across its runs, sector 1 left out. Kept in the
+-- profile, per seed, slot and ship.
+local function cumulative()
+    local mode = _G.apSeedOption and apSeedOption("combat_checks_mode")
+    return mode == 2 or mode == "cumulative"
+end
+
+local function cumulativeKey(ship)
+    local fingerprint = _G.apSeedFingerprint and apSeedFingerprint() or 0
+    local base = "ap_fights_total_" .. tostring(fingerprint) .. "_" .. tostring(ship)
+    return _G.apNetSlotKey and apNetSlotKey(base) or base
+end
+
+function apCombatFightsTotal(ship)
+    return math.floor(tonumber(_G.apNetRecall and apNetRecall(cumulativeKey(ship)) or 0) or 0)
+end
+
 -- For the dashboard: fights won this run and the fight checks this ship still has.
 function apCombatStatus()
     local ship = currentShip()
     local total, left, nextSends = 0, 0, false
-    local won = fightsWon()
+    local won = (cumulative() and ship) and apCombatFightsTotal(ship) or fightsWon()
     for n = 1, 10 do
         local key = ship and (ship .. ":fight:" .. n) or nil
         if key and _G.apLocationNameFor and apLocationNameFor(key) then
@@ -135,7 +152,16 @@ function apCombatReward(event)
     countedHere = true
     local n = fightsWon() + 1
     setFightsWon(n)
-    if perSector() then
+    if cumulative() then
+        local sector = currentSector()
+        local ship = currentShip()
+        if sector <= 1 or ship == nil then
+            combatLog("fight won in sector 1: not counted towards the cumulative checks")
+            return false
+        end
+        n = apCombatFightsTotal(ship) + 1
+        if _G.apNetRemember then apNetRemember(cumulativeKey(ship), n) end
+    elseif perSector() then
         local sector = currentSector()
         n = sectorFightsWon(sector) + 1
         pcall(function() Hyperspace.playerVariables["ap_fights_sector_" .. sector] = n end)
@@ -193,7 +219,7 @@ function apCombatCatchUp()
             end
         end
     end
-    for n = 1, fightsWon() do
+    for n = 1, cumulative() and apCombatFightsTotal(ship) or fightsWon() do
         local key = ship .. ":fight:" .. n
         if _G.apLocationNameFor and apLocationNameFor(key) and not apCheckAlreadySent(key) then
             local label = apT("check.label.fight", { n = n, ship = (_G.apShipLabel and apShipLabel(ship)) or ship })
