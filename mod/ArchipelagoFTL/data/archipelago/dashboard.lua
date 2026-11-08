@@ -1455,7 +1455,7 @@ local function drawChat(x, y, w, h)
     local room = w - 48
     local visible = shown
     while typed ~= "" and #visible > 1 and width(10, visible .. "_") > room do
-        visible = visible:sub(2)
+        visible = visible:gsub("^[%z\1-\127\192-\255][\128-\191]*", "", 1)
     end
     text(10, x + 20, y + 15, room + 8, typed ~= "" and "text" or "dim", typed ~= "" and (visible .. "_") or visible)
 
@@ -1564,6 +1564,10 @@ local function setOpen(value)
     state.open = value
     -- A line left half-typed does not wait for the next opening, where a page key would add to it.
     state.chatInput, state.shift, state.ctrl = "", false, false
+    if not value and state.capturing then
+        state.capturing = false
+        apNetCaptureText(false)
+    end
     if _G.apNotifyHide then apNotifyHide(value) end
     pcall(function()
         local gui = Hyperspace.App.gui
@@ -1613,7 +1617,31 @@ end
 
 local SHIPS_PAGE = 2
 
+local CHAT_INPUT_MAX = 200
+
+local function chatAppend(typed)
+    typed = tostring(typed or ""):gsub("[%z\1-\31\127]", "")
+    while typed ~= "" and #state.chatInput + #typed > CHAT_INPUT_MAX do
+        typed = typed:gsub("[%z\1-\127\192-\255][\128-\191]*$", "", 1)
+    end
+    state.chatInput = state.chatInput .. typed
+end
+
+-- The Chat page reads what the module saw typed, with the player's keyboard layout (SDL's key codes only
+-- name the keys of a US keyboard). An older module has no capture, and the keys are read as before.
+local function syncTextCapture()
+    local want = state.open and PAGES[state.page] == "chat"
+    if want ~= (state.capturing == true) then
+        state.capturing = want and apNetCaptureText(true) or false
+        if not want then apNetCaptureText(false) end
+    end
+    if state.capturing then
+        chatAppend(apNetTakeText())
+    end
+end
+
 local function drawOrClose()
+    syncTextCapture()
     local ok, err = pcall(drawWindow)
     if not ok then
         setOpen(false)
@@ -1646,10 +1674,12 @@ local PAGE_KEYS = {
     [Defines.SDL.KEY_4] = 4, [Defines.SDL.KEY_5] = 5, [Defines.SDL.KEY_6] = 6,
 }
 
-local CHAT_INPUT_MAX = 200
-
 -- On the Chat page every key types, except those that close the window or turn the page with nothing typed.
 local function chatKey(key)
+    -- Text typed before this key (same frame) comes first: Enter right after a letter sends that letter too.
+    if state.capturing then
+        chatAppend(apNetTakeText())
+    end
     if key == Defines.SDL.KEY_LSHIFT or key == Defines.SDL.KEY_RSHIFT then
         state.shift = true
         return true
@@ -1660,7 +1690,7 @@ local function chatKey(key)
     end
     if state.ctrl and key == Defines.SDL.KEY_v then
         local pasted = (_G.apNetClipboard and apNetClipboard() or ""):gsub("[\r\n]+", " ")
-        state.chatInput = (state.chatInput .. pasted):sub(1, CHAT_INPUT_MAX)
+        chatAppend(pasted)
         return true
     end
     if key == Defines.SDL.KEY_RETURN or key == Defines.SDL.KEY_KP_ENTER then
@@ -1672,15 +1702,19 @@ local function chatKey(key)
         return true
     end
     if key == Defines.SDL.KEY_BACKSPACE then
-        state.chatInput = state.chatInput:sub(1, -2)
+        state.chatInput = state.chatInput:gsub("[%z\1-\127\192-\255][\128-\191]*$", "", 1)
         return true
     end
     if (key == Defines.SDL.KEY_LEFT or key == Defines.SDL.KEY_RIGHT) and state.chatInput == "" then
         return false
     end
+    if state.capturing then
+        -- Text typed this frame arrives from the module before the next drawing.
+        return true
+    end
     local c = _G.apChatKeyCharacter and apChatKeyCharacter(key, state.shift) or nil
-    if c ~= nil and #state.chatInput < CHAT_INPUT_MAX then
-        state.chatInput = state.chatInput .. c
+    if c ~= nil then
+        chatAppend(c)
     end
     -- Anything else on this page is swallowed: the game behind must not read the letters typed.
     return true

@@ -376,6 +376,14 @@ local function resetWorld()
         LastUri = function() return sim.net.last.uri end,
         LastSlot = function() return sim.net.last.slot end,
         Clipboard = function() return sim.clipboard or "" end,
+        CaptureText = function(_, on)
+            sim.net.capture, sim.net.typed = on == true, ""
+        end,
+        TakeText = function()
+            local typed = sim.net.typed or ""
+            sim.net.typed = ""
+            return typed
+        end,
         SetShopLock = function(_, name, locked)
             sim.net.shopLocks = sim.net.shopLocks or {}
             sim.net.shopLocks[name] = locked or nil
@@ -1209,7 +1217,11 @@ function sim.scroll(direction)
     fire("ON_MOUSE_SCROLL", direction)
 end
 
+-- Keys go down as on a US keyboard; the text itself also reaches the module's capture when it is on.
 function sim.type(text)
+    if sim.net and sim.net.capture then
+        sim.net.typed = (sim.net.typed or "") .. text
+    end
     for index = 1, #text do
         local c = text:sub(index, index)
         local isUpper = c:match("%u") ~= nil

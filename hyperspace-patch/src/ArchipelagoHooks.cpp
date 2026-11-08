@@ -17,6 +17,8 @@ namespace ArchipelagoFTL
 
 namespace
 {
+bool textCapture = false;
+std::string typedText;
 bool shipLock = false;
 std::string allowedShip;
 std::set<std::string> shopLocks;
@@ -112,6 +114,24 @@ int Client::LockShips(const std::vector<std::string>& blueprints)
     }
     if (locked > 0) scores->Save(false);
     return locked;
+}
+
+void Client::CaptureText(bool on)
+{
+    // FTL only reads typed text while one of its text fields is started: the capture keeps one of its own.
+    static TextInput* field = nullptr;
+    if (field == nullptr) field = new TextInput(256, TextInput::ALLOW_ANY, "");
+    if (on && !textCapture) field->Start();
+    if (!on && textCapture) field->Stop();
+    textCapture = on;
+    typedText.clear();
+}
+
+std::string Client::TakeText()
+{
+    std::string text;
+    text.swap(typedText);
+    return text;
 }
 
 bool Client::HideBeaconLabel(const std::string& eventName, bool hidden)
@@ -413,5 +433,34 @@ HOOK_METHOD(ShipBuilder, SwitchShip, (int shipType, int shipVariant) -> void)
         typeA.bActive = false;
         typeA.bRenderOff = true;
         typeA.bRenderSelected = false;
+    }
+}
+
+// The chat of the dashboard takes what FTL reads as typed text: the SDL key codes the Lua sees only name
+// the keys of a US keyboard, so an AZERTY player got "&" for "1".
+HOOK_METHOD_PRIORITY(CApp, OnTextInput, 1000, (int charCode) -> void)
+{
+    LOG_HOOK("HOOK_METHOD_PRIORITY -> CApp::OnTextInput -> Begin (ArchipelagoHooks.cpp)\n")
+    if (!ArchipelagoFTL::textCapture) {
+        super(charCode);
+        return;
+    }
+    unsigned int c = (unsigned int)charCode;
+    if (c < 32 || c == 127 || c > 0x10FFFF || ArchipelagoFTL::typedText.size() > 256) return;
+    std::string& out = ArchipelagoFTL::typedText;
+    if (c < 0x80) {
+        out += (char)c;
+    } else if (c < 0x800) {
+        out += (char)(0xC0 | (c >> 6));
+        out += (char)(0x80 | (c & 0x3F));
+    } else if (c < 0x10000) {
+        out += (char)(0xE0 | (c >> 12));
+        out += (char)(0x80 | ((c >> 6) & 0x3F));
+        out += (char)(0x80 | (c & 0x3F));
+    } else {
+        out += (char)(0xF0 | (c >> 18));
+        out += (char)(0x80 | ((c >> 12) & 0x3F));
+        out += (char)(0x80 | ((c >> 6) & 0x3F));
+        out += (char)(0x80 | (c & 0x3F));
     }
 }

@@ -1013,15 +1013,51 @@ test("chat: what is typed on the Chat page goes to the server on Enter", functio
     connectForChat()
     sim.startRun(true)
     openDashboard("chat")
+    sim.type("!hint Burst Laser")
+    sim.keyDown(Defines.SDL.KEY_RETURN)
+    equals(sim.net.said and sim.net.said[1], "!hint Burst Laser", "the text typed is sent as it is")
+    equals(sim.fireForTesting("ON_KEY_DOWN", string.byte("w")), Defines.Chain.PREEMPT,
+        "a letter typed there never reaches the game (W would fire a weapon)")
+    equals(apDashboardPage("chat") and apDashboardOpen(), true, "the window stays open on its page")
+    closeDashboard()
+end)
+
+test("chat: the text comes from the keyboard layout, not from the key codes (AZERTY)", function()
+    connectForChat()
+    sim.startRun(true)
+    openDashboard("chat")
+    equals(sim.net.capture, true, "the Chat page asks the module for the typed text")
+    -- On AZERTY the key that types "1" with Shift has the code of "&", and "é" has none of its own.
+    sim.keyDown(304)
+    sim.keyDown(string.byte("&"))
+    sim.keyUp(304)
+    sim.net.typed = sim.net.typed .. "1"
+    sim.keyDown(50)
+    sim.net.typed = sim.net.typed .. "\195\169"
+    sim.renderGui()
+    sim.keyDown(Defines.SDL.KEY_BACKSPACE)
+    sim.type("e!")
+    sim.keyDown(Defines.SDL.KEY_RETURN)
+    equals(sim.net.said and sim.net.said[1], "1e!", "what FTL read is typed, and Backspace takes a whole letter")
+    apDashboardPage("overview")
+    sim.renderGui()
+    equals(sim.net.capture, false, "another page lets the game have its text again")
+    closeDashboard()
+end)
+
+test("chat: with an older module, the keys are read as on a US keyboard", function()
+    connectForChat()
+    local capture, take = sim.net.client.CaptureText, sim.net.client.TakeText
+    sim.net.client.CaptureText, sim.net.client.TakeText = nil, nil
+    sim.startRun(true)
+    openDashboard("chat")
     sim.keyDown(304)
     sim.keyDown(string.byte("1"))
     sim.keyUp(304)
     sim.type("hint Burst Laser")
     sim.keyDown(Defines.SDL.KEY_RETURN)
+    sim.net.client.CaptureText, sim.net.client.TakeText = capture, take
     equals(sim.net.said and sim.net.said[1], "!hint Burst Laser", "Shift+1 types the !, the rest follows")
-    equals(sim.fireForTesting("ON_KEY_DOWN", string.byte("w")), Defines.Chain.PREEMPT,
-        "a letter typed there never reaches the game (W would fire a weapon)")
-    equals(apDashboardPage("chat") and apDashboardOpen(), true, "the window stays open on its page")
     closeDashboard()
 end)
 

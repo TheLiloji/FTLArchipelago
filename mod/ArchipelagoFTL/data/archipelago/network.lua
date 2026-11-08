@@ -1054,6 +1054,23 @@ function apNetClipboard()
     return text ~= nil and tostring(text) or ""
 end
 
+-- Typed text read with the player's keyboard layout, held by the module while on. False when the module is
+-- older than 0.7 and has no such capture: the caller then reads the keys itself.
+function apNetCaptureText(on)
+    local ap = client()
+    if ap == nil or ap.CaptureText == nil or ap.TakeText == nil then
+        return false
+    end
+    moduleCall("CaptureText", on == true)
+    return true
+end
+
+-- What was typed since the last call, as UTF-8.
+function apNetTakeText()
+    local text = moduleCall("TakeText")
+    return text ~= nil and tostring(text) or ""
+end
+
 -- "windows" or "linux"; nil with a library older than 0.5.
 function apNetPlatform()
     return moduleCall("Platform")
