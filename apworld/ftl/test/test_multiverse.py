@@ -171,6 +171,27 @@ class TestMultiverseRaces(FTLTestBase):
                 self.assertNotEqual(location.progress_type, LocationProgressType.EXCLUDED, location.name)
 
 
+class TestPonyCheckFiller(FTLTestBase):
+    options = {"multiverse": True, "pony_check": "filler"}
+
+    def test_the_pony_check_holds_filler_only(self) -> None:
+        from BaseClasses import LocationProgressType
+        from Fill import distribute_items_restrictive
+        distribute_items_restrictive(self.multiworld)
+        pony = self.multiworld.get_location("First Pony aboard", self.player)
+        self.assertEqual(pony.progress_type, LocationProgressType.EXCLUDED)
+        self.assertFalse(pony.item.advancement, pony.item.name)
+
+
+class TestPonyCheckNormalByDefault(FTLTestBase):
+    options = {"multiverse": True}
+
+    def test_the_pony_check_is_a_normal_check(self) -> None:
+        from BaseClasses import LocationProgressType
+        pony = self.multiworld.get_location("First Pony aboard", self.player)
+        self.assertNotEqual(pony.progress_type, LocationProgressType.EXCLUDED)
+
+
 class TestMultiverseRacesNeedMultiverse(FTLTestBase):
     options = {"crew_checks": True}
 

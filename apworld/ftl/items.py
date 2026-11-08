@@ -216,7 +216,7 @@ def items_wanting_a_place(world: "FTLWorld") -> int:
 
 # Excluded checks only take filler: there must be at least one filler item for each.
 def reserved_filler(world: "FTLWorld") -> int:
-    excluded = sum(1 for location in world.created_locations if location.group in data.FILLER_ONLY_GROUPS)
+    excluded = sum(1 for location in world.created_locations if ftl_options.filler_only(world.options, location))
     return max(filler_floor(world), excluded)
 
 
@@ -246,7 +246,7 @@ def build_item_pool(world: "FTLWorld") -> list[FTLItem]:
 
     # Filler-only locations (rare Multiverse checks) take no progression: they do not count as room for it.
     capacity_for_progression = capacity - sum(
-        1 for location in world.created_locations if location.group in data.FILLER_ONLY_GROUPS)
+        1 for location in world.created_locations if ftl_options.filler_only(options, location))
     if len(required) > capacity_for_progression:
         raise OptionError(
             f"FTL: {len(required)} progression items for only {capacity_for_progression} locations. This "

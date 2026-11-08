@@ -246,6 +246,20 @@ class MultiverseQuestChecks(Toggle):
     display_name = "Multiverse Ship Quest Checks"
 
 
+class PonyCheck(Choice):
+    """With Multiverse and Crew Checks, what the "First Pony aboard" check may hold. A Pony is random but can be
+    found on purpose (the pony event of the engi sectors can give one, among a few others).
+
+    normal: any item, like the other crew checks.
+    filler: filler or traps only, so nothing the seed needs depends on finding a Pony.
+    """
+
+    display_name = "Pony Check"
+    option_normal = 0
+    option_filler = 1
+    default = 0
+
+
 class MagicHat(Choice):
     """With Multiverse, the Magic Hat's sector jumps become Archipelago items: once one is received, the reroute
     menu offers the destinations it opens, in this run and the next ones.
@@ -501,7 +515,8 @@ class CrewChecks(DefaultOnToggle):
     Mantis, Rock, Slug and Lanius. 7 checks.
 
     With Multiverse, its own races are added: Crystal, Orchid, Shell, Leech, Phantom, Spider and Lizard,
-    plus Cognitive, Siren, Pony and Obelisk, which are rare and only ever hold filler. 11 more checks.
+    plus Pony (see Pony Check), and Cognitive, Siren and Obelisk, which are rare and only ever hold filler.
+    11 more checks.
     """
 
     display_name = "Crew Checks"
@@ -1174,6 +1189,7 @@ class FTLOptions(PerGameCommonOptions):
     magic_hat: MagicHat
     multiverse_endings: MultiverseEndingChecks
     multiverse_quests: MultiverseQuestChecks
+    pony_check: PonyCheck
     ship_layouts: ShipLayouts
     layout_count: LayoutCount
     layout_unlocks: LayoutUnlocks
@@ -1231,7 +1247,7 @@ class FTLOptions(PerGameCommonOptions):
 
 
 ftl_option_groups = [
-    OptionGroup("Multiverse", [Multiverse, MultiverseAchievementChecks, MultiverseEndingChecks, MultiverseQuestChecks,
+    OptionGroup("Multiverse", [Multiverse, MultiverseAchievementChecks, MultiverseEndingChecks, MultiverseQuestChecks, PonyCheck,
                                   MagicHat]),
     OptionGroup("Goal", [VictoriesRequired, VictoryDifficulty, FlagshipSabotage, Archives, ArchivesRequired,
                          VictoryCollectsLayout]),
@@ -1409,6 +1425,13 @@ def bundle_size(options: FTLOptions, family: str) -> int:
         "drone": options.drone_bundle_size.value,
         "augment": options.augment_bundle_size.value,
     }[family]
+
+
+def filler_only(options: FTLOptions, location: data.Location) -> bool:
+    """A check that only ever holds filler: rare Multiverse checks, and the Pony one when pony_check says so."""
+    if location.group in data.FILLER_ONLY_GROUPS:
+        return True
+    return location.race == "pony" and options.pony_check == PonyCheck.option_filler
 
 
 def item_copies(options: FTLOptions, item: data.Item) -> int:

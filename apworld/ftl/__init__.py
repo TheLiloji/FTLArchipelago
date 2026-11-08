@@ -214,7 +214,7 @@ class FTLWorld(World):
         for name, contents in plan.items():
             regions[name].add_locations(contents, FTLLocation)
         for location in self.created_locations:
-            if location.group in data.FILLER_ONLY_GROUPS:
+            if options.filler_only(self.options, location):
                 self.get_location(location.name).progress_type = LocationProgressType.EXCLUDED
 
         menu = regions[locations.MENU_REGION]

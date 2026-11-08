@@ -183,6 +183,7 @@ CREW_RACES: tuple[tuple[int, str, str], ...] = (
 
 # Multiverse's own races: each variant (Orchid Caretaker, Phantom Goul...) counts for its race. The rare ones
 # only come through a few events or secrets: their checks hold filler, so nothing depends on finding them.
+# Pony is not that rare (the vanilla pony event can give one): the pony_check option decides.
 MV_CREW_RACES: tuple[tuple[int, str, str, bool], ...] = (
     (10, "crystal", "Crystal", False),
     (11, "orchid", "Orchid", False),
@@ -193,7 +194,7 @@ MV_CREW_RACES: tuple[tuple[int, str, str, bool], ...] = (
     (16, "lizard", "Lizard", False),
     (17, "cognitive", "Cognitive", True),
     (18, "siren", "Siren", True),
-    (19, "pony", "Pony", True),
+    (19, "pony", "Pony", False),
     (20, "obelisk", "Obelisk", True),
 )
 
