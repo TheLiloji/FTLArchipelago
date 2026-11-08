@@ -95,7 +95,7 @@
     "dash.checks.remaining": "{n} left",
     "dash.checks.remaining.one": "{n} left",
     "dash.checks.title": "CHECKS",
-    "dash.footer": "TAB or Esc: close     Left / Right or 1-5: pages     Wheel: scroll     The game is paused",
+    "dash.footer": "TAB or Esc: close     Left / Right or 1-6: pages     Wheel: scroll     The game is paused",
     "dash.fraction": "{done} / {total}",
     "dash.goal.title": "GOAL",
     "dash.goal.unknown": "This seed has no victory goal.",
@@ -448,7 +448,7 @@
     "crew.waiting": "{name} waits for a free seat and comes aboard as soon as your crew has room.",
     "crew.seated": "{name} comes aboard: a seat was free.",
     "crew.waiting.new": "A new crew member waits for a free seat and comes aboard as soon as your crew has room.",
-    "dash.footer.hangar": "TAB or Esc: close     Left / Right or 1-5: pages     Wheel: scroll",
+    "dash.footer.hangar": "TAB or Esc: close     Left / Right or 1-6: pages     Wheel: scroll",
     "dash.need_run": "Start a run to see this.",
     "dash.run.crew_waiting": "Crew waiting for a free seat: {n}",
     "dash.ships.filter": "Unlocked only (U)",
@@ -463,6 +463,11 @@
     "deathlink.turned_on": "DeathLink on.",
     "deathlink.turned_off": "DeathLink off.",
     "dash.links.death_off": "DeathLink: off",
-    "dash.links.toggle": "Click to turn DeathLink on or off."
+    "dash.links.toggle": "Click to turn DeathLink on or off.",
+    "dash.tab.chat": "{n}  Chat",
+    "chat.placeholder": "Type a message or a command: !hint <item>, !release, !help. Enter sends it.",
+    "chat.empty": "Nothing yet. Messages from the server and the other players show up here, and what you type goes to the room like in the Archipelago text client.",
+    "chat.offline": "Not sent: you are not connected.",
+    "dash.footer.chat": "TAB or Esc: close     Enter: send     Ctrl+V: paste     Wheel: scroll"
   }
 }

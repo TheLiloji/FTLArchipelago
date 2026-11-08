@@ -94,7 +94,7 @@
     "dash.checks.remaining": "{n} restants",
     "dash.checks.remaining.one": "{n} restant",
     "dash.checks.title": "CHECKS",
-    "dash.footer": "TAB ou Échap : fermer     Gauche / Droite ou 1-5 : pages     Molette : défiler     Le jeu est en pause",
+    "dash.footer": "TAB ou Échap : fermer     Gauche / Droite ou 1-6 : pages     Molette : défiler     Le jeu est en pause",
     "dash.fraction": "{done} / {total}",
     "dash.goal.title": "OBJECTIF",
     "dash.goal.unknown": "Cette seed n'a pas d'objectif de victoires.",
@@ -447,7 +447,7 @@
     "crew.waiting": "{name} attend une place libre et monte à bord dès que l'équipage a de la place.",
     "crew.seated": "{name} monte à bord : une place s'est libérée.",
     "crew.waiting.new": "Un nouvel équipier attend une place et monte à bord dès que votre équipage en a une.",
-    "dash.footer.hangar": "TAB ou Échap : fermer     Gauche / Droite ou 1-5 : pages     Molette : défiler",
+    "dash.footer.hangar": "TAB ou Échap : fermer     Gauche / Droite ou 1-6 : pages     Molette : défiler",
     "dash.need_run": "Lancez une run pour voir ceci.",
     "dash.run.crew_waiting": "Équipiers en attente d'une place : {n}",
     "dash.ships.filter": "Débloqués seulement (U)",
@@ -462,6 +462,11 @@
     "deathlink.turned_on": "DeathLink activé.",
     "deathlink.turned_off": "DeathLink coupé.",
     "dash.links.death_off": "DeathLink : coupé",
-    "dash.links.toggle": "Clic pour activer ou couper le DeathLink."
+    "dash.links.toggle": "Clic pour activer ou couper le DeathLink.",
+    "dash.tab.chat": "{n}  Chat",
+    "chat.placeholder": "Écrivez un message ou une commande : !hint <objet>, !release, !help. Entrée pour envoyer.",
+    "chat.empty": "Rien pour l'instant. Les messages du serveur et des autres joueurs arrivent ici, et ce que vous tapez part dans la partie comme avec le client texte d'Archipelago.",
+    "chat.offline": "Pas envoyé : vous n'êtes pas connecté.",
+    "dash.footer.chat": "TAB ou Échap : fermer     Entrée : envoyer     Ctrl+V : coller     Molette : défiler"
   }
 }

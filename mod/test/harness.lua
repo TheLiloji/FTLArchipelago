@@ -383,6 +383,11 @@ local function resetWorld()
         ClearShopLocks = function() sim.net.shopLocks = {} end,
         SetShopLockTip = function(_, text) sim.net.shopLockTip = text end,
         Platform = function() return sim.platform or "windows" end,
+        Say = function(_, text)
+            sim.net.said = sim.net.said or {}
+            sim.net.said[#sim.net.said + 1] = text
+            return true
+        end,
         Connect = function(_, uri, slot, password)
             sim.net.calls[#sim.net.calls + 1] =
                 { "Connect", uri = uri, slot = slot, password = password }

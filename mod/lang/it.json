@@ -95,7 +95,7 @@
     "dash.checks.remaining": "{n} rimasti",
     "dash.checks.remaining.one": "{n} rimasto",
     "dash.checks.title": "CHECK",
-    "dash.footer": "TAB o Esc: chiudi     Sinistra / Destra o 1-5: pagine     Rotella: scorri     Il gioco è in pausa",
+    "dash.footer": "TAB o Esc: chiudi     Sinistra / Destra o 1-6: pagine     Rotella: scorri     Il gioco è in pausa",
     "dash.fraction": "{done} / {total}",
     "dash.goal.title": "OBIETTIVO",
     "dash.goal.unknown": "Questa seed non ha un obiettivo di vittorie.",
@@ -448,7 +448,7 @@
     "crew.waiting": "{name} aspetta un posto libero e sale a bordo appena l'equipaggio ha spazio.",
     "crew.seated": "{name} sale a bordo: si è liberato un posto.",
     "crew.waiting.new": "Un nuovo membro dell'equipaggio attende un posto e salirà a bordo appena ce n'è uno.",
-    "dash.footer.hangar": "TAB o Esc: chiudi     Sinistra / Destra o 1-5: pagine     Rotella: scorri",
+    "dash.footer.hangar": "TAB o Esc: chiudi     Sinistra / Destra o 1-6: pagine     Rotella: scorri",
     "dash.need_run": "Inizia una partita per vederlo.",
     "dash.run.crew_waiting": "Equipaggio in attesa di un posto: {n}",
     "dash.ships.filter": "Solo sbloccate (U)",
@@ -463,6 +463,11 @@
     "deathlink.turned_on": "DeathLink attivo.",
     "deathlink.turned_off": "DeathLink disattivato.",
     "dash.links.death_off": "DeathLink: disattivato",
-    "dash.links.toggle": "Clicca per attivare o disattivare DeathLink."
+    "dash.links.toggle": "Clicca per attivare o disattivare DeathLink.",
+    "dash.tab.chat": "{n}  Chat",
+    "chat.placeholder": "Scrivi un messaggio o un comando: !hint <oggetto>, !release, !help. Invio per inviare.",
+    "chat.empty": "Ancora niente. I messaggi del server e degli altri giocatori arrivano qui, e quello che scrivi va nella stanza come nel client di testo di Archipelago.",
+    "chat.offline": "Non inviato: non sei connesso.",
+    "dash.footer.chat": "TAB o Esc: chiudi     Invio: invia     Ctrl+V: incolla     Rotella: scorri"
   }
 }

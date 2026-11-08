@@ -9,10 +9,10 @@ local FOOTER_H = 30
 local PAD = 20
 local GAP = 12
 
-local PAGES = { "overview", "ships", "systems", "checks", "journal" }
+local PAGES = { "overview", "ships", "systems", "checks", "journal", "chat" }
 local PAGE_TITLE = {
     overview = "dash.tab.overview", ships = "dash.tab.ships", systems = "dash.tab.systems",
-    checks = "dash.tab.checks", journal = "dash.tab.journal",
+    checks = "dash.tab.checks", journal = "dash.tab.journal", chat = "dash.tab.chat",
 }
 
 local CATEGORIES = { "shop", "sector", "victory", "achievement", "system", "crew", "fight", "other" }
@@ -32,6 +32,9 @@ local state = {
     scroll = {},
     wasPaused = nil,
     areas = {},
+    chatInput = "",
+    shift = false,
+    ctrl = false,
 }
 
 _G.apReceivedHistory = _G.apReceivedHistory or {}
@@ -1441,12 +1444,44 @@ local function drawJournal(x, y, w, h)
     end
 end
 
+-- The text client: what to send on top, the server's lines below, newest first like the journal.
+local function drawChat(x, y, w, h)
+    card(x, y, w, 44)
+    local typed = state.chatInput
+    local shown = typed ~= "" and typed or apT("chat.placeholder")
+    rect(x + 12, y + 10, w - 24, 24, "window")
+    rect(x + 12, y + 32, w - 24, 2, "border")
+    -- The end of a long line stays in view, where the cursor is.
+    local room = w - 48
+    local visible = shown
+    while typed ~= "" and #visible > 1 and width(10, visible .. "_") > room do
+        visible = visible:sub(2)
+    end
+    text(10, x + 20, y + 15, room + 8, typed ~= "" and "text" or "dim", typed ~= "" and (visible .. "_") or visible)
+
+    local listY = y + 44 + GAP
+    local listH = h - 44 - GAP
+    card(x, listY, w, listH)
+    local lines = _G.apChatLines and apChatLines() or {}
+    if #lines == 0 then
+        Graphics.CSurface.GL_SetColor(color("dim"))
+        Graphics.freetype.easy_printAutoNewlines(10, x + 16, listY + 14, w - 32, apT("chat.empty"))
+    else
+        scrollList("chat", { x = x + 16, y = listY + 12, w = w - 32, h = listH - 24 }, lines, 20,
+            function(line, rx, ry, rw)
+                text(10, rx, ry, rw, line.tone or "text", line.text)
+            end)
+    end
+    if _G.apChatMarkRead then apChatMarkRead() end
+end
+
 local DRAW_PAGE = {
     overview = drawOverview,
     ships = drawShips,
     systems = drawSystems,
     checks = drawChecks,
     journal = drawJournal,
+    chat = drawChat,
 }
 
 
@@ -1488,8 +1523,12 @@ local function drawWindow()
         local selected = index == state.page
         rect(area.x, area.y, area.w, area.h, selected and "hover" or (hovered(area) and "card" or "window"))
         rect(area.x, area.y + area.h - 2, area.w, 2, selected and "border" or "faint")
-        textCenter(10, area.x + area.w / 2, area.y + 8, area.w - 16, selected and "title" or "dim",
-            apT(PAGE_TITLE[page], { n = index }))
+        local title = apT(PAGE_TITLE[page], { n = index })
+        local unread = page == "chat" and _G.apChatUnread and apChatUnread() or 0
+        if unread > 0 and not selected then
+            title = title .. " (" .. unread .. ")"
+        end
+        textCenter(10, area.x + area.w / 2, area.y + 8, area.w - 16, selected and "title" or "dim", title)
     end
 
     local cx, cy = x + PAD, y + CONTENT_Y
@@ -1497,13 +1536,17 @@ local function drawWindow()
     DRAW_PAGE[PAGES[state.page]](cx, cy, cw, ch)
 
     rect(x + 16, y + h - FOOTER_H, w - 32, 1, "faint")
-    text(9, x + 16, y + h - FOOTER_H + 9, w - 32, "dim", apT(inRun() and "dash.footer" or "dash.footer.hangar"))
+    local footer = PAGES[state.page] == "chat" and "dash.footer.chat"
+        or (inRun() and "dash.footer" or "dash.footer.hangar")
+    text(9, x + 16, y + h - FOOTER_H + 9, w - 32, "dim", apT(footer))
 end
 
 
 local function setOpen(value)
     if state.open == value then return end
     state.open = value
+    -- A line left half-typed does not wait for the next opening, where a page key would add to it.
+    state.chatInput, state.shift, state.ctrl = "", false, false
     if _G.apNotifyHide then apNotifyHide(value) end
     pcall(function()
         local gui = Hyperspace.App.gui
@@ -1583,8 +1626,57 @@ end)
 
 local PAGE_KEYS = {
     [Defines.SDL.KEY_1] = 1, [Defines.SDL.KEY_2] = 2, [Defines.SDL.KEY_3] = 3,
-    [Defines.SDL.KEY_4] = 4, [Defines.SDL.KEY_5] = 5,
+    [Defines.SDL.KEY_4] = 4, [Defines.SDL.KEY_5] = 5, [Defines.SDL.KEY_6] = 6,
 }
+
+local CHAT_INPUT_MAX = 200
+
+-- On the Chat page every key types, except those that close the window or turn the page with nothing typed.
+local function chatKey(key)
+    if key == Defines.SDL.KEY_LSHIFT or key == Defines.SDL.KEY_RSHIFT then
+        state.shift = true
+        return true
+    end
+    if key == Defines.SDL.KEY_LCTRL or key == Defines.SDL.KEY_RCTRL then
+        state.ctrl = true
+        return true
+    end
+    if state.ctrl and key == Defines.SDL.KEY_v then
+        local pasted = (_G.apNetClipboard and apNetClipboard() or ""):gsub("[\r\n]+", " ")
+        state.chatInput = (state.chatInput .. pasted):sub(1, CHAT_INPUT_MAX)
+        return true
+    end
+    if key == Defines.SDL.KEY_RETURN or key == Defines.SDL.KEY_KP_ENTER then
+        if state.chatInput:match("%S") and _G.apChatSend then
+            apChatSend(state.chatInput)
+            state.chatInput = ""
+            state.scroll.chat = 0
+        end
+        return true
+    end
+    if key == Defines.SDL.KEY_BACKSPACE then
+        state.chatInput = state.chatInput:sub(1, -2)
+        return true
+    end
+    if (key == Defines.SDL.KEY_LEFT or key == Defines.SDL.KEY_RIGHT) and state.chatInput == "" then
+        return false
+    end
+    local c = _G.apChatKeyCharacter and apChatKeyCharacter(key, state.shift) or nil
+    if c ~= nil and #state.chatInput < CHAT_INPUT_MAX then
+        state.chatInput = state.chatInput .. c
+    end
+    -- Anything else on this page is swallowed: the game behind must not read the letters typed.
+    return true
+end
+
+script.on_internal_event(Defines.InternalEvents.ON_KEY_UP, function(key)
+    if key == Defines.SDL.KEY_LSHIFT or key == Defines.SDL.KEY_RSHIFT then
+        state.shift = false
+    elseif key == Defines.SDL.KEY_LCTRL or key == Defines.SDL.KEY_RCTRL then
+        state.ctrl = false
+    end
+    return Defines.Chain.CONTINUE
+end)
 
 script.on_internal_event(Defines.InternalEvents.ON_KEY_DOWN, function(key)
     if key == Defines.SDL.KEY_TAB then
@@ -1607,6 +1699,9 @@ script.on_internal_event(Defines.InternalEvents.ON_KEY_DOWN, function(key)
     end
     if key == Defines.SDL.KEY_ESCAPE then
         setOpen(false)
+        return Defines.Chain.PREEMPT
+    end
+    if PAGES[state.page] == "chat" and chatKey(key) then
         return Defines.Chain.PREEMPT
     end
     if key == Defines.SDL.KEY_LEFT then
