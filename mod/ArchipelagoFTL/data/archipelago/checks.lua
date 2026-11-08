@@ -577,6 +577,12 @@ local function pollCrew()
             apSendCheck("crew:" .. race, apT("check.label.crew", { name = label }))
             if raw[key].species:match("^unique_") then
                 characterJoined(raw[key])
+                -- multiverse_characters: each character's own check, a variant counting for its character.
+                local base = (_G.apMvCharacterOf or {})[raw[key].species] or raw[key].species
+                local check = "char:" .. base
+                if _G.apLocationNameFor and apLocationNameFor(check) ~= nil then
+                    apSendCheck(check, apT("check.label.character", { name = raw[key].name }))
+                end
             end
         end
     end

@@ -96,6 +96,8 @@ class TestIdentifiersAreWellFormed(unittest.TestCase):
                                                                  n=location.fight)
             elif location.group == data.GROUP_MV_QUESTS:
                 expected = f"mvquest:{location.ship}"
+            elif location.group == data.GROUP_MV_CHARACTERS:
+                expected = location.check_id if location.check_id.startswith("char:unique_") else "char:?"
             elif location.group in (data.GROUP_MV_ENDINGS, data.GROUP_MV_ENDINGS_RARE):
                 self.assertTrue(location.check_id.startswith("mvend:"), location.name)
                 continue

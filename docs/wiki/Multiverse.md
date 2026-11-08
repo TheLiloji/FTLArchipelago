@@ -52,5 +52,7 @@ Multiverse runs are longer than base game runs: count more time than the presets
   their check too (Crystal, Orchid, Shell, Leech, Phantom, Spider, Lizard, Pony). The rare ones (Cognitive, Siren,
   Obelisk) only ever hold filler: nothing you need waits there. The Pony check is a normal one by default;
   `pony_check: filler` makes it hold filler too.
+- `multiverse_characters` (off by default): the first time each Multiverse character (Turzil, Tully, Ellie...)
+  joins your crew sends a check, "Recruit Tully". About 40 checks, filler only.
 - The goal, the dashboard (TAB) and the Archipelago shop work the same way. The Ships page of the dashboard shows under each ship the race of most of its crew.
 - Each Multiverse character who joins your crew (Turzil, Tully...) gives one free hint, once per seed.

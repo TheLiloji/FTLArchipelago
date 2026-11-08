@@ -5,7 +5,7 @@ from dataclasses import dataclass
 try:
     from .data_mv import (MV_ACHIEVEMENTS_RAW, MV_LAYOUT_EMPTY_SLOTS_RAW, MV_LAYOUT_START_LEVELS_RAW,
                           MV_LAYOUT_SYSTEMS_RAW, MV_SHIPS_RAW,
-                          MV_SHOP_ITEMS_RAW)
+                          MV_SHOP_ITEMS_RAW, MV_CHARACTERS_RAW)
 except ImportError:  # loaded on its own by the tools and the id tests
     import sys
     from pathlib import Path
@@ -13,7 +13,7 @@ except ImportError:  # loaded on its own by the tools and the id tests
     sys.path.insert(0, str(Path(__file__).resolve().parent))
     from data_mv import (MV_ACHIEVEMENTS_RAW, MV_LAYOUT_EMPTY_SLOTS_RAW, MV_LAYOUT_START_LEVELS_RAW,
                          MV_LAYOUT_SYSTEMS_RAW, MV_SHIPS_RAW,
-                         MV_SHOP_ITEMS_RAW)
+                         MV_SHOP_ITEMS_RAW, MV_CHARACTERS_RAW)
 
 CONTRACT_VERSION = 3
 
@@ -121,6 +121,7 @@ LOCATION_OFFSET_SHIP_SYSTEM = 70_000
 LOCATION_OFFSET_MV_ACH = 80_000
 LOCATION_OFFSET_MV_ENDING = 107_000
 LOCATION_OFFSET_MV_QUEST = 108_000
+LOCATION_OFFSET_MV_CHARACTER = 110_000
 LOCATION_OFFSET_FIGHT = 90_000
 LOCATION_OFFSET_SECTOR_FIGHT = 100_000
 LOCATION_OFFSET_EVENT = 105_000
@@ -667,6 +668,7 @@ GROUP_MV_ACHIEVEMENTS = "Multiverse achievements"
 GROUP_MV_ENDINGS = "Multiverse endings"
 GROUP_MV_ENDINGS_RARE = "Multiverse rare endings"
 GROUP_MV_QUESTS = "Multiverse ship quests"
+GROUP_MV_CHARACTERS = "Multiverse characters"
 GROUP_SHOP_SLOTS = "Archipelago shop"
 GROUP_FIGHTS = "Fights won"
 GROUP_SECTOR_FIGHTS = "Fights won per sector"
@@ -675,7 +677,7 @@ GROUP_REACTOR = "Reactor power"
 GROUP_BEACONS = "Beacons explored"
 # Location groups that only ever hold filler: the logic does not count them as room for the items it needs.
 FILLER_ONLY_GROUPS: frozenset[str] = frozenset({GROUP_MV_ACHIEVEMENTS, GROUP_MV_CREW_RARE, GROUP_MV_ENDINGS_RARE,
-                                                    GROUP_MV_QUESTS})
+                                                    GROUP_MV_QUESTS, GROUP_MV_CHARACTERS})
 
 TIER_GENERAL = "general"
 TIER_DISTANCE = "distance"
@@ -1410,6 +1412,16 @@ def _build_locations() -> tuple[Location, ...]:
             ship=ship.blueprint,
         ))
 
+    # Multiverse characters (unique crew): the first time each one joins. Most come from rare events: filler only.
+    for slot, blueprint, label in MV_CHARACTERS_RAW:
+        locations.append(Location(
+            name=f"Recruit {label}",
+            code=LOCATION_ID_BASE + LOCATION_OFFSET_MV_CHARACTER + slot,
+            check_id=f"char:{blueprint}",
+            group=GROUP_MV_CHARACTERS,
+            description=f"Have {label}, a Multiverse character, join your crew.",
+        ))
+
     return tuple(locations)
 
 
@@ -1587,7 +1599,7 @@ def _check_vanilla_totals() -> None:
                       + len(MV_ACHIEVEMENTS_RAW) + len(ALL_SHIPS) * MAX_FIGHTS_PER_SHIP
                       + len(ALL_SHIPS) * SECTOR_COUNT * MAX_FIGHTS_PER_SECTOR
                       + MAX_EVENT_CHECKS + len(REACTOR_THRESHOLDS) + len(MV_ENDINGS) + len(MV_SHIPS)
-                      + MAX_BEACON_CHECKS),
+                      + MAX_BEACON_CHECKS + len(MV_CHARACTERS_RAW)),
     }
     wrong = {label: pair for label, pair in expected.items() if pair[0] != pair[1]}
     if wrong:

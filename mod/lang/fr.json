@@ -473,6 +473,7 @@
     "event.runner.hint": "Les journaux du coursier sont décodés. L'indice part au serveur et s'affiche dès qu'il répond.",
     "event.runner.nothing": "Les journaux du coursier ne contiennent rien de neuf : pas de serveur, ou plus rien à trouver.",
     "event.runner.bought_nothing": "Le coursier n'a rien envoyé d'utile : pas de serveur, ou plus rien à trouver. Vos {scrap} ferraille sont remboursés.",
-    "check.label.beacons": "Explorer {n} balises"
+    "check.label.beacons": "Explorer {n} balises",
+    "check.label.character": "{name} a rejoint votre équipage"
   }
 }

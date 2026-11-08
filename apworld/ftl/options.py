@@ -246,6 +246,15 @@ class MultiverseQuestChecks(Toggle):
     display_name = "Multiverse Ship Quest Checks"
 
 
+class MultiverseCharacterChecks(Toggle):
+    """With Multiverse, the first time each Multiverse character (unique crew: Turzil, Tully, Ellie...) joins your
+    crew sends a check, "Recruit Tully". About 40 checks. They only ever hold filler, since most characters come
+    from rare events.
+    """
+
+    display_name = "Multiverse Character Checks"
+
+
 class PonyCheck(Choice):
     """With Multiverse and Crew Checks, what the "First Pony aboard" check may hold. A Pony is random but can be
     found on purpose (the pony event of the engi sectors can give one, among a few others).
@@ -1204,6 +1213,7 @@ class FTLOptions(PerGameCommonOptions):
     multiverse_endings: MultiverseEndingChecks
     multiverse_quests: MultiverseQuestChecks
     pony_check: PonyCheck
+    multiverse_characters: MultiverseCharacterChecks
     ship_layouts: ShipLayouts
     layout_count: LayoutCount
     layout_unlocks: LayoutUnlocks
@@ -1263,6 +1273,7 @@ class FTLOptions(PerGameCommonOptions):
 
 ftl_option_groups = [
     OptionGroup("Multiverse", [Multiverse, MultiverseAchievementChecks, MultiverseEndingChecks, MultiverseQuestChecks, PonyCheck,
+                                  MultiverseCharacterChecks,
                                   MagicHat]),
     OptionGroup("Goal", [VictoriesRequired, VictoryDifficulty, FlagshipSabotage, Archives, ArchivesRequired,
                          VictoryCollectsLayout]),

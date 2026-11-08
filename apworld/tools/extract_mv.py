@@ -105,6 +105,16 @@ def main() -> int:
             catalogue += read(name)
     sold = shop_items(catalogue, titles)
     feats = achievements(hs)
+    # Multiverse characters (unique crew): a variant (unique_ellie_lvl2, unique_obyn_temp) counts for its character,
+    # the longest other unique blueprint its name starts with.
+    uniques = list(dict.fromkeys(re.findall(r'<crewBlueprint name="(unique_[a-z_0-9]+)"', catalogue)))
+    character_of = {}
+    for name in uniques:
+        parents = [other for other in uniques if other != name and name.startswith(other + "_")]
+        character_of[name] = max(parents, key=len) if parents else name
+    characters = [name for name in uniques if character_of[name] == name]
+    character_rows = [(index + 1, name, name[len("unique_"):].replace("_", " ").title())
+                      for index, name in enumerate(characters)]
 
     ships, layouts, taken = [], [], set()
     for name in dict.fromkeys(order):
@@ -154,6 +164,11 @@ def main() -> int:
         "",
         "MV_ACHIEVEMENTS_RAW: tuple[tuple[int, str, str], ...] = (",
         *(f"    {feat!r}," for feat in feats),
+        ")",
+        "",
+        "# Multiverse characters (unique crew): slot, crew blueprint, name.",
+        "MV_CHARACTERS_RAW: tuple[tuple[int, str, str], ...] = (",
+        *(f"    {row!r}," for row in character_rows),
         ")",
         "",
     ]
@@ -211,6 +226,10 @@ def main() -> int:
         "if drones then",
         *(f'    drones.{name} = "{path}"' for name, path in sorted(drone_art.items())),
         "end",
+        "-- Each unique crew blueprint and the Multiverse character it counts for.",
+        "_G.apMvCharacterOf = {",
+        *(f'    {name} = "{base}",' for name, base in character_of.items()),
+        "}",
         "local weapons = (_G.apGameData or {}).weaponArt",
         "if weapons then",
         *(f'    weapons.{name} = {{ "{path}", {w}, {h}, {fw}, {fh}, {x}, {y} }}'

@@ -282,6 +282,22 @@ test("crew: each Multiverse character who joins gives one free hint per seed, a 
     restore()
 end)
 
+test("crew: multiverse_characters sends each character's own check, a variant counting for its character", function()
+    apContractResetForTesting()
+    apForgetChecksForTesting()
+    sim.durable = {}
+    applySeed({ seed_hash = "recruits", loc = { ["char:unique_ellie"] = "Recruit Ellie",
+                                                ["char:unique_turzil"] = "Recruit Turzil" } })
+    local restore = stub("apHintPurchase", function() return false end)
+    sim.startRun(true)
+    sim.tick(1)
+    sim.player:AddCrewMemberFromString("Ellie", "unique_ellie_lvl3", false, 0)
+    sim.jumpArrive()
+    check(apCheckAlreadySent("char:unique_ellie"), "Ellie at level 3 sends Recruit Ellie")
+    check(not apCheckAlreadySent("char:unique_turzil"), "Turzil has not joined")
+    restore()
+end)
+
 test("crew: a species of no race stays itself", function()
     equals(apRaceFamily("human_soldier"), "human", "a Multiverse soldier is a human")
     equals(apRaceFamily("crystal"), "crystal", "a base race is unchanged")

@@ -307,3 +307,28 @@ class TestMultiverseQuests(FTLTestBase):
         self.assertTrue(quests)
         self.assertTrue(all(data.LOCATIONS_BY_NAME[location.name].group in data.FILLER_ONLY_GROUPS
                             for location in quests))
+
+
+class TestMultiverseCharacters(FTLTestBase):
+    options = {"multiverse": True, "multiverse_characters": True}
+
+    def test_each_character_has_its_filler_only_check(self) -> None:
+        from BaseClasses import LocationProgressType
+        from Fill import distribute_items_restrictive
+        distribute_items_restrictive(self.multiworld)
+        recruits = [location for location in self.multiworld.get_locations(self.player)
+                    if location.name.startswith("Recruit ")]
+        self.assertEqual(len(recruits), len(data.MV_CHARACTERS_RAW))
+        self.assertIn("Recruit Turzil", {location.name for location in recruits})
+        for location in recruits:
+            self.assertEqual(location.progress_type, LocationProgressType.EXCLUDED, location.name)
+            self.assertFalse(location.item.advancement, f"{location.name} holds {location.item.name}")
+        self.assertEqual(self.world.fill_slot_data()["loc"].get("char:unique_turzil"), "Recruit Turzil")
+
+
+class TestMultiverseCharactersOffByDefault(FTLTestBase):
+    options = {"multiverse": True}
+
+    def test_no_character_check(self) -> None:
+        self.assertFalse(any(location.name.startswith("Recruit ")
+                             for location in self.multiworld.get_locations(self.player)))
