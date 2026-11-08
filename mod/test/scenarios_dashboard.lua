@@ -560,6 +560,19 @@ test("dashboard: a system already on the ship counts its upgrades, its blueprint
     check(sim.drawnText(apT("dash.system.locked")), "and a system the ship lacks still reads as locked")
 end)
 
+test("dashboard: upgrades received before the blueprint are counted, not shown as locked", function()
+    applySeed({ caps = { cloaking = 3 } })
+    _G.apInventory = { ships = {}, systemCaps = { cloaking = 3 }, blueprints = {}, startingUpgrades = {}, shopAvailability = {} }
+    sim.startRun(true)
+    check(not apSystemUnlocked("cloaking"), "no cloaking blueprint in this test")
+    apToggleHud()
+    apDashboardPage(3)
+    sim.renderGui()
+    apToggleHud()
+    check(sim.drawnText(apT("dash.system.aboard", { received = 2, total = 3 })),
+        "cloaking reads 2/3, blueprint missing, not locked")
+end)
+
 test("dashboard: the ships page only lists the seed's layouts", function()
     sim.startRun(true)
     applySeed({
