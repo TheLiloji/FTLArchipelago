@@ -1574,7 +1574,7 @@ local function setOpen(value)
     state.chatInput, state.shift, state.ctrl = "", false, false
     if not value and state.capturing then
         state.capturing = false
-        apNetCaptureText(false)
+        apNetCaptureText("chat", false)
     end
     if _G.apNotifyHide then apNotifyHide(value) end
     pcall(function()
@@ -1611,6 +1611,10 @@ function apDashboardOpen()
     return state.open
 end
 
+function apDashboardPageForTesting()
+    return PAGES[state.page]
+end
+
 function apDashboardResetFilterForTesting()
     state.unlockedOnly = nil
 end
@@ -1640,8 +1644,8 @@ end
 local function syncTextCapture()
     local want = state.open and PAGES[state.page] == "chat"
     if want ~= (state.capturing == true) then
-        state.capturing = want and apNetCaptureText(true) or false
-        if not want then apNetCaptureText(false) end
+        state.capturing = want and apNetCaptureText("chat", true) or false
+        if not want then apNetCaptureText("chat", false) end
     end
     if state.capturing then
         chatAppend(apNetTakeText())
@@ -1680,6 +1684,8 @@ end)
 local PAGE_KEYS = {
     [Defines.SDL.KEY_1] = 1, [Defines.SDL.KEY_2] = 2, [Defines.SDL.KEY_3] = 3,
     [Defines.SDL.KEY_4] = 4, [Defines.SDL.KEY_5] = 5, [Defines.SDL.KEY_6] = 6,
+    -- The same top row on an AZERTY keyboard, without Shift: & é " ' ( -
+    [38] = 1, [233] = 2, [34] = 3, [39] = 4, [40] = 5, [45] = 6,
 }
 
 -- On the Chat page every key types, except those that close the window or turn the page with nothing typed.

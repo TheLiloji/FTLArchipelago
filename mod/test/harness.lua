@@ -379,6 +379,8 @@ local function resetWorld()
 
     sim.net = { present = true, calls = {}, events = {}, connectResult = true, checked = {}, shipLock = true,
                 last = { uri = "", slot = "" } }
+    if _G.apNetCaptureResetForTesting then apNetCaptureResetForTesting() end
+    sim.shiftDown, sim.ctrlDown, sim.layoutText = false, false, nil
     sim.net.client = {
         LastUri = function() return sim.net.last.uri end,
         LastSlot = function() return sim.net.last.slot end,
@@ -1211,11 +1213,41 @@ function sim.gameEvent(name)
     end
 end
 
+-- A key also types its character, as on a US keyboard, when the module captures text (FTL reads it with the
+-- player's layout; a test of another layout sets sim.net.typed itself and sim.layoutText = false). The text
+-- is there before the key's own event, which takes it.
+local US_SHIFTED = {
+    ["1"] = "!", ["2"] = "@", ["3"] = "#", ["4"] = "$", ["5"] = "%", ["6"] = "^", ["7"] = "&", ["8"] = "*",
+    ["9"] = "(", ["0"] = ")", ["-"] = "_", ["="] = "+", ["["] = "{", ["]"] = "}", [";"] = ":", ["'"] = '"',
+    [","] = "<", ["."] = ">", ["/"] = "?", ["`"] = "~", ["\\"] = "|",
+}
+local KEYPAD = { [266] = ".", [267] = "/", [268] = "*", [269] = "-", [270] = "+" }
+
+local function typedBy(key)
+    key = tonumber(key)
+    if key == nil then return nil end
+    if key >= 256 and key <= 265 then return tostring(key - 256) end
+    if KEYPAD[key] then return KEYPAD[key] end
+    if key < 32 or key > 126 then return nil end
+    local c = string.char(key)
+    if not sim.shiftDown then return c end
+    if c:match("%l") then return c:upper() end
+    return US_SHIFTED[c] or c
+end
+
 function sim.keyDown(key)
+    if key == 303 or key == 304 then sim.shiftDown = true end
+    if sim.net and sim.net.capture and sim.layoutText ~= false and not sim.ctrlDown then
+        local c = typedBy(key)
+        if c then sim.net.typed = (sim.net.typed or "") .. c end
+    end
+    if key == Defines.SDL.KEY_LCTRL or key == Defines.SDL.KEY_RCTRL then sim.ctrlDown = true end
     fire("ON_KEY_DOWN", key)
 end
 
 function sim.keyUp(key)
+    if key == 303 or key == 304 then sim.shiftDown = false end
+    if key == Defines.SDL.KEY_LCTRL or key == Defines.SDL.KEY_RCTRL then sim.ctrlDown = false end
     fire("ON_KEY_UP", key)
 end
 
@@ -1227,11 +1259,7 @@ function sim.scroll(direction)
     fire("ON_MOUSE_SCROLL", direction)
 end
 
--- Keys go down as on a US keyboard; the text itself also reaches the module's capture when it is on.
 function sim.type(text)
-    if sim.net and sim.net.capture then
-        sim.net.typed = (sim.net.typed or "") .. text
-    end
     for index = 1, #text do
         local c = text:sub(index, index)
         local isUpper = c:match("%u") ~= nil

@@ -41,6 +41,8 @@ local blamed = {}
 -- Backspace held down, which repeats like in any text box.
 local selectAll = false
 local backspaceFrames = nil
+-- True while the module hands over the text typed (see setCapture).
+local capturing = false
 local BACKSPACE_DELAY, BACKSPACE_EVERY = 24, 3
 
 local function cursorOf(field)
@@ -572,7 +574,7 @@ function apConnectResetForTesting()
         field.value = DEFAULTS[index]
     end
     focus, message, messageTone, shiftHeld, ctrlHeld, blamed = FOCUS_INITIAL, nil, "dim", false, false, {}
-    selectAll, backspaceFrames = false, nil
+    selectAll, backspaceFrames, capturing = false, nil, false
     for _, field in ipairs(FIELDS) do field.cursor = nil end
     onMenu = false
     autoTried = false
@@ -618,6 +620,28 @@ local function character(key)
     end
     local keyMap = shiftHeld and WITH_SHIFT or WITHOUT_SHIFT
     return keyMap[key]
+end
+
+-- The panel reads what the module saw typed, with the player's keyboard layout (an AZERTY "1" has the key code
+-- of "&"). Only plain ASCII goes in: the cursor and Backspace count bytes. An older module has no capture and
+-- the keys are read as before.
+local function setCapture(want)
+    if want ~= capturing then
+        capturing = want and apNetCaptureText("connect", true) or false
+        if not want then apNetCaptureText("connect", false) end
+    end
+end
+
+local function takeTyped()
+    if not capturing then return end
+    local typed = apNetTakeText():gsub("[^\32-\126]", "")
+    if typed == "" then return end
+    local field = FIELDS[focus]
+    if field.digitsOnly then typed = typed:gsub("%D", "") end
+    if typed ~= "" then
+        insertText(field, typed)
+        blamed[focus] = nil
+    end
 end
 
 -- Ctrl+V puts the clipboard in the field. An address copied with its port, or the room page's whole
@@ -676,6 +700,8 @@ script.on_internal_event(Defines.InternalEvents.ON_KEY_DOWN, function(key)
     if not onMenu or seedActive() then
         return Defines.Chain.CONTINUE
     end
+    -- Text typed before this key (same frame) goes in first, in the field it was typed in.
+    takeTyped()
     if key == Defines.SDL.KEY_LSHIFT or key == Defines.SDL.KEY_RSHIFT then
         shiftHeld = true
         return Defines.Chain.CONTINUE
@@ -733,6 +759,10 @@ script.on_internal_event(Defines.InternalEvents.ON_KEY_DOWN, function(key)
     end
 
     local c = character(key)
+    if c ~= nil and capturing then
+        -- The module gives the character itself, before the next drawing.
+        return Defines.Chain.PREEMPT
+    end
     if c ~= nil then
         -- On a French keyboard the dot is Shift and the ";" key, which reads as ":" here. An address has no
         -- use for a colon (the port has its own field), so there it is a dot.
@@ -805,9 +835,13 @@ script.on_internal_event(Defines.InternalEvents.ON_MOUSE_L_BUTTON_DOWN, function
     return Defines.Chain.CONTINUE
 end)
 
-script.on_init(function() onMenu = false end)
+script.on_init(function()
+    onMenu = false
+    setCapture(false)
+end)
 script.on_internal_event(Defines.InternalEvents.JUMP_ARRIVE, function()
     onMenu = false
+    setCapture(false)
     return Defines.Chain.CONTINUE
 end)
 
@@ -889,9 +923,12 @@ script.on_render_event(
         pcall(followAttempt)
         if hangarOpen() then
             onMenu = false
+            setCapture(false)
             return
         end
         onMenu = true
+        setCapture(not seedActive() and currentQuestion() == nil)
+        takeTyped()
 
         -- Backspace held: after a short wait, one more character goes every few frames.
         if backspaceFrames ~= nil then
