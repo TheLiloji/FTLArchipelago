@@ -101,7 +101,7 @@ release are for Linux: 1.6.13 for the Steam version, 1.6.12 for GOG and Humble.
 
 Hyperspace opens its console with the `\` key, and reads the key itself, not the character. On a French keyboard
 `\` is AltGr+8, which is the `8` key for the game, so the console never opens. Give the console another key in
-**Options**, **Controls** (Insert works well), or in the `console` line of `hyperspace.xml`.
+**Options**, **Controls** (Insert works well). It is saved as `console=` in `settings.ini`.
 
 ## The game hangs on the loading screen
 
