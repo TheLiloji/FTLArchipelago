@@ -232,6 +232,7 @@
         <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
         <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
         <mod-before:event name="AP_EVT_HIJACK" min="0" max="1"/>
+        <mod-before:event name="AP_EVT_RUNNER" min="0" max="1"/>
     </mod:insertByFind>
 </mod:findName>
 
@@ -320,6 +321,7 @@
         <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
         <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
         <mod-before:event name="AP_EVT_HIJACK" min="0" max="1"/>
+        <mod-before:event name="AP_EVT_RUNNER" min="0" max="1"/>
     </mod:insertByFind>
 </mod:findName>
 
@@ -540,6 +542,7 @@
         <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
         <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
         <mod-before:event name="AP_EVT_HIJACK" min="0" max="1"/>
+        <mod-before:event name="AP_EVT_RUNNER" min="0" max="1"/>
     </mod:insertByFind>
 </mod:findName>
 
@@ -551,6 +554,7 @@
         <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
         <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
         <mod-before:event name="AP_EVT_HIJACK" min="0" max="1"/>
+        <mod-before:event name="AP_EVT_RUNNER" min="0" max="1"/>
     </mod:insertByFind>
 </mod:findName>
 
@@ -628,6 +632,7 @@
         <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
         <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
         <mod-before:event name="AP_EVT_HIJACK" min="0" max="1"/>
+        <mod-before:event name="AP_EVT_RUNNER" min="0" max="1"/>
     </mod:insertByFind>
 </mod:findName>
 
@@ -639,6 +644,7 @@
         <mod-before:event name="AP_EVT_ANOTHER_WORLD" min="0" max="1"/>
         <mod-before:event name="AP_EVT_PACKAGE" min="0" max="1"/>
         <mod-before:event name="AP_EVT_HIJACK" min="0" max="1"/>
+        <mod-before:event name="AP_EVT_RUNNER" min="0" max="1"/>
     </mod:insertByFind>
 </mod:findName>
 
