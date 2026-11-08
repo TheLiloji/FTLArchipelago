@@ -35,6 +35,10 @@ public:
     std::string LastSlot() const;
     // The system clipboard's text (first line only, at most 200 bytes), or "" when there is none.
     std::string Clipboard() const;
+    // While on, the characters FTL reads from the keyboard (with the player's layout, as when naming a
+    // ship) are kept for TakeText instead of reaching the game. TakeText empties them, as UTF-8.
+    void CaptureText(bool on);
+    std::string TakeText();
     // "windows" or "linux": the Lua sandbox has no way to tell.
     std::string Platform() const;
 
