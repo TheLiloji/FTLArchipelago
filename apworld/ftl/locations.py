@@ -127,7 +127,8 @@ def selected_locations(options) -> tuple[data.Location, ...]:
     tiers = set(_ACHIEVEMENT_TIERS_BY_LEVEL[options.general_achievements.value])
     cross_run = bool(options.cross_run_achievements)
 
-    every_ship = on_every_ship(options)
+    # Systems every layout starts with: their Install check would be free. Not every_ship, the bool above.
+    free_systems = on_every_ship(options)
     kept: list[data.Location] = []
     for location in data.LOCATIONS:
         if location.group == data.GROUP_SECTORS:
@@ -143,7 +144,7 @@ def selected_locations(options) -> tuple[data.Location, ...]:
             mode = options.systemsanity.value
             if mode == options.systemsanity.option_disabled or location.system not in systems:
                 continue
-            if location.level == 1 and (per_ship or location.system in every_ship):
+            if location.level == 1 and (per_ship or location.system in free_systems):
                 continue
             if location.level == 1 or mode == options.systemsanity.option_every_level:
                 kept.append(location)
