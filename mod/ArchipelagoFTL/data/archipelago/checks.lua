@@ -556,11 +556,50 @@ script.on_internal_event(Defines.InternalEvents.ON_TICK, function()
     end)
 end)
 
+-- beacon_checks: the beacons explored across every run of the seed send "Explore 25 Beacons", 50, 75... The count
+-- is kept in the profile, per seed and slot; only a run that counts adds to it.
+local BEACON_STEP = 25
+local MAX_BEACON_CHECKS = 10
+
+local function beaconKey()
+    local fingerprint = _G.apSeedFingerprint and apSeedFingerprint() or 0
+    local base = "ap_beacons_" .. tostring(fingerprint)
+    return _G.apNetSlotKey and apNetSlotKey(base) or base
+end
+
+function apBeaconsExplored()
+    return math.floor(tonumber(_G.apNetRecall and apNetRecall(beaconKey()) or 0) or 0)
+end
+
+local function beaconChecksOn()
+    return _G.apLocationNameFor ~= nil and apLocationNameFor("beacons:" .. BEACON_STEP) ~= nil
+end
+
+function apCountBeacon()
+    if not beaconChecksOn() or not apRunCounts() then
+        return 0
+    end
+    local total = apBeaconsExplored() + 1
+    if _G.apNetRemember then apNetRemember(beaconKey(), total) end
+    local sentNow = 0
+    for n = 1, MAX_BEACON_CHECKS do
+        local count = n * BEACON_STEP
+        local key = "beacons:" .. count
+        if total >= count and apLocationNameFor(key) ~= nil and not apCheckAlreadySent(key) then
+            if apSendCheck(key, apT("check.label.beacons", { n = count })) then
+                sentNow = sentNow + 1
+            end
+        end
+    end
+    return sentNow
+end
+
 script.on_internal_event(Defines.InternalEvents.JUMP_ARRIVE, function(shipManager)
     if shipManager.iShipId ~= 0 then
         return
     end
 
+    apTry(TAG, apCountBeacon)
     apTry(TAG, function()
         local layout = currentLayout()
         local starMap = Hyperspace.App.world.starMap

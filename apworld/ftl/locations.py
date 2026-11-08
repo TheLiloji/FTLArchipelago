@@ -146,6 +146,9 @@ def selected_locations(options) -> tuple[data.Location, ...]:
         elif location.group == data.GROUP_REACTOR:
             if options.reactor_checks:
                 kept.append(location)
+        elif location.group == data.GROUP_BEACONS:
+            if (location.fight or 0) <= options.beacon_checks.value:
+                kept.append(location)
         elif location.group == data.GROUP_EVENTS:
             if (location.fight or 0) <= options.event_checks.value:
                 kept.append(location)

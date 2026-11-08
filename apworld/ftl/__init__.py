@@ -304,6 +304,9 @@ class FTLWorld(World):
         if self.system_unlocks:
             kinds.add(data.KIND_CAP_UNLOCK)
             required_kinds.add(data.KIND_CAP_UNLOCK)
+        if self.options.beacon_checks.value > 0:
+            kinds.add(data.KIND_BEACON_CHECKS)
+            required_kinds.add(data.KIND_BEACON_CHECKS)
 
         slot_data: dict[str, Any] = {
             "contract": data.CONTRACT_VERSION,

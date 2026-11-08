@@ -18,6 +18,7 @@ FIGHT_CHECK_FORMAT = "{ship}:fight:{n}"
 SECTOR_FIGHT_CHECK_FORMAT = "{ship}:sfight:{sector}:{n}"
 EVENT_CHECK_FORMAT = "event:{n}"
 REACTOR_CHECK_FORMAT = "reactor:{n}"
+BEACON_CHECK_FORMAT = "beacons:{n}"
 
 KIND_SHIP = "ship"
 KIND_CAP = "cap"
@@ -39,6 +40,8 @@ KIND_PASS = "pass"
 KIND_LAYOUT = "layout"
 # A ship key that comes once per layout (layout_unlocks: progressive): "bps" lists what each copy gives, in order.
 KIND_PROGRESSIVE_SHIP = "progressive_ship"
+# Not an item kind: a seed with beacon checks needs a mod that counts beacons, an older one refuses it.
+KIND_BEACON_CHECKS = "beacon_checks"
 
 KINDS_IMPLEMENTED = (
     KIND_SHIP, KIND_CAP, KIND_START, KIND_FILLER, KIND_TRAP,
@@ -46,6 +49,7 @@ KINDS_IMPLEMENTED = (
     KIND_PROGRESSIVE_SHIP,
     KIND_PASS,
     KIND_CAP_UNLOCK,
+    KIND_BEACON_CHECKS,
 )
 
 REACTOR_TARGET = "reactor"
@@ -99,6 +103,7 @@ LOCATION_OFFSET_FIGHT = 90_000
 LOCATION_OFFSET_SECTOR_FIGHT = 100_000
 LOCATION_OFFSET_EVENT = 105_000
 LOCATION_OFFSET_REACTOR = 106_000
+LOCATION_OFFSET_BEACONS = 107_000
 
 # Combat checks: the first fights a ship wins in a run, at most this many per ship.
 MAX_FIGHTS_PER_SHIP = 10
@@ -108,6 +113,9 @@ MAX_FIGHTS_PER_SECTOR = 5
 MAX_EVENT_CHECKS = 20
 # Reactor checks: the reactor power reached in a run, and the sector a run usually has it by.
 REACTOR_THRESHOLDS = ((10, 2), (15, 4), (20, 6), (25, 7))
+# Beacon checks: beacons explored across every run of the seed, every BEACON_STEP of them.
+BEACON_STEP = 25
+MAX_BEACON_CHECKS = 10
 
 MAX_ACHIEVEMENTS_PER_SHIP = 10
 
@@ -613,6 +621,7 @@ GROUP_FIGHTS = "Fights won"
 GROUP_SECTOR_FIGHTS = "Fights won per sector"
 GROUP_EVENTS = "Archipelago events"
 GROUP_REACTOR = "Reactor power"
+GROUP_BEACONS = "Beacons explored"
 # Location groups that only ever hold filler: the logic does not count them as room for the items it needs.
 FILLER_ONLY_GROUPS: frozenset[str] = frozenset()
 
@@ -1118,6 +1127,17 @@ def _build_locations() -> tuple[Location, ...]:
             description=f"Have a reactor of {power} power in a run.",
         ))
 
+    for n in range(1, MAX_BEACON_CHECKS + 1):
+        count = n * BEACON_STEP
+        locations.append(Location(
+            name=f"Explore {count} Beacons",
+            code=LOCATION_ID_BASE + LOCATION_OFFSET_BEACONS + n,
+            check_id=BEACON_CHECK_FORMAT.format(n=count),
+            group=GROUP_BEACONS,
+            fight=n,
+            description=f"Explore {count} beacons in all, counted across every run of the seed.",
+        ))
+
     for n in range(1, MAX_EVENT_CHECKS + 1):
         locations.append(Location(
             name=f"Archipelago Event {n}",
@@ -1322,7 +1342,7 @@ def _check_vanilla_totals() -> None:
         "locations": (len(LOCATIONS), 28 * SECTOR_COUNT + 28 + 30 + 21 + MAX_SHOP_SLOTS
                       + sum(system.max_level for system in SYSTEMS) + len(CREW_RACES)
                       + 10 * 16 + 10 * MAX_FIGHTS_PER_SHIP + 10 * SECTOR_COUNT * MAX_FIGHTS_PER_SECTOR
-                      + MAX_EVENT_CHECKS + len(REACTOR_THRESHOLDS)),
+                      + MAX_EVENT_CHECKS + len(REACTOR_THRESHOLDS) + MAX_BEACON_CHECKS),
     }
     wrong = {label: pair for label, pair in expected.items() if pair[0] != pair[1]}
     if wrong:

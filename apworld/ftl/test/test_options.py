@@ -178,6 +178,7 @@ class TestEverythingEnabled(FTLTestBase):
         "combat_checks": 10,
         "event_checks": 20,
         "reactor_checks": True,
+        "beacon_checks": 10,
     }
 
     def test_every_location_of_the_table_exists(self) -> None:
@@ -1158,3 +1159,23 @@ class TestSectorLocks(FTLTestBase):
         deep = self.world.get_location(f"{layout.display}: Reach sector 6")
         self.collect_all_but([f"Sector Pass ({layout.display})"])
         self.assertFalse(deep.can_reach(self.multiworld.state), "no pass, no sector 6")
+
+
+class TestBeaconChecks(FTLTestBase):
+    options = {"beacon_checks": 4}
+
+    def test_four_beacon_checks_and_the_mod_must_count_them(self) -> None:
+        names = sorted(location.name for location in self.multiworld.get_locations(self.player)
+                       if location.name.startswith("Explore "))
+        self.assertEqual(names, ["Explore 100 Beacons", "Explore 25 Beacons", "Explore 50 Beacons",
+                                 "Explore 75 Beacons"])
+        slot_data = self.world.fill_slot_data()
+        self.assertIn(data.KIND_BEACON_CHECKS, slot_data["kinds_required"], "an older mod refuses the seed")
+        self.assertEqual(slot_data["loc"].get("beacons:100"), "Explore 100 Beacons")
+
+
+class TestNoBeaconChecksByDefault(FTLTestBase):
+    def test_no_beacon_check_and_no_requirement(self) -> None:
+        self.assertFalse(any(location.name.startswith("Explore ")
+                             for location in self.multiworld.get_locations(self.player)))
+        self.assertNotIn(data.KIND_BEACON_CHECKS, self.world.fill_slot_data()["kinds_required"])

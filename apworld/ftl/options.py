@@ -357,6 +357,17 @@ class ReactorChecks(Toggle):
     display_name = "Reactor Checks"
 
 
+class BeaconChecks(Range):
+    """Exploring beacons sends checks: Explore 25 Beacons, 50, 75... up to this many checks. Beacons count across
+    every run of the seed, with any ship, so a lost run still counts.
+    """
+
+    display_name = "Beacon Checks"
+    range_start = 0
+    range_end = 10
+    default = 0
+
+
 class SectorSkip(Toggle):
     """A ship layout that already reached the next sector in an earlier run may skip sectors 1 to 4: the first
     beacon of such a sector is an exit. Jumping on at once gives 60 scrap and one more pick in the start-of-run menu;
@@ -1133,6 +1144,7 @@ class FTLOptions(PerGameCommonOptions):
     run_start_scrap: RunStartScrap
     event_checks: EventChecks
     reactor_checks: ReactorChecks
+    beacon_checks: BeaconChecks
     combat_checks: CombatChecks
     combat_checks_mode: CombatChecksMode
     fights_per_sector: FightsPerSector
@@ -1174,7 +1186,7 @@ ftl_option_groups = [
     OptionGroup(
         "Checks",
         [Sectorsanity, SectorsanityFirstSector, SectorsanityLastSector, Systemsanity, SystemsanityPerShip,
-         ShipAchievementChecks, GeneralAchievementChecks, CrossRunAchievementChecks, CrewChecks, EventChecks, ReactorChecks, CombatChecks,
+         ShipAchievementChecks, GeneralAchievementChecks, CrossRunAchievementChecks, CrewChecks, EventChecks, ReactorChecks, BeaconChecks, CombatChecks,
          CombatChecksMode, FightsPerSector, CombatCheckScrap],
     ),
     OptionGroup(

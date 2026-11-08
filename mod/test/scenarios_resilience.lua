@@ -1223,6 +1223,32 @@ test("reactor checks: each threshold the reactor reaches sends its check", funct
     sim.powerManager.currentPower.second = 8
 end)
 
+test("beacon checks: beacons count across runs, every 25 sends its check", function()
+    apContractResetForTesting()
+    apForgetChecksForTesting()
+    applySeed({ loc = { ["beacons:25"] = "Explore 25 Beacons", ["beacons:50"] = "Explore 50 Beacons" } })
+    sim.startRun(true)
+    for _ = 1, 24 do sim.jumpArrive() end
+    equals(apBeaconsExplored(), 24, "24 beacons counted")
+    check(not apCheckAlreadySent("beacons:25"), "not yet")
+    sim.startRun(true)
+    sim.jumpArrive()
+    check(apCheckAlreadySent("beacons:25"), "the 25th, in another run, sends the check")
+    check(not apCheckAlreadySent("beacons:50"), "50 not yet")
+    sim.jumpArrive(sim.enemy or { iShipId = 1 })
+    equals(apBeaconsExplored(), 25, "the enemy's jumps do not count")
+end)
+
+test("beacon checks: a seed without them counts nothing", function()
+    apContractResetForTesting()
+    apForgetChecksForTesting()
+    applySeed({})
+    sim.startRun(true)
+    local before = apBeaconsExplored()
+    sim.jumpArrive()
+    equals(apBeaconsExplored(), before, "no beacon checks, no count")
+end)
+
 test("sector skip: a sector the layout already crossed opens its first beacon as an exit, and the jump pays", function()
     apContractResetForTesting()
     apForgetChecksForTesting()
