@@ -1033,6 +1033,7 @@ test("chat: the server's lines are listed newest first, and the tab counts the u
     sim.tick(1)
     equals(#apChatLines(), 3, "one entry per line")
     equals(apChatLines()[1].text, "Axel: gg", "newest first")
+    equals(apChatLines()[2].text, "Hint: Burst Laser II is at", "a message of several lines reads top down")
     openDashboard("overview")
     check(sim.drawnText(apT("dash.tab.chat", { n = 6 }) .. " (3)"), "the Chat tab shows 3 unread lines")
     apDashboardPage("chat")

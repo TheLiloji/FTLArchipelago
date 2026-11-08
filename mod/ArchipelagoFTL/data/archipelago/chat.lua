@@ -33,11 +33,16 @@ end
 -- From the network module: one event per server message, which may span several lines.
 function apChatReceive(kind, text)
     kind = tostring(kind or "Chat")
+    local lines = {}
     for line in (tostring(text or "") .. "\n"):gmatch("(.-)\r?\n") do
         line = clean(line)
         if line:match("%S") then
-            push(kind, line)
+            lines[#lines + 1] = line
         end
+    end
+    -- Newest first, but a message of several lines still reads from its top down.
+    for index = #lines, 1, -1 do
+        push(kind, lines[index])
     end
 end
 
