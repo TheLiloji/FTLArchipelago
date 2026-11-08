@@ -22,6 +22,13 @@
 
 Eso es todo: ftlman descarga Hyperspace por sí solo.
 
+La release también trae `Hyperspace.1.6.12.amd64.so` y `Hyperspace.1.6.13.amd64.so`: son solo para Linux,
+Windows no los necesita.
+
+> [!NOTE]
+> **FTL de Epic Games:** ftlman no puede pasar la versión de Epic a la 1.6.9. Pon FTL 1.6.9 tú mismo antes del
+> paso 5, siguiendo [la guía de instalación de Hyperspace](https://github.com/FTL-Hyperspace/FTL-Hyperspace).
+
 ## 1. Proteger tus partidas
 
 En Steam, clic derecho en FTL, **Propiedades**, **General**, y desactiva **Steam Cloud**. Luego copia la
