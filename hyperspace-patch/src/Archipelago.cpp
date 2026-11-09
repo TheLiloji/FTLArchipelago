@@ -7,6 +7,8 @@
 #include "apclient.hpp"
 
 #include <algorithm>
+#include <atomic>
+#include <thread>
 #include <chrono>
 #include <cstdio>
 #include <cstdlib>
@@ -78,6 +80,9 @@ struct Client::Impl
     std::string slot;
     std::string password;
     bool connected = false;
+    // The CA bundle given to the connection, and whether its TLS failure was already looked into.
+    std::string certStore;
+    std::atomic<bool> tlsDiagnosed{false};
     bool wantGoal = false;
     bool resetDone = false;
 
@@ -98,25 +103,101 @@ Client::~Client() = default;
 
 namespace {
 
+// True when the file holds at least one PEM certificate (an empty or missing bundle is skipped).
+bool HasCertificates(const std::string& path)
+{
+    std::ifstream f(path.c_str());
+    if (!f.good()) return false;
+    std::string line;
+    for (int i = 0; i < 4000 && std::getline(f, line); ++i) {
+        if (line.find("BEGIN CERTIFICATE") != std::string::npos) return true;
+    }
+    return false;
+}
+
+// Where the CA bundle came from, for the log: "" when none was found.
+std::string certSource;
+
 std::string CertStore()
 {
 #ifdef _WIN32
+    certSource = "the Windows certificate store";
     return std::string();
 #else
-    // No single canonical CA bundle path across Linux distros; probe the common ones so TLS
-    // verification works on both Debian/Ubuntu-family and Fedora/RHEL-family systems.
+    // The environment first, as OpenSSL tools do. SSL_CERT_DIR alone is a folder: an empty path lets
+    // OpenSSL's default lookup read it.
+    const char* envFile = std::getenv("SSL_CERT_FILE");
+    if (envFile != nullptr && *envFile && HasCertificates(envFile)) {
+        certSource = std::string(envFile) + " (SSL_CERT_FILE)";
+        return std::string(envFile);
+    }
+    const char* envDir = std::getenv("SSL_CERT_DIR");
+    if (envDir != nullptr && *envDir) {
+        certSource = std::string(envDir) + " (SSL_CERT_DIR)";
+        return std::string();
+    }
+    // Then the host's bundle as a Steam Linux Runtime container shows it, then the usual places of the
+    // Debian/Ubuntu, Fedora/RHEL, openSUSE and Arch families.
     static const char* kPaths[] = {
+        "/run/host/etc/ssl/certs/ca-certificates.crt",
+        "/run/host/etc/pki/tls/certs/ca-bundle.crt",
+        "/run/host/etc/ssl/ca-bundle.pem",
+        "/run/host/etc/ssl/cert.pem",
         "/etc/ssl/certs/ca-certificates.crt",
         "/etc/pki/tls/certs/ca-bundle.crt",
         "/etc/ssl/ca-bundle.pem",
         "/etc/ssl/cert.pem",
     };
     for (size_t i = 0; i < sizeof(kPaths) / sizeof(kPaths[0]); ++i) {
-        std::ifstream f(kPaths[i]);
-        if (f.good()) return std::string(kPaths[i]);
+        if (HasCertificates(kPaths[i])) {
+            certSource = kPaths[i];
+            return std::string(kPaths[i]);
+        }
     }
+    certSource = "none found, OpenSSL's default paths";
     return std::string();
 #endif
+}
+
+// A TLS handshake failed: says why, with OpenSSL's own words, by trying the handshake once more on the side.
+// The websocket library only reports "TLS handshake failed".
+std::string TlsDiagnosis(const std::string& uri, const std::string& store)
+{
+    namespace wa = websocketpp::lib::asio;
+    std::string rest = uri;
+    size_t scheme = rest.find("://");
+    if (scheme != std::string::npos) rest = rest.substr(scheme + 3);
+    rest = rest.substr(0, rest.find('/'));
+    size_t colon = rest.rfind(':');
+    std::string host = colon == std::string::npos ? rest : rest.substr(0, colon);
+    std::string port = colon == std::string::npos ? "38281" : rest.substr(colon + 1);
+    if (host.empty()) return "no host in " + uri;
+    try {
+        wa::io_service io;
+        wa::ssl::context ctx(wa::ssl::context::sslv23);
+        wa::error_code ec;
+        if (!store.empty()) ctx.load_verify_file(store, ec);
+        if (store.empty() || ec) ctx.set_default_verify_paths(ec);
+        ctx.set_verify_mode(wa::ssl::verify_peer, ec);
+        wa::ip::tcp::resolver resolver(io);
+        wa::ip::tcp::resolver::query query(host, port);
+        wa::ip::tcp::resolver::iterator endpoints = resolver.resolve(query, ec);
+        if (ec) return "resolve " + host + ": " + ec.message();
+        wa::ssl::stream<wa::ip::tcp::socket> stream(io, ctx);
+        SSL_set_tlsext_host_name(stream.native_handle(), host.c_str());
+        wa::connect(stream.lowest_layer(), endpoints, ec);
+        if (ec) return "connect " + host + ":" + port + ": " + ec.message();
+        stream.handshake(wa::ssl::stream_base::client, ec);
+        long verify = SSL_get_verify_result(stream.native_handle());
+        std::string out = "handshake with " + host + ":" + port + ": " + (ec ? ec.message() : std::string("ok"));
+        out += ", certificate check: ";
+        out += X509_verify_cert_error_string(verify);
+        out += ", " + std::string(OpenSSL_version(OPENSSL_VERSION));
+        stream.lowest_layer().close(ec);
+        return out;
+    } catch (const std::exception& error) {
+        return std::string("diagnosis failed: ") + error.what();
+    }
 }
 
 std::string StatePath()
@@ -631,7 +712,16 @@ bool Client::Connect(const std::string& uri, const std::string& slot, const std:
     _impl->password = password;
 
     try {
-        _impl->ap.reset(new APClient("", kGameName, uri, CertStore()));
+        std::string store = CertStore();
+        {
+            Event e;
+            e.kind = "log";
+            e.extra = "CA bundle: " + certSource;
+            _impl->push(std::move(e));
+        }
+        _impl->certStore = store;
+        _impl->tlsDiagnosed = false;
+        _impl->ap.reset(new APClient("", kGameName, uri, store));
     } catch (const std::exception& error) {
         Event e;
         e.kind = "error";
@@ -663,6 +753,17 @@ bool Client::Connect(const std::string& uri, const std::string& slot, const std:
         e.name = "unreachable";
         e.extra = message;
         impl->push(std::move(e));
+        // Once per connection: the reason of a failed TLS handshake, found on a thread of its own.
+        if (message.find("TLS") != std::string::npos && !impl->tlsDiagnosed) {
+            impl->tlsDiagnosed = true;
+            std::string uri = impl->uri, store = impl->certStore;
+            std::thread([impl, uri, store]() {
+                Event d;
+                d.kind = "log";
+                d.extra = "TLS: " + TlsDiagnosis(uri, store);
+                impl->push(std::move(d));
+            }).detach();
+        }
     });
 
     ap->set_socket_disconnected_handler([impl]() {

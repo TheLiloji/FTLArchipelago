@@ -887,6 +887,11 @@ local HANDLERS = {
         end
     end,
 
+    -- A line the module wants in the log (the CA bundle used, why TLS failed).
+    log = function(event)
+        netLog(tostring(event.extra))
+    end,
+
     error = function(event)
         local token = tostring(event.name)
         if token == "unreachable" then

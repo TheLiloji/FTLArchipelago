@@ -84,8 +84,9 @@ is kept in the dashboard.
 
 ![Archipelago beacons on the map](../images/map.jpg)
 
-Each sector has one beacon marked **AP STORE**, with the Archipelago shop, and beacons marked **ARCHIPELAGO**, with one of
-five events.
+Each sector has one beacon marked **AP STORE**, with the Archipelago shop, and other beacons hold the mod's own
+events. By default only the two that carry a package (the relay and the pirates) are marked **ARCHIPELAGO** on
+the map; the **Event Beacons** option can mark them all or none.
 
 ### The Archipelago shop
 
@@ -106,14 +107,23 @@ strikes in your next fight, not at the quiet shop beacon. The **blood pacts** on
 add a chance (5, 10 or 20 %) that one of your crew dies for good, Clone Bay or not. They never take your last
 crew member.
 
-### The five events
+### The events
 
 - **A relay** carrying packages for other players. Pay 15 scrap to forward one.
 - **Pirates holding a package**, often a friend's. Pay them 20 scrap, or fight them and send it for free if you win.
-- **A Zoltan checkpoint**, which asks for fuel for the shared Energy Link reserve, or a toll if Energy Link is off.
+- **A Zoltan checkpoint** that sells 3 fuel for 15 scrap. With Energy Link it costs 20 and adds 1 fuel to the
+  shared reserve, or you can draw fuel from the reserve instead.
 - **A Slug** who sells a real Archipelago hint for 20 scrap. If there is nothing left to hint, you get the scrap
   back.
 - **A surge from another world**, which you can absorb or send away as a trap (with Trap Link on).
+- **An Engi technician** (Engi and civilian sectors) who bets 30 scrap that they can overclock your reactor. It
+  pays 75 scrap when it holds, and costs hull and engine damage when it does not. You can also let them test the
+  engines for 3 fuel, or just leave.
+- **An arms dealer**, rare, in pirate sectors: a random weapon for 45 scrap, or a random augment for 4 fuel.
+
+| | |
+|---|---|
+| ![The Engi overclock bet](../images/event-overclock.jpg) | ![The arms dealer](../images/event-arms-dealer.jpg) |
 
 None of them can hide a check from you: they are extra, never required.
 
