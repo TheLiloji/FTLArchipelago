@@ -17,6 +17,7 @@ local state = {
     lastItemIndex = -1,
     consumedUntil = -1,
     delivered = {},
+    itemNames = {},
     scoutsPending = false,
     scouted = {},
 }
@@ -33,6 +34,7 @@ function apNetResetForTesting()
     state.lastItemIndex = -1
     state.consumedUntil = -1
     state.delivered = {}
+    state.itemNames = {}
     state.scoutsPending = false
     state.scouted = {}
     state.checkItems = {}
@@ -450,6 +452,7 @@ end
 
 function apNetForgetItems()
     state.lastItemIndex = -1
+    state.itemNames = {}
 end
 
 function apNetForgetProgress(incoming)
@@ -472,6 +475,7 @@ end
 
 local function reloadConsumed()
     local fingerprint = _G.apSeedFingerprint and _G.apSeedFingerprint() or 0
+    state.itemNames = {}
     state.consumedUntil = consumedFor(fingerprint) - 1
     state.delivered = loadDelivered(fingerprint)
     if meta(seedKey()) ~= fingerprint then
@@ -692,6 +696,94 @@ end
 
 local CHECKED_POLL_TICKS = 10 * 60
 
+-- The items already consumed are counted by seed and slot. A server whose list does not start with those
+-- same items is another game on that seed name (a seed generated again with a fixed number, or hosted
+-- again): its items would all pass for replays and its scrap, fuel and the like would be lost. The names of
+-- the consumed items are kept as a signature and checked each time the server sends its list from the start.
+local forgetStaleItems
+
+local function signatureKey(fingerprint)
+    return apNetSlotKey("ap_items_sig_" .. tostring(fingerprint or 0))
+end
+
+local function hashNames(names, count)
+    local hash = 0
+    for index = 0, count - 1 do
+        local name = names[index]
+        if name == nil then
+            return nil
+        end
+        for position = 1, #name do
+            hash = (hash * 31 + name:byte(position)) % 2147483647
+        end
+        hash = (hash * 31 + 7) % 2147483647
+    end
+    return hash
+end
+
+local function readSignature(fingerprint)
+    local text = tostring(apNetRecallText(signatureKey(fingerprint)) or "")
+    local count, hash = text:match("^(%d+):(%d+)$")
+    return tonumber(count), tonumber(hash)
+end
+
+local function writeSignature(fingerprint, count)
+    local hash = hashNames(state.itemNames, count)
+    apNetRememberText(signatureKey(fingerprint), hash and (count .. ":" .. hash) or "")
+end
+
+-- The rest of the list from index 0, as it came in this batch: nil while a name is still unknown.
+local function batchNames()
+    local names = {}
+    local expected = 0
+    for position = state.batchPos or 1, #(state.batch or {}) do
+        local event = state.batch[position]
+        if tostring(event.kind) == "item" then
+            if event.index ~= expected then break end
+            if tostring(event.name) == UNKNOWN then return nil end
+            names[expected] = tostring(event.name)
+            expected = expected + 1
+        end
+    end
+    return names, expected
+end
+
+forgetStaleItems = function()
+    if state.consumedUntil < 0 or not _G.apNetRecallText then
+        return
+    end
+    local names, count = batchNames()
+    if names == nil then
+        return
+    end
+    local fingerprint = _G.apSeedFingerprint and _G.apSeedFingerprint() or 0
+    local consumed = state.consumedUntil + 1
+    local storedCount, storedHash = readSignature(fingerprint)
+    local stale = count < consumed
+    if not stale and storedCount ~= nil and storedCount <= consumed and storedCount <= count then
+        stale = hashNames(names, storedCount) ~= storedHash
+    end
+    if not stale then
+        -- Saves from before the signature get one now, from the server's own list.
+        if storedCount ~= consumed then
+            for index = 0, consumed - 1 do state.itemNames[index] = names[index] end
+            writeSignature(fingerprint, consumed)
+        end
+        return
+    end
+    netLog(string.format("the server's items do not match the %d already consumed for this seed and slot "
+        .. "(server has %d): another game on the same seed name, its items start over from zero", consumed, count))
+    writeMeta(consumedKey(fingerprint), 0)
+    apNetRememberText(deliveredKey(fingerprint), "")
+    apNetRememberText(signatureKey(fingerprint), "")
+    if _G.apShopForgetOwed then apShopForgetOwed(fingerprint) end
+    if _G.apJournalForget then pcall(_G.apJournalForget) end
+    state.consumedUntil = -1
+    state.delivered = {}
+    state.deliveredSaved = false
+    state.lastItemIndex = -1
+end
+
 local function onItem(event)
     -- The server sends the whole list again from index 0 on each connection: once a full list came in with
     -- every name, the inventory holds everything received so far.
@@ -705,6 +797,12 @@ local function onItem(event)
     -- Every name counts for the "in logic" marker, also those already applied before a reconnect.
     if event.index >= 0 and tostring(event.name) ~= UNKNOWN and _G.apNoteReceived then
         _G.apNoteReceived(event.name, event.index)
+    end
+    if event.index >= 0 and tostring(event.name) ~= UNKNOWN then
+        state.itemNames[event.index] = tostring(event.name)
+    end
+    if event.index == 0 and not state.seedRefused then
+        forgetStaleItems()
     end
     if event.index >= 0 and event.index <= state.lastItemIndex then
         return
@@ -743,6 +841,7 @@ function apNetItemDelivered(index)
     local fingerprint = _G.apSeedFingerprint and _G.apSeedFingerprint() or 0
     if advanced then
         writeMeta(consumedKey(fingerprint), state.consumedUntil + 1)
+        writeSignature(fingerprint, state.consumedUntil + 1)
     end
     saveDelivered(fingerprint)
     return advanced
@@ -906,8 +1005,13 @@ local function drain()
     end
 
     state.itemsInBatch = false
+    state.batch = {}
+    for i = 0, count - 1 do
+        state.batch[i + 1] = events[i]
+    end
     for i = 0, count - 1 do
         local event = events[i]
+        state.batchPos = i + 1
         local handler = HANDLERS[tostring(event.kind)]
         if handler then
             local ok, err = pcall(handler, event)
