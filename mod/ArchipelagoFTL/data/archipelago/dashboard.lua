@@ -301,6 +301,18 @@ local function alreadyInJournal(index)
     return false
 end
 
+-- Another game on the same seed name: the journal starts over with the server's list.
+function apJournalForget()
+    if _G.apNetRememberText then
+        apNetRememberText(journalKey(), "")
+    end
+    if _G.apNetRemember then
+        apNetRemember(journalKey() .. "_last", 0)
+    end
+    journalFor = journalKey()
+    _G.apReceivedHistory = {}
+end
+
 function apRecordReceived(itemName, sender, index, class)
     loadJournal()
     if alreadyInJournal(index) then

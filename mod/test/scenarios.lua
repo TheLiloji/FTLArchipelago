@@ -2744,6 +2744,41 @@ test("scrap delivered behind a weapon that waits is not given again next session
     equals(sim.player.currentScrap, before, "the scrap already received is not credited twice")
 end)
 
+test("network: another game on the same seed name does not swallow its items as replays", function()
+    local seed = { contract = CONTRACT, kinds = { "filler" }, kinds_required = {}, loc = {},
+                   seed_hash = "same-name", items = { ["20 Scrap"] = { k = "filler", res = "scrap", n = 20 },
+                                                      ["50 Scrap"] = { k = "filler", res = "scrap", n = 50 } } }
+    local function session(names)
+        apContractResetForTesting()
+        apNetResetForTesting()
+        apNetConnect("ws://localhost:38281", "Navigator", "")
+        sim.netEvent("connected", { name = "Navigator", extra = seed })
+        for index, name in ipairs(names) do
+            sim.netEvent("item", { name = name, sender = "Nina", index = index - 1 })
+        end
+        sim.tick(1)
+        drain()
+        sim.tick(1)
+    end
+    sim.startRun(true)
+    sim.durable = {}
+    _G.apReceivedHistory = {}
+    session({ "20 Scrap", "20 Scrap" })
+    local start = sim.player.currentScrap
+
+    session({ "20 Scrap", "20 Scrap" })
+    equals(sim.player.currentScrap, start, "the same game again: nothing is credited twice")
+
+    session({ "50 Scrap" })
+    equals(sim.player.currentScrap, start + 50, "a shorter list: the server's item is new, not a replay")
+    check(sim.logged("another game on the same seed name"), "the log says why")
+    equals(#_G.apReceivedHistory, 1, "the journal starts over with that game's list")
+    equals(_G.apReceivedHistory[1].item, "50 Scrap", "and shows its item")
+
+    session({ "20 Scrap", "20 Scrap", "20 Scrap" })
+    equals(sim.player.currentScrap, start + 50 + 60, "a longer list with other names: all of it is new")
+end)
+
 test("after a reset, the scrap of a seed played before arrives again", function()
     local seed = { contract = CONTRACT, kinds = { "filler" }, kinds_required = {}, loc = {},
                    seed_hash = "reset-me", items = { ["20 Scrap"] = { k = "filler", res = "scrap", n = 20 } } }
