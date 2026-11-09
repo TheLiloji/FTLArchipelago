@@ -179,6 +179,21 @@ std::string TlsDiagnosis(const std::string& uri, const std::string& store)
         if (!store.empty()) ctx.load_verify_file(store, ec);
         if (store.empty() || ec) ctx.set_default_verify_paths(ec);
         ctx.set_verify_mode(wa::ssl::verify_peer, ec);
+        // The certificate the check stopped at: after a failed handshake OpenSSL keeps no chain to read.
+        std::string failedAt;
+        ctx.set_verify_callback([&failedAt](bool preverified, wa::ssl::verify_context& vctx) {
+            if (!preverified && failedAt.empty()) {
+                X509* cert = X509_STORE_CTX_get_current_cert(vctx.native_handle());
+                char subject[256] = {0};
+                char issuer[256] = {0};
+                if (cert) {
+                    X509_NAME_oneline(X509_get_subject_name(cert), subject, sizeof(subject) - 1);
+                    X509_NAME_oneline(X509_get_issuer_name(cert), issuer, sizeof(issuer) - 1);
+                }
+                failedAt = std::string(subject) + " issued by " + issuer;
+            }
+            return preverified;
+        }, ec);
         wa::ip::tcp::resolver resolver(io);
         wa::ip::tcp::resolver::query query(host, port);
         wa::ip::tcp::resolver::iterator endpoints = resolver.resolve(query, ec);
@@ -192,6 +207,7 @@ std::string TlsDiagnosis(const std::string& uri, const std::string& store)
         std::string out = "handshake with " + host + ":" + port + ": " + (ec ? ec.message() : std::string("ok"));
         out += ", certificate check: ";
         out += X509_verify_cert_error_string(verify);
+        if (!failedAt.empty()) out += ", failed at: " + failedAt;
         out += ", " + std::string(OpenSSL_version(OPENSSL_VERSION));
         stream.lowest_layer().close(ec);
         return out;
