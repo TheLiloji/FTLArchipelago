@@ -211,6 +211,10 @@ if(WIN32)
     # aligned new they land misaligned and the first SSE store into them crashes.
     set_source_files_properties(Archipelago.cpp PROPERTIES
         COMPILE_OPTIONS "-faligned-allocation;-fnew-alignment=8")
+else()
+    # OpenSSL is linked in statically: its symbols stay inside the library, so no other OpenSSL loaded
+    # in the game (Steam's runtime, an overlay) can take their place, nor ours theirs.
+    target_link_options(Hyperspace PRIVATE "-Wl,--exclude-libs,libssl.a:libcrypto.a")
 endif()
 # end ARCHIPELAGO_MODULE
 '''
