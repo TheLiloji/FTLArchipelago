@@ -765,6 +765,17 @@ test("kestrel key: the hangar opens on the starting ship, RANDOM SHIP draws amon
     check(seen.PLAYER_SHIP_ROCK and seen.PLAYER_SHIP_CIRCLE, "both ships received come up")
     check(not seen.PLAYER_SHIP_HARD, "never the Kestrel without its key")
 
+    -- The arrows step through the base ships that can be shown: Kestrel (NO KEY), Engi, Rock, in list order.
+    sim.hangarShip = "PLAYER_SHIP_ROCK"
+    sim.click(144, 158)
+    equals(sim.hangarShip, "PLAYER_SHIP_HARD", "> from the Rock wraps to the Kestrel, marked NO KEY")
+    sim.click(144, 158)
+    equals(sim.hangarShip, "PLAYER_SHIP_CIRCLE", "> then the Engi")
+    sim.click(50, 158)
+    equals(sim.hangarShip, "PLAYER_SHIP_HARD", "< back to the Kestrel")
+    sim.click(50, 158)
+    equals(sim.hangarShip, "PLAYER_SHIP_ROCK", "< wraps to the Rock")
+
     sim.hangarShip = "PLAYER_SHIP_HARD"
     sim.click(1150, 40)
     sim.renderMenu()
