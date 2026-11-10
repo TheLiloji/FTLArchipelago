@@ -286,3 +286,12 @@ class TestMultiverseQuests(FTLTestBase):
         self.assertTrue(quests)
         self.assertTrue(all(data.LOCATIONS_BY_NAME[location.name].group in data.FILLER_ONLY_GROUPS
                             for location in quests))
+
+
+class TestMultiverseIgnoresKestrelKey(FTLTestBase):
+    """Multiverse always starts on its own Kestrel: kestrel_key locks nothing there."""
+
+    options = {"multiverse": True, "kestrel_key": True}
+
+    def test_the_mod_is_not_told_the_kestrel_is_locked(self) -> None:
+        self.assertFalse(self.world.fill_slot_data()["kestrel_locked"])
