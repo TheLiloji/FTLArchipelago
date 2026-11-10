@@ -455,8 +455,51 @@ local function randomShipClick(x, y)
     return apNetSwitchHangarShip(pick) == true
 end
 
+-- The < and > arrows: FTL steps through the base ships its own profile unlocked (only the Kestrel when
+-- Archipelago gives the ships). The mod steps through the base ships of the seed that can be shown instead: those
+-- received, and the Kestrel A without its key, which the hangar then marks NO KEY. Same layout letter as shown.
+local LEFT_ARROW = { x = 30, y = 142, w = 40, h = 32 }
+local RIGHT_ARROW = { x = 124, y = 142, w = 40, h = 32 }
+
+local function arrowClick(x, y)
+    local step = apUi.inside(LEFT_ARROW, x, y) and -1 or (apUi.inside(RIGHT_ARROW, x, y) and 1 or nil)
+    if step == nil or not _G.apNetSwitchHangarShip or not _G.apNetHangarShip then
+        return false
+    end
+    local ok, open = pcall(function()
+        return Hyperspace.App.menu.shipBuilder.bOpen == true
+            and not Hyperspace.CustomShipSelect.GetInstance():IsOpen()
+    end)
+    if not (ok and open) or not (_G.apShipReceived and _G.apInventorySynced and apInventorySynced()) then
+        return false
+    end
+    local current = apNetHangarShip() or ""
+    local variant = current:match("_2$") and 1 or (current:match("_3$") and 2 or 0)
+    local cycle, at = {}, nil
+    for _, ship in ipairs(LIST_ORDER) do
+        local layout = fullName(ship, variant)
+        if layout == current then
+            at = #cycle + 1
+            cycle[at] = layout
+        elseif variant < layoutCount(ship) and (apShipReceived(layout) == "ok" or apKestrelBlocked(layout)) then
+            cycle[#cycle + 1] = layout
+        end
+    end
+    -- Not a base ship (a Multiverse one): Hyperspace's own arrows already go through its list.
+    if at == nil or #cycle < 2 then
+        return false
+    end
+    local pick = cycle[(at - 1 + step) % #cycle + 1]
+    unlockLog((step < 0 and "<" or ">") .. " " .. pick)
+    return apNetSwitchHangarShip(pick) == true
+end
+
 script.on_internal_event(Defines.InternalEvents.ON_MOUSE_L_BUTTON_DOWN, function(x, y)
     x, y = apMousePosition(x, y)
+    local arrowed, moved = pcall(arrowClick, x, y)
+    if arrowed and moved then
+        return Defines.Chain.PREEMPT
+    end
     local ok, done = pcall(randomShipClick, x, y)
     if ok and done then
         return Defines.Chain.PREEMPT
