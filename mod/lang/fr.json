@@ -462,6 +462,10 @@
     "deathlink.turned_on": "DeathLink activé.",
     "deathlink.turned_off": "DeathLink coupé.",
     "dash.links.death_off": "DeathLink : coupé",
-    "dash.links.toggle": "Clic pour activer ou couper le DeathLink."
+    "dash.links.toggle": "Clic pour activer ou couper le DeathLink.",
+    "hangar.needs_key": "PAS DE CLÉ",
+    "hangar.kestrel_locked": "Kestrel A : pas encore de clé. Choisis un autre vaisseau.",
+    "run.refused.no_key": "PAS DE CLÉ : CETTE PARTIE NE COMPTE PAS",
+    "run.refused.not_in_seed": "HORS SEED : CETTE PARTIE NE COMPTE PAS"
   }
 }

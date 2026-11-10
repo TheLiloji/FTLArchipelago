@@ -1141,6 +1141,11 @@ function apNetAchievementStatus(name)
     return moduleCall("AchievementStatus", tostring(name))
 end
 
+-- The ship shown in the hangar ("" elsewhere), nil with a library that cannot tell.
+function apNetHangarShip()
+    return moduleCall("HangarShip")
+end
+
 -- The system clipboard's first line, "" when empty or when the module cannot read it.
 function apNetClipboard()
     local text = moduleCall("Clipboard")

@@ -130,6 +130,15 @@ bool Client::HideBeaconLabel(const std::string& eventName, bool hidden)
     return true;
 }
 
+std::string Client::HangarShip() const
+{
+    CApp* app = G_->GetCApp();
+    if (app == nullptr) return std::string();
+    const ShipBuilder& builder = app->menu.shipBuilder;
+    if (!builder.bOpen || builder.currentShip == nullptr) return std::string();
+    return builder.currentShip->myBlueprint.blueprintName;
+}
+
 int Client::AchievementStatus(const std::string& name) const
 {
     AchievementTracker* tracker = G_->GetAchievementTracker();

@@ -121,6 +121,62 @@ local function unlockedInFtl(ship, variant)
     return ok and value == true
 end
 
+-- kestrel_key: FTL always counts the Kestrel A as unlocked and the hangar cannot grey it out, so the mod says
+-- it is locked and refuses START while it is the ship shown.
+function apKestrelBlocked(layout)
+    return layout == "PLAYER_SHIP_HARD" and _G.apSeedKestrelLocked ~= nil and apSeedKestrelLocked()
+        and _G.apShipReceived ~= nil and _G.apInventorySynced ~= nil and apInventorySynced()
+        and apShipReceived(layout) ~= "ok"
+end
+
+local START_BUTTON = { x = 1080, y = 10, w = 158, h = 58 }
+-- Seconds the refusal stays up, counted on FTL's clock (SpeedFactor is in sixteenths of a second).
+local refusedLeft = 0
+
+local function frameSeconds()
+    local ok, factor = pcall(function() return Hyperspace.FPS.SpeedFactor end)
+    factor = ok and tonumber(factor) or nil
+    if factor == nil or factor <= 0 then
+        return 1 / 60
+    end
+    return math.min(factor * 0.0625, 0.25)
+end
+
+local function hangarBlocked()
+    local ok, open = pcall(function()
+        return Hyperspace.App.menu.shipBuilder.bOpen == true
+            and not Hyperspace.CustomShipSelect.GetInstance():IsOpen()
+    end)
+    if not (ok and open) or not _G.apNetHangarShip then
+        return false
+    end
+    return apKestrelBlocked(apNetHangarShip())
+end
+
+local function drawKestrelLock()
+    if not hangarBlocked() then
+        refusedLeft = 0
+        return
+    end
+    -- START shaded out, with the same mark as the ship list just under it.
+    local b = START_BUTTON
+    apUi.rect(b.x, b.y, b.w, b.h, "window", 0.75)
+    local label = apT("hangar.needs_key")
+    local width = Graphics.freetype.easy_measureWidth(MARK_FONT, label) + 16
+    local center = b.x + b.w / 2
+    apUi.rect(center - width / 2, b.y + b.h / 2 - 10, width, 20, "window", 0.95)
+    apUi.textCenter(MARK_FONT, center, b.y + b.h / 2 - 8, width, "warn", label)
+    if refusedLeft > 0 then
+        refusedLeft = refusedLeft - frameSeconds()
+        local text = apT("hangar.kestrel_locked")
+        local w = math.min(560, apUi.width(14, text) + 48)
+        local h = 60
+        local x, y = (1280 - w) / 2, (720 - h) / 2
+        apUi.window(x, y, w, h, "warn")
+        apUi.textCenter(14, x + w / 2, y + 20, w - 32, "warn", text)
+    end
+end
+
 local function drawOutOfSeed()
     if not _G.apLayoutInSeed then
         return
@@ -137,7 +193,9 @@ local function drawOutOfSeed()
         local layout = fullName(ship, variant)
         local key = nil
         if variant < layoutCount(ship) then
-            if not apLayoutInSeed(layout) then
+            if apKestrelBlocked(layout) then
+                key = "hangar.needs_key"
+            elseif not apLayoutInSeed(layout) then
                 key = "hangar.out_of_seed"
             elseif judged and apShipReceived(layout) == "not_received"
                 and unlockedInFtl(ship, variant) then
@@ -177,6 +235,23 @@ script.on_render_event(Defines.RenderEvents.MAIN_MENU, function() end, function(
     if not (ok and help) then
         pcall(drawOutOfSeed)
     end
+    local drawn, err = pcall(drawKestrelLock)
+    if not drawn then
+        unlockLog("hangar lock not drawn: " .. tostring(err))
+    end
+end)
+
+script.on_internal_event(Defines.InternalEvents.ON_MOUSE_L_BUTTON_DOWN, function(x, y)
+    if not hangarBlocked() then
+        return Defines.Chain.CONTINUE
+    end
+    x, y = apMousePosition(x, y)
+    if apUi.inside(START_BUTTON, x, y) then
+        refusedLeft = 5
+        unlockLog("START refused: the Kestrel A has not received its key")
+        return Defines.Chain.PREEMPT
+    end
+    return Defines.Chain.CONTINUE
 end)
 
 -- A Type B or C FTL earned by itself (its achievements, with layout unlocks set to vanilla) before its ship's

@@ -463,6 +463,10 @@
     "deathlink.turned_on": "DeathLink on.",
     "deathlink.turned_off": "DeathLink off.",
     "dash.links.death_off": "DeathLink: off",
-    "dash.links.toggle": "Click to turn DeathLink on or off."
+    "dash.links.toggle": "Click to turn DeathLink on or off.",
+    "hangar.needs_key": "NO KEY",
+    "hangar.kestrel_locked": "Kestrel A: no key yet. Pick another ship.",
+    "run.refused.no_key": "NO KEY: THIS RUN DOES NOT COUNT",
+    "run.refused.not_in_seed": "NOT IN SEED: THIS RUN DOES NOT COUNT"
   }
 }
