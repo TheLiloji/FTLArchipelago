@@ -762,6 +762,13 @@ test("kestrel key: in the hangar the Kestrel A without its key is marked and STA
     sim.click(1150, 40)
     check(not sim.logged("START refused"), "another ship starts as usual")
 
+    -- A seed without the Kestrel says NOT IN SEED instead (a Multiverse seed, whose Kestrel is another ship).
+    shipConnect({ "Rock Cruiser Key" }, { kestrel_locked = true, layouts = { "PLAYER_SHIP_ROCK" } })
+    sim.hangarShip = "PLAYER_SHIP_HARD"
+    sim.clearLog()
+    sim.click(1150, 40)
+    check(not sim.logged("START refused"), "a Kestrel out of the seed is not called keyless")
+
     shipConnect({ "Rock Cruiser Key", "Kestrel Cruiser Key" }, { kestrel_locked = true })
     sim.hangarShip = "PLAYER_SHIP_HARD"
     sim.clearLog()
