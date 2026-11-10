@@ -1243,3 +1243,26 @@ script.on_internal_event(Defines.InternalEvents.JUMP_ARRIVE, function(shipManage
         apTry(TAG, apSectorLockArrive)
     end
 end)
+
+-- A run that does not count says so for as long as it lasts, in the same few words as the hangar's marks.
+local REFUSED_MARKS = { not_received = "run.refused.no_key", not_in_seed = "run.refused.not_in_seed" }
+
+local function drawRefusedRun()
+    if _G.apDashboardOpen and apDashboardOpen() then
+        return
+    end
+    local key = inRun() and REFUSED_MARKS[shipRefusal or savedShipRefusal() or ""]
+    if not key then
+        return
+    end
+    local label = apT(key)
+    local width = apUi.width(14, label) + 32
+    local x = (1280 - width) / 2
+    apUi.rect(x, 90, width, 40, "window", 0.95)
+    apUi.outline(x, 90, width, 40, "warn", 2)
+    apUi.textCenter(14, 640, 98, width - 16, "warn", label)
+end
+
+script.on_render_event(Defines.RenderEvents.GUI_CONTAINER, function() end, function()
+    apTry(TAG, drawRefusedRun)
+end)

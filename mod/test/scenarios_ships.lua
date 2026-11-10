@@ -745,6 +745,51 @@ test("kestrel key: a seed that locks the Kestrel refuses its runs until the key 
     shipDone()
 end)
 
+test("kestrel key: in the hangar the Kestrel A without its key is marked and START is refused", function()
+    shipConnect({ "Rock Cruiser Key" }, { kestrel_locked = true })
+    sim.hangarOpen = true
+    sim.hangarShip = "PLAYER_SHIP_HARD"
+    sim.shipList.open = false
+    sim.renderMenu()
+    check(sim.drawnText(apT("hangar.needs_key")), "the hangar says the key is missing")
+    sim.click(1150, 40)
+    check(sim.logged("START refused"), "a click on START is refused")
+    sim.renderMenu()
+    check(sim.drawnText(apT("hangar.kestrel_locked"):sub(1, 30)), "and a window says why")
+
+    sim.hangarShip = "PLAYER_SHIP_ROCK"
+    sim.clearLog()
+    sim.click(1150, 40)
+    check(not sim.logged("START refused"), "another ship starts as usual")
+
+    shipConnect({ "Rock Cruiser Key", "Kestrel Cruiser Key" }, { kestrel_locked = true })
+    sim.hangarShip = "PLAYER_SHIP_HARD"
+    sim.clearLog()
+    sim.click(1150, 40)
+    check(not sim.logged("START refused"), "with its key the Kestrel starts")
+    sim.hangarOpen = false
+    sim.hangarShip = nil
+    shipDone()
+end)
+
+test("kestrel key: a Kestrel run without its key says it does not count for as long as it lasts", function()
+    shipConnect({ "Rock Cruiser Key" }, { kestrel_locked = true })
+    startRunWith("PLAYER_SHIP_HARD")
+    sim.tick(1)
+    sim.renderGui()
+    check(sim.drawnText(apT("run.refused.no_key")), "a banner says the run does not count")
+    sim.tick(600)
+    sim.renderGui()
+    check(sim.drawnText(apT("run.refused.no_key")), "still there ten seconds later")
+    shipDone()
+    shipConnect({ "Rock Cruiser Key" }, { kestrel_locked = true })
+    startRunWith("PLAYER_SHIP_ROCK")
+    sim.tick(1)
+    sim.renderGui()
+    check(not sim.drawnText(apT("run.refused.no_key")), "a run that counts has no banner")
+    shipDone()
+end)
+
 test("in logic: after a reconnection, the items received before still count", function()
     local logic = { layouts = { PLAYER_SHIP_ROCK = { "Rock Cruiser Key" } },
                     checks = { ["PLAYER_SHIP_ROCK:sector:3"] = { ways = { { l = "PLAYER_SHIP_ROCK", i = {} } }, bp = 0, pass = 0 } },

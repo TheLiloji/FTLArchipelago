@@ -465,6 +465,10 @@
     "deathlink.turned_on": "DeathLink activado.",
     "deathlink.turned_off": "DeathLink desactivado.",
     "dash.links.death_off": "DeathLink: desactivado",
-    "dash.links.toggle": "Haz clic para activar o desactivar DeathLink."
+    "dash.links.toggle": "Haz clic para activar o desactivar DeathLink.",
+    "hangar.needs_key": "SIN LLAVE",
+    "hangar.kestrel_locked": "Kestrel A: aún no tienes la llave. Elige otra nave.",
+    "run.refused.no_key": "SIN LLAVE: ESTA PARTIDA NO CUENTA",
+    "run.refused.not_in_seed": "FUERA DE LA SEED: ESTA PARTIDA NO CUENTA"
   }
 }

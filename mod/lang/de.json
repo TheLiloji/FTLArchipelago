@@ -465,6 +465,10 @@
     "deathlink.turned_on": "DeathLink an.",
     "deathlink.turned_off": "DeathLink aus.",
     "dash.links.death_off": "DeathLink: aus",
-    "dash.links.toggle": "Klicken, um DeathLink ein- oder auszuschalten."
+    "dash.links.toggle": "Klicken, um DeathLink ein- oder auszuschalten.",
+    "hangar.needs_key": "KEIN SCHLÜSSEL",
+    "hangar.kestrel_locked": "Kestrel A: noch kein Schlüssel. Wähle ein anderes Schiff.",
+    "run.refused.no_key": "KEIN SCHLÜSSEL: DIESER DURCHLAUF ZÄHLT NICHT",
+    "run.refused.not_in_seed": "NICHT IM SEED: DIESER DURCHLAUF ZÄHLT NICHT"
   }
 }

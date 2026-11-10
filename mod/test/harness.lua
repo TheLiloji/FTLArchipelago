@@ -480,6 +480,7 @@ local function resetWorld()
             return locked
         end,
         AchievementStatus = function(_, name) return sim.achievements[name] or -1 end,
+        HangarShip = function() return sim.hangarOpen and (sim.hangarShip or "PLAYER_SHIP_HARD") or "" end,
         SetGame = function(_, game) sim.net.game = game end,
         HideBeaconLabel = function(_, name, hidden)
             sim.hiddenBeacons = sim.hiddenBeacons or {}
