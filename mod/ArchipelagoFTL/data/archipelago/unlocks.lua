@@ -125,6 +125,7 @@ end
 -- it is locked and refuses START while it is the ship shown.
 function apKestrelBlocked(layout)
     return layout == "PLAYER_SHIP_HARD" and _G.apSeedKestrelLocked ~= nil and apSeedKestrelLocked()
+        and _G.apLayoutInSeed ~= nil and apLayoutInSeed(layout)
         and _G.apShipReceived ~= nil and _G.apInventorySynced ~= nil and apInventorySynced()
         and apShipReceived(layout) ~= "ok"
 end
