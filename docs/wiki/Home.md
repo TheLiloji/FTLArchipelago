@@ -189,7 +189,7 @@ AP STORE in the secret sectors too. A ship that starts without Oxygen gets it of
 
 Install Hyperspace, the two Multiverse zips (Assets, then Data), then `FTLArchipelago-MV.ftl` last in ftlman, and put
 `ftl_mv.apworld` in `custom_worlds`. More in the
-[Multiverse page](https://github.com/TheLiloji/FTLArchipelago/blob/mv-next/docs/wiki/Multiverse.md).
+[Multiverse page](Multiverse.md).
 
 ## How this mod is made
 
