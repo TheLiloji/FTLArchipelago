@@ -746,6 +746,17 @@ test("kestrel key: the hangar opens on the starting ship, RANDOM SHIP draws amon
     sim.renderMenu()
     equals(sim.hangarShip, "PLAYER_SHIP_HARD", "only when the hangar opens: the player may still look at it")
 
+    -- Back from a run: the menu is not drawn during the run, and the hangar shows its ship a few frames late.
+    sim.hangarOpen = false
+    sim.renderGui()
+    sim.hangarOpen = true
+    sim.hangarShip = ""
+    sim.renderMenu()
+    sim.renderMenu()
+    sim.hangarShip = "PLAYER_SHIP_HARD"
+    sim.renderMenu()
+    equals(sim.hangarShip, "PLAYER_SHIP_ROCK", "back from a run, on the starting ship too")
+
     local seen = {}
     for _ = 1, 30 do
         sim.click(95, 194)

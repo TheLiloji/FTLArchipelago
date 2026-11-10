@@ -149,15 +149,26 @@ local playableLayouts
 local openOnPlayableShip
 -- A seed that locks the Kestrel opens the hangar on its starting ship instead of the locked Kestrel.
 local hangarWasOpen = false
+local openingFrames = 0
 
 openOnPlayableShip = function()
     local ok, open = pcall(function() return Hyperspace.App.menu.shipBuilder.bOpen == true end)
     open = ok and open
-    local opened = open and not hangarWasOpen
+    if open and not hangarWasOpen then
+        -- Back from a run, the hangar shows the previous ship for a moment before FTL puts the Kestrel back:
+        -- watch the first seconds, not only the first frame.
+        openingFrames = 180
+    end
     hangarWasOpen = open
-    if not opened or not _G.apNetHangarShip or not apKestrelBlocked(apNetHangarShip()) then
+    if not open or openingFrames <= 0 or not _G.apNetHangarShip then
         return
     end
+    openingFrames = openingFrames - 1
+    local shown = apNetHangarShip()
+    if shown == nil or shown == "" or not apKestrelBlocked(shown) then
+        return
+    end
+    openingFrames = 0
     local target = playableLayouts()[1]
     if target and _G.apNetSwitchHangarShip and apNetSwitchHangarShip(target) then
         unlockLog("hangar opened on " .. target .. " instead of the Kestrel A without its key")
@@ -277,6 +288,12 @@ script.on_render_event(Defines.RenderEvents.MAIN_MENU, function() end, function(
     if not drawn then
         unlockLog("hangar lock not drawn: " .. tostring(err))
     end
+end)
+
+-- The menu is not drawn during a run: the hangar seen before it would otherwise still count as open on the
+-- way back, and the hangar would stay on the Kestrel.
+script.on_render_event(Defines.RenderEvents.GUI_CONTAINER, function() end, function()
+    hangarWasOpen = false
 end)
 
 script.on_internal_event(Defines.InternalEvents.ON_MOUSE_L_BUTTON_DOWN, function(x, y)
