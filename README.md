@@ -36,7 +36,7 @@ run only costs the run.
 | | |
 |---|---|
 | ![Locked ships in the hangar](docs/images/hangar.jpg) | ![The start-of-run menu](docs/images/start-menu.jpg) |
-| ![The Archipelago shop](docs/images/shop.jpg) | ![The dashboard on TAB](docs/images/dashboard-links.jpg) |
+| ![The Archipelago shop](docs/images/shop.jpg) | ![AP STORE and Archipelago beacons on the map](docs/images/map.jpg) |
 
 ## New in 0.6
 
@@ -46,8 +46,6 @@ run only costs the run.
 - **Sector Skip, Sector Locks, Flagship Sabotage** and more options to change how a run feels.
 - **The dashboard knows the logic**: a blue line marks what you can already do.
 - A **solo preset**, and **Multiverse** is now its own game.
-
-![Blood pacts in the Archipelago shop](docs/images/blood-pacts.jpg)
 
 All the details in the [release notes](https://github.com/TheLiloji/FTLArchipelago/releases/tag/v0.6.0).
 
@@ -74,6 +72,8 @@ glance:
 Every sector has an **AP STORE** that sells packages for the other players, plus deals and blood pacts: scrap now,
 a trap or a dead crew member later. Other beacons hold Archipelago events: pirates holding a package, a Slug
 selling real hints, an Engi who bets he can overclock your reactor, a rare arms dealer.
+
+![Blood pacts in the Archipelago shop](docs/images/blood-pacts.jpg)
 
 | | |
 |---|---|
@@ -122,8 +122,8 @@ AP STORE in the secret sectors too. A ship that starts without Oxygen gets it of
 
 | | |
 |---|---|
-| ![Multiverse main menu](docs/images/mv-main-menu.jpg) | ![AP STORE and Archipelago beacons on a Multiverse map](docs/images/mv-sector-map.jpg) |
-| ![Magic Hat destinations](docs/images/mv-magic-hat-secret.jpg) | ![Multiverse ships on the dashboard](docs/images/mv-ships.jpg) |
+| ![AP STORE and Archipelago beacons on a Multiverse map](docs/images/mv-sector-map.jpg) | ![Magic Hat destinations](docs/images/mv-magic-hat-secret.jpg) |
+| ![The eighteen Multiverse races on the dashboard](docs/images/dashboard-first-crew-mv.png) | ![Multiverse ships on the dashboard](docs/images/mv-ships.jpg) |
 
 Install Hyperspace, the two Multiverse zips (Assets, then Data), then `FTLArchipelago-MV.ftl` last in ftlman, and put
 `ftl_mv.apworld` in `custom_worlds`. More in the
