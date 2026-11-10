@@ -97,6 +97,8 @@ public:
     int AchievementStatus(const std::string& name) const;
     // The ship shown in the hangar, by blueprint name ("" outside the hangar).
     std::string HangarShip() const;
+    // Shows that ship in the hangar instead (false outside the hangar or for an unknown ship).
+    bool SwitchHangarShip(const std::string& blueprint);
     // Hides (or shows again) the map label an event's beaconType gives it. False when no such event.
     bool HideBeaconLabel(const std::string& eventName, bool hidden);
 

@@ -139,6 +139,29 @@ std::string Client::HangarShip() const
     return builder.currentShip->myBlueprint.blueprintName;
 }
 
+// Shows another ship in the hangar, as FTL's arrows or Hyperspace's list would: base ships by their id,
+// custom ones through Hyperspace's list (id + 100).
+bool Client::SwitchHangarShip(const std::string& blueprint)
+{
+    CApp* app = G_->GetCApp();
+    if (app == nullptr || blueprint.empty()) return false;
+    ShipBuilder& builder = app->menu.shipBuilder;
+    if (!builder.bOpen || builder.currentShip == nullptr) return false;
+    std::pair<int, int> id = vanillaIdAndVariant(blueprint);
+    if (id.first >= 0 && id.first < 100) {
+        builder.SwitchShip(id.first, id.second);
+        return true;
+    }
+    std::string base = blueprint;
+    if (id.second > 0) base = base.substr(0, base.size() - 2);
+    CustomShipSelect* list = CustomShipSelect::GetInstance();
+    int custom = list->GetShipButtonIdFromName(base);
+    if (custom < 0) return false;
+    builder.currentShip->destructor2();
+    list->SwitchShip(&builder, custom + 100, id.second, true);
+    return true;
+}
+
 int Client::AchievementStatus(const std::string& name) const
 {
     AchievementTracker* tracker = G_->GetAchievementTracker();

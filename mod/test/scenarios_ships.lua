@@ -748,8 +748,10 @@ end)
 test("kestrel key: in the hangar the Kestrel A without its key is marked and START is refused", function()
     shipConnect({ "Rock Cruiser Key" }, { kestrel_locked = true })
     sim.hangarOpen = true
-    sim.hangarShip = "PLAYER_SHIP_HARD"
     sim.shipList.open = false
+    sim.renderMenu()
+    -- The hangar opens on the starting ship; the player then goes back to the Kestrel.
+    sim.hangarShip = "PLAYER_SHIP_HARD"
     sim.renderMenu()
     check(sim.drawnText(apT("hangar.needs_key")), "the hangar says the key is missing")
     sim.click(1150, 40)
@@ -794,6 +796,39 @@ test("kestrel key: a Kestrel run without its key says it does not count for as l
     sim.tick(1)
     sim.renderGui()
     check(not sim.drawnText(apT("run.refused.no_key")), "a run that counts has no banner")
+    shipDone()
+end)
+
+test("kestrel key: the hangar opens on the starting ship, RANDOM SHIP draws among the ships received", function()
+    shipConnect({ "Rock Cruiser Key", "Engi Cruiser Key" },
+        { kestrel_locked = true, start_ship = "PLAYER_SHIP_ROCK" })
+    sim.shipList.open = false
+    sim.hangarOpen = false
+    sim.renderMenu()
+    sim.hangarOpen = true
+    sim.hangarShip = "PLAYER_SHIP_HARD"
+    sim.renderMenu()
+    equals(sim.hangarShip, "PLAYER_SHIP_ROCK", "not on the Kestrel without its key")
+    sim.hangarShip = "PLAYER_SHIP_HARD"
+    sim.renderMenu()
+    equals(sim.hangarShip, "PLAYER_SHIP_HARD", "only when the hangar opens: the player may still look at it")
+
+    local seen = {}
+    for _ = 1, 30 do
+        sim.click(95, 194)
+        seen[sim.hangarShip] = true
+    end
+    check(seen.PLAYER_SHIP_ROCK and seen.PLAYER_SHIP_CIRCLE, "both ships received come up")
+    check(not seen.PLAYER_SHIP_HARD, "never the Kestrel without its key")
+
+    sim.hangarShip = "PLAYER_SHIP_HARD"
+    sim.click(1150, 40)
+    sim.renderMenu()
+    local words = {}
+    for word in apT("hangar.kestrel_locked"):gmatch("%S+") do words[#words + 1] = word end
+    check(sim.drawnText(words[#words]), "the refusal is drawn whole, down to its last word")
+    sim.hangarOpen = false
+    sim.hangarShip = nil
     shipDone()
 end)
 

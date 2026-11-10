@@ -645,7 +645,9 @@ test("hangar: the ship list marks the layouts the seed leaves out", function()
     sim.shipList = { open = true, page = 0, variant = 0 }
     sim.openedList = 2
     sim.renderMenu()
-    equals(count(), 0, "first opening: nothing over FTL's help")
+    equals(count(), 3, "first opening: the marks outside FTL's help, in the left and right columns")
+    check(not marked(751, 338), "none over the help itself")
+    check(marked(956, 161), "the right column keeps its marks")
     sim.shipList.open = false
     sim.renderMenu()
     sim.shipList.open = true
