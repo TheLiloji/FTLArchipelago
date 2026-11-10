@@ -1146,6 +1146,11 @@ function apNetHangarShip()
     return moduleCall("HangarShip")
 end
 
+-- Shows another ship in the hangar (its blueprint name), as the arrows would. Nil with an older library.
+function apNetSwitchHangarShip(blueprint)
+    return moduleCall("SwitchHangarShip", tostring(blueprint))
+end
+
 -- The system clipboard's first line, "" when empty or when the module cannot read it.
 function apNetClipboard()
     local text = moduleCall("Clipboard")

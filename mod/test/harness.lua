@@ -474,6 +474,11 @@ local function resetWorld()
         end,
         AchievementStatus = function(_, name) return sim.achievements[name] or -1 end,
         HangarShip = function() return sim.hangarOpen and (sim.hangarShip or "PLAYER_SHIP_HARD") or "" end,
+        SwitchHangarShip = function(_, blueprint)
+            if not sim.hangarOpen then return false end
+            sim.hangarShip = blueprint
+            return true
+        end,
         SetGame = function(_, game) sim.net.game = game end,
         HideBeaconLabel = function(_, name, hidden)
             sim.hiddenBeacons = sim.hiddenBeacons or {}
