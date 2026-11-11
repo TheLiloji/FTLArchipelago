@@ -589,6 +589,7 @@ test("Multiverse: a start without the wiping event is not held back past the fir
     apQueueItem({ kind = "filler", res = "scrap", n = 20, display = "20 Scrap" })
     sim.tick(240)
     equals(sim.player.currentScrap, 0, "held back at the start beacon")
+    check(shownKey("item.wait_first_jump", { n = 1 }), "and the player is told the items wait for the first jump")
     sim.jumpArrive()
     sim.tick(240)
     equals(sim.player.currentScrap, 20, "given after the first jump")
