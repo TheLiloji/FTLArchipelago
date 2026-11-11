@@ -4479,6 +4479,24 @@ test("quitting a run to the menu is a run end, not a death", function()
     sim.started = true
 end)
 
+test("a major incident never breaches life support: no suffocation, no DeathLink sent back (Windows, 11/11)", function()
+    apDeathLinkConfigure({ enabled = true, effect = "major_incident" })
+    sim.startRun(true)
+    local oxygen
+    for i = 0, sim.player.vSystemList:size() - 1 do
+        local system = sim.player.vSystemList[i]
+        if system.name == "oxygen" then oxygen = system end
+    end
+    for _ = 1, 40 do
+        local before = oxygen.healthState.first
+        apDeathLinkReceive("Berserker", "died")
+        equals(oxygen.healthState.first, before, "the oxygen system is never the one hit")
+        oxygen.healthState.first = 2
+    end
+    check(not sim.shown(apT("deathlink.effect.major", { system = apSystemLabel("oxygen") })),
+        "and never named as the incident's room")
+end)
+
 test("a DeathLink with nothing left to break says so, instead of staying silent", function()
     apDeathLinkConfigure({ enabled = true, effect = "major_incident" })
     sim.startRun(true)

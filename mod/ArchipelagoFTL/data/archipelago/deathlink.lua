@@ -197,12 +197,16 @@ end
 
 local EFFECTS = {}
 
+-- A breach and a fire in life support suffocate the crew: the run is lost and sends its own DeathLink back, and
+-- the deaths bounce between players. The incident hits the other systems only.
+local LIFE_SUPPORT = { oxygen = true, medbay = true, clonebay = true }
+
 EFFECTS.major_incident = function(player)
     local candidates = {}
     local systems = player.vSystemList
     for i = 0, systems:size() - 1 do
         local system = systems[i]
-        if system ~= nil and system.healthState.first > 0 then
+        if system ~= nil and system.healthState.first > 0 and not LIFE_SUPPORT[tostring(system.name)] then
             candidates[#candidates + 1] = system
         end
     end
