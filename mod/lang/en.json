@@ -466,6 +466,7 @@
     "hangar.needs_key": "NO KEY",
     "hangar.kestrel_locked": "Kestrel A: no key yet. Pick another ship.",
     "run.refused.no_key": "NO KEY: THIS RUN DOES NOT COUNT",
-    "run.refused.not_in_seed": "NOT IN SEED: THIS RUN DOES NOT COUNT"
+    "run.refused.not_in_seed": "NOT IN SEED: THIS RUN DOES NOT COUNT",
+    "net.error.unreachable.lost": "The server still does not answer. Your checks are kept and go out as soon as it is back."
   }
 }

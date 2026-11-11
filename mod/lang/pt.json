@@ -466,6 +466,7 @@
     "hangar.needs_key": "SEM CHAVE",
     "hangar.kestrel_locked": "Kestrel A: ainda sem chave. Escolha outra nave.",
     "run.refused.no_key": "SEM CHAVE: ESTA PARTIDA NÃO CONTA",
-    "run.refused.not_in_seed": "FORA DA SEED: ESTA PARTIDA NÃO CONTA"
+    "run.refused.not_in_seed": "FORA DA SEED: ESTA PARTIDA NÃO CONTA",
+    "net.error.unreachable.lost": "O servidor continua sem responder. Os seus checks ficam guardados e são enviados assim que ele voltar."
   }
 }

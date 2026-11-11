@@ -27,6 +27,7 @@ _G.apNetState = state
 function apNetResetForTesting()
     state.connecting = false
     state.connected = false
+    state.everConnected = false
     state.lastConnection = nil
     state.retries = 0
     state.retryAt = nil
@@ -181,7 +182,8 @@ local function announceIfStillUnreachable()
     state.unreachableShown = true
     netLog("server still unreachable, the player has been warned")
     if _G.apNotifyStatus then
-        _G.apNotifyStatus(apT("net.error.unreachable"))
+        -- After a link that worked, the address is not the problem: say what happens to the checks instead.
+        _G.apNotifyStatus(apT(state.everConnected and "net.error.unreachable.lost" or "net.error.unreachable"))
     end
 end
 
@@ -564,6 +566,7 @@ end
 local function onConnected(event)
     local wasRetrying = state.retries > 0
     state.connected = true
+    state.everConnected = true
     state.connecting = false
     state.retries = 0
     state.retryAt = nil

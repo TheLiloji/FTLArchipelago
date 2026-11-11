@@ -888,6 +888,27 @@ test("network: the first encrypted attempt failing does not make a responding se
         "apclientpp tries wss then ws: this first failure is not an outage")
 end)
 
+test("network: a server that worked then goes silent mid-run is not blamed on the address", function()
+    sim.startRun(true)
+    apNetResetForTesting()
+    apNetConnect("localhost:38281", "Navigator", "")
+    sim.netEvent("connected", { name = "Navigator", extra = slotData({ seed_hash = "LOST" }) })
+    sim.net.connected = true
+    sim.tick(10)
+    sim.netEvent("disconnected", {})
+    sim.net.connected = false
+    sim.netEvent("error", { name = "unreachable", extra = "Connection refused" })
+    sim.tick(400)
+    check(shownKey("net.error.unreachable.lost"), "the player is told the checks wait")
+    check(not shownKey("net.error.unreachable"), "not to check an address that worked")
+
+    apNetResetForTesting()
+    apNetConnect("localhost:38281", "Navigator", "")
+    sim.netEvent("error", { name = "unreachable", extra = "Connection refused" })
+    sim.tick(400)
+    check(shownKey("net.error.unreachable"), "a server never reached still asks to check the address")
+end)
+
 test("contract: seeds from contracts 1 to 3 are accepted, contract 4 is refused", function()
     for _, case in ipairs({ { 1, true }, { 2, true }, { 3, true }, { 4, false } }) do
         apContractResetForTesting()

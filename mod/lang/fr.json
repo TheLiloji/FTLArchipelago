@@ -465,6 +465,7 @@
     "hangar.needs_key": "PAS DE CLÉ",
     "hangar.kestrel_locked": "Kestrel A : pas encore de clé. Choisis un autre vaisseau.",
     "run.refused.no_key": "PAS DE CLÉ : CETTE PARTIE NE COMPTE PAS",
-    "run.refused.not_in_seed": "HORS SEED : CETTE PARTIE NE COMPTE PAS"
+    "run.refused.not_in_seed": "HORS SEED : CETTE PARTIE NE COMPTE PAS",
+    "net.error.unreachable.lost": "Le serveur ne répond toujours pas. Vos checks sont gardés et partiront dès son retour."
   }
 }

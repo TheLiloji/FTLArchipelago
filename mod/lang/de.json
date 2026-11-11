@@ -466,6 +466,7 @@
     "hangar.needs_key": "KEIN SCHLÜSSEL",
     "hangar.kestrel_locked": "Kestrel A: noch kein Schlüssel. Wähle ein anderes Schiff.",
     "run.refused.no_key": "KEIN SCHLÜSSEL: DIESER DURCHLAUF ZÄHLT NICHT",
-    "run.refused.not_in_seed": "NICHT IM SEED: DIESER DURCHLAUF ZÄHLT NICHT"
+    "run.refused.not_in_seed": "NICHT IM SEED: DIESER DURCHLAUF ZÄHLT NICHT",
+    "net.error.unreachable.lost": "Der Server antwortet weiterhin nicht. Deine Checks bleiben gespeichert und werden gesendet, sobald er zurück ist."
   }
 }
