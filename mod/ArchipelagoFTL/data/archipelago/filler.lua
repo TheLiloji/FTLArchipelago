@@ -8,6 +8,9 @@ local pending = {}
 
 local toldCrewFull = false
 
+-- Resources whose delivery waits (a full crew): logged once, until one goes through.
+local deferredLogged = {}
+
 local RESOURCE_DELIVERY = {
     scrap = function(player, n)
         player:ModifyScrapCount(n, false)
@@ -33,7 +36,10 @@ local RESOURCE_DELIVERY = {
         local added = 0
         for _ = 1, n do
             if player:IsCrewFull() then
-                fillerLog("crew full: " .. (n - added) .. " crew member(s) not delivered")
+                -- Retried at every delivery pass: the log says it once, not every few seconds.
+                if not deferredLogged.crew then
+                    fillerLog("crew full: " .. (n - added) .. " crew member(s) not delivered")
+                end
                 -- Tried again at every delivery pass: said for the first try only.
                 if added == 0 and not toldCrewFull and _G.apNotifyStatus then
                     toldCrewFull = true
@@ -482,9 +488,13 @@ local function deliverOne(descriptor)
         end
         local key, params = deliver(player, amount)
         if key == nil then
-            fillerLog("delivery deferred: " .. tostring(descriptor.res))
+            if not deferredLogged[descriptor.res] then
+                deferredLogged[descriptor.res] = true
+                fillerLog("delivery deferred: " .. tostring(descriptor.res) .. " (said once until it goes through)")
+            end
             return false, "retry"
         end
+        deferredLogged[descriptor.res] = nil
         fillerLog("delivered: " .. key)
         if _G.apNotifyItem then
             _G.apNotifyItem(descriptor.display or apT(key, params), descriptor.sender,
