@@ -333,15 +333,15 @@ function apDeathLinkReceive(source, cause)
     if key == nil then
         deathLog("no effect applicable for the death of " .. tostring(source))
         if _G.apNotifyTrap then
-            _G.apNotifyTrap(apT("deathlink.fizzled"))
+            (_G.apNotifyAlert or _G.apNotifyTrap)(apT("deathlink.fizzled"))
         end
         return false
     end
 
     deathLog(string.format("death received from %s (%s) -> %s", tostring(source), tostring(cause), key))
-    if _G.apNotifyTrap then
+    if _G.apNotifyAlert then
         local who = (source and source ~= "") and source or apT("deathlink.someone")
-        _G.apNotifyTrap(apT("deathlink.received",
+        _G.apNotifyAlert(apT("deathlink.received",
                             { who = who, effect = apT(key, params) }))
     end
     return true

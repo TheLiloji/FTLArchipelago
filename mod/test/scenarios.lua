@@ -2994,6 +2994,8 @@ test("network: a received death reaches DeathLink with its sender and cause", fu
     sim.tick(1)
     check(sim.logged("death received from Nina (hull breach)"),
         "the sender is the sender, the cause is the cause")
+    check(sim.shown("Nina"), "the player is told who died")
+    check(not sim.shown(apT("trap.sprung", { what = "" })), "a death from another world is not called a trap")
 end)
 
 test("network: a received trap reaches TrapLink with its sender and name", function()

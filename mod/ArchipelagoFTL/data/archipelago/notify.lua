@@ -229,6 +229,12 @@ function apNotifyTrap(description)
     push(line, "bad")
 end
 
+-- A blow from another world that is not a trap (a DeathLink): red like a trap, without the "Trap:" word.
+function apNotifyAlert(description)
+    print(description)
+    push(description, "bad")
+end
+
 function apNotifyStatus(message)
     print(apT("status.prefix", { message = message }))
     push(message, "title")
