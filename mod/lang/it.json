@@ -469,6 +469,8 @@
     "trap.fire.system": "Incendio nella sala {system}. Nessuno l'ha acceso.",
     "trap.fire.aboard": "Incendio a bordo. Nessuno l'ha acceso.",
     "trap.boarding.system": "Qualcosa è salito a bordo, stanza {system}. La camera di equilibrio non si è mai aperta.",
-    "trap.boarding.aboard": "Qualcosa è salito a bordo. La camera di equilibrio non si è mai aperta."
+    "trap.boarding.aboard": "Qualcosa è salito a bordo. La camera di equilibrio non si è mai aperta.",
+    "hangar.refused.out_of_seed": "{ship}: non è in questo seed. Scegli un'altra nave.",
+    "hangar.refused.not_received": "{ship}: non ancora ricevuta. Scegli un'altra nave."
   }
 }

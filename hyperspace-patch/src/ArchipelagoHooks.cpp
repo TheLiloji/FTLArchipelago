@@ -139,6 +139,22 @@ std::string Client::HangarShip() const
     return builder.currentShip->myBlueprint.blueprintName;
 }
 
+// Which hangar button the mouse is over ("start", "left", "right", "random", "list", or ""): the buttons move
+// with the language, so Lua asks the game instead of guessing where they are.
+std::string Client::HangarHover() const
+{
+    CApp* app = G_->GetCApp();
+    if (app == nullptr) return std::string();
+    const ShipBuilder& builder = app->menu.shipBuilder;
+    if (!builder.bOpen) return std::string();
+    if (builder.startButton.bHover) return "start";
+    if (builder.leftButton.bHover) return "left";
+    if (builder.rightButton.bHover) return "right";
+    if (builder.randomButton.bHover) return "random";
+    if (builder.listButton.bHover) return "list";
+    return std::string();
+}
+
 // Shows another ship in the hangar, as FTL's arrows or Hyperspace's list would: base ships by their id,
 // custom ones through Hyperspace's list (id + 100).
 bool Client::SwitchHangarShip(const std::string& blueprint)

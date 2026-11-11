@@ -469,6 +469,8 @@
     "trap.fire.system": "Incendio en la sala {system}. Nadie lo provocó.",
     "trap.fire.aboard": "Incendio a bordo. Nadie lo provocó.",
     "trap.boarding.system": "Algo entró a bordo, sala {system}. La esclusa nunca se abrió.",
-    "trap.boarding.aboard": "Algo entró a bordo. La esclusa nunca se abrió."
+    "trap.boarding.aboard": "Algo entró a bordo. La esclusa nunca se abrió.",
+    "hangar.refused.out_of_seed": "{ship}: no está en esta seed. Elige otra nave.",
+    "hangar.refused.not_received": "{ship}: aún no recibida. Elige otra nave."
   }
 }

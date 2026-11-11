@@ -60,6 +60,7 @@
 %rename("%s") ArchipelagoFTL::Client::AchievementStatus;
 %rename("%s") ArchipelagoFTL::Client::HangarShip;
 %rename("%s") ArchipelagoFTL::Client::SwitchHangarShip;
+%rename("%s") ArchipelagoFTL::Client::HangarHover;
 %rename("%s") ArchipelagoFTL::Client::HideBeaconLabel;
 %rename("%s") ArchipelagoFTL::Client::SetGame;
 

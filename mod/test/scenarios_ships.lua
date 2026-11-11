@@ -697,12 +697,29 @@ test("kestrel key: in the hangar the Kestrel A without its key is marked and STA
     sim.click(1150, 40)
     check(not sim.logged("START refused"), "another ship starts as usual")
 
-    -- A seed without the Kestrel says NOT IN SEED instead (a Multiverse seed, whose Kestrel is another ship).
+    -- A seed without the Kestrel says NOT IN SEED instead, and refuses START just the same (Windows, b01).
     shipConnect({ "Rock Cruiser Key" }, { kestrel_locked = true, layouts = { "PLAYER_SHIP_ROCK" } })
     sim.hangarShip = "PLAYER_SHIP_HARD"
     sim.clearLog()
+    sim.renderMenu()
+    check(sim.drawnText(apT("hangar.out_of_seed")), "START says NOT IN SEED, not NO KEY")
+    check(not sim.drawnText(apT("hangar.needs_key")), "it is not called keyless")
     sim.click(1150, 40)
-    check(not sim.logged("START refused"), "a Kestrel out of the seed is not called keyless")
+    check(sim.logged("START refused: PLAYER_SHIP_HARD (out_of_seed)"), "and a run with it is refused")
+
+    -- The buttons move with the language: the game says which one is under the mouse (French panel).
+    sim.hangarShip = "PLAYER_SHIP_ROCK"
+    sim.clearLog()
+    sim.hangarHover = "list"
+    sim.click(133, 159)
+    equals(sim.hangarShip, "PLAYER_SHIP_ROCK", "LIST at the English arrow's place does not step")
+    sim.hangarHover = "right"
+    sim.click(183, 159)
+    equals(sim.hangarShip, "PLAYER_SHIP_HARD", "the French > steps where the game says it is")
+    sim.hangarHover = "start"
+    sim.click(600, 600)
+    check(sim.logged("START refused"), "START is the button the game names, wherever it is drawn")
+    sim.hangarHover = nil
 
     shipConnect({ "Rock Cruiser Key", "Kestrel Cruiser Key" }, { kestrel_locked = true })
     sim.hangarShip = "PLAYER_SHIP_HARD"
