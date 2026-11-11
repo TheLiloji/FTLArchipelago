@@ -34,14 +34,14 @@
     "check.sent.item.self": "Check enviado: {location}. {item} es para ti.",
     "check.sent.many": "{n} checks enviados.",
     "check.victory.unknown_ship": "¡Victoria! Pero no se reconoció la nave y no se envió el check. Revisa FTL_HS.log.",
-    "connect.auto": "Conectarse automáticamente al iniciar",
+    "connect.auto": "Conexión auto al iniciar",
     "connect.button": "Conectar",
     "connect.disconnect": "Desconectar",
     "connect.field.address": "Dirección",
     "connect.field.password": "Contraseña",
     "connect.field.port": "Puerto",
     "connect.field.slot": "Nombre de slot",
-    "connect.keys": "TAB: siguiente campo. ENTER: conectar. Ctrl+V: pegar. Durante la partida: TAB abre el panel.",
+    "connect.keys": "TAB: siguiente campo. ENTER: conectar. Ctrl+V: pegar la dirección copiada de la página de la sala. Durante la partida, TAB abre el panel.",
     "connect.keys.run": "Durante la partida: TAB abre el panel.",
     "connect.need_slot": "Ingresa el nombre de tu slot.",
     "connect.no_module": "Falta el módulo de red: esta versión de Hyperspace no puede conectarse. El botón Modo solo permite jugar sin conexión.",
@@ -407,7 +407,6 @@
     "dash.crew.done": "A bordo",
     "dash.crew.waiting": "Aún sin conocer",
     "connect.button.busy": "Conectando...",
-    "connect.paste_hint": "Copia la dirección de la página de tu sala y pulsa Ctrl+V en un campo para pegarla.",
     "connect.paste_empty": "Nada que pegar: el portapapeles está vacío.",
     "connect.paste_empty.linux": "Portapapeles vacío o ilegible: en Linux, instala wl-clipboard o xclip.",
     "check.label.sector_fight": "Combate {n} del sector {sector} ganado con {ship}",
@@ -469,6 +468,7 @@
     "hangar.needs_key": "SIN LLAVE",
     "hangar.kestrel_locked": "Kestrel A: aún no tienes la llave. Elige otra nave.",
     "run.refused.no_key": "SIN LLAVE: ESTA PARTIDA NO CUENTA",
-    "run.refused.not_in_seed": "FUERA DE LA SEED: ESTA PARTIDA NO CUENTA"
+    "run.refused.not_in_seed": "FUERA DE LA SEED: ESTA PARTIDA NO CUENTA",
+    "net.error.unreachable.lost": "El servidor sigue sin responder. Tus checks se guardan y se enviarán en cuanto vuelva."
   }
 }

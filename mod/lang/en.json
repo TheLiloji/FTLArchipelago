@@ -41,7 +41,7 @@
     "connect.field.password": "Password",
     "connect.field.port": "Port",
     "connect.field.slot": "Slot name",
-    "connect.keys": "TAB next field, ENTER connect, Ctrl+V paste. In game: TAB dashboard.",
+    "connect.keys": "TAB: next field. ENTER: connect. Ctrl+V: paste the address copied from your room page. In a run, TAB opens the dashboard.",
     "connect.keys.run": "In game: TAB dashboard.",
     "connect.need_slot": "Enter your slot name.",
     "connect.no_module": "The network module is missing: this Hyperspace cannot connect. The Solo mode button plays offline.",
@@ -407,7 +407,6 @@
     "dash.crew.done": "Aboard",
     "dash.crew.waiting": "Not met yet",
     "connect.button.busy": "Connecting...",
-    "connect.paste_hint": "Copy the address from your room page, then press Ctrl+V in a field to paste it.",
     "connect.paste_empty": "Nothing to paste: the clipboard is empty.",
     "connect.paste_empty.linux": "Clipboard empty or unreadable: on Linux, install wl-clipboard or xclip.",
     "check.label.sector_fight": "Sector {sector} fight {n} won with {ship}",
@@ -469,6 +468,7 @@
     "hangar.needs_key": "NO KEY",
     "hangar.kestrel_locked": "Kestrel A: no key yet. Pick another ship.",
     "run.refused.no_key": "NO KEY: THIS RUN DOES NOT COUNT",
-    "run.refused.not_in_seed": "NOT IN SEED: THIS RUN DOES NOT COUNT"
+    "run.refused.not_in_seed": "NOT IN SEED: THIS RUN DOES NOT COUNT",
+    "net.error.unreachable.lost": "The server still does not answer. Your checks are kept and go out as soon as it is back."
   }
 }

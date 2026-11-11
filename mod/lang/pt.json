@@ -34,14 +34,14 @@
     "check.sent.item.self": "Check enviado: {location}. {item} é para ti.",
     "check.sent.many": "{n} checks enviados.",
     "check.victory.unknown_ship": "Vitória! Mas a nave não foi reconhecida e o check não saiu. Vê FTL_HS.log.",
-    "connect.auto": "Ligar automaticamente ao iniciar",
+    "connect.auto": "Ligar auto ao iniciar",
     "connect.button": "Ligar",
     "connect.disconnect": "Desconectar",
     "connect.field.address": "Endereço",
     "connect.field.password": "Palavra-passe",
     "connect.field.port": "Porta",
     "connect.field.slot": "Nome do slot",
-    "connect.keys": "TAB campo seguinte, ENTER ligar, Ctrl+V colar. Em jogo: TAB painel.",
+    "connect.keys": "TAB: campo seguinte. ENTER: ligar. Ctrl+V: colar o endereço copiado da página da sala. Em jogo, TAB abre o painel.",
     "connect.keys.run": "Em jogo: TAB painel.",
     "connect.need_slot": "Indique o seu nome de slot.",
     "connect.no_module": "Falta o módulo de rede: este Hyperspace não pode ligar-se. O botão Modo solo joga sem ligação.",
@@ -407,7 +407,6 @@
     "dash.crew.done": "A bordo",
     "dash.crew.waiting": "Ainda não encontrado",
     "connect.button.busy": "A ligar...",
-    "connect.paste_hint": "Copie o endereço da página da sua sala e prima Ctrl+V num campo para o colar.",
     "connect.paste_empty": "Nada para colar: a área de transferência está vazia.",
     "connect.paste_empty.linux": "Área de transferência vazia ou ilegível: no Linux, instale wl-clipboard ou xclip.",
     "check.label.sector_fight": "Combate {n} do setor {sector} vencido com {ship}",
@@ -469,6 +468,7 @@
     "hangar.needs_key": "SEM CHAVE",
     "hangar.kestrel_locked": "Kestrel A: ainda sem chave. Escolha outra nave.",
     "run.refused.no_key": "SEM CHAVE: ESTA PARTIDA NÃO CONTA",
-    "run.refused.not_in_seed": "FORA DA SEED: ESTA PARTIDA NÃO CONTA"
+    "run.refused.not_in_seed": "FORA DA SEED: ESTA PARTIDA NÃO CONTA",
+    "net.error.unreachable.lost": "O servidor continua sem responder. Os seus checks ficam guardados e são enviados assim que ele voltar."
   }
 }

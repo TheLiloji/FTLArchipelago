@@ -34,14 +34,14 @@
     "check.sent.item.self": "Check inviato: {location}. {item} è per te.",
     "check.sent.many": "{n} check inviati.",
     "check.victory.unknown_ship": "Vittoria! Ma la nave non è stata riconosciuta e il check non è partito. Vedi FTL_HS.log.",
-    "connect.auto": "Connettersi automaticamente all'avvio",
+    "connect.auto": "Connessione auto all'avvio",
     "connect.button": "Connetti",
     "connect.disconnect": "Disconnetti",
     "connect.field.address": "Indirizzo",
     "connect.field.password": "Password",
     "connect.field.port": "Porta",
     "connect.field.slot": "Nome dello slot",
-    "connect.keys": "TAB campo successivo, INVIO connettersi, Ctrl+V incollare. In partita: TAB pannello.",
+    "connect.keys": "TAB: campo successivo. INVIO: connettersi. Ctrl+V: incollare l'indirizzo copiato dalla pagina della stanza. In partita, TAB apre il pannello.",
     "connect.keys.run": "In partita: TAB pannello.",
     "connect.need_slot": "Inserisci il nome del tuo slot.",
     "connect.no_module": "Manca il modulo di rete: questo Hyperspace non può connettersi. Il pulsante Modalità solo gioca offline.",
@@ -407,7 +407,6 @@
     "dash.crew.done": "A bordo",
     "dash.crew.waiting": "Non ancora incontrato",
     "connect.button.busy": "Connessione...",
-    "connect.paste_hint": "Copia l'indirizzo dalla pagina della tua stanza, poi premi Ctrl+V in un campo per incollarlo.",
     "connect.paste_empty": "Niente da incollare: gli appunti sono vuoti.",
     "connect.paste_empty.linux": "Appunti vuoti o illeggibili: su Linux, installa wl-clipboard o xclip.",
     "check.label.sector_fight": "Combattimento {n} del settore {sector} vinto con {ship}",
@@ -469,6 +468,7 @@
     "hangar.needs_key": "SENZA CHIAVE",
     "hangar.kestrel_locked": "Kestrel A: ancora nessuna chiave. Scegli un'altra nave.",
     "run.refused.no_key": "SENZA CHIAVE: QUESTA PARTITA NON CONTA",
-    "run.refused.not_in_seed": "FUORI DAL SEED: QUESTA PARTITA NON CONTA"
+    "run.refused.not_in_seed": "FUORI DAL SEED: QUESTA PARTITA NON CONTA",
+    "net.error.unreachable.lost": "Il server continua a non rispondere. I tuoi check restano salvati e partono appena torna."
   }
 }

@@ -41,7 +41,7 @@
     "connect.field.password": "Passwort",
     "connect.field.port": "Port",
     "connect.field.slot": "Slot-Name",
-    "connect.keys": "TAB nächstes Feld, ENTER verbinden, Strg+V einfügen. Im Spiel: TAB Übersicht.",
+    "connect.keys": "TAB: nächstes Feld. ENTER: verbinden. Strg+V: die von der Raumseite kopierte Adresse einfügen. Im Spiel öffnet TAB die Übersicht.",
     "connect.keys.run": "Im Spiel: TAB Übersicht.",
     "connect.need_slot": "Gib deinen Slot-Namen ein.",
     "connect.no_module": "Das Netzwerkmodul fehlt: dieses Hyperspace kann sich nicht verbinden. Der Knopf Solomodus spielt offline.",
@@ -407,7 +407,6 @@
     "dash.crew.done": "An Bord",
     "dash.crew.waiting": "Noch nicht getroffen",
     "connect.button.busy": "Verbinde...",
-    "connect.paste_hint": "Kopiere die Adresse von deiner Raumseite und drücke Strg+V in einem Feld, um sie einzufügen.",
     "connect.paste_empty": "Nichts zum Einfügen: Die Zwischenablage ist leer.",
     "connect.paste_empty.linux": "Zwischenablage leer oder unlesbar: unter Linux wl-clipboard oder xclip installieren.",
     "check.label.sector_fight": "Kampf {n} in Sektor {sector} gewonnen mit {ship}",
@@ -469,6 +468,7 @@
     "hangar.needs_key": "KEIN SCHLÜSSEL",
     "hangar.kestrel_locked": "Kestrel A: noch kein Schlüssel. Wähle ein anderes Schiff.",
     "run.refused.no_key": "KEIN SCHLÜSSEL: DIESER DURCHLAUF ZÄHLT NICHT",
-    "run.refused.not_in_seed": "NICHT IM SEED: DIESER DURCHLAUF ZÄHLT NICHT"
+    "run.refused.not_in_seed": "NICHT IM SEED: DIESER DURCHLAUF ZÄHLT NICHT",
+    "net.error.unreachable.lost": "Der Server antwortet weiterhin nicht. Deine Checks bleiben gespeichert und werden gesendet, sobald er zurück ist."
   }
 }

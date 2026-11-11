@@ -142,6 +142,7 @@ function apDeathLinkSend(cause)
             return false
         end
         sent = result ~= false
+        deathLog((sent and "death sent: " or "death not sent, the server refused it: ") .. tostring(cause))
     else
         deathLog("(offline) would have sent a death: " .. tostring(cause))
     end
