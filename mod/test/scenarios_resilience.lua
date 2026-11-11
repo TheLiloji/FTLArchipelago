@@ -595,6 +595,22 @@ test("Multiverse: a start without the wiping event is not held back past the fir
     equals(sim.player.currentScrap, 20, "given after the first jump")
 end)
 
+test("Multiverse: a run continued at the start beacon with no fuel left gets its items at once", function()
+    _G.apInventory = { ships = {}, systemCaps = {}, startingUpgrades = {}, shopAvailability = {} }
+    applySeed({ kinds = { "filler" } })
+    apInventoryMarkSynced()
+    sim.holdStartEvent = true
+    sim.startRun(true)
+    apQueueItem({ kind = "filler", res = "scrap", n = 20, display = "20 Scrap" })
+    sim.tick(240)
+    equals(sim.player.currentScrap, 0, "held back while the ship still has its fuel")
+    sim.player.fuel_count = 0
+    apQueueItem({ kind = "filler", res = "fuel", n = 3, display = "Fuel Cache" })
+    sim.tick(240)
+    equals(sim.player.fuel_count, 3, "no fuel means the start event already took it: the fuel comes")
+    equals(sim.player.currentScrap, 20, "and the scrap that waited")
+end)
+
 local function fightSeed(percent)
     _G.apInventory = { ships = {}, systemCaps = {}, startingUpgrades = {}, shopAvailability = {} }
     apContractResetForTesting()
