@@ -4,22 +4,27 @@
 
 <p align="center">
 <b>FTL: Faster Than Light</b> in an <a href="https://archipelago.gg">Archipelago</a> multiworld.<br>
-Your ships, systems and weapons are scattered across your friends' games. Theirs are hidden in yours.
+Your ships, systems and weapons are hidden in your friends' games. Theirs are hidden in yours.
 </p>
 
 <h3 align="center">For the base game and for FTL: Multiverse <sup>beta</sup></h3>
 
 <p align="center">
-<a href="https://github.com/TheLiloji/FTLArchipelago/releases/latest"><b>Download</b></a> ·
-<a href="https://github.com/TheLiloji/FTLArchipelago/releases/tag/v0.6.0-mv.1"><b>Download for Multiverse</b></a> ·
-<a href="docs/wiki/Setup-Windows.md">Setup on Windows</a> ·
-<a href="docs/wiki/Setup-Linux.md">Setup on Linux</a> ·
-<a href="docs/wiki/Home.md">Wiki</a> ·
-<a href="https://discord.gg/BVQnQu843Q">Discord</a>
+<b>English</b> · <a href="README.fr.md">Français</a> · <a href="README.de.md">Deutsch</a> ·
+<a href="README.es.md">Español</a> · <a href="README.it.md">Italiano</a> · <a href="README.pt.md">Português</a>
 </p>
 
-<p align="center">Questions, bugs or just need help? <a href="https://discord.gg/BVQnQu843Q"><b>Join the Discord</b></a>, or open an
+<p align="center">
+<a href="https://github.com/TheLiloji/FTLArchipelago/releases/latest"><b>Download</b></a> ·
+<a href="https://github.com/TheLiloji/FTLArchipelago/releases/tag/v0.6.0-mv.1"><b>Download for Multiverse</b></a><br>
+Setup: <a href="docs/wiki/Setup-Windows.md">Windows</a> · <a href="docs/wiki/Setup-Linux.md">Linux</a><br>
+Guides: <a href="docs/wiki/Playing.md">Playing</a> · <a href="docs/wiki/Options.md">Options</a> · <a href="docs/wiki/FAQ.md">FAQ</a> · <a href="docs/wiki/Multiverse.md">Multiverse</a> · <a href="https://discord.gg/BVQnQu843Q">Discord</a>
+</p>
+
+<p align="center">Need help? Ask on the <a href="https://discord.gg/BVQnQu843Q"><b>Discord</b></a>, or open an
 <a href="https://github.com/TheLiloji/FTLArchipelago/issues">issue</a> with your <code>FTL_HS.log</code>.</p>
+
+> I'm French. This page was written in French, then translated into English with AI.
 
 | FTL: Faster Than Light | FTL: Multiverse <sup>beta</sup> |
 |---|---|
@@ -103,13 +108,13 @@ Want chaos? Put this in your YAML and play with friends:
   death_link: true
 ```
 
-More ideas and every option in the [wiki](docs/wiki/Home.md).
+More ideas and every option on the [options page](docs/wiki/Options.md).
 
 ## Getting started
 
 1. Get `ArchipelagoFTL.ftl` and the Hyperspace library from the
    [release](https://github.com/TheLiloji/FTLArchipelago/releases) and follow the setup page for
-   [Windows](docs/wiki/Setup-Windows.md) or [Linux](docs/wiki/Setup-Linux.md), in six languages.
+   [Windows](docs/wiki/Setup-Windows.md) or [Linux](docs/wiki/Setup-Linux.md).
 2. Make your YAML, or take a [preset](presets). The host needs `ftl.apworld` and Archipelago 0.6.7.
 3. Start FTL, fill in the panel at the bottom left and connect. No server? Try **Solo mode**.
 
@@ -129,7 +134,7 @@ Install Hyperspace, the two Multiverse zips (Assets, then Data), then `FTLArchip
 `ftl_mv.apworld` in `custom_worlds`. More in the
 [Multiverse page](docs/wiki/Multiverse.md).
 
-## How this mod is made
+## AI usage
 
 FTL Archipelago was made with the help of AI for:
 
@@ -140,13 +145,14 @@ FTL Archipelago was made with the help of AI for:
   by the community, the German by Yunus and the Spanish by Trapper444. Italian and Portuguese are still AI only,
   fixes are welcome.
 
-A precise recap of what was made with AI, from the git history and the wiki, will come after 1.0.
+I take full responsibility for the project and its code: I understand how it works, including the parts where AI
+helped, and I maintain, debug and support it myself.
 
 ## Thanks
 
 **Where it started.** Before this mod existed, **File_Missing** and **eto** were already bringing FTL to
 Archipelago with [FTL Multiverse Archipelago](https://github.com/Filemissing/FTLMultiverseArchipelago).
-File_Missing started that project and this Discord server, and eto did the research on the Hyperspace API. eto's
+File_Missing started that project and the FTL Archipelago Discord, and eto did the research on the Hyperspace API. eto's
 [FTL Manual](https://github.com/Et0san/Manual) was the starting point of this mod's items and locations. They
 welcomed this mod with open arms when it showed up. Thank you both.
 
@@ -155,9 +161,20 @@ ArchiHat. **Yunus** for the German.
 
 **Testing.** **Tom Regor**, for all his testing and logs, the multiworld syncs he runs, and ideas like the O2 Drain
 Trap and the in logic marker. **Trapper444** and **Rhythm**, for the Multiverse tests and the reports on logic and
-balance.
+balance. **ottomaatti**, for getting about ten people to play the mod at a LAN party and sending me a detailed report.
 
-**Ideas and help.** **studkid**, for the design talks (logic, shop names, saves) and for helping players set up.
+**First testers.** **Cigogne** and **SynthKat67**, who took the first bumps in the very early days (empty shops,
+renaming a crew member that set off Death Link), and **Astron**, there from the start with lots of tests and
+feedback.
+
+**Bug reports.** **threeandthree** (TLS on Steam Linux), **Mulac** (locked shop), **Richard99** (journal),
+**Nowi** (Death Link), **Mrs. Maple** (GOG on Linux), **Jam** (enemy weapons too strong), **Wyndrose**, **fletchy**
+and **Mongolico** (crashes and logs).
+
+**On the Archipelago Discord.** **roobyroo**, for the warm welcome and the help with the rules.
+
+**Ideas and help.** **studkid**, for the design talks (logic, shop names, saves) and for helping players set up. **TheLegendaryDuck** for the anti-ship battery trap idea, which became a real trap of
+the mod, and **Kholdstare** for the ideas of unlocks by sector.
 
 And everyone on the Discord who plays, joins the test syncs, reports bugs and votes on ideas: this mod would not be what it is without
 you.
