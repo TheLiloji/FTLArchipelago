@@ -472,6 +472,7 @@
     "trap.boarding.aboard": "Something came aboard. The airlock never opened.",
     "hangar.refused.out_of_seed": "{ship}: not in this seed. Pick another ship.",
     "hangar.refused.not_received": "{ship}: not received yet. Pick another ship.",
-    "question.solo_save.title": "Solo mode"
+    "question.solo_save.title": "Solo mode",
+    "dash.links.energy_short": "EnergyLink {n}"
   }
 }
