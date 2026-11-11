@@ -835,8 +835,13 @@ test("all five of the apworld's traps are applied", function()
     apQueueItem({ kind = "trap", eff = "system_damage" })
     apQueueItem({ kind = "trap", eff = "fleet_advance" })
     drain()
-
     check(#sim.player._fires > 0, "fire: a fire started")
+    check(sim.player._breaches == 0, "a burst springs one trap, then waits (release, collect)")
+    for _ = 1, 5 do
+        sim.tick(600)
+        drain()
+    end
+
     check(sim.player._breaches > 0, "breach: a breach opened")
     check(#sim.player._breachRooms > 0, "the game's own breach, in a room: a hit with no damage opens none")
     local told = false
