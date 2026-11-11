@@ -34,7 +34,7 @@
     "check.sent.item.self": "Check inviato: {location}. {item} è per te.",
     "check.sent.many": "{n} check inviati.",
     "check.victory.unknown_ship": "Vittoria! Ma la nave non è stata riconosciuta e il check non è partito. Vedi FTL_HS.log.",
-    "connect.auto": "Connettersi automaticamente all'avvio",
+    "connect.auto": "Connessione auto all'avvio",
     "connect.button": "Connetti",
     "connect.disconnect": "Disconnetti",
     "connect.field.address": "Indirizzo",
