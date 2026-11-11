@@ -454,7 +454,7 @@
     "restart.wait": "This can take up to a minute.",
     "trap.o2_drain": "Every vent opened at once. The air is gone, life support is filling the ship again.",
     "trap.o2_drain.breach": "Every vent opened at once, but the breached hull tripped the safety: the rooms keep some air.",
-    "trap.o2_drain.down": "Life support is down, so there is no air to steal: a fire breaks out in room {room} instead.",
+    "trap.o2_drain.down": "Life support is down, so there is no air to steal: a fire breaks out aboard instead.",
     "trap.title.o2_drain": "O2 Drain Trap",
     "shop.locked.tip": "Not unlocked yet: receive it from Archipelago first.",
     "deathlink.turned_on": "DeathLink on.",

@@ -454,7 +454,7 @@
     "restart.wait": "Das kann bis zu einer Minute dauern.",
     "trap.o2_drain": "Alle Ventile haben sich auf einmal geöffnet. Die Luft ist weg, das Sauerstoffsystem füllt das Schiff wieder auf.",
     "trap.o2_drain.breach": "Alle Ventile öffneten sich, aber das Leck löste die Sicherung aus: Die Räume behalten etwas Luft.",
-    "trap.o2_drain.down": "Das Sauerstoffsystem ist aus, es gibt keine Luft zu stehlen: Stattdessen bricht in Raum {room} ein Feuer aus.",
+    "trap.o2_drain.down": "Das Sauerstoffsystem ist aus, es gibt keine Luft zu stehlen: Stattdessen bricht an Bord ein Feuer aus.",
     "trap.title.o2_drain": "Sauerstofffalle",
     "shop.locked.tip": "Noch nicht freigeschaltet: Erhalte es zuerst von Archipelago.",
     "deathlink.turned_on": "DeathLink an.",

@@ -454,7 +454,7 @@
     "restart.wait": "Esto puede tardar hasta un minuto.",
     "trap.o2_drain": "Todas las válvulas se abrieron a la vez. No queda aire, el sistema de oxígeno vuelve a llenar la nave.",
     "trap.o2_drain.breach": "Todas las válvulas se abrieron, pero la brecha activó el seguro: las salas conservan algo de aire.",
-    "trap.o2_drain.down": "El sistema de oxígeno está caído, no hay aire que robar: en su lugar, un incendio en la sala {room}.",
+    "trap.o2_drain.down": "El sistema de oxígeno está caído, no hay aire que robar: en su lugar, un incendio a bordo.",
     "trap.title.o2_drain": "Trampa de oxígeno",
     "shop.locked.tip": "Aún no desbloqueado: primero tienes que recibirlo de Archipelago.",
     "deathlink.turned_on": "DeathLink activado.",

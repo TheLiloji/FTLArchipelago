@@ -247,7 +247,7 @@ local TRAP_DELIVERY = {
                 return nil
             end
             player:StartFire(room)
-            return "trap.o2_drain.down", { room = room }
+            return "trap.o2_drain.down", {}
         end
         local breached = hullBreached(player)
         local floor = breached and TRAP_LIMITS.drainAirWithBreach or 0

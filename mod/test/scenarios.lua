@@ -1280,11 +1280,7 @@ test("O2 drain trap: a broken oxygen system lights a fire and says why", functio
     sim.player.oxygenSystem.healthState.first = 0
     apQueueItem({ kind = "trap", eff = "o2_drain" })
     drain()
-    local told = false
-    for room = 0, 20 do
-        told = told or shownKey("trap.o2_drain.down", { room = room })
-    end
-    check(told, "the player knows why it is a fire")
+    check(shownKey("trap.o2_drain.down"), "the player knows why it is a fire, with no room number")
 end)
 
 test("O2 drain trap: with the hull breached the rooms keep some air", function()
