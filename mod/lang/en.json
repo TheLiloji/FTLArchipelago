@@ -471,6 +471,7 @@
     "trap.boarding.system": "Something came aboard in the {system} room. The airlock never opened.",
     "trap.boarding.aboard": "Something came aboard. The airlock never opened.",
     "hangar.refused.out_of_seed": "{ship}: not in this seed. Pick another ship.",
-    "hangar.refused.not_received": "{ship}: not received yet. Pick another ship."
+    "hangar.refused.not_received": "{ship}: not received yet. Pick another ship.",
+    "question.solo_save.title": "Solo mode"
   }
 }

@@ -471,6 +471,7 @@
     "trap.boarding.system": "Etwas ist an Bord gekommen, Raum {system}. Die Luftschleuse wurde nie geöffnet.",
     "trap.boarding.aboard": "Etwas ist an Bord gekommen. Die Luftschleuse wurde nie geöffnet.",
     "hangar.refused.out_of_seed": "{ship}: nicht in diesem Seed. Wähle ein anderes Schiff.",
-    "hangar.refused.not_received": "{ship}: noch nicht erhalten. Wähle ein anderes Schiff."
+    "hangar.refused.not_received": "{ship}: noch nicht erhalten. Wähle ein anderes Schiff.",
+    "question.solo_save.title": "Solomodus"
   }
 }

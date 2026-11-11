@@ -288,7 +288,9 @@ local function currentQuestion()
                  no = "solo.restart", noTone = "warn", decline = restartSolo }
     end
     if resetQuestionOpen() then
-        return { title = apT("question.seed.title"), text = resetQuestionText(),
+        -- Starting solo from another save is not a seed change: the title says what is asked.
+        return { title = apT(soloProfileQuestion and "question.solo_save.title" or "question.seed.title"),
+                 text = resetQuestionText(),
                  yes = profilesOn() and "reset.yes.profile" or "reset.yes",
                  yesTone = profilesOn() and "good" or "warn", accept = acceptReset,
                  no = "reset.no", noTone = "dim", decline = declineReset }

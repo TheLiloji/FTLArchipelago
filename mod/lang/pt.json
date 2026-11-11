@@ -471,6 +471,7 @@
     "trap.boarding.system": "Algo subiu a bordo, sala {system}. A câmara de vácuo nunca se abriu.",
     "trap.boarding.aboard": "Algo subiu a bordo. A câmara de vácuo nunca se abriu.",
     "hangar.refused.out_of_seed": "{ship}: fora desta seed. Escolha outra nave.",
-    "hangar.refused.not_received": "{ship}: ainda não recebida. Escolha outra nave."
+    "hangar.refused.not_received": "{ship}: ainda não recebida. Escolha outra nave.",
+    "question.solo_save.title": "Modo solo"
   }
 }

@@ -470,6 +470,7 @@
     "trap.boarding.system": "Quelque chose est monté à bord, salle {system}. La porte du sas n'a jamais été ouverte.",
     "trap.boarding.aboard": "Quelque chose est monté à bord. La porte du sas n'a jamais été ouverte.",
     "hangar.refused.out_of_seed": "{ship} : hors de cette seed. Choisissez un autre vaisseau.",
-    "hangar.refused.not_received": "{ship} : pas encore reçu. Choisissez un autre vaisseau."
+    "hangar.refused.not_received": "{ship} : pas encore reçu. Choisissez un autre vaisseau.",
+    "question.solo_save.title": "Mode solo"
   }
 }
