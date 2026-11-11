@@ -675,7 +675,7 @@ local function deliverOne(descriptor)
                 title = apT(TRAP_TITLES[descriptor.eff])
             end
             if title ~= nil and title ~= "" then
-                _G.apNotifyTrap(apT("trap.named", { name = title, effect = effect }))
+                _G.apNotifyTrap(apT("trap.named", { name = title, effect = effect }), true)
             else
                 _G.apNotifyTrap(effect)
             end
@@ -1047,7 +1047,7 @@ local function strikeDealBacklash()
     end
     fillerLog("pact backlash struck: " .. key)
     if _G.apNotifyTrap then
-        _G.apNotifyTrap(apT("trap.named", { name = apT("deal.own_pact"), effect = apT(key, params) }))
+        _G.apNotifyTrap(apT("trap.named", { name = apT("deal.own_pact"), effect = apT(key, params) }), true)
     end
 end
 
