@@ -7,7 +7,7 @@ end
 -- crew_names: a crew member who joins during a run takes the name of another player of the multiworld, then
 -- (multiworld_and_team) of someone who made or tested the mod. Once every name is aboard, FTL's own stay.
 local TEAM = { "Liloji", "Trapper", "Eto", "File Missing", "Yunus", "Rhythm", "Duck", "Fletchy", "Mongolico",
-               "Studkid", "Simba", "Astron" }
+               "Studkid", "Simba", "Astron", "Tom" }
 
 local config = { mode = "vanilla", players = {} }
 
