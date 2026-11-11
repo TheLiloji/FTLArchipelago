@@ -27,6 +27,8 @@
 %rename("%s") ArchipelagoFTL::Client::SendGoal;
 %rename("%s") ArchipelagoFTL::Client::SendDeath;
 %rename("%s") ArchipelagoFTL::Client::SendTrap;
+%rename("%s") ArchipelagoFTL::Client::SendTrapTo;
+%rename("%s") ArchipelagoFTL::Client::AnnounceTrapLink;
 %rename("%s") ArchipelagoFTL::Client::EnergyDeposit;
 %rename("%s") ArchipelagoFTL::Client::EnergyRequest;
 %rename("%s") ArchipelagoFTL::Client::Say;
@@ -40,12 +42,27 @@
 %rename("%s") ArchipelagoFTL::Client::RequestProfileReset;
 %rename("%s") ArchipelagoFTL::Client::RelaunchWhenClosed;
 %rename("%s") ArchipelagoFTL::Client::ProfileResetRequested;
+%rename("%s") ArchipelagoFTL::Client::ProfileId;
+%rename("%s") ArchipelagoFTL::Client::ProfileIds;
+%rename("%s") ArchipelagoFTL::Client::SwitchProfile;
+%rename("%s") ArchipelagoFTL::Client::PendingProfile;
+%rename("%s") ArchipelagoFTL::Client::ArchiveProfile;
+%rename("%s") ArchipelagoFTL::Client::DescribeProfile;
+%rename("%s") ArchipelagoFTL::Client::ProfileDetail;
 %rename("%s") ArchipelagoFTL::Client::RememberState;
 %rename("%s") ArchipelagoFTL::Client::RecallState;
 %rename("%s") ArchipelagoFTL::Client::SetShipLock;
 %rename("%s") ArchipelagoFTL::Client::UnlockShip;
 %rename("%s") ArchipelagoFTL::Client::LockShips;
+%rename("%s") ArchipelagoFTL::Client::SetShopLock;
+%rename("%s") ArchipelagoFTL::Client::ClearShopLocks;
+%rename("%s") ArchipelagoFTL::Client::SetShopLockTip;
 %rename("%s") ArchipelagoFTL::Client::AchievementStatus;
+%rename("%s") ArchipelagoFTL::Client::HangarShip;
+%rename("%s") ArchipelagoFTL::Client::SwitchHangarShip;
+%rename("%s") ArchipelagoFTL::Client::HangarHover;
+%rename("%s") ArchipelagoFTL::Client::HideBeaconLabel;
+%rename("%s") ArchipelagoFTL::Client::SetGame;
 
 %immutable MainMenu::bScoreScreen;
 %rename("%s") MainMenu::bScoreScreen;

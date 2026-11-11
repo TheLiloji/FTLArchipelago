@@ -28,6 +28,8 @@ public:
     ~Client();
 
     bool Connect(const std::string& uri, const std::string& slot, const std::string& password);
+    // The Archipelago game name sent at the next Connect. The base game's by default.
+    void SetGame(const std::string& game);
 
     std::string LastUri() const;
     std::string LastSlot() const;
@@ -39,6 +41,17 @@ public:
     bool RequestProfileReset();
     bool RelaunchWhenClosed();
     bool ProfileResetRequested() const;
+
+    // Save profiles: each seed (and solo) keeps its own copy of FTL's profile and run save, in
+    // <user folder>/ap_profiles/<id>/. A switch is done at the next launch, before FTL reads the profile:
+    // the current files are copied away first, nothing is ever deleted (an archived profile is only moved).
+    std::string ProfileId() const;
+    std::vector<std::string> ProfileIds() const;
+    bool SwitchProfile(const std::string& id);
+    std::string PendingProfile() const;
+    bool ArchiveProfile(const std::string& id);
+    void DescribeProfile(const std::string& key, const std::string& value);
+    std::string ProfileDetail(const std::string& id, const std::string& key) const;
 
     void RememberState(const std::string& key, const std::string& value);
     std::string RecallState(const std::string& key) const;
@@ -55,6 +68,9 @@ public:
     bool SendGoal();
     bool SendDeath(const std::string& cause);
     bool SendTrap(const std::string& trapName);
+    bool SendTrapTo(int slot, const std::string& trapName);
+    // TrapLink never says who is on it: FTL clients tell each other, through a bounce only FTL games receive.
+    bool AnnounceTrapLink(bool reply);
     bool EnergyDeposit(int64_t joules);
     bool EnergyRequest(int64_t joules);
     bool Say(const std::string& text);
@@ -70,10 +86,23 @@ public:
     bool UnlockShip(const std::string& blueprint, bool silent);
     // Locks again every listed layout the profile has, then saves the profile once. Returns how many.
     int LockShips(const std::vector<std::string>& blueprints);
+    // What a store must not sell for now, by blueprint name: left out of the store's random picks, and greyed out
+    // where a store shows it anyway (guaranteed systems, Multiverse's fixed store lists).
+    void SetShopLock(const std::string& name, bool locked);
+    void ClearShopLocks();
+    void SetShopLockTip(const std::string& text);
 
     // FTL's own achievements (difficulty it was earned on, -1 if not), which Hyperspace's tracker of
     // custom achievements does not hold.
     int AchievementStatus(const std::string& name) const;
+    // The ship shown in the hangar, by blueprint name ("" outside the hangar).
+    std::string HangarShip() const;
+    // Shows that ship in the hangar instead (false outside the hangar or for an unknown ship).
+    bool SwitchHangarShip(const std::string& blueprint);
+    // The hangar button under the mouse: "start", "left", "right", "random", "list", or "".
+    std::string HangarHover() const;
+    // Hides (or shows again) the map label an event's beaconType gives it. False when no such event.
+    bool HideBeaconLabel(const std::string& eventName, bool hidden);
 
     void Push(Event e);
 
@@ -84,9 +113,16 @@ private:
 
 Client& Instance();
 
+// Used by the ScoreKeeper::OnInit hook: put the profile asked for in place before FTL reads it, then give a new
+// profile a clean start once FTL has.
+void ApplyPendingProfile();
+void FinishPendingProfile();
+
 // Used by the hooks: whether this unlock may go through, and telling Lua about one that did not.
 bool ShipUnlockAllowed(const std::string& blueprint);
 void ShipUnlockDenied(const std::string& blueprint);
+bool ShopLocked(const std::string& name);
+const std::string& ShopLockTip();
 
 struct Archipelago {
     static Client& Instance() { return ::ArchipelagoFTL::Instance(); }

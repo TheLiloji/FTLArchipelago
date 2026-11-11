@@ -174,11 +174,22 @@ end
 
 -- The game's own pictures. Each is looked up once; a missing one is remembered as false, not retried every frame.
 local images = {}
+-- A file the game lacks comes back as its shared "missing" picture, a yellow warning triangle, not as nothing.
+local missing = nil
+local function missingPicture()
+    if missing == nil then
+        local ok, texture = pcall(function() return Hyperspace.Resources:GetImageId("archipelago/no_such_image.png") end)
+        missing = ok and texture or false
+    end
+    return missing or nil
+end
+
 function ui.image(path)
     if path == nil then return nil end
     if images[path] == nil then
         local ok, texture = pcall(function() return Hyperspace.Resources:GetImageId(path) end)
-        images[path] = (ok and texture and (texture.width or 0) > 0) and texture or false
+        local found = ok and texture and (texture.width or 0) > 0 and texture ~= missingPicture()
+        images[path] = found and texture or false
     end
     return images[path] or nil
 end
@@ -192,6 +203,7 @@ end
 -- A race as the ship shows it: the first frame of its sprite sheet, facing down. Works for Multiverse races too.
 local CREW_FRAME = 35
 function ui.raceSprite(race, x, y, size, alpha)
+    race = (_G.apRaceNames or {})[race] or race
     local texture = race and ui.image("people/" .. tostring(race) .. "_base.png")
     if texture == nil or (texture.width or 0) < CREW_FRAME then return false end
     ui.blit(texture, x, y, size, size, alpha, 0, CREW_FRAME / texture.width, 0, CREW_FRAME / texture.height)
@@ -241,12 +253,14 @@ end
 -- A drone as the game draws it: the drone itself at its own size, a crew drone's sprite like a crew member,
 -- or its drone bar icon doubled (pixel art stays sharp at twice its size). The path comes from the game data.
 function ui.droneArt(blueprint, x, y, w, h, alpha)
+    -- The game data first, then the drone the game itself would draw (a mod may have moved the file).
     local path = (((_G.apGameData or {}).droneArt) or {})[tostring(blueprint)]
-    if path == nil then
+    local texture = path and ui.image(path)
+    if not texture then
         local ok, name = pcall(function() return Hyperspace.Blueprints:GetDroneBlueprint(blueprint).droneImage end)
         path = ok and name and ("ship/drones/" .. tostring(name) .. "_base.png") or nil
+        texture = path and ui.image(path)
     end
-    local texture = path and ui.image(path)
     if texture == nil or not texture then return false end
     if path:sub(1, 7) == "people/" then
         local size = math.min(h, 70)
@@ -258,6 +272,15 @@ function ui.droneArt(blueprint, x, y, w, h, alpha)
     scale = math.min(scale, w / texture.width, h / texture.height * 2)
     local dw, dh = texture.width * scale, texture.height * scale
     ui.blit(texture, x + (w - dw) / 2, y + (h - dh) / 2, dw, dh, alpha)
+    return true
+end
+
+-- A system's green icon from the game (64 pixels with a wide margin), drawn at its own size.
+function ui.systemIcon(id, x, y, w, h, alpha)
+    local texture = ui.image("icons/s_" .. tostring(id) .. "_green1.png")
+    if texture == nil or not texture then return false end
+    local size = math.min(64, w, h * 1.5)
+    ui.blit(texture, x + (w - size) / 2, y + (h - size) / 2, size, size, alpha)
     return true
 end
 

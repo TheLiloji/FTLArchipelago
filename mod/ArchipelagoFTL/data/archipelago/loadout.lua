@@ -17,11 +17,15 @@ local LIST_OFFSET = 44
 local PAGER_H = 24
 local DONE_BUTTON = { w = 220, h = 34 }
 local CATEGORIES = { "weapon", "drone", "crew" }
+-- With System Install, received systems that do not all fit get a fourth column: the player picks.
+local ALL_CATEGORIES = { "weapon", "drone", "crew", "system" }
 local COLUMN_KEYS = {
     weapon = "loadout.column.weapon", drone = "loadout.column.drone", crew = "loadout.column.crew",
+    system = "loadout.column.system",
 }
 local EMPTY_KEYS = {
     weapon = "loadout.empty.weapon", drone = "loadout.empty.drone", crew = "loadout.empty.crew",
+    system = "loadout.empty.system",
 }
 local SKILL_KEYS = {
     pilot = "crew.skill.pilot", engines = "crew.skill.engines", shields = "crew.skill.shields",
@@ -37,6 +41,7 @@ local open = false
 local resumed = false
 local taken = {}
 local pages = {}
+local hoveredEntry = nil
 
 -- Kept in the run's save, so quitting to the main menu before choosing does not lose the menu.
 local function remember(key, value)
@@ -70,6 +75,42 @@ local function blueprintTitle(name, family)
     return _G.apHumaniseId and _G.apHumaniseId(name) or tostring(name)
 end
 
+-- What the game tells about a weapon or a drone: its power, and for a weapon its damage, shots, charge time
+-- and missile use, plus the store's description. Read from the blueprint, nil when it cannot be read.
+local function blueprintInfo(name, family)
+    local ok, info = pcall(function()
+        local blueprints = Hyperspace.Blueprints
+        local bp = family == "weapon" and blueprints:GetWeaponBlueprint(name) or blueprints:GetDroneBlueprint(name)
+        local result = { power = math.floor(tonumber(bp.power) or 0), text = bp.desc.description:GetText() }
+        if family == "weapon" then
+            result.damage = math.floor(tonumber(bp.damage.iDamage) or 0)
+            result.shots = math.floor(tonumber(bp.shots) or 1)
+            result.cooldown = math.floor((tonumber(bp.cooldown) or 0) + 0.5)
+            result.missiles = math.floor(tonumber(bp.missiles) or 0)
+        end
+        return result
+    end)
+    return ok and info or nil
+end
+
+local function statsLine(entry, family)
+    local info = entry.info
+    if info == nil then
+        return nil
+    end
+    local line = apT("loadout.power", { n = info.power })
+    if family == "weapon" then
+        line = line .. ", " .. apT(info.missiles > 0 and "loadout.weapon.missile" or "loadout.weapon.stats",
+            { damage = info.damage, shots = info.shots, cooldown = info.cooldown })
+    end
+    return line
+end
+
+-- On the row there is only room for the power: the rest shows on hover.
+local function shortStats(entry)
+    return entry.info and apT("loadout.power", { n = entry.info.power }) or nil
+end
+
 local function crewLabel(entry)
     local race = _G.apRaceLabel and _G.apRaceLabel(entry.race) or entry.race
     if entry.skill ~= nil and SKILL_KEYS[entry.skill] ~= nil then
@@ -79,14 +120,21 @@ local function crewLabel(entry)
 end
 
 local function receivedCatalog()
-    local catalog = { weapon = {}, drone = {}, crew = {} }
+    local catalog = { weapon = {}, drone = {}, crew = {}, system = {} }
     local inventory = _G.apInventory or {}
+    for _, name in ipairs(_G.apSystemInstallChoices and apSystemInstallChoices() or {}) do
+        local old = _G.apSystemSwapOf and apSystemSwapOf(name)
+        local label = old and apT("loadout.system.swap", { name = apSystemLabel(name), old = apSystemLabel(old) })
+            or apSystemLabel(name)
+        catalog.system[#catalog.system + 1] = { system = name, label = label }
+    end
     for name, count in pairs(inventory.shopAvailability or {}) do
         if (tonumber(count) or 0) >= 2 then
             local family = _G.apBlueprintFamily and _G.apBlueprintFamily(name)
             if family == "weapon" or family == "drone" then
                 local list = catalog[family]
-                list[#list + 1] = { bp = name, label = blueprintTitle(name, family) }
+                list[#list + 1] = { bp = name, label = blueprintTitle(name, family),
+                                    info = blueprintInfo(name, family) }
             end
         end
     end
@@ -109,14 +157,21 @@ local function receivedCatalog()
             }
         end
     end
-    for _, category in ipairs(CATEGORIES) do
+    for _, category in ipairs(ALL_CATEGORIES) do
         table.sort(catalog[category], function(a, b) return a.label < b.label end)
     end
     return catalog
 end
 
 local function catalogEmpty(catalog)
-    return #catalog.weapon == 0 and #catalog.drone == 0 and #catalog.crew == 0
+    return #catalog.weapon == 0 and #catalog.drone == 0 and #catalog.crew == 0 and #catalog.system == 0
+end
+
+local function categoriesShown(catalog)
+    if #catalog.system > 0 or taken.system then
+        return ALL_CATEGORIES
+    end
+    return CATEGORIES
 end
 
 local function uiFree()
@@ -132,17 +187,21 @@ local function close(reason)
     if open then
         menuLog("menu closed: " .. reason)
     end
+    -- sector_skip's extra pick ends with the menu, used or not: one that cannot be made must not come back at
+    -- every beacon.
+    extraPick = false
     open = false
     pending = false
     remember("open", 0)
 end
 
-local function geometry()
+local function geometry(categories)
+    categories = categories or CATEGORIES
     local g = { columns = {} }
-    local columnW = math.floor((PANEL.w - 40 - COLUMN_GAP * (#CATEGORIES - 1)) / #CATEGORIES)
+    local columnW = math.floor((PANEL.w - 40 - COLUMN_GAP * (#categories - 1)) / #categories)
     local columnH = PANEL.h - COLUMN_TOP - COLUMN_BOTTOM
     local perPage = math.floor((columnH - LIST_OFFSET - PAGER_H - 16) / (ROW_H + ROW_GAP))
-    for index, category in ipairs(CATEGORIES) do
+    for index, category in ipairs(categories) do
         local x = PANEL.x + 20 + (index - 1) * (columnW + COLUMN_GAP)
         local y = PANEL.y + COLUMN_TOP
         local pagerY = y + columnH - PAGER_H - 10
@@ -167,7 +226,7 @@ local function rowArea(column, row)
 end
 
 function apLoadoutPoint(target, category, row)
-    local g = geometry()
+    local g = geometry(categoriesShown(receivedCatalog()))
     if target == "done" then
         return g.done.x + g.done.w / 2, g.done.y + g.done.h / 2
     end
@@ -176,9 +235,38 @@ function apLoadoutPoint(target, category, row)
     return area.x + area.w / 2, area.y + area.h / 2
 end
 
+-- sector_skip's extra pick: this menu came back for one more pick, until a pick is made or the menu is closed.
+local extraPick = false
+
+local function roomFor(category)
+    if category ~= "weapon" and category ~= "drone" then
+        return true
+    end
+    return _G.apEquipmentHasRoom == nil or apEquipmentHasRoom(category)
+end
+
 local function take(category, entry)
+    if not roomFor(category) then
+        if _G.apNotifyStatus then
+            _G.apNotifyStatus(apT("loadout.no_room", { name = entry.label }))
+        end
+        return
+    end
     local succeeded, reason
-    if category == "crew" then
+    if category == "system" then
+        succeeded = _G.apInstallChosenSystem ~= nil and apInstallChosenSystem(entry.system)
+        if succeeded then
+            menuLog("installed for this run: " .. entry.label)
+            if _G.apNotifyStatus then
+                _G.apNotifyStatus(apT("loadout.taken", { name = entry.label }))
+            end
+            -- Several systems can come aboard: the column closes once no slot is left.
+            if #(apSystemInstallChoices()) == 0 then
+                taken.system = entry.label
+            end
+            return
+        end
+    elseif category == "crew" then
         succeeded, reason = _G.apRecruitCrew and _G.apRecruitCrew(entry.race, entry.skill)
     else
         succeeded = _G.apDeliverEquipment and _G.apDeliverEquipment(
@@ -193,18 +281,40 @@ local function take(category, entry)
     end
     taken[category] = entry.label
     remember(category, 1)
+    extraPick = false
     menuLog("taken for this run: " .. entry.label)
     if _G.apNotifyStatus then
         _G.apNotifyStatus(apT("loadout.taken", { name = entry.label }))
     end
-    if taken.weapon and taken.drone and taken.crew then
+    local systemsLeft = _G.apSystemInstallChoices and #(apSystemInstallChoices()) or 0
+    if taken.weapon and taken.drone and taken.crew and systemsLeft == 0 then
         close("all three categories are taken")
     end
 end
 
+-- The store's description of the weapon or drone under the mouse, with its numbers, next to the pointer.
+local INFO_W = 300
+
+local function drawInfo(hovered)
+    local x, y = ui.mouse()
+    local text = hovered.entry.info and hovered.entry.info.text or ""
+    local lines = text ~= "" and ui.lines(9, text, INFO_W - 20, 12) or {}
+    local h = 40 + #lines * 13 + (#lines > 0 and 8 or 0)
+    x = math.min(x + 16, 1280 - INFO_W - 8)
+    y = math.min(y + 16, 720 - h - 8)
+    ui.window(x, y, INFO_W, h)
+    ui.text(10, x + 10, y + 8, INFO_W - 20, "title", hovered.entry.label)
+    ui.text(9, x + 10, y + 26, INFO_W - 20, "good", hovered.stats)
+    for index, line in ipairs(lines) do
+        ui.text(9, x + 10, y + 40 + (index - 1) * 13, INFO_W - 20, "text", line)
+    end
+end
+
 local function draw()
+    hoveredEntry = nil
     local catalog = receivedCatalog()
-    local g = geometry()
+    local categories = categoriesShown(catalog)
+    local g = geometry(categories)
     ui.hideGameTooltip()
     ui.shade()
     ui.window(PANEL.x, PANEL.y, PANEL.w, PANEL.h)
@@ -219,15 +329,23 @@ local function draw()
         titleX = titleX + LOGO_SIZE + 10
     end
     ui.text(24, titleX, PANEL.y + 14, PANEL.x + PANEL.w - 20 - titleX, "title", apT("loadout.title"))
-    ui.text(10, PANEL.x + 20, PANEL.y + 56, PANEL.w - 40, "dim", apT("loadout.hint"))
+    ui.wrapped(10, PANEL.x + 20, PANEL.y + 54, PANEL.w - 40, "dim",
+        apT(extraPick and "loadout.hint.extra"
+            or (#categories > #CATEGORIES and "loadout.hint.systems" or "loadout.hint")))
 
-    for _, category in ipairs(CATEGORIES) do
+    for _, category in ipairs(categories) do
         local column = g.columns[category]
         local list = catalog[category]
         local chosen = taken[category]
         ui.rect(column.x, column.y, column.w, column.h, "card")
         ui.rect(column.x, column.y, column.w, 2, chosen and "good" or "border")
         local badge = chosen and apT("loadout.chosen") or apT("loadout.count", { n = #list })
+        if category == "system" and not chosen then
+            badge = apT("loadout.free_slots", { n = apSystemFreeSlots and apSystemFreeSlots() or 0 })
+        elseif #categories > #CATEGORIES and not chosen then
+            -- Four columns leave no room for "N received": the number says it.
+            badge = tostring(#list)
+        end
         local badgeW = ui.width(9, badge)
         ui.text(13, column.x + 12, column.y + 14, column.w - 36 - badgeW, "title", apT(COLUMN_KEYS[category]))
         ui.textRight(9, column.x + column.w - 12, column.y + 18, badgeW, chosen and "good" or "dim", badge)
@@ -242,7 +360,7 @@ local function draw()
                 if entry == nil then break end
                 local area = rowArea(column, row)
                 local isChosen = chosen ~= nil and entry.label == chosen
-                local available = chosen == nil
+                local available = chosen == nil and roomFor(category)
                 local over = available and ui.hovered(area)
                 ui.rect(area.x, area.y, area.w, area.h, isChosen and "hover" or (over and "hover" or "window"))
                 ui.rect(area.x, area.y, 3, area.h, isChosen and "good" or (over and "border" or "faint"))
@@ -252,11 +370,26 @@ local function draw()
                     ui.weaponArt(entry.bp, iconX, iconY, ICON_W, iconH, alpha)
                 elseif category == "drone" then
                     ui.droneArt(entry.bp, iconX, iconY, ICON_W, iconH, alpha)
+                elseif category == "system" then
+                    ui.systemIcon(entry.system, iconX, iconY, ICON_W, iconH, alpha)
                 else
                     ui.raceSprite(entry.race, iconX + (ICON_W - 70) / 2, area.y + (area.h - 70) / 2, 70, alpha)
                 end
-                ui.textTwoLines(10, area.x + ICON_W + 16, area.y + 17, area.w - ICON_W - 24, 14,
-                    isChosen and "good" or (available and "text" or "dim"), entry.label)
+                local stats = (category == "weapon" or category == "drone") and statsLine(entry, category) or nil
+                if stats then
+                    -- A long name takes two lines: the first one rises, the stats stay where they are.
+                    local labelW = area.w - ICON_W - 24
+                    local tall = ui.width(10, entry.label) > labelW
+                    ui.textTwoLines(10, area.x + ICON_W + 16, area.y + (tall and 10 or 9), labelW, 14,
+                        isChosen and "good" or (available and "text" or "dim"), entry.label)
+                    ui.text(9, area.x + ICON_W + 16, area.y + (tall and 31 or 27), labelW, "dim", shortStats(entry))
+                else
+                    ui.textTwoLines(10, area.x + ICON_W + 16, area.y + 17, area.w - ICON_W - 24, 14,
+                        isChosen and "good" or (available and "text" or "dim"), entry.label)
+                end
+                if ui.hovered(area) and stats then
+                    hoveredEntry = { entry = entry, stats = stats }
+                end
             end
             if total > 1 then
                 ui.button(column.previous, apT("loadout.previous"), "secondary", page <= 1)
@@ -268,6 +401,9 @@ local function draw()
     end
 
     ui.button(g.done, apT("loadout.done"), "primary")
+    if hoveredEntry then
+        drawInfo(hoveredEntry)
+    end
 end
 
 function apLoadoutOpen()
@@ -276,12 +412,13 @@ end
 
 local function handleClick(x, y)
     local catalog = receivedCatalog()
-    local g = geometry()
+    local categories = categoriesShown(catalog)
+    local g = geometry(categories)
     if ui.inside(g.done, x, y) then
         close("finished by the player")
         return true
     end
-    for _, category in ipairs(CATEGORIES) do
+    for _, category in ipairs(categories) do
         local column = g.columns[category]
         local list = catalog[category]
         local total = math.max(1, math.ceil(#list / g.perPage))
@@ -307,6 +444,21 @@ local function handleClick(x, y)
     return ui.inside(PANEL, x, y)
 end
 
+-- Said once a session: a seed starts empty for many runs, and the player only needs to learn it once.
+local toldNothingYet = false
+local function sayNothingYet()
+    local contract = _G.apContractState
+    if toldNothingYet or contract == nil or contract.connected ~= true then
+        return
+    end
+    toldNothingYet = true
+    if _G.apNotifyStatus then apNotifyStatus(apT("loadout.nothing_yet")) end
+end
+
+function apLoadoutResetToldForTesting()
+    toldNothingYet = false
+end
+
 script.on_init(function(newGame)
     taken = {}
     pages = {}
@@ -323,6 +475,21 @@ end)
 
 script.on_internal_event(Defines.InternalEvents.JUMP_ARRIVE, function(shipManager)
     if shipManager ~= nil and shipManager.iShipId ~= 0 then
+        return Defines.Chain.CONTINUE
+    end
+    -- sector_skip: a sector skipped gives one more pick from the received items, at the next beacon.
+    if _G.apLoadoutExtraPick then
+        _G.apLoadoutExtraPick = false
+        extraPick = true
+        taken = {}
+        pages = {}
+        open = false
+        pending = true
+        remember("open", 1)
+        for _, category in ipairs(CATEGORIES) do
+            remember(category, 0)
+        end
+        menuLog("one more pick for the sector skipped")
         return Defines.Chain.CONTINUE
     end
     close("first jump of the run")
@@ -355,6 +522,7 @@ script.on_render_event(
         if pending and not open and uiFree() and runCounts() then
             if catalogEmpty(receivedCatalog()) then
                 pending = false
+                sayNothingYet()
             else
                 open = true
                 menuLog("start-of-run menu opened")

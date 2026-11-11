@@ -131,6 +131,18 @@ end
 local DEAL_BLUEPRINTS = { "AP_DEAL_1", "AP_DEAL_2", "AP_DEAL_3", "AP_DEAL_4", "AP_DEAL_5", "AP_DEAL_6" }
 
 local DEAL_REWARD = { 35, 55, 80, 60, 90, 130 }
+-- Their price in the store (blueprints.xml.append), put back when a deal opens again.
+local DEAL_COST = { 5, 10, 15, 5, 10, 15 }
+
+-- shop_deal_scrap: the deals' scrap, in percent (100 by default). At 0 the deals are off: they show as closed.
+local function dealPercent()
+    local value = _G.apSeedOption and apSeedOption("shop_deal_scrap")
+    return math.max(0, math.min(200, math.floor(tonumber(value) or 100)))
+end
+
+local function dealReward(index)
+    return math.floor((DEAL_REWARD[index] or 30) * dealPercent() / 100)
+end
 
 -- The blood pacts, on the shop's second page: more scrap, and a chance in a hundred to lose a crew member for
 -- good, Clone Bay or not.
@@ -153,6 +165,9 @@ local function alreadyGone(key)
 end
 
 local assignment = {}
+-- shop_hints: the packages already hinted, and whether the player is at an Archipelago beacon now.
+local hintedGifts = {}
+local atApShop = false
 
 local dealsSigned = {}
 
@@ -389,8 +404,21 @@ function apApplyShopGifts()
 
     for index, blueprintName in ipairs(DEAL_BLUEPRINTS) do
         local desc = dealDesc(blueprintName)
-        if desc ~= nil and not dealsSigned[blueprintName] then
-            local reward = tostring(DEAL_REWARD[index] or 30)
+        if dealPercent() == 0 then
+            dealsSigned[blueprintName] = true
+        end
+        if desc ~= nil and dealsSigned[blueprintName] and dealPercent() == 0 then
+            desc.title.data = apT("deal.closed.title")
+            desc.title.isLiteral = true
+            desc.shortTitle.data = apT("deal.closed.short")
+            desc.shortTitle.isLiteral = true
+            desc.description.data = apT("deal.closed.body")
+            desc.description.isLiteral = true
+            -- A closed deal costs nothing: a click must not take scrap for nothing.
+            desc.cost = 0
+        elseif desc ~= nil and not dealsSigned[blueprintName] then
+            desc.cost = DEAL_COST[index] or 5
+            local reward = tostring(dealReward(index))
             local blood = DEAL_BLOOD[index]
             desc.title.data = apT(blood and "deal.blood.title" or "deal.title", { scrap = reward })
             desc.title.isLiteral = true
@@ -406,7 +434,47 @@ function apApplyShopGifts()
     if applied > 0 then
         giftLog(applied .. " gift(s) displayed in the Archipelago shop")
     end
+    if atApShop then
+        apShopGiftsHintSeen()
+    end
     return applied
+end
+
+-- shop_hints "seen": the packages on display at an Archipelago beacon become hints, once each, so their owners
+-- know where their item waits. A seed from before the option hints nothing.
+
+local function shopHintsOn()
+    local value = _G.apSeedOption and apSeedOption("shop_hints")
+    return value == 1 or value == "seen"
+end
+
+function apShopGiftsHintSeen()
+    if not shopHintsOn() or _G.apSoloEnabled or _G.apNetHintLocation == nil then
+        return 0
+    end
+    local hinted = 0
+    for rank, blueprintName in ipairs(GIFT_BLUEPRINTS) do
+        local gift = assignment[blueprintName]
+        local key = gift and gift.location
+        if rank <= visibleGifts() and key ~= nil and not hintedGifts[key] and not alreadyGone(key) then
+            local name = _G.apLocationNameFor and apLocationNameFor(key)
+            if name ~= nil and apNetHintLocation(name) then
+                hintedGifts[key] = true
+                hinted = hinted + 1
+            end
+        end
+    end
+    if hinted > 0 then
+        giftLog(hinted .. " package(s) seen in the Archipelago shop, hinted on the server")
+    end
+    return hinted
+end
+
+function apShopGiftsAtApShop(here)
+    atApShop = here == true
+    if atApShop then
+        apShopGiftsHintSeen()
+    end
 end
 
 _G.apShopSlotCount = 0
@@ -445,6 +513,7 @@ function apShopGiftsForgetSeed()
 end
 
 function apShopGiftsConfigure(gifts, source)
+    hintedGifts = {}
     if type(gifts) ~= "table" then
         return false
     end
@@ -621,47 +690,34 @@ local function signDeal(index, blueprintName)
         Hyperspace.ships.player:RemoveItem(blueprintName, true)
     end)
 
-    local reward = DEAL_REWARD[index] or 30
+    local reward = dealReward(index)
     pcall(function()
         Hyperspace.ships.player:ModifyScrapCount(reward, false)
     end)
 
     local againstSelf = math.random(1, 100) <= DEAL_SELF_CHANCE
-    local effects = { "fire", "breach", "fuel_leak", "system_damage", "hull_damage" }
-    local effect = effects[math.random(1, #effects)]
 
     if againstSelf then
-        giftLog(string.format("deal %d: +%d scrap, and the trap is ON US (%s)",
-            index, reward, effect))
-        if _G.apQueueItem then
-            _G.apQueueItem({ kind = "trap", eff = effect,
-                             display = apT("deal.own_pact"), fromLink = true })
+        giftLog(string.format("deal %d: +%d scrap, and the trap is ON US, in the next fight", index, reward))
+        if _G.apArmDealBacklash then
+            _G.apArmDealBacklash()
         end
         if _G.apNotifyStatus then
             _G.apNotifyStatus(apT("deal.self", { scrap = reward }))
         end
     else
-        local sent = false
-        -- Only a slot that joined Trap Link sends traps to the others.
-        local linked = _G.apTrapLink ~= nil and _G.apTrapLink.enabled == true
-        if linked and _G.apNetSendTrap then
-            local ok, result = pcall(_G.apNetSendTrap, "Archipelago Deal")
-            sent = ok and result ~= false
-        end
+        local sent = _G.apTrapLinkSendToOne ~= nil and apTrapLinkSendToOne("Archipelago Deal")
 
         if sent then
-            giftLog(string.format("deal %d: +%d scrap, the trap goes to someone else (%s)",
-                index, reward, effect))
+            giftLog(string.format("deal %d: +%d scrap, the trap goes to someone else", index, reward))
             if _G.apNotifyStatus then
                 _G.apNotifyStatus(apT("deal.other", { scrap = reward }))
             end
         else
             giftLog(string.format(
-                "deal %d: +%d scrap, no one out there to take it, the trap comes back (%s)",
-                index, reward, effect))
-            if _G.apQueueItem then
-                _G.apQueueItem({ kind = "trap", eff = effect,
-                                 display = apT("deal.own_pact"), fromLink = true })
+                "deal %d: +%d scrap, no one out there to take it, the trap comes back in the next fight", index, reward))
+            if _G.apArmDealBacklash then
+                _G.apArmDealBacklash()
             end
             if _G.apNotifyStatus then
                 _G.apNotifyStatus(apT("deal.backfired", { scrap = reward }))
@@ -679,6 +735,7 @@ local function signDeal(index, blueprintName)
         desc.shortTitle.isLiteral = true
         desc.description.data = apT("deal.closed.body")
         desc.description.isLiteral = true
+        desc.cost = 0
     end
 end
 
@@ -708,7 +765,7 @@ script.on_internal_event(Defines.InternalEvents.ON_TICK, function()
                     Hyperspace.ships.player:RemoveItem(blueprintName, true)
                 end)
                 if _G.apNotifyStatus then
-                    _G.apNotifyStatus(apT("deal.closed"))
+                    _G.apNotifyStatus(apT(dealPercent() == 0 and "deal.off" or "deal.closed"))
                 end
             else
                 signDeal(index, blueprintName)
@@ -729,6 +786,7 @@ script.on_internal_event(Defines.InternalEvents.JUMP_ARRIVE, function(shipManage
         return
     end
     dealsSigned = {}
+    atApShop = false
     apApplyShopGifts()
 end)
 

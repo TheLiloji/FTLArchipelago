@@ -70,8 +70,18 @@ local function hovered(area)
 end
 
 
+-- The hangar keeps bStartedGame on and shows each ship browsed as the player's, and the title screen keeps it
+-- after a run: neither is a run.
+local function inHangar()
+    local ok, open = pcall(function() return Hyperspace.App.menu.shipBuilder.bOpen == true end)
+    return ok and open
+end
+
 local function inRun()
-    local ok, running = pcall(function() return Hyperspace.App.world.bStartedGame == true end)
+    local ok, running = pcall(function()
+        local app = Hyperspace.App
+        return app.world.bStartedGame == true and app.menu.bOpen ~= true and app.menu.shipBuilder.bOpen ~= true
+    end)
     return ok and running
 end
 
@@ -85,7 +95,7 @@ local function categoryOf(key)
     if key:sub(1, 5) == "shop:" then return "shop" end
     if key:sub(1, 4) == "sys:" or key:find(":sys:", 1, true) then return "system" end
     if key:sub(1, 5) == "crew:" then return "crew" end
-    if key:find(":fight:", 1, true) then return "fight" end
+    if key:find(":fight:", 1, true) or key:find(":sfight:", 1, true) then return "fight" end
     if key:sub(1, 4) == "ach:" then return "achievement" end
     if key:find(":sector:", 1, true) then return "sector" end
     if key:sub(-8) == ":victory" then return "victory" end
@@ -145,7 +155,7 @@ local function shipRows()
     local book = ((_G.apContractState or {}).locNames) or {}
     local rows, open, total = {}, 0, 0
     for _, ship in ipairs(((_G.apGameData or {}).ships) or {}) do
-        local row = { base = ship.name, layouts = {}, remaining = 0 }
+        local row = { base = ship.name, layouts = {}, remaining = 0, playable = false }
         row.label = _G.apShipLabel and apShipLabel(ship.name) or ship.name
         for index = 0, (ship.layouts or 1) - 1 do
             local name = layoutName(ship.name, index)
@@ -153,12 +163,16 @@ local function shipRows()
                 row.layouts[#row.layouts + 1] = { name = name, letter = string.char(65 + index),
                                                   unlocked = unlocked[name] == true }
                 total = total + 1
-                if unlocked[name] then open = open + 1 end
+                if unlocked[name] then
+                    open = open + 1
+                    row.playable = true
+                end
             end
         end
         for key in pairs(book) do
-            local prefix = tostring(key):match("^(PLAYER_SHIP_[A-Z]+)")
-            if prefix == ship.name and not sentCheck(key) then
+            -- A class name can hold an underscore itself (Multiverse's PLAYER_SHIP_AUTO_FED).
+            local prefix = tostring(key):match("^(PLAYER_SHIP_[%w_]+)")
+            if prefix and prefix:gsub("_[23]$", "") == ship.name and not sentCheck(key) then
                 row.remaining = row.remaining + 1
             end
         end
@@ -171,6 +185,7 @@ end
 
 local function systemsAboard()
     local aboard = {}
+    if not inRun() then return aboard end
     pcall(function()
         local list = Hyperspace.ships.player.vSystemList
         for i = 0, list:size() - 1 do
@@ -237,9 +252,12 @@ end
 local JOURNAL_SAVED = 40
 local journalFor = nil
 
-local function journalKey()
-    return "ap_journal_" .. tostring(_G.apSeedFingerprint and apSeedFingerprint() or 0)
+-- Per seed and per slot: the slots of one multiworld share its seed, not their items.
+function apJournalKey()
+    return "ap_journal_" .. tostring(_G.apSeedFingerprint and apSeedFingerprint() or 0) .. apSlotSuffix()
 end
+
+local journalKey = apJournalKey
 
 -- The journal is kept per seed in the network module's memory, so it survives a restart.
 local function loadJournal()
@@ -283,6 +301,18 @@ local function alreadyInJournal(index)
     return false
 end
 
+-- Another game on the same seed name: the journal starts over with the server's list.
+function apJournalForget()
+    if _G.apNetRememberText then
+        apNetRememberText(journalKey(), "")
+    end
+    if _G.apNetRemember then
+        apNetRemember(journalKey() .. "_last", 0)
+    end
+    journalFor = journalKey()
+    _G.apReceivedHistory = {}
+end
+
 function apRecordReceived(itemName, sender, index, class)
     loadJournal()
     if alreadyInJournal(index) then
@@ -302,7 +332,8 @@ end
 
 
 local function scrollList(id, area, rows, lineH, draw)
-    local visible = math.max(1, math.floor(area.h / lineH))
+    -- The last line needs no gap below it.
+    local visible = math.max(1, math.floor((area.h + (area.gap or 0)) / lineH))
     local maxOffset = math.max(0, #rows - visible)
     local offset = math.min(state.scroll[id] or 0, maxOffset)
     state.scroll[id] = offset
@@ -430,13 +461,47 @@ local function drawLinksCard(x, y, w, h)
         text(10, x + 16, y + 34, w - 32, "dim", apT("dash.links.none"))
         return
     end
+    -- Every link the seed has gets its chip: when the pool's long label leaves no room, it drops the word fuel.
+    local function labels(short)
+        local out = {}
+        for index, name in ipairs(links) do
+            if name == "EnergyLink" then
+                -- The shared pool, in fuel like the mod gives it; the short label keeps the figure.
+                local fuel = _G.apEnergyLinkPoolFuel and apEnergyLinkPoolFuel() or nil
+                name = apT(short and "dash.links.energy_short" or "dash.links.energy",
+                           { n = fuel ~= nil and tostring(fuel) or "?" })
+            elseif name == "DeathLink" and not _G.apDeathLink.enabled then
+                name = apT("dash.links.death_off")
+            end
+            out[index] = name
+        end
+        return out
+    end
+    local function fits(names)
+        local total = 0
+        for _, name in ipairs(names) do total = total + width(10, name) + 28 end
+        return total - 8 <= w - 32
+    end
+    local names = labels(false)
+    if not fits(names) then names = labels(true) end
     local chipX = x + 16
-    for _, name in ipairs(links) do
+    for index, linkName in ipairs(links) do
+        local death = linkName == "DeathLink"
+        local active = not death or _G.apDeathLink.enabled
+        local name = names[index]
         local chipW = width(10, name) + 20
         if chipX + chipW > x + w - 16 then break end
-        rect(chipX, y + 32, chipW, 22, "faint")
-        rect(chipX, y + 32, 3, 22, "good")
-        text(10, chipX + 11, y + 36, chipW - 14, "text", name)
+        local toggled = death and _G.apDeathLink.toggle ~= false
+        if toggled then
+            local area = { x = chipX, y = y + 32, w = chipW, h = 22 }
+            state.areas["deathlink"] = area
+            if hovered(area) then
+                textRight(9, x + w - 16, y + 12, w - 120, "dim", apT("dash.links.toggle"))
+            end
+        end
+        rect(chipX, y + 32, chipW, 22, toggled and hovered(state.areas["deathlink"]) and "hover" or "faint")
+        rect(chipX, y + 32, 3, 22, active and "good" or "border")
+        text(10, chipX + 11, y + 36, chipW - 14, active and "text" or "dim", name)
         chipX = chipX + chipW + 8
     end
 end
@@ -444,7 +509,14 @@ end
 -- What the seed's run options mean for the run in progress; empty when the seed uses none of them.
 local function runLines()
     local lines = {}
+    if not inRun() then
+        return { { key = "dash.need_run", tone = "dim" } }
+    end
     local option = function(name) return tonumber(_G.apSeedOption and apSeedOption(name) or 0) or 0 end
+    local waiting = _G.apOwedCrewCount and apOwedCrewCount() or 0
+    if waiting > 0 then
+        lines[#lines + 1] = { key = "dash.run.crew_waiting", params = { n = waiting }, tone = "warn" }
+    end
     local status = hasSeed() and _G.apCombatStatus and apCombatStatus() or nil
     if status and status.total > 0 then
         local key = status.nextSends and "dash.run.fights.next" or "dash.run.fights"
@@ -601,47 +673,106 @@ local function drawOverview(x, y, w, h)
     drawHintCard(rx, y + h - hintH, right, hintH)
 end
 
+-- Below this height the name and the checks left would be drawn over each other.
+local SHIP_CARD_MIN_H = 74
+
+local function drawShipCard(row, cx, cy, cardW, cardH)
+    local any = row.playable
+    local spent = row.remaining == 0
+    card(cx, cy, cardW, cardH)
+    rect(cx, cy, 3, cardH, any and not spent and "good" or "faint")
+    -- Each layout as the ship list shows it: in colour once unlocked, faded until then.
+    local miniGap = 6
+    local miniH = cardH - 30
+    local miniW = math.min(math.floor(miniH * 191 / 121), math.floor((cardW * 0.6 - miniGap * 2) / 3))
+    miniH = math.floor(miniW * 121 / 191)
+    local minisW = #row.layouts * miniW + (#row.layouts - 1) * miniGap
+    local textW = cardW - minisW - 40
+    text(12, cx + 16, cy + 10, textW, any and not spent and "text" or "dim", row.label)
+    local remaining = row.remaining > 0 and apT("dash.ships.remaining", { n = row.remaining })
+        or apT("dash.ships.clear")
+    text(9, cx + 16, cy + cardH - 22, textW, "dim", remaining)
+    local mx = cx + cardW - 12 - minisW
+    local my = cy + math.floor((cardH - miniH - 18) / 2)
+    for _, layout in ipairs(row.layouts) do
+        if not ui.shipMini(layout.name, mx, my, miniW, miniH, layout.unlocked and (spent and 0.5 or 1) or 0.3) then
+            rect(mx, my, miniW, miniH, layout.unlocked and "faint" or "card")
+        end
+        rect(mx, my + miniH + 2, miniW, 3, layout.unlocked and "good" or "faint")
+        textCenter(9, mx + miniW / 2, my + miniH + 7, miniW, layout.unlocked and "text" or "dim",
+            apT("dash.ships.type", { letter = layout.letter }))
+        mx = mx + miniW + miniGap
+    end
+end
+
+-- Unset until the player picks: on from the hangar, where the question is which ship to fly next.
+local function unlockedOnly()
+    if state.unlockedOnly ~= nil then
+        return state.unlockedOnly
+    end
+    return inHangar()
+end
+
+local function toggleUnlockedOnly()
+    state.unlockedOnly = not unlockedOnly()
+    state.scroll.ships = 0
+end
+
+-- What can be flown with the most checks left comes first, and what has none left goes to the very end.
+local function rankedRows(rows)
+    local rank = function(row)
+        if row.remaining == 0 then return 3 end
+        return row.playable and 1 or 2
+    end
+    local kept = {}
+    for index, row in ipairs(rows) do
+        row.order = index
+        if row.playable or not unlockedOnly() then kept[#kept + 1] = row end
+    end
+    table.sort(kept, function(a, b)
+        if rank(a) ~= rank(b) then return rank(a) < rank(b) end
+        if a.remaining ~= b.remaining then return a.remaining > b.remaining end
+        return a.order < b.order
+    end)
+    return kept
+end
+
+local function drawFilterButton(x, y, w)
+    local caption = apT("dash.ships.filter")
+    local buttonW = width(10, caption) + 34
+    local area = { x = x + w - buttonW, y = y - 2, w = buttonW, h = 22 }
+    state.areas["filter:1"] = area
+    local on = unlockedOnly()
+    rect(area.x, area.y, area.w, area.h, hovered(area) and "hover" or "faint")
+    outline(area.x + 7, area.y + 5, 12, 12, "border", 1)
+    if on then rect(area.x + 10, area.y + 8, 6, 6, "good") end
+    text(10, area.x + 26, area.y + 4, buttonW - 30, on and "text" or "dim", caption)
+    return buttonW
+end
+
 local function drawShips(x, y, w, h)
     local rows, open, total = shipRows()
-    text(12, x, y, w, "title", apT("dash.ships.header", { done = open, total = total }))
+    rows = rankedRows(rows)
+    local buttonW = drawFilterButton(x, y, w)
+    text(12, x, y, w - buttonW - 12, "title", apT("dash.ships.header", { done = open, total = total }))
     local top = y + 30
     local columns = 2
-    local perColumn = math.ceil(#rows / columns)
-    local cardW = math.floor((w - GAP) / columns)
-    -- A seed with few ships keeps cards of a normal height at the top instead of stretching them.
-    local cardH = math.min(110, math.floor((h - 30 - GAP * (perColumn - 1)) / math.max(1, perColumn)))
+    local lines = {}
     for index, row in ipairs(rows) do
-        local col = (index - 1) // perColumn
-        local line = (index - 1) % perColumn
-        local cx = x + col * (cardW + GAP)
-        local cy = top + line * (cardH + GAP)
-        local any = false
-        for _, layout in ipairs(row.layouts) do any = any or layout.unlocked end
-        card(cx, cy, cardW, cardH)
-        rect(cx, cy, 3, cardH, any and "good" or "faint")
-        -- Each layout as the ship list shows it: in colour once unlocked, faded until then.
-        local miniGap = 6
-        local miniH = cardH - 30
-        local miniW = math.min(math.floor(miniH * 191 / 121), math.floor((cardW * 0.6 - miniGap * 2) / 3))
-        miniH = math.floor(miniW * 121 / 191)
-        local minisW = #row.layouts * miniW + (#row.layouts - 1) * miniGap
-        local textW = cardW - minisW - 40
-        text(12, cx + 16, cy + 10, textW, any and "text" or "dim", row.label)
-        local remaining = row.remaining > 0 and apT("dash.ships.remaining", { n = row.remaining })
-            or apT("dash.ships.clear")
-        text(9, cx + 16, cy + cardH - 22, textW, "dim", remaining)
-        local mx = cx + cardW - 12 - minisW
-        local my = cy + math.floor((cardH - miniH - 18) / 2)
-        for _, layout in ipairs(row.layouts) do
-            if not ui.shipMini(layout.name, mx, my, miniW, miniH, layout.unlocked and 1 or 0.3) then
-                rect(mx, my, miniW, miniH, layout.unlocked and "faint" or "card")
-            end
-            rect(mx, my + miniH + 2, miniW, 3, layout.unlocked and "good" or "faint")
-            textCenter(9, mx + miniW / 2, my + miniH + 7, miniW, layout.unlocked and "text" or "dim",
-                apT("dash.ships.type", { letter = layout.letter }))
-            mx = mx + miniW + miniGap
-        end
+        local line = math.floor((index - 1) / columns) + 1
+        lines[line] = lines[line] or {}
+        lines[line][#lines[line] + 1] = row
     end
+    -- A seed with few ships keeps cards of a normal height at the top instead of stretching them, and one
+    -- with many ships (Multiverse) scrolls instead of squeezing them.
+    local fitH = math.floor((h - 30 - GAP * (#lines - 1)) / math.max(1, #lines))
+    local cardH = math.max(SHIP_CARD_MIN_H, math.min(110, fitH))
+    scrollList("ships", { x = x, y = top, w = w, h = y + h - top, gap = GAP }, lines, cardH + GAP, function(line, rx, ry, rw)
+        local lineW = math.floor((rw - GAP) / columns)
+        for column, row in ipairs(line) do
+            drawShipCard(row, rx + (column - 1) * (lineW + GAP), ry, lineW, cardH)
+        end
+    end)
 end
 
 -- FTL's own system icons, green when the system can be used, grey when it is still locked.
@@ -672,6 +803,9 @@ local function drawSystems(x, y, w, h)
     if reactor > 0 then
         textRight(10, x + w, y + 3, 250, "good", apT("dash.systems.reactor", { n = reactor }))
     end
+    if not inRun() then
+        textRight(10, x + w - 260, y + 3, 330, "dim", apT("dash.need_run"))
+    end
     local top = y + 30
     local columns = 4
     local rowsCount = math.ceil(#rows / columns)
@@ -694,10 +828,11 @@ local function drawSystems(x, y, w, h)
         end
         text(10, cx + 14, cy + 10, innerW, row.locked and "dim" or "text", row.name)
         local status
-        -- A system the ship starts with counts its upgrades like the others, its blueprint still missing.
-        if row.locked and row.aboard and known then
+        -- A system the ship starts with, or whose upgrades came before its blueprint, counts them like the others.
+        local counted = row.aboard or row.received > 0
+        if row.locked and counted and known then
             status = apT("dash.system.aboard", { received = row.received, total = row.total })
-        elseif row.locked and row.aboard then
+        elseif row.locked and counted then
             status = apT("dash.system.aboard", { received = row.received, total = "?" })
         elseif row.locked then
             status = apT("dash.system.locked")
@@ -709,7 +844,7 @@ local function drawSystems(x, y, w, h)
             status = apT("hud.system.received", { n = row.received })
         end
         text(9, cx + 14, cy + 28, innerW, row.locked and "dim" or (full and "good" or "dim"), status)
-        if known and (not row.locked or row.aboard) then
+        if known and (not row.locked or counted) then
             local pipGap = 3
             local pipW = math.max(4, math.min(18, math.floor((innerW - 2 - pipGap * (row.total - 1)) / row.total)))
             for pip = 1, row.total do
@@ -783,6 +918,11 @@ local function placeOf(key, name, category)
         return { row = base, ship = base, label = shipLabel(base), box = index,
                  text = apT("dash.ships.type", { letter = string.char(64 + index) }), named = true }
     end
+    local sship, sector, sfight = key:match("^([%u_%d]+):sfight:(%d+):(%d+)$")
+    if sship ~= nil then
+        local box = (tonumber(sector) - 1) * 5 + tonumber(sfight)
+        return { row = sship, ship = sship, label = shipLabel(sship), box = box, text = sector .. "." .. sfight }
+    end
     local ship, fight = key:match("^([%u_%d]+):fight:(%d+)$")
     if ship then
         return { row = ship, ship = ship, label = shipLabel(ship), box = tonumber(fight), text = fight }
@@ -847,6 +987,9 @@ local function checkRows(entry, category)
         -- achievement, a race) speaks the game's language, not the seed's English location name.
         local name = place.translated and place.text or check.raw or check.name
         box.checks[#box.checks + 1] = { key = check.key, name = name, done = done }
+        if not done and _G.apInLogic and apInLogic(check.key) then
+            box.inLogic = true
+        end
         box.total, row.total = box.total + 1, row.total + 1
         if done then
             box.done, row.done = box.done + 1, row.done + 1
@@ -928,6 +1071,10 @@ local function drawBox(box, row, bx, by, bw)
     else
         rect(bx, by, bw, BOX_H, row.current and "faint" or "card")
         outline(bx, by, bw, BOX_H, row.current and "border" or "faint", 1)
+        -- In logic: what the seed expects can be done with the items received so far.
+        if box.inLogic then
+            rect(bx, by, bw, 3, "useful")
+        end
     end
     -- Several checks in one box (shop packages of a sector): one dot each, green once done.
     if box.total > 1 and box.total <= 6 and not complete then
@@ -1031,7 +1178,7 @@ local function drawCrewCards(x, y, w, bottom, rows)
                 local done = box.done >= box.total
                 local area = { x = cx, y = ry, w = cardW, h = cardH }
                 rect(cx, ry, cardW, cardH, hovered(area) and "hover" or "faint")
-                rect(cx, ry + cardH - 3, cardW, 3, done and "good" or "card")
+                rect(cx, ry + cardH - 3, cardW, 3, done and "good" or (box.inLogic and "useful" or "card"))
                 if hovered(area) then state.pointed = box end
                 local race = tostring(box.checks[1].key):match("^crew:(.+)$")
                 local texture = race and crewTexture(race)
@@ -1379,7 +1526,7 @@ local function drawWindow()
     DRAW_PAGE[PAGES[state.page]](cx, cy, cw, ch)
 
     rect(x + 16, y + h - FOOTER_H, w - 32, 1, "faint")
-    text(9, x + 16, y + h - FOOTER_H + 9, w - 32, "dim", apT("dash.footer"))
+    text(9, x + 16, y + h - FOOTER_H + 9, w - 32, "dim", apT(inRun() and "dash.footer" or "dash.footer.hangar"))
 end
 
 
@@ -1389,6 +1536,9 @@ local function setOpen(value)
     if _G.apNotifyHide then apNotifyHide(value) end
     pcall(function()
         local gui = Hyperspace.App.gui
+        if value and not inRun() then
+            return
+        end
         if value then
             state.wasPaused = gui.bPaused == true
             gui.bPaused = true
@@ -1418,9 +1568,37 @@ function apDashboardOpen()
     return state.open
 end
 
+function apDashboardResetFilterForTesting()
+    state.unlockedOnly = nil
+end
+
+function apDashboardAreaForTesting(name)
+    return state.areas[name]
+end
+
 local function turnPage(step)
     state.page = (state.page - 1 + step) % #PAGES + 1
 end
+
+local SHIPS_PAGE = 2
+
+local function drawOrClose()
+    local ok, err = pcall(drawWindow)
+    if not ok then
+        setOpen(false)
+        dashLog("render interrupted, dashboard closed: " .. tostring(err))
+    end
+end
+
+-- The title screen has the connection form, which takes TAB for itself: only the hangar opens it, with a seed.
+script.on_render_event(Defines.RenderEvents.MAIN_MENU, function() end, function()
+    if not state.open then return end
+    if not (inHangar() and hasSeed()) then
+        setOpen(false)
+        return
+    end
+    drawOrClose()
+end)
 
 script.on_render_event(Defines.RenderEvents.GUI_CONTAINER, function() end, function()
     if not state.open then return end
@@ -1428,11 +1606,7 @@ script.on_render_event(Defines.RenderEvents.GUI_CONTAINER, function() end, funct
         setOpen(false)
         return
     end
-    local ok, err = pcall(drawWindow)
-    if not ok then
-        setOpen(false)
-        dashLog("render interrupted, dashboard closed: " .. tostring(err))
-    end
+    drawOrClose()
     if _G.apDrawTutorialBanner then pcall(apDrawTutorialBanner) end
 end)
 
@@ -1443,11 +1617,22 @@ local PAGE_KEYS = {
 
 script.on_internal_event(Defines.InternalEvents.ON_KEY_DOWN, function(key)
     if key == Defines.SDL.KEY_TAB then
-        if inRun() then setOpen(not state.open) end
+        if state.open then
+            setOpen(false)
+        elseif inRun() then
+            setOpen(true)
+        elseif inHangar() and hasSeed() then
+            state.page = SHIPS_PAGE
+            setOpen(true)
+        end
         return Defines.Chain.CONTINUE
     end
     if not state.open then
         return Defines.Chain.CONTINUE
+    end
+    if key == Defines.SDL.KEY_u and state.page == SHIPS_PAGE then
+        toggleUnlockedOnly()
+        return Defines.Chain.PREEMPT
     end
     if key == Defines.SDL.KEY_ESCAPE then
         setOpen(false)
@@ -1465,7 +1650,8 @@ script.on_internal_event(Defines.InternalEvents.ON_KEY_DOWN, function(key)
         state.page = PAGE_KEYS[key]
         return Defines.Chain.PREEMPT
     end
-    return Defines.Chain.CONTINUE
+    -- The hangar reads keys too, and nothing behind the window should change.
+    return inRun() and Defines.Chain.CONTINUE or Defines.Chain.PREEMPT
 end)
 
 script.on_internal_event(Defines.InternalEvents.ON_MOUSE_L_BUTTON_DOWN, function(x, y)
@@ -1480,12 +1666,16 @@ script.on_internal_event(Defines.InternalEvents.ON_MOUSE_L_BUTTON_DOWN, function
     for name, area in pairs(state.areas) do
         if inside(area, x, y) then
             local kind, index = name:match("^(%a+):(%d+)$")
-            if kind == "tab" then
+            if name == "deathlink" then
+                apDeathLinkToggle()
+            elseif kind == "tab" then
                 state.page = tonumber(index)
             elseif kind == "cat" then
                 state.category = tonumber(index)
             elseif kind == "go" then
                 state.page, state.category = 4, tonumber(index)
+            elseif kind == "filter" then
+                toggleUnlockedOnly()
             end
         end
     end
@@ -1512,4 +1702,4 @@ script.on_init(function()
     state.page, state.category, state.scroll = 1, 1, {}
 end)
 
-dashLog("dashboard loaded (TAB in-game)")
+dashLog("dashboard loaded (TAB in a run or in the hangar)")

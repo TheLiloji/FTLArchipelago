@@ -8,7 +8,8 @@
 <text name="ap_evt_package_c3_text" language="it">Tenete i vostri rottami e il ripetitore si allontana. I pacchi troveranno un'altra finestra.</text>
 
 <text name="ap_evt_zoltan_tithe_text" language="it">Il posto di blocco è un solo incrociatore zoltan e moltissime scartoffie. "Ogni nave che attraversa il Terzo Anello contribuisce all'Anello", spiega l'ufficiale con la pazienza di chi l'ha spiegato diecimila volte. "Il contributo non è un pedaggio. Il pedaggio si prende. Il contributo si dà."</text>
-<text name="ap_evt_zoltan_tithe_c1" language="it">Pagare la decima.</text>
+<text name="ap_evt_zoltan_tithe_c1" language="it">Pagare la decima. 1 di carburante in più va alla riserva comune.</text>
+<text name="ap_evt_zoltan_toll_c1" language="it">Pagare la decima.</text>
 <text name="ap_evt_zoltan_tithe_c1_text" language="it">L'ufficiale accetta senza contare, il che inquieta più che se avesse contato. L'Anello manda l'energia verso l'esterno, nella riserva comune da cui attinge ogni giocatore di Archipelago. Anche voi, prima o poi.</text>
 <text name="ap_evt_zoltan_tithe_c2" language="it">Invocare il diritto di passaggio.</text>
 <text name="ap_evt_zoltan_tithe_c2_text" language="it">È un vostro diritto, lo dice l'ufficiale stesso, e vi lascia prendere quello che l'Anello custodisce. Nessuno vi ferma. Gli zoltan si limitano ad annotarlo. Da qualche parte, qualcun altro troverà la riserva più vuota di come l'aveva lasciata.</text>
@@ -40,7 +41,7 @@
 
 
 <text name="ap_store_text" language="it">Un mercante vi chiama su una frequenza sconosciuta. Il suo manifesto elenca nomi che non riconoscete e merci indirizzate a persone che non sono a bordo.</text>
-<text name="ap_evt_zoltan_toll_c1_text" language="it">L'ufficiale la accetta senza contarla, il che è più imbarazzante che se l'avesse contata. In cambio ti consegna tre celle di carburante sigillate a nome dell'Anello. Tutto viene annotato.</text>
+<text name="ap_evt_zoltan_toll_c1_text" language="it">L'ufficiale la accetta senza contarla, il che è più imbarazzante che se l'avesse contata. In cambio ti consegna tre celle di carburante sigillate a nome dell'Anello.</text>
 <text name="ap_evt_zoltan_toll_c3" language="it">Proseguire per la tua strada.</text>
 <text name="ap_evt_zoltan_toll_c3_text" language="it">L'ufficiale annota il tuo rifiuto senza commenti e ti fa passare. Gli Zoltan annotano tutto.</text>
 <text name="ap_evt_another_world_void" language="it">Scaricarla nel vuoto.</text>
@@ -61,3 +62,33 @@
 <text name="ap_evt_hijack_yield_text" language="it">Espellono il pacco da una camera stagna. Lo recuperi e lo mandi a destinazione.</text>
 <text name="ap_evt_hijack_destroyed_text" language="it">La nave pirata va in pezzi. Recuperi il pacco dal relitto e lo mandi a destinazione.</text>
 <text name="ap_evt_hijack_deadcrew_text" language="it">L'equipaggio pirata è morto. Mandi il pacco a destinazione, poi spogli la loro nave.</text>
+<text name="ap_trap_asb_text" language="it">Una batteria di difesa planetaria si attiva e aggancia la tua nave. Qualcuno ha dato loro il tuo codice transponder.</text>
+<text name="ap_trap_surge_text" language="it">Il reattore della nave nemica urla. Qualcuno ha mandato loro un sovraccarico dell'ammiraglia.</text>
+<text name="ap_trap_breach_text" language="it">Allarme scafo. Una parte della corazza si è aperta da sola: qualcuno voleva farvi respirare il vuoto.</text>
+<text name="ap_swap_clonebay_text" language="it">È arrivato il progetto della Sala clonazione, ma la tua Infermeria occupa il suo posto. Scambiarle? Il progetto dell'Infermeria resta tuo.</text>
+<text name="ap_swap_medbay_text" language="it">È arrivato il progetto dell'Infermeria, ma la tua Sala clonazione occupa il suo posto. Scambiarle? Il progetto della Sala clonazione resta tuo.</text>
+<text name="ap_swap_keep_medbay" language="it">Tenere l'Infermeria.</text>
+<text name="ap_swap_keep_clonebay" language="it">Tenere la Sala clonazione.</text>
+<text name="ap_swap_to_clonebay" language="it">Installare la Sala clonazione.</text>
+<text name="ap_swap_to_medbay" language="it">Installare l'Infermeria.</text>
+<text name="ap_swap_done_clonebay" language="it">La Sala clonazione ora sta dove c'era l'Infermeria.</text>
+<text name="ap_swap_done_medbay" language="it">L'Infermeria ora sta dove c'era la Sala clonazione.</text>
+<text name="ap_trap_asb_end_text" language="it">La batteria di difesa planetaria si spegne. Il combattimento è finito.</text>
+<text name="ap_trap_hazard_text" language="it">Qualcuno ha passato una falsa correzione di rotta al tuo computer di navigazione. Questo segnale non è tranquillo come dicevano le mappe.</text>
+<text name="ap_trap_hazard_end_text" language="it">Finito il combattimento, lo spazio attorno al segnale si calma.</text>
+<text name="ap_evt_overclock_text" language="it">Un tecnico engi ti chiama da un angusto modulo officina. «Il tuo reattore va con prudenza. Potremmo farlo cantare. O fondere. Di solito cantare.» Ti dice un prezzo e una scommessa.</text>
+<text name="ap_evt_overclock_c1" language="it">Scommettere 30 rottami sull'overclock.</text>
+<text name="ap_evt_overclock_c1_text" language="it">Il tecnico si collega con un entusiasmo preoccupante. Il reattore ronza sempre più acuto.</text>
+<text name="ap_evt_overclock_c2" language="it">Fargli provare sui motori, invece.</text>
+<text name="ap_evt_overclock_c2_text" language="it">La prova riesce a metà: i motori tossiscono e sputano scintille, ma il tecnico ti dà tre celle di carburante per il disturbo.</text>
+<text name="ap_evt_overclock_c3" language="it">Ringraziarlo e andarsene.</text>
+<text name="ap_evt_overclock_c3_text" language="it">Il tecnico sembra deluso, poi ti saluta con la mano e torna ai suoi cavi.</text>
+<text name="ap_evt_overclock_win" language="it">L'overclock regge. Il tecnico esulta, non vince niente e ti ripaga il doppio con una scommessa parallela sulla tua nave.</text>
+<text name="ap_evt_overclock_lose" language="it">Qualcosa scoppia. Poi un'altra cosa. Il reattore torna normale, ma parti della nave non hanno gradito il viaggio.</text>
+<text name="ap_evt_arms_text" language="it">Un cargo pesantemente armato aspetta al faro. Il suo capitano sorride troppo. «Belle armi, prezzi onesti, niente domande. Solo oggi.»</text>
+<text name="ap_evt_arms_c1" language="it">Comprare un'arma per 45 rottami.</text>
+<text name="ap_evt_arms_c1_text" language="it">Il capitano sceglie una cassa senza guardarla e la fa trasbordare. Niente rimborsi.</text>
+<text name="ap_evt_arms_c2" language="it">Scambiare 4 di carburante con uno dei suoi aggeggi.</text>
+<text name="ap_evt_arms_c2_text" language="it">Il carburante va, torna una scatolina sigillata. Rarissima, giura.</text>
+<text name="ap_evt_arms_c3" language="it">Rifiutare e proseguire.</text>
+<text name="ap_evt_arms_c3_text" language="it">«Peggio per te», dice il capitano, già in cerca del prossimo cliente.</text>

@@ -34,6 +34,10 @@ def entrance_name(layout: data.Layout) -> str:
     return f"Fly the {layout.display}"
 
 
+# Systems every FTL layout starts with (Engines, Piloting...): their Install check would always be free.
+ON_EVERY_SHIP: frozenset[str] = frozenset.intersection(*(frozenset(layout.start_systems) for layout in data.LAYOUTS))
+
+
 def allowed_layouts(options) -> tuple[data.Layout, ...]:
     if options.ship_layouts == options.ship_layouts.option_type_a_only:
         highest_variant = 0
@@ -122,7 +126,7 @@ def selected_locations(options) -> tuple[data.Location, ...]:
             mode = options.systemsanity.value
             if mode == options.systemsanity.option_disabled or location.system not in systems:
                 continue
-            if location.level == 1 and per_ship:
+            if location.level == 1 and (per_ship or location.system in ON_EVERY_SHIP):
                 continue
             if location.level == 1 or mode == options.systemsanity.option_every_level:
                 kept.append(location)
@@ -136,7 +140,19 @@ def selected_locations(options) -> tuple[data.Location, ...]:
             if options.crew_checks:
                 kept.append(location)
         elif location.group == data.GROUP_FIGHTS:
-            if location.ship in ships and (location.fight or 0) <= options.combat_checks.value:
+            per_run = options.combat_checks_mode == options.combat_checks_mode.option_per_run
+            if per_run and location.ship in ships and (location.fight or 0) <= options.combat_checks.value:
+                kept.append(location)
+        elif location.group == data.GROUP_REACTOR:
+            if options.reactor_checks:
+                kept.append(location)
+        elif location.group == data.GROUP_EVENTS:
+            if (location.fight or 0) <= options.event_checks.value:
+                kept.append(location)
+        elif location.group == data.GROUP_SECTOR_FIGHTS:
+            per_sector = options.combat_checks_mode == options.combat_checks_mode.option_per_sector
+            if (per_sector and options.combat_checks.value > 0 and location.ship in ships
+                    and (location.fight or 0) <= options.fights_per_sector.value):
                 kept.append(location)
         elif location.group == data.GROUP_SHIP_ACHIEVEMENTS:
             needed = data.ACHIEVEMENT_LAYOUT.get(location.achievement or "")

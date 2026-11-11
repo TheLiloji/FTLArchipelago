@@ -19,6 +19,13 @@
 
 That is all: ftlman downloads Hyperspace by itself.
 
+The release also has `Hyperspace.1.6.12.amd64.so` and `Hyperspace.1.6.13.amd64.so`: those are for Linux only,
+Windows does not need them.
+
+> [!NOTE]
+> **FTL from Epic Games:** ftlman cannot switch the Epic version to 1.6.9. Put FTL 1.6.9 in place yourself before
+> step 5, following [Hyperspace's own install guide](https://github.com/FTL-Hyperspace/FTL-Hyperspace).
+
 ## 1. Protect your saves
 
 In Steam, right click FTL, **Properties**, **General**, and turn off **Steam Cloud**. Then copy the folder
@@ -79,5 +86,9 @@ If the panel is missing, or connecting never works, see the [FAQ](FAQ.md).
 
 Close FTL. Put the new `ArchipelagoFTL.ftl` in ftlman's `mods` folder, click **Apply**, then copy the new
 `Hyperspace.dll` into the FTL folder again.
+
+Also put the new `ftl.apworld` in Archipelago's `custom_worlds` folder, and tell the person who generates the
+multiworld to do the same. A game already started stays on the version it was made with: the new version is for a
+new seed.
 
 Next: [Playing](Playing.md).

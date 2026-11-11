@@ -189,9 +189,11 @@ def main() -> int:
                 f"{event.get('name')} is placed in no sector: nobody will see it"
             )
 
+    # AP_TRAP_* and AP_SWAP_* events are loaded by the mod during a run, never chosen on the map.
     on_the_map = [
         node for node in events_tree.iter("event")
         if (node.get("name") or "").startswith("AP_")
+        and not (node.get("name") or "").startswith(("AP_TRAP_", "AP_SWAP_"))
         and node.getparent().tag != "choice"
     ]
     for event in on_the_map:
@@ -228,7 +230,7 @@ def main() -> int:
                 failures.append(f"the sector patch does not apply: {result.stderr.strip()}")
             else:
                 applied = len(re.findall(r'name="AP_EVT_[A-Z_]+"', result.stdout))
-                expected = len(re.findall(r'<mod-(?:append|before):event name="AP_EVT_[A-Z_]+"',
+                expected = len(re.findall(r'<mod-(?:append|before):(?:event|priorityEvent) name="AP_EVT_[A-Z_]+"',
                                           SECTORS.read_text(encoding="utf-8")))
                 if applied != expected:
                     failures.append(

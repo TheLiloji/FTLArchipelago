@@ -63,11 +63,11 @@ test("seed: changing seed gives shops back what the old one had removed", functi
     sim.rarityFor("BEAM_2", 4)
     applySeed({ seed_hash = "OLD",
                 shop = { mode = "locked", deliver = false, baseline = { "BEAM_2" } } })
-    equals(sim.rarityFor("BEAM_2", 4).rarity, 0, "locked by the first seed")
+    equals(sim.net.shopLocks.BEAM_2, true, "locked by the first seed")
 
     applySeed({ seed_hash = "NEW",
                 shop = { mode = "locked", deliver = false, baseline = {} } })
-    check(sim.rarityFor("BEAM_2", 4).rarity > 0,
+    check(sim.net.shopLocks.BEAM_2 == nil,
         "the new seed doesn't lock it: it's back on the shelf")
 end)
 
@@ -530,13 +530,32 @@ test("run start scrap: a share of every scrap item received comes back at each n
     apQueueItem({ kind = "filler", res = "scrap", n = 20, display = "20 Scrap", isReplay = true })
     drain()
     equals(apRunStartScrap(), 10, "25% of the 40 scrap of the seed, a replayed item counting too")
+    apInventoryMarkSynced()
     local before = sim.player.currentScrap
     sim.startRun(true)
+    sim.tick(1)
     equals(sim.player.currentScrap - before, 10, "given at the start of the next run")
     check(sim.shown("+10"), "the player is told")
     before = sim.player.currentScrap
+    sim.tick(60)
+    equals(sim.player.currentScrap, before, "once")
     sim.startRun(false)
+    sim.tick(60)
     equals(sim.player.currentScrap, before, "not again when a saved run is continued")
+end)
+
+test("run start scrap: a run started before the items are all in gets its scrap once they are", function()
+    _G.apInventory = { ships = {}, systemCaps = {}, startingUpgrades = {}, shopAvailability = {} }
+    applySeed({ kinds = { "filler" }, options = { run_start_scrap = 50 } })
+    apInventoryClear()
+    sim.startRun(true)
+    local before = sim.player.currentScrap
+    sim.tick(60)
+    equals(sim.player.currentScrap, before, "the replay is not in yet: nothing")
+    apQueueItem({ kind = "filler", res = "scrap", n = 30, display = "30 Scrap", isReplay = true })
+    apInventoryMarkSynced()
+    sim.tick(60)
+    equals(sim.player.currentScrap - before, 15, "half of the 30 scrap of the seed, once the replay is in")
 end)
 
 test("run start scrap: off by default", function()
@@ -582,6 +601,64 @@ test("combat checks: the first fights won in a run send their checks, with less 
     sim.enemy = nil
 end)
 
+test("combat checks: fights won before a crash, never received by the server, go out once connected", function()
+    fightSeed(50)
+    sim.runVariables.ap_fights_won = 2
+    local sentNames = {}
+    local restoreSend = stub("apNetSendCheck", function(name) sentNames[#sentNames + 1] = name return true end)
+    local restoreNet = stub("apNetConnected", function() return false end)
+    sim.jumpArrive()
+    equals(#sentNames, 0, "offline: nothing to send yet")
+    restoreNet()
+    restoreNet = stub("apNetConnected", function() return true end)
+    sim.jumpArrive()
+    equals(#sentNames, 2, "both fights the save counted go out")
+    sim.jumpArrive()
+    restoreNet()
+    restoreSend()
+    equals(#sentNames, 2, "and only once")
+end)
+
+test("combat checks: after a crash, a continued run sends its missing fights without waiting for a jump", function()
+    fightSeed(50)
+    local sentNames = {}
+    local restoreSend = stub("apNetSendCheck", function(name) sentNames[#sentNames + 1] = name return true end)
+    local restoreNet = stub("apNetConnected", function() return true end)
+    apForgetChecksForTesting()
+    sim.startRun(false)
+    sim.runVariables.ap_fights_won = 2
+    sim.tick(90)
+    restoreNet()
+    restoreSend()
+    equals(#sentNames, 2, "both fights go out a moment after Continue")
+end)
+
+test("combat checks per sector: each sector counts its own fights from 1", function()
+    _G.apInventory = { ships = {}, systemCaps = {}, startingUpgrades = {}, shopAvailability = {} }
+    apContractResetForTesting()
+    apForgetChecksForTesting()
+    applySeed({ loc = { ["PLAYER_SHIP_HARD:sfight:1:1"] = "Kestrel Cruiser: Sector 1 fight 1 won",
+                        ["PLAYER_SHIP_HARD:sfight:1:2"] = "Kestrel Cruiser: Sector 1 fight 2 won",
+                        ["PLAYER_SHIP_HARD:sfight:2:1"] = "Kestrel Cruiser: Sector 2 fight 1 won" },
+                options = { combat_check_scrap = 50, combat_checks_mode = 1 } })
+    sim.startRun(true)
+    sim.starMap.worldLevel = 0
+    sim.jumpArrive()
+    winFight(30)
+    sim.jumpArrive()
+    winFight(30)
+    sim.jumpArrive()
+    local third = winFight(30)
+    check(apCheckAlreadySent("PLAYER_SHIP_HARD:sfight:1:2"), "the second fight of sector 1")
+    equals(third.stuff.scrap, 30, "a third fight in sector 1 sends nothing: full scrap")
+    sim.starMap.worldLevel = 1
+    sim.jumpArrive()
+    winFight(30)
+    check(apCheckAlreadySent("PLAYER_SHIP_HARD:sfight:2:1"), "sector 2 starts again from fight 1")
+    sim.starMap.worldLevel = 0
+    sim.enemy = nil
+end)
+
 test("combat checks: a new run counts from fight 1 again, and an already sent check costs nothing", function()
     fightSeed(50)
     winFight(30)
@@ -614,12 +691,105 @@ test("combat checks: the dashboard knows when the next fight sends a check", fun
     sim.enemy = nil
 end)
 
-test("combat checks: a living enemy, like a surrender, is not a won fight", function()
-    fightSeed(50)
+local function livingEnemy(hostile)
     sim.enemy = sim.makeShip(1)
+    sim.enemy._targetable.hostile = hostile
     sim.enemy.vCrewList = sim.vector({ sim.makeCrew("Rebel", "human", 1) })
+    sim.tick(1)
+end
+
+test("combat checks: a surrender offered is not a won fight yet", function()
+    fightSeed(50)
+    livingEnemy(true)
     fire("PRE_CREATE_CHOICEBOX", { stuff = { scrap = 10 } })
     check(not apCheckAlreadySent("PLAYER_SHIP_HARD:fight:1"), "nothing sent while the enemy lives")
+    sim.enemy = nil
+end)
+
+test("combat checks: an accepted surrender is a won fight, with less scrap", function()
+    fightSeed(50)
+    livingEnemy(true)
+    sim.enemy._targetable.hostile = false
+    local event = { stuff = { scrap = 30 } }
+    fire("PRE_CREATE_CHOICEBOX", event)
+    check(apCheckAlreadySent("PLAYER_SHIP_HARD:fight:1"), "the enemy gave up: fight 1 won")
+    equals(event.stuff.scrap, 15, "the surrender's reward is cut like any fight's")
+    sim.enemy = nil
+end)
+
+test("combat checks: an enemy that stops fighting without a reward box still counts", function()
+    fightSeed(50)
+    livingEnemy(true)
+    sim.enemy._targetable.hostile = false
+    sim.tick(1)
+    check(apCheckAlreadySent("PLAYER_SHIP_HARD:fight:1"), "peace made after a fight: fight 1 won")
+    sim.enemy = nil
+end)
+
+test("combat checks: an enemy that jumps away was not beaten", function()
+    fightSeed(50)
+    livingEnemy(true)
+    sim.enemy.bJumping = true
+    sim.tick(1)
+    sim.enemy._targetable.hostile = false
+    sim.tick(1)
+    fire("PRE_CREATE_CHOICEBOX", { stuff = { scrap = 10 } })
+    check(not apCheckAlreadySent("PLAYER_SHIP_HARD:fight:1"), "it escaped: no fight won")
+    sim.jumpArrive()
+    winFight(30)
+    check(apCheckAlreadySent("PLAYER_SHIP_HARD:fight:1"), "the next beacon's fight still counts")
+    sim.enemy = nil
+end)
+
+test("combat checks: a dead crew counts, whatever drone or hologram they leave behind", function()
+    fightSeed(50)
+    livingEnemy(true)
+    local drone = sim.makeCrew("Combat drone", "battle", 1)
+    drone.IsDrone = function() return true end
+    local hologram = sim.makeCrew("Hologram", "zoltan_osmian_hologram", 1)
+    hologram.extend.noSlot = true
+    sim.enemy.vCrewList = sim.vector({ sim.makeCrew("Rebel", "human", 1), drone, hologram })
+    sim.enemy.vCrewList[0].bDead = true
+    local event = { stuff = { scrap = 30 } }
+    fire("PRE_CREATE_CHOICEBOX", event)
+    check(apCheckAlreadySent("PLAYER_SHIP_HARD:fight:1"), "the crew is dead: fight 1 won")
+    equals(event.stuff.scrap, 15, "with the usual scrap cut")
+    sim.enemy = nil
+end)
+
+test("combat checks: a dead crew still counts when no reward box comes", function()
+    fightSeed(50)
+    livingEnemy(true)
+    sim.enemy.vCrewList[0].bDead = true
+    sim.tick(60)
+    check(not apCheckAlreadySent("PLAYER_SHIP_HARD:fight:1"), "the box gets a moment to come first")
+    sim.tick(200)
+    check(apCheckAlreadySent("PLAYER_SHIP_HARD:fight:1"), "then the fight counts on its own")
+    sim.enemy = nil
+end)
+
+test("combat checks: a boarder of theirs still alive on our ship keeps the fight going", function()
+    fightSeed(50)
+    livingEnemy(true)
+    sim.enemy.vCrewList[0].bDead = true
+    sim.player.vCrewList:push_back(sim.makeCrew("Boarder", "mantis", 1))
+    fire("PRE_CREATE_CHOICEBOX", { stuff = { scrap = 10 } })
+    check(not apCheckAlreadySent("PLAYER_SHIP_HARD:fight:1"), "one of them is still fighting aboard")
+    table.remove(sim.player.vCrewList._store)
+    sim.enemy = nil
+end)
+
+test("combat checks: a ship that was never hostile is not a fight", function()
+    fightSeed(50)
+    livingEnemy(false)
+    fire("PRE_CREATE_CHOICEBOX", { stuff = { scrap = 10 } })
+    sim.tick(1)
+    check(not apCheckAlreadySent("PLAYER_SHIP_HARD:fight:1"), "a trader or a quest giver sends nothing")
+    sim.jumpArrive()
+    livingEnemy(true)
+    sim.jumpArrive()
+    livingEnemy(false)
+    check(not apCheckAlreadySent("PLAYER_SHIP_HARD:fight:1"), "nor does a hostile ship met at the beacon before")
     sim.enemy = nil
 end)
 
@@ -716,6 +886,27 @@ test("network: the first encrypted attempt failing does not make a responding se
 
     check(not shownKey("net.error.unreachable"),
         "apclientpp tries wss then ws: this first failure is not an outage")
+end)
+
+test("network: a server that worked then goes silent mid-run is not blamed on the address", function()
+    sim.startRun(true)
+    apNetResetForTesting()
+    apNetConnect("localhost:38281", "Navigator", "")
+    sim.netEvent("connected", { name = "Navigator", extra = slotData({ seed_hash = "LOST" }) })
+    sim.net.connected = true
+    sim.tick(10)
+    sim.netEvent("disconnected", {})
+    sim.net.connected = false
+    sim.netEvent("error", { name = "unreachable", extra = "Connection refused" })
+    sim.tick(400)
+    check(shownKey("net.error.unreachable.lost"), "the player is told the checks wait")
+    check(not shownKey("net.error.unreachable"), "not to check an address that worked")
+
+    apNetResetForTesting()
+    apNetConnect("localhost:38281", "Navigator", "")
+    sim.netEvent("error", { name = "unreachable", extra = "Connection refused" })
+    sim.tick(400)
+    check(shownKey("net.error.unreachable"), "a server never reached still asks to check the address")
 end)
 
 test("contract: seeds from contracts 1 to 3 are accepted, contract 4 is refused", function()
@@ -966,4 +1157,270 @@ test("network: a reconnection to a room whose seed changed does not claim nothin
     restoreRefuse()
     check(not shownKey("net.reconnected"), "no 'signal back, nothing lost' before a refusal")
     apNetResetForTesting()
+end)
+
+test("event beacons: the seed's option hides the labels it should, and leaving the seed shows them all again", function()
+    sim.hiddenBeacons = {}
+    apContractResetForTesting()
+    applySeed({ seed_hash = "beacons", event_beacons = "important" })
+    check(sim.hiddenBeacons.AP_EVT_SLUG_WHISPER, "important: the Slug's hints look like any beacon")
+    check(not sim.hiddenBeacons.AP_EVT_PACKAGE, "but the package relay keeps its label")
+    applySeed({ seed_hash = "beacons2", event_beacons = "hidden" })
+    check(sim.hiddenBeacons.AP_EVT_PACKAGE and sim.hiddenBeacons.AP_EVT_HIJACK, "hidden: no event is labelled")
+    apContractUnload()
+    local function othersHidden()
+        for name in pairs(sim.hiddenBeacons) do
+            if name ~= "AP_EVT_SECTOR_EVENT" then return true end
+        end
+        return false
+    end
+    check(not othersHidden(), "every label is back once the seed is left")
+    applySeed({ seed_hash = "beacons3" })
+    check(not othersHidden(), "a seed from before the option keeps every label")
+    check(sim.hiddenBeacons.AP_EVT_SECTOR_EVENT, "but without event checks the sector's guaranteed beacon is a plain one")
+    applySeed({ seed_hash = "beacons4", options = { event_checks = 5 } })
+    check(not sim.hiddenBeacons.AP_EVT_SECTOR_EVENT, "with event checks it is labelled")
+    sim.hiddenBeacons = nil
+end)
+
+test("network: a build that names its own Archipelago game sends it before connecting", function()
+    apNetResetForTesting()
+    sim.net.game = nil
+    _G.apGameName = "FTL Multiverse"
+    apNetConnect("ws://localhost:38281", "Navigator", "")
+    _G.apGameName = nil
+    equals(sim.net.game, "FTL Multiverse", "the module is told the game name")
+    apNetResetForTesting()
+end)
+
+test("flagship sabotage: each phase arrives weakened once, by the seed's level", function()
+    applySeed({ options = { flagship_sabotage = 3 } })
+    sim.startRun(true)
+    local boss = sim.makeShip(1)
+    boss.myBlueprint = { blueprintName = "BOSS_1" }
+    boss.ship.hullIntegrity = { first = 30, second = 30 }
+    local capped = {}
+    boss.GetSystem = function(_, id)
+        return { GetMaxPower = function() return 4 end, SetPowerCap = function(_, cap) capped[id] = cap end }
+    end
+    sim.enemy = boss
+    sim.tick(2)
+    equals(boss.ship.hullIntegrity.first, 24, "level 3: hull -20 %")
+    equals(capped[0], 3, "and shields -1")
+    equals(capped[3], nil, "weapons only from level 4")
+    sim.tick(60)
+    equals(boss.ship.hullIntegrity.first, 24, "once per phase")
+    sim.enemy = nil
+end)
+
+test("flagship sabotage: off by default, and an ordinary enemy is never touched", function()
+    applySeed({ options = { flagship_sabotage = 5 } })
+    sim.startRun(true)
+    local pirate = sim.makeShip(1)
+    sim.enemy = pirate
+    sim.tick(2)
+    equals(pirate.ship.hullIntegrity.first, 30, "not the Flagship")
+    applySeed({})
+    local boss = sim.makeShip(1)
+    boss.myBlueprint = { blueprintName = "BOSS_2" }
+    sim.enemy = boss
+    sim.tick(2)
+    equals(boss.ship.hullIntegrity.first, 30, "no sabotage without the option")
+    sim.enemy = nil
+end)
+
+test("reactor checks: each threshold the reactor reaches sends its check", function()
+    apContractResetForTesting()
+    apForgetChecksForTesting()
+    applySeed({ loc = { ["reactor:10"] = "Reactor Power 10", ["reactor:15"] = "Reactor Power 15" } })
+    sim.startRun(true)
+    sim.powerManager.currentPower.second = 9
+    sim.tick(61)
+    check(not apCheckAlreadySent("reactor:10"), "9 power: not yet")
+    sim.powerManager.currentPower.second = 12
+    sim.tick(61)
+    check(apCheckAlreadySent("reactor:10"), "10 reached")
+    check(not apCheckAlreadySent("reactor:15"), "15 not yet")
+    sim.powerManager.currentPower.second = 8
+end)
+
+test("sector skip: a sector the layout already crossed opens its first beacon as an exit, and the jump pays", function()
+    apContractResetForTesting()
+    apForgetChecksForTesting()
+    applySeed({ options = { sector_skip = 1 } })
+    sim.meta["ap_reached_PLAYER_SHIP_HARD"] = 3
+    sim.startRun(true)
+    sim.starMap.worldLevel = 0
+    sim.starMap.currentLoc = sim.makeLocation()
+    sim.jumpArrive()
+    equals(sim.starMap.currentLoc.beacon, true, "sector 1: its first beacon is an exit")
+    local before = sim.player.currentScrap
+    sim.starMap.worldLevel = 1
+    sim.starMap.currentLoc = sim.makeLocation()
+    sim.jumpArrive()
+    equals(sim.player.currentScrap - before, 60, "jumped on at once: the skip pays")
+    equals(sim.starMap.currentLoc.beacon, true, "sector 2 was reached before too")
+    sim.starMap.currentLoc = sim.makeLocation()
+    sim.jumpArrive()
+    sim.starMap.worldLevel = 2
+    sim.starMap.currentLoc = sim.makeLocation()
+    before = sim.player.currentScrap
+    sim.jumpArrive()
+    equals(sim.player.currentScrap, before, "sector 2 explored: nothing paid")
+    check(sim.starMap.currentLoc.beacon ~= true, "sector 3 was the deepest: no exit")
+    sim.starMap.worldLevel = 0
+    sim.meta["ap_reached_PLAYER_SHIP_HARD"] = nil
+end)
+
+test("sector skip: off by default", function()
+    apContractResetForTesting()
+    applySeed({})
+    sim.meta["ap_reached_PLAYER_SHIP_HARD"] = 5
+    sim.startRun(true)
+    sim.starMap.worldLevel = 0
+    sim.starMap.currentLoc = sim.makeLocation()
+    sim.jumpArrive()
+    check(sim.starMap.currentLoc.beacon ~= true, "no exit without the option")
+    sim.meta["ap_reached_PLAYER_SHIP_HARD"] = nil
+end)
+
+test("shop deal scrap: the seed's percent changes what a deal pays, 0 closes them", function()
+    apShopGiftsConfigure(DEMO or {})
+    applySeed({ options = { shop_deal_scrap = 50 } })
+    sim.startRun(true)
+    sim.player.currentScrap = 0
+    _G.apTrapLink.enabled = false
+    sim.sign("AP_DEAL_2")
+    sim.tick(120)
+    equals(sim.player.currentScrap, 27, "half of the 55 scrap")
+    applySeed({ options = { shop_deal_scrap = 0 } })
+    apApplyShopGifts()
+    sim.player.currentScrap = 0
+    sim.clearLog()
+    sim.sign("AP_DEAL_3")
+    sim.tick(120)
+    equals(sim.player.currentScrap, 0, "at 0 a deal pays nothing")
+    check(shownKey("deal.off"), "and says the seed has no deals")
+    applySeed({})
+end)
+
+test("sector locks: the exit of sector 4 stays shut without a pass, and opens when it comes in", function()
+    apContractResetForTesting()
+    _G.apInventory = { ships = {}, systemCaps = {}, startingUpgrades = {}, shopAvailability = {} }
+    applySeed({ options = { sector_locks = 1 } })
+    sim.startRun(true)
+    sim.starMap.worldLevel = 3
+    sim.starMap.currentLoc = sim.makeLocation()
+    sim.starMap.currentLoc.beacon = true
+    sim.jumpArrive()
+    equals(sim.starMap.currentLoc.beacon, false, "no pass: the exit is shut")
+    apQueueItem({ kind = "pass", bp = "PLAYER_SHIP_HARD", display = "Sector Pass (The Kestrel)" })
+    sim.tick(121)
+    equals(sim.starMap.currentLoc.beacon, true, "the pass came in: open")
+    sim.starMap.worldLevel = 0
+    _G.apInventory.passes = nil
+end)
+
+test("sector skip: the first beacon of a new run is judged too, without a jump", function()
+    apContractResetForTesting()
+    applySeed({ options = { sector_skip = 1 } })
+    sim.meta["ap_reached_PLAYER_SHIP_HARD"] = 3
+    sim.startRun(true)
+    sim.starMap.worldLevel = 0
+    sim.starMap.currentLoc = sim.makeLocation()
+    apSectorSkipArrive()
+    equals(sim.starMap.currentLoc.beacon, true, "sector 1's start beacon is an exit")
+    sim.meta["ap_reached_PLAYER_SHIP_HARD"] = nil
+end)
+
+test("shop deal scrap: at 0 a closed deal costs nothing, and opens again at its price", function()
+    applySeed({ options = { shop_deal_scrap = 0 } })
+    apApplyShopGifts()
+    local desc = Hyperspace.Blueprints:GetAugmentBlueprint("AP_DEAL_2").desc
+    equals(desc.cost, 0, "closed: free, a click takes nothing")
+    apShopGiftsForgetSeed()
+    applySeed({})
+    apApplyShopGifts()
+    equals(Hyperspace.Blueprints:GetAugmentBlueprint("AP_DEAL_2").desc.cost, 10, "open again: its price back")
+end)
+
+test("sector skip: the start beacon stays an exit while the offer stands, even if the game rebuilds it", function()
+    apContractResetForTesting()
+    applySeed({ options = { sector_skip = 1 } })
+    sim.meta["ap_reached_PLAYER_SHIP_HARD"] = 3
+    sim.startRun(true)
+    sim.menuOpen = false
+    sim.starMap.worldLevel = 0
+    sim.starMap.currentLoc = sim.makeLocation()
+    sim.tick(31)
+    check(sim.starMap.currentLoc.beacon == true, "offered: an exit")
+    sim.starMap.currentLoc = sim.makeLocation()
+    sim.tick(31)
+    check(sim.starMap.currentLoc.beacon == true, "the rebuilt start beacon is an exit again")
+    sim.menuOpen = nil
+    sim.meta["ap_reached_PLAYER_SHIP_HARD"] = nil
+end)
+
+test("fight traps: one armed when the run ends waits for the first fight of the next run", function()
+    sim.meta["ap_trap_asb"] = nil
+    sim.startRun(true)
+    apQueueItem({ kind = "trap", eff = "asb" })
+    sim.tick(60)
+    equals(apTrapAsbArmed(), 1, "armed")
+    sim.startRun(true)
+    equals(apTrapAsbArmed(), 1, "still armed in the new run")
+    sim.meta["ap_trap_asb"] = nil
+end)
+
+test("sector skip: refused, the offer is gone for the sector and no other beacon turns into an exit", function()
+    apContractResetForTesting()
+    applySeed({ options = { sector_skip = 1 } })
+    sim.meta["ap_reached_PLAYER_SHIP_HARD"] = 3
+    sim.startRun(true)
+    sim.menuOpen = false
+    sim.starMap.worldLevel = 0
+    local start = sim.makeLocation()
+    start.loc = { x = 100, y = 200 }
+    local second = sim.makeLocation()
+    second.loc = { x = 300, y = 150 }
+    local list = { [0] = start, [1] = second }
+    sim.starMap.locations = { size = function() return 2 end }
+    setmetatable(sim.starMap.locations, { __index = function(_, i) return list[i] end })
+    sim.starMap.currentLoc = start
+    sim.tick(62)
+    check(start.beacon == true, "offered: the start beacon is an exit")
+    -- FTL points currentLoc at the destination while the ship jumps.
+    sim.starMap.currentLoc = second
+    sim.tick(31)
+    check(second.beacon ~= true, "the beacon jumped to never becomes an exit")
+    sim.jumpArrive()
+    check(start.beacon == false, "refused: the start beacon is no exit any more")
+    sim.starMap.currentLoc = start
+    sim.tick(31)
+    check(start.beacon == false, "and stays so for the rest of the sector")
+    sim.starMap.locations = nil
+    sim.menuOpen = nil
+    sim.meta["ap_reached_PLAYER_SHIP_HARD"] = nil
+end)
+
+test("sector skip: the start beacon is taken once the new sector's map is laid out, not at the arrival", function()
+    apContractResetForTesting()
+    applySeed({ options = { sector_skip = 1 } })
+    sim.meta["ap_reached_PLAYER_SHIP_HARD"] = 4
+    sim.startRun(true)
+    sim.menuOpen = false
+    sim.starMap.worldLevel = 1
+    local old = sim.makeLocation()
+    old.loc = { x = 900, y = 300 }
+    sim.starMap.currentLoc = old
+    sim.jumpArrive()
+    -- FTL then lays out sector 2 and puts the ship on its start beacon.
+    local start = sim.makeLocation()
+    start.loc = { x = 80, y = 250 }
+    sim.starMap.currentLoc = start
+    sim.tick(31)
+    check(start.beacon == true, "the new sector's start beacon is the exit")
+    sim.menuOpen = nil
+    sim.starMap.worldLevel = 0
+    sim.meta["ap_reached_PLAYER_SHIP_HARD"] = nil
 end)

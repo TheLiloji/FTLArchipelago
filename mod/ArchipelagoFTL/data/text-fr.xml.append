@@ -8,7 +8,8 @@
 <text name="ap_evt_package_c3_text" language="fr">Vous gardez votre ferraille et le relais s'éloigne. Les colis trouveront une autre fenêtre.</text>
 
 <text name="ap_evt_zoltan_tithe_text" language="fr">Le poste de contrôle, c'est un croiseur zoltan et beaucoup de paperasse. « Tout bâtiment traversant le Troisième Anneau contribue à l'Anneau », explique l'officier, avec la patience de quelqu'un qui l'a expliqué dix mille fois. « La contribution n'est pas un péage. Un péage se prélève. Une contribution se donne. »</text>
-<text name="ap_evt_zoltan_tithe_c1" language="fr">Verser la contribution.</text>
+<text name="ap_evt_zoltan_tithe_c1" language="fr">Verser la contribution. 1 carburant de plus va à la réserve commune.</text>
+<text name="ap_evt_zoltan_toll_c1" language="fr">Verser la contribution.</text>
 <text name="ap_evt_zoltan_tithe_c1_text" language="fr">L'officier l'accepte sans la compter, ce qui est plus gênant que s'il l'avait comptée. L'Anneau redirige l'énergie vers l'extérieur, dans la réserve commune où puisent tous les joueurs d'Archipelago. Vous compris, un jour.</text>
 <text name="ap_evt_zoltan_tithe_c2" language="fr">Invoquer le droit de passage.</text>
 <text name="ap_evt_zoltan_tithe_c2_text" language="fr">C'est votre droit, l'officier le confirme, et il vous laisse prendre ce que l'Anneau détient. Personne ne vous arrête. Les Zoltan se contentent de le noter. Quelque part là-dehors, quelqu'un trouvera la réserve plus vide qu'il ne l'avait laissée.</text>
@@ -40,7 +41,7 @@
 
 
 <text name="ap_store_text" language="fr">Un marchand vous hèle sur une fréquence inconnue. Son manifeste liste des noms que vous ne reconnaissez pas, et des marchandises adressées à des gens qui ne sont pas à bord.</text>
-<text name="ap_evt_zoltan_toll_c1_text" language="fr">L'officier l'accepte sans la compter, ce qui est plus gênant que s'il l'avait comptée. En échange, il vous remet trois cellules de carburant scellées au nom de l'Anneau. Tout est noté.</text>
+<text name="ap_evt_zoltan_toll_c1_text" language="fr">L'officier l'accepte sans la compter, ce qui est plus gênant que s'il l'avait comptée. En échange, il vous remet trois cellules de carburant scellées au nom de l'Anneau.</text>
 <text name="ap_evt_zoltan_toll_c3" language="fr">Passer votre chemin.</text>
 <text name="ap_evt_zoltan_toll_c3_text" language="fr">L'officier note votre refus sans commentaire et vous laisse passer. Les Zoltan notent tout.</text>
 <text name="ap_evt_another_world_void" language="fr">La décharger dans le vide.</text>
@@ -61,3 +62,33 @@
 <text name="ap_evt_hijack_yield_text" language="fr">Ils éjectent le colis par un sas. Vous le récupérez et l'envoyez à son destinataire.</text>
 <text name="ap_evt_hijack_destroyed_text" language="fr">Le vaisseau pirate se disloque. Vous tirez le colis de l'épave et l'envoyez à son destinataire.</text>
 <text name="ap_evt_hijack_deadcrew_text" language="fr">L'équipage pirate est mort. Vous envoyez le colis à son destinataire, puis vous dépouillez leur vaisseau.</text>
+<text name="ap_trap_asb_text" language="fr">Une batterie de défense planétaire s'éveille et verrouille votre vaisseau. Quelqu'un leur a donné votre code de transpondeur.</text>
+<text name="ap_trap_surge_text" language="fr">Le réacteur du vaisseau ennemi hurle. Quelqu'un leur a envoyé une surcharge du vaisseau amiral.</text>
+<text name="ap_trap_breach_text" language="fr">Alarme de coque. Un pan du blindage s'est ouvert tout seul : quelqu'un voulait vous faire respirer le vide.</text>
+<text name="ap_swap_clonebay_text" language="fr">Le plan de la Salle des clones est arrivé, mais votre Infirmerie occupe sa place. Les échanger ? Le plan de l'Infirmerie reste à vous.</text>
+<text name="ap_swap_medbay_text" language="fr">Le plan de l'Infirmerie est arrivé, mais votre Salle des clones occupe sa place. Les échanger ? Le plan de la Salle des clones reste à vous.</text>
+<text name="ap_swap_keep_medbay" language="fr">Garder l'Infirmerie.</text>
+<text name="ap_swap_keep_clonebay" language="fr">Garder la Salle des clones.</text>
+<text name="ap_swap_to_clonebay" language="fr">Installer la Salle des clones.</text>
+<text name="ap_swap_to_medbay" language="fr">Installer l'Infirmerie.</text>
+<text name="ap_swap_done_clonebay" language="fr">La Salle des clones remplace l'Infirmerie.</text>
+<text name="ap_swap_done_medbay" language="fr">L'Infirmerie remplace la Salle des clones.</text>
+<text name="ap_trap_asb_end_text" language="fr">La batterie de défense planétaire s'éteint. Le combat est terminé.</text>
+<text name="ap_trap_hazard_text" language="fr">Quelqu'un a glissé une mauvaise correction de cap à votre ordinateur de navigation. Cette balise n'est pas aussi calme que le disaient les cartes.</text>
+<text name="ap_trap_hazard_end_text" language="fr">Le combat terminé, l'espace autour de la balise se calme.</text>
+<text name="ap_evt_overclock_text" language="fr">Un technicien engi vous appelle depuis un module-atelier exigu. « Votre réacteur tourne prudemment. On pourrait le faire chanter. Ou fondre. En général, chanter. » Il annonce un prix et un pari.</text>
+<text name="ap_evt_overclock_c1" language="fr">Parier 30 ferraille sur le surcadençage.</text>
+<text name="ap_evt_overclock_c1_text" language="fr">Le technicien se branche avec un enthousiasme inquiétant. Le réacteur monte dans les aigus.</text>
+<text name="ap_evt_overclock_c2" language="fr">Le laisser essayer sur les moteurs plutôt.</text>
+<text name="ap_evt_overclock_c2_text" language="fr">L'essai marche à moitié : les moteurs toussent et crachent des étincelles, mais le technicien vous donne trois cellules de carburant pour la peine.</text>
+<text name="ap_evt_overclock_c3" language="fr">Le remercier et partir.</text>
+<text name="ap_evt_overclock_c3_text" language="fr">Le technicien a l'air déçu, puis vous fait signe de partir et retourne à ses câbles.</text>
+<text name="ap_evt_overclock_win" language="fr">Le surcadençage tient. Le technicien jubile, ne gagne rien, et vous rembourse deux fois grâce à un pari parallèle sur votre vaisseau.</text>
+<text name="ap_evt_overclock_lose" language="fr">Quelque chose saute. Puis autre chose. Le réacteur revient à la normale, mais une partie du vaisseau n'a pas aimé le voyage.</text>
+<text name="ap_evt_arms_text" language="fr">Un cargo lourdement armé attend à la balise. Son capitaine sourit trop. « Belles armes, prix honnêtes, pas de questions. Aujourd'hui seulement. »</text>
+<text name="ap_evt_arms_c1" language="fr">Acheter une arme pour 45 ferraille.</text>
+<text name="ap_evt_arms_c1_text" language="fr">Le capitaine choisit une caisse sans la regarder et la fait transborder. Pas de remboursement.</text>
+<text name="ap_evt_arms_c2" language="fr">Échanger 4 carburant contre un de ses gadgets.</text>
+<text name="ap_evt_arms_c2_text" language="fr">Le carburant part, une petite boîte scellée revient. Très rare, jure-t-il.</text>
+<text name="ap_evt_arms_c3" language="fr">Refuser et continuer.</text>
+<text name="ap_evt_arms_c3_text" language="fr">« Tant pis pour vous », dit le capitaine, qui cherche déjà le client suivant.</text>

@@ -48,8 +48,16 @@ local function atAStore()
     return _G.apAtAStore ~= nil and apAtAStore()
 end
 
+local noRoom
+
+-- The start-of-run menu: whether a weapon or a drone has a place aboard right now (slot or cargo).
+function apEquipmentHasRoom(family)
+    local ok, why = pcall(noRoom, family)
+    return not ok or why == nil
+end
+
 -- nil when the item fits, else why it waits.
-local function noRoom(family)
+noRoom = function(family)
     local ok, why = pcall(function()
         local player = Hyperspace.ships.player
         local system = family == "weapon" and player.weaponSystem or player.droneSystem
@@ -258,6 +266,12 @@ end
 
 local SKILLS = { pilot = 0, engines = 1, shields = 2, weapons = 3, repair = 4, combat = 5 }
 
+-- The seed names races as the base game does; a mod can call one differently. FTL gives a human for a race it does
+-- not know, without a word.
+function apRaceInGame(race)
+    return (_G.apRaceNames or {})[race] or race
+end
+
 function apRecruitCrew(race, skill)
     local player = Hyperspace.ships.player
     if player == nil then
@@ -268,7 +282,7 @@ function apRecruitCrew(race, skill)
         return false, "crew full"
     end
     local ok, member = pcall(function()
-        return player:AddCrewMemberFromString("", race, false, 0, false, math.random(0, 1) == 0)
+        return player:AddCrewMemberFromString("", apRaceInGame(race), false, 0, false, math.random(0, 1) == 0)
     end)
     if not ok or member == nil then
         return false, "recruit failed"
@@ -280,6 +294,89 @@ function apRecruitCrew(race, skill)
     equipLog("recruit: " .. tostring(race) .. (skill and (" expert in " .. skill) or ""))
     return true
 end
+
+-- A crew member received with the crew full waits for a free seat instead of being lost: counted per race and
+-- skill in the run's save, and brought aboard as soon as someone leaves the crew.
+local function owedVariable(race, skill)
+    return "ap_crew_owed_" .. tostring(race) .. (skill and ("_" .. tostring(skill)) or "")
+end
+
+local function owedCount(race, skill)
+    local ok, value = pcall(function() return Hyperspace.playerVariables[owedVariable(race, skill)] end)
+    return ok and math.floor(tonumber(value) or 0) or 0
+end
+
+local function setOwed(race, skill, n)
+    pcall(function() Hyperspace.playerVariables[owedVariable(race, skill)] = n end)
+end
+
+function apOweCrew(race, skill)
+    setOwed(race, skill, owedCount(race, skill) + 1)
+    equipLog("crew full: " .. tostring(race) .. " waits for a free seat")
+end
+
+-- Only races Archipelago gave can be owed: the inventory lists them.
+local function owedCrew()
+    local list, seen = {}, {}
+    local function add(race, skill)
+        local variable = owedVariable(race, skill)
+        if not seen[variable] and owedCount(race, skill) > 0 then
+            seen[variable] = true
+            list[#list + 1] = { race = race, skill = skill }
+        end
+    end
+    local inventory = _G.apInventory or {}
+    for race in pairs(inventory.crewProgress or {}) do
+        add(race, nil)
+    end
+    for _, entry in ipairs(inventory.crew or {}) do
+        add(entry.race, entry.skill)
+        add(entry.race, nil)
+    end
+    return list
+end
+
+function apOwedCrewCount()
+    local count = _G.apFillerCrewWaiting and apFillerCrewWaiting() or 0
+    for _, entry in ipairs(owedCrew()) do
+        count = count + owedCount(entry.race, entry.skill)
+    end
+    return count
+end
+
+function apSeatOwedCrew()
+    local player = Hyperspace.ships.player
+    if player == nil then
+        return 0
+    end
+    local seated = 0
+    for _, entry in ipairs(owedCrew()) do
+        while owedCount(entry.race, entry.skill) > 0 do
+            if not apRecruitCrew(entry.race, entry.skill) then
+                return seated
+            end
+            setOwed(entry.race, entry.skill, owedCount(entry.race, entry.skill) - 1)
+            seated = seated + 1
+            local name = _G.apRaceLabel and apRaceLabel(entry.race) or entry.race
+            if _G.apNotifyStatus then
+                _G.apNotifyStatus(apT("crew.seated", { name = tostring(name) }))
+            end
+        end
+    end
+    return seated
+end
+
+local seatTicks = 0
+script.on_internal_event(Defines.InternalEvents.ON_TICK, function()
+    seatTicks = seatTicks + 1
+    if seatTicks < 60 then
+        return
+    end
+    seatTicks = 0
+    if _G.apFillerCanDeliver and apFillerCanDeliver() then
+        apTry("[AP-equip] ", apSeatOwedCrew)
+    end
+end)
 
 function apCargoStatus()
     pcall(function()

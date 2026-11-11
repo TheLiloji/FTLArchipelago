@@ -1,0 +1,27 @@
+# Solo game: a seed for one player, alone in the multiworld, about 7 hours to the goal.
+# Nobody else sends items, so the seed itself keeps the pace: sector skip to cross early sectors again
+# quickly, Sector Passes to make the deep sectors a goal, more combat and event checks, deals that pay.
+# Measured: 149 locations, 20 free shop slots, ~13.9 checks per hour,
+# ~7.0 h to the goal, ~13 minutes max wait with nothing to send.
+# Change the name line, then generate as usual.
+
+name: Player
+description: FTL alone, about 7 hours to the goal.
+game: "FTL: Faster Than Light"
+requires:
+  version: 0.6.7
+"FTL: Faster Than Light":
+  victories_required: 3
+  victory_difficulty: normal
+  layout_count: 5
+  archives: 8
+  archives_required: 6
+  full_system_upgrades: true
+  combat_checks: 1
+  combat_checks_mode: per_sector
+  fights_per_sector: 2
+  event_checks: 10
+  reactor_checks: true
+  sector_skip: true
+  sector_locks: true
+  shop_deal_scrap: 120

@@ -48,7 +48,14 @@ class TestDurationPresets(TestCase):
 
     def test_short_medium_and_long(self) -> None:
         self.assertEqual(DURATION_PRESETS,
-                         ["first_game.yaml", "long_game.yaml", "medium_game.yaml", "short_game.yaml"])
+                         ["first_game.yaml", "long_game.yaml", "medium_game.yaml", "short_game.yaml",
+                          "solo_game.yaml"])
+
+    def test_the_solo_preset_uses_what_keeps_a_lone_seed_going(self) -> None:
+        options = load("solo_game.yaml")
+        for key in ("sector_skip", "sector_locks", "reactor_checks"):
+            self.assertTrue(options[key], key)
+        self.assertEqual(options["combat_checks_mode"], "per_sector")
 
     def test_every_preset_says_which_victories_count(self) -> None:
         for name in DURATION_PRESETS:
@@ -126,8 +133,8 @@ class TestPresetsKeepTheirPromises(TestCase):
 
     def test_the_shop_slot_counts_are_the_announced_ones(self) -> None:
         announced = {
-            "A1_multi_game_beginner.yaml": 32,
-            "A2_multi_game_veteran.yaml": 28,
+            "A1_multi_game_beginner.yaml": 31,
+            "A2_multi_game_veteran.yaml": 27,
             "B1_solo_beginner.yaml": 40,
             "B2_solo_veteran.yaml": 50,
             "C1_two_evenings_beginner.yaml": 30,
@@ -213,7 +220,7 @@ class TestContextCHardConstraints(TestCase):
         known_groups = {
             data.GROUP_SECTORS, data.GROUP_VICTORIES, data.GROUP_SHIP_ACHIEVEMENTS,
             data.GROUP_GENERAL_ACHIEVEMENTS, data.GROUP_SHOP_SLOTS, data.GROUP_SYSTEMS,
-            data.GROUP_CREW,
+            data.GROUP_CREW, data.GROUP_EVENTS,
         }
         for name in self.PRESETS:
             with self.subTest(preset=name):

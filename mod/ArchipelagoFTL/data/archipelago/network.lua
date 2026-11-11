@@ -17,6 +17,7 @@ local state = {
     lastItemIndex = -1,
     consumedUntil = -1,
     delivered = {},
+    itemNames = {},
     scoutsPending = false,
     scouted = {},
 }
@@ -26,6 +27,7 @@ _G.apNetState = state
 function apNetResetForTesting()
     state.connecting = false
     state.connected = false
+    state.everConnected = false
     state.lastConnection = nil
     state.retries = 0
     state.retryAt = nil
@@ -33,6 +35,7 @@ function apNetResetForTesting()
     state.lastItemIndex = -1
     state.consumedUntil = -1
     state.delivered = {}
+    state.itemNames = {}
     state.scoutsPending = false
     state.scouted = {}
     state.checkItems = {}
@@ -89,6 +92,10 @@ function apNetConnect(uri, slot, password)
     state.lastConnection = { uri = uri, slot = slot, password = password or "" }
     state.retries = 0
     state.retryAt = nil
+    -- The Multiverse build is its own Archipelago game (apGameName comes with its data).
+    if _G.apGameName and ap.SetGame ~= nil then
+        pcall(function() ap:SetGame(tostring(apGameName)) end)
+    end
     netLog("connecting to " .. tostring(uri) .. " (slot " .. tostring(slot) .. ")")
     return ap:Connect(uri, slot, password or "")
 end
@@ -175,7 +182,8 @@ local function announceIfStillUnreachable()
     state.unreachableShown = true
     netLog("server still unreachable, the player has been warned")
     if _G.apNotifyStatus then
-        _G.apNotifyStatus(apT("net.error.unreachable"))
+        -- After a link that worked, the address is not the problem: say what happens to the checks instead.
+        _G.apNotifyStatus(apT(state.everConnected and "net.error.unreachable.lost" or "net.error.unreachable"))
     end
 end
 
@@ -212,6 +220,18 @@ function apNetAnnounceTags()
     end)
 end
 
+-- reply: an answer to another FTL's announce, or a reminder; only a first announce asks the others to answer.
+-- A library from before 0.6 beta.7 cannot announce: TrapLink then waits for a trap, as before.
+function apNetAnnounceTrapLink(reply)
+    return whenConnected(function(ap)
+        if ap.AnnounceTrapLink == nil then
+            return false
+        end
+        local ok, sent = pcall(function() return ap:AnnounceTrapLink(reply == true) end)
+        return ok and sent == true
+    end)
+end
+
 function apNetHintLocation(name)
     return whenConnected(function(ap)
         local ok, sent = pcall(function() return ap:HintLocation(name) end)
@@ -229,6 +249,15 @@ end
 
 function apNetSendTrap(trapName)
     return whenConnected(function(ap) return ap:SendTrap(tostring(trapName or "Trap")) end)
+end
+
+-- nil when the library predates it (0.6 beta.17): the caller goes back to the whole link.
+function apNetSendTrapTo(slot, trapName)
+    local ap = client()
+    if ap == nil or ap.SendTrapTo == nil then
+        return nil
+    end
+    return whenConnected(function(linked) return linked:SendTrapTo(slot, tostring(trapName or "Trap")) end)
 end
 
 function apNetEnergyLinkDeposit(joules)
@@ -249,7 +278,20 @@ end
 local UNKNOWN = "Unknown"
 
 local CONSUMED_KEY = "ap_items_done"
-local SEED_KEY = "ap_seed_tag"
+local SEED_KEY_BASE = "ap_seed_tag"
+
+-- Each save profile remembers its own seed: a save made for one seed asks again when another one connects.
+-- The first save ("main", the only one before 0.6) keeps the old key.
+local function seedKeyOf(profile)
+    if profile == "main" then
+        return SEED_KEY_BASE
+    end
+    return SEED_KEY_BASE .. "@" .. profile
+end
+
+local function seedKey()
+    return seedKeyOf(_G.apSavesSupported and apSavesSupported() and apSavesCurrent() or "main")
+end
 
 local durableStore = nil
 
@@ -259,7 +301,7 @@ local function store()
     end
     local ap = client()
     if ap == nil then return nil end
-    local ok = pcall(function() return ap:RecallState(SEED_KEY) end)
+    local ok = pcall(function() return ap:RecallState(SEED_KEY_BASE) end)
     durableStore = ok and ap or false
     if not ok then
         netLog("network module has no durable memory: falling back to the FTL profile")
@@ -290,7 +332,11 @@ local function writeMeta(key, value)
 end
 
 function apNetSeedTag()
-    return meta(SEED_KEY)
+    return meta(seedKey())
+end
+
+function apNetSeedTagOf(profile)
+    return meta(seedKeyOf(profile))
 end
 
 function apNetRecall(key)
@@ -315,10 +361,41 @@ function apNetRecallText(key)
     return ok and value ~= nil and tostring(value) or ""
 end
 
+-- The key of something kept per seed, for this slot. What an older version kept under the seed alone moves to the
+-- slot of the save that played it, once: a slot on a save of its own never takes it.
+function apNetSlotKey(base)
+    local suffix = _G.apSlotSuffix and apSlotSuffix() or ""
+    if suffix == "" then
+        return base
+    end
+    local key = base .. suffix
+    if _G.apSavesPredatesSlots and not apSavesPredatesSlots() then
+        return key
+    end
+    local ap = store()
+    if ap ~= nil then
+        local ok, old = pcall(function() return ap:RecallState(base) end)
+        if ok and old ~= nil and old ~= "" and old ~= "0" then
+            if tostring(ap:RecallState(key) or "") == "" then
+                ap:RememberState(key, old)
+            end
+            ap:RememberState(base, "")
+            pcall(function() Hyperspace.metaVariables[base] = 0 end)
+        end
+    else
+        local ok, old = pcall(function() return Hyperspace.metaVariables[base] end)
+        if ok and tonumber(old) and tonumber(old) > 0 then
+            if meta(key) == 0 then writeMeta(key, tonumber(old)) end
+            writeMeta(base, 0)
+        end
+    end
+    return key
+end
+
 -- Each seed keeps its own count of consumed items, so coming back to a seed played before does not hand out
 -- its scrap and traps a second time.
 local function consumedKey(fingerprint)
-    return CONSUMED_KEY .. "_" .. tostring(fingerprint or 0)
+    return apNetSlotKey(CONSUMED_KEY .. "_" .. tostring(fingerprint or 0))
 end
 
 -- Older versions kept one count for whichever seed was current: it moves to that seed's own count.
@@ -327,7 +404,7 @@ local function migrateOldCount()
     if old <= 0 then
         return
     end
-    local tag = meta(SEED_KEY)
+    local tag = meta(seedKey())
     if meta(consumedKey(tag)) == 0 then
         writeMeta(consumedKey(tag), old)
     end
@@ -342,7 +419,7 @@ end
 -- Items delivered past the first one still waiting (a weapon held back for a few jumps) are kept too, or
 -- the next session would hand out their scrap and traps again.
 local function deliveredKey(fingerprint)
-    return "ap_delivered_" .. tostring(fingerprint or 0)
+    return apNetSlotKey("ap_delivered_" .. tostring(fingerprint or 0))
 end
 
 local function saveDelivered(fingerprint)
@@ -370,17 +447,18 @@ end
 
 function apNetRememberSeed(fingerprint)
     state.consumedUntil = consumedFor(fingerprint) - 1
-    writeMeta(SEED_KEY, fingerprint or 0)
+    writeMeta(seedKey(), fingerprint or 0)
     state.delivered = loadDelivered(fingerprint)
     netLog("seed fingerprint recorded: " .. tostring(fingerprint))
 end
 
 function apNetForgetItems()
     state.lastItemIndex = -1
+    state.itemNames = {}
 end
 
 function apNetForgetProgress(incoming)
-    local current = meta(SEED_KEY)
+    local current = meta(seedKey())
     writeMeta(consumedKey(current), 0)
     apNetRememberText(deliveredKey(current), "")
     if _G.apShopForgetOwed then apShopForgetOwed(current) end
@@ -389,7 +467,7 @@ function apNetForgetProgress(incoming)
         apNetRememberText(deliveredKey(incoming), "")
         if _G.apShopForgetOwed then apShopForgetOwed(incoming) end
     end
-    writeMeta(SEED_KEY, 0)
+    writeMeta(seedKey(), 0)
     writeMeta(CONSUMED_KEY, 0)
     state.consumedUntil = -1
     state.delivered = {}
@@ -399,10 +477,11 @@ end
 
 local function reloadConsumed()
     local fingerprint = _G.apSeedFingerprint and _G.apSeedFingerprint() or 0
+    state.itemNames = {}
     state.consumedUntil = consumedFor(fingerprint) - 1
     state.delivered = loadDelivered(fingerprint)
-    if meta(SEED_KEY) ~= fingerprint then
-        writeMeta(SEED_KEY, fingerprint)
+    if meta(seedKey()) ~= fingerprint then
+        writeMeta(seedKey(), fingerprint)
         if state.consumedUntil < 0 then
             netLog("new seed: resources already received start over from zero")
             return
@@ -487,6 +566,7 @@ end
 local function onConnected(event)
     local wasRetrying = state.retries > 0
     state.connected = true
+    state.everConnected = true
     state.connecting = false
     state.retries = 0
     state.retryAt = nil
@@ -534,16 +614,22 @@ local function onConnected(event)
 
     if not state.seedRefused then
         reloadConsumed()
+        -- The save in use is this seed's: the Saves menu names it at once.
+        if _G.apSavesDescribe then pcall(_G.apSavesDescribe) end
     end
 
     if not state.seedRefused then
         apNetAnnounceTags()
+        if _G.apTrapLink and _G.apTrapLink.enabled then apNetAnnounceTrapLink(false) end
     end
 
     adoptServerChecks(true)
 
     if _G.apResendPendingChecks then
         pcall(_G.apResendPendingChecks)
+    end
+    if _G.apCombatCatchUp and not state.seedRefused then
+        pcall(_G.apCombatCatchUp)
     end
 
     if _G.apDeclareGoal then
@@ -573,7 +659,8 @@ local function onScout(event)
     if tostring(key):sub(1, 5) ~= "shop:" then
         state.checkItems = state.checkItems or {}
         state.checkItems[key] = { item = tostring(event.extra), slot = tostring(event.sender),
-                                  mine = state.ownAlias ~= nil and tostring(event.sender) == state.ownAlias }
+                                  mine = state.ownAlias ~= nil and tostring(event.sender) == state.ownAlias,
+                                  kind = classify(event.value) }
         return
     end
     state.scouted[#state.scouted + 1] = {
@@ -612,6 +699,94 @@ end
 
 local CHECKED_POLL_TICKS = 10 * 60
 
+-- The items already consumed are counted by seed and slot. A server whose list does not start with those
+-- same items is another game on that seed name (a seed generated again with a fixed number, or hosted
+-- again): its items would all pass for replays and its scrap, fuel and the like would be lost. The names of
+-- the consumed items are kept as a signature and checked each time the server sends its list from the start.
+local forgetStaleItems
+
+local function signatureKey(fingerprint)
+    return apNetSlotKey("ap_items_sig_" .. tostring(fingerprint or 0))
+end
+
+local function hashNames(names, count)
+    local hash = 0
+    for index = 0, count - 1 do
+        local name = names[index]
+        if name == nil then
+            return nil
+        end
+        for position = 1, #name do
+            hash = (hash * 31 + name:byte(position)) % 2147483647
+        end
+        hash = (hash * 31 + 7) % 2147483647
+    end
+    return hash
+end
+
+local function readSignature(fingerprint)
+    local text = tostring(apNetRecallText(signatureKey(fingerprint)) or "")
+    local count, hash = text:match("^(%d+):(%d+)$")
+    return tonumber(count), tonumber(hash)
+end
+
+local function writeSignature(fingerprint, count)
+    local hash = hashNames(state.itemNames, count)
+    apNetRememberText(signatureKey(fingerprint), hash and (count .. ":" .. hash) or "")
+end
+
+-- The rest of the list from index 0, as it came in this batch: nil while a name is still unknown.
+local function batchNames()
+    local names = {}
+    local expected = 0
+    for position = state.batchPos or 1, #(state.batch or {}) do
+        local event = state.batch[position]
+        if tostring(event.kind) == "item" then
+            if event.index ~= expected then break end
+            if tostring(event.name) == UNKNOWN then return nil end
+            names[expected] = tostring(event.name)
+            expected = expected + 1
+        end
+    end
+    return names, expected
+end
+
+forgetStaleItems = function()
+    if state.consumedUntil < 0 or not _G.apNetRecallText then
+        return
+    end
+    local names, count = batchNames()
+    if names == nil then
+        return
+    end
+    local fingerprint = _G.apSeedFingerprint and _G.apSeedFingerprint() or 0
+    local consumed = state.consumedUntil + 1
+    local storedCount, storedHash = readSignature(fingerprint)
+    local stale = count < consumed
+    if not stale and storedCount ~= nil and storedCount <= consumed and storedCount <= count then
+        stale = hashNames(names, storedCount) ~= storedHash
+    end
+    if not stale then
+        -- Saves from before the signature get one now, from the server's own list.
+        if storedCount ~= consumed then
+            for index = 0, consumed - 1 do state.itemNames[index] = names[index] end
+            writeSignature(fingerprint, consumed)
+        end
+        return
+    end
+    netLog(string.format("the server's items do not match the %d already consumed for this seed and slot "
+        .. "(server has %d): another game on the same seed name, its items start over from zero", consumed, count))
+    writeMeta(consumedKey(fingerprint), 0)
+    apNetRememberText(deliveredKey(fingerprint), "")
+    apNetRememberText(signatureKey(fingerprint), "")
+    if _G.apShopForgetOwed then apShopForgetOwed(fingerprint) end
+    if _G.apJournalForget then pcall(_G.apJournalForget) end
+    state.consumedUntil = -1
+    state.delivered = {}
+    state.deliveredSaved = false
+    state.lastItemIndex = -1
+end
+
 local function onItem(event)
     -- The server sends the whole list again from index 0 on each connection: once a full list came in with
     -- every name, the inventory holds everything received so far.
@@ -621,6 +796,16 @@ local function onItem(event)
     end
     if tostring(event.name) == UNKNOWN then
         state.replayClean = false
+    end
+    -- Every name counts for the "in logic" marker, also those already applied before a reconnect.
+    if event.index >= 0 and tostring(event.name) ~= UNKNOWN and _G.apNoteReceived then
+        _G.apNoteReceived(event.name, event.index)
+    end
+    if event.index >= 0 and tostring(event.name) ~= UNKNOWN then
+        state.itemNames[event.index] = tostring(event.name)
+    end
+    if event.index == 0 and not state.seedRefused then
+        forgetStaleItems()
     end
     if event.index >= 0 and event.index <= state.lastItemIndex then
         return
@@ -659,6 +844,7 @@ function apNetItemDelivered(index)
     local fingerprint = _G.apSeedFingerprint and _G.apSeedFingerprint() or 0
     if advanced then
         writeMeta(consumedKey(fingerprint), state.consumedUntil + 1)
+        writeSignature(fingerprint, state.consumedUntil + 1)
     end
     saveDelivered(fingerprint)
     return advanced
@@ -734,6 +920,7 @@ local HANDLERS = {
         state.connected = false
         state.connecting = false
         netLog("disconnected")
+        if _G.apTrapLinkForgetPartner then apTrapLinkForgetPartner() end
         if wasConnected and _G.apNotifyStatus then
             _G.apNotifyStatus(apT("net.disconnected"))
         end
@@ -766,13 +953,29 @@ local HANDLERS = {
         end
     end,
 
+    trap_partner = function(event)
+        if _G.apTrapLinkPartner then
+            _G.apTrapLinkPartner(event.sender, event.index == 1, event.value)
+        end
+    end,
+
     -- A reply to our own request carries what was taken (0 when the pool was empty); updates from others carry -1.
+    -- A look at the pool (adding 0) also comes back with index 0: only a pending request is answered as one.
+    -- Every reply carries the pool's new value, written last.
     energy = function(event)
-        if event.index and event.index >= 0 and _G.apEnergyLinkGranted then
+        local state = _G.apEnergyLinkState
+        local asked = state ~= nil and (state.pendingRequest or 0) > 0
+        if event.index and event.index >= 0 and (event.index > 0 or asked) and _G.apEnergyLinkGranted then
             _G.apEnergyLinkGranted(event.index)
-        elseif _G.apEnergyLinkSync then
+        end
+        if _G.apEnergyLinkSync then
             _G.apEnergyLinkSync(event.value)
         end
+    end,
+
+    -- A line the module wants in the log (the CA bundle used, why TLS failed).
+    log = function(event)
+        netLog(tostring(event.extra))
     end,
 
     error = function(event)
@@ -805,8 +1008,13 @@ local function drain()
     end
 
     state.itemsInBatch = false
+    state.batch = {}
+    for i = 0, count - 1 do
+        state.batch[i + 1] = events[i]
+    end
     for i = 0, count - 1 do
         local event = events[i]
+        state.batchPos = i + 1
         local handler = HANDLERS[tostring(event.kind)]
         if handler then
             local ok, err = pcall(handler, event)
@@ -870,6 +1078,39 @@ local function moduleCall(method, ...)
     return result
 end
 
+-- Save profiles (module from 0.6 on): nil when the module is older and has none.
+function apNetProfileCall(method, ...)
+    return moduleCall(method, ...)
+end
+
+-- A library from before 0.6 beta.16 cannot grey out a store box: the rarities still do most of the work.
+-- What the mod asked the module to keep out of the stores, for the self-test.
+_G.apShopLocked = _G.apShopLocked or {}
+
+function apNetShopLock(name, locked)
+    apShopLocked[name] = (locked == true) or nil
+    local ap = client()
+    if ap == nil or ap.SetShopLock == nil then
+        return false
+    end
+    moduleCall("SetShopLock", name, locked == true)
+    return true
+end
+
+function apNetShopLockTip()
+    local ap = client()
+    if ap ~= nil and ap.SetShopLockTip ~= nil then
+        moduleCall("SetShopLockTip", apT("shop.locked.tip"))
+    end
+end
+
+function apNetClearShopLocks()
+    local ap = client()
+    if ap ~= nil and ap.ClearShopLocks ~= nil then
+        moduleCall("ClearShopLocks")
+    end
+end
+
 -- Whether the module can lock at all.
 function apNetShipLock(on)
     local ap = client()
@@ -894,8 +1135,28 @@ function apNetLockShips(blueprints)
 end
 
 -- FTL's own achievements: difficulty earned on, -1 if not, nil when the module cannot tell.
+-- Hides or shows again an event's map label. Nil with a library older than 0.5.1.
+function apNetHideBeaconLabel(eventName, hidden)
+    return moduleCall("HideBeaconLabel", tostring(eventName), hidden == true)
+end
+
 function apNetAchievementStatus(name)
     return moduleCall("AchievementStatus", tostring(name))
+end
+
+-- The ship shown in the hangar ("" elsewhere), nil with a library that cannot tell.
+function apNetHangarShip()
+    return moduleCall("HangarShip")
+end
+
+-- The hangar button under the mouse ("start", "left", "right", "random", "list" or ""); nil with an older library.
+function apNetHangarHover()
+    return moduleCall("HangarHover")
+end
+
+-- Shows another ship in the hangar (its blueprint name), as the arrows would. Nil with an older library.
+function apNetSwitchHangarShip(blueprint)
+    return moduleCall("SwitchHangarShip", tostring(blueprint))
 end
 
 -- The system clipboard's first line, "" when empty or when the module cannot read it.

@@ -30,6 +30,25 @@ local function describe(name)
     return nil
 end
 
+-- FTL puts every rarity back on baseRarity each time it generates a map, then applies the sector's own list: a
+-- value must be in both, and apApplyShopRules runs again once the map is there.
+local function setRarity(desc, rarity)
+    desc.rarity = rarity
+    desc.baseRarity = rarity
+end
+
+local function rememberRarity(name, desc)
+    if originalRarity[name] == nil then
+        originalRarity[name] = math.floor(desc.baseRarity or desc.rarity)
+    end
+end
+
+local function shopLock(name, locked)
+    if _G.apNetShopLock then
+        apNetShopLock(name, locked)
+    end
+end
+
 local function applyAvailability(name, steps)
     local desc = describe(name)
     if desc == nil then
@@ -37,9 +56,7 @@ local function applyAvailability(name, steps)
         return false
     end
 
-    if originalRarity[name] == nil then
-        originalRarity[name] = math.floor(desc.rarity)
-    end
+    rememberRarity(name, desc)
 
     local base = originalRarity[name]
     if base <= 0 then
@@ -47,20 +64,36 @@ local function applyAvailability(name, steps)
     end
 
     if lockedBySeed[name] then
+        -- Never a rarity of 0 here: an entire family at 0 crashes FTL. The module keeps it out of the stores.
+        shopLock(name, steps <= 0)
         if steps <= 0 then
-            desc.rarity = 0
+            setRarity(desc, originalRarity[name])
             return true
         end
-        desc.rarity = math.max(MOST_COMMON, base - (steps - 1))
+        setRarity(desc, math.max(MOST_COMMON, base - (steps - 1)))
         return true
     end
 
     if steps <= 0 then
-        desc.rarity = originalRarity[name]
+        setRarity(desc, originalRarity[name])
         return true
     end
-    desc.rarity = math.max(MOST_COMMON, base - steps)
+    setRarity(desc, math.max(MOST_COMMON, base - steps))
     return true
+end
+
+-- A store would offer a system without its blueprint, only for the mod to refuse the purchase. The module leaves it
+-- out of the random picks, and greys out the ones a store always offers (drones, medbay). Shields are always sold.
+local SYSTEMS = { "medbay", "drones", "sensors", "doors", "teleporter", "cloaking", "artillery", "battery",
+                  "clonebay", "mind", "hacking" }
+
+local function applySystems()
+    if not _G.apSystemUnlocked or not (_G.apSeedLoaded and apSeedLoaded()) then
+        return
+    end
+    for _, name in ipairs(SYSTEMS) do
+        shopLock(name, not apSystemUnlocked(name))
+    end
 end
 
 function apApplyShopRules()
@@ -75,6 +108,15 @@ function apApplyShopRules()
             changed = changed + 1
         end
     end
+    for name in pairs(lockedBySeed) do
+        if (inventory.shopAvailability or {})[name] == nil then
+            applyAvailability(name, 0)
+        end
+    end
+    if _G.apNetShopLockTip then
+        apNetShopLockTip()
+    end
+    applySystems()
     if changed > 0 then
         shopLog(changed .. " item(s) adjusted in shops")
     end
@@ -91,7 +133,7 @@ local deliveredOnce = {}
 -- A first copy that could not come aboard yet is owed. The list is kept in the profile: a game closed in
 -- between replays the item at the menu, where it would only fill the catalogue, and the copy would be lost.
 local function owedKey(fingerprint)
-    return "ap_owed_" .. tostring(fingerprint or 0)
+    return apNetSlotKey("ap_owed_" .. tostring(fingerprint or 0))
 end
 
 local function seedFingerprint()
@@ -181,10 +223,13 @@ function apShopForgetSeed()
     local restored = 0
     for name, rarity in pairs(originalRarity) do
         local desc = describe(name)
-        if desc ~= nil and desc.rarity ~= rarity then
-            desc.rarity = rarity
+        if desc ~= nil and (desc.rarity ~= rarity or desc.baseRarity ~= rarity) then
+            setRarity(desc, rarity)
             restored = restored + 1
         end
+    end
+    if _G.apNetClearShopLocks then
+        apNetClearShopLocks()
     end
     lockedBySeed = {}
     deliveredOnce = {}
@@ -221,11 +266,8 @@ function apApplyShopBaseline()
     for _, name in ipairs(config.baseline or {}) do
         local desc = describe(name)
         if desc ~= nil then
-            if originalRarity[name] == nil then
-                originalRarity[name] = math.floor(desc.rarity)
-            end
+            rememberRarity(name, desc)
             lockedBySeed[name] = true
-            desc.rarity = 0
             locked = locked + 1
         else
             shopLog("baseline: unknown blueprint, ignored: " .. tostring(name))
@@ -329,6 +371,26 @@ script.on_internal_event(Defines.InternalEvents.JUMP_ARRIVE, function(shipManage
         runSaved()
     end
 end)
+-- The map of a new sector comes with the rarities reset: the rules go back on at the first tick after it.
+local mapSeen = nil
+local systemTicks = 0
+script.on_internal_event(Defines.InternalEvents.ON_TICK, function()
+    -- A blueprint received at a store opens its box at once.
+    systemTicks = systemTicks + 1
+    if systemTicks >= 60 then
+        systemTicks = 0
+        applySystems()
+    end
+    local ok, level = pcall(function()
+        local world = Hyperspace.App.world
+        return world.bStartedGame and world.starMap.worldLevel or nil
+    end)
+    if ok and level ~= nil and level ~= mapSeen then
+        mapSeen = level
+        apApplyShopRules()
+    end
+end)
+
 script.on_init(function(newGame)
     -- A restart from the pause menu leaves the old run behind with its copies.
     continuedRun = newGame == false
@@ -337,6 +399,7 @@ script.on_init(function(newGame)
     else
         runSaved()
     end
+    mapSeen = nil
     apApplyShopRules()
 end)
 

@@ -87,7 +87,7 @@
         <event name="AP_EVT_ZOLTAN_TITHE_A">
             <text id="ap_evt_zoltan_tithe_c1_text"/>
             <item_modify>
-                <item type="scrap" min="-35" max="-35"/>
+                <item type="scrap" min="-20" max="-20"/>
                 <item type="fuel" min="3" max="3"/>
             </item_modify>
         </event>
@@ -105,11 +105,11 @@
     <img back="AP_BACKGROUND" planet="AP_PLANET"/>
     <beaconType load="AP_BEACON_SIGNAL"/>
     <choice>
-        <text id="ap_evt_zoltan_tithe_c1"/>
+        <text id="ap_evt_zoltan_toll_c1"/>
         <event name="AP_EVT_ZOLTAN_TOLL_A">
             <text id="ap_evt_zoltan_toll_c1_text"/>
             <item_modify>
-                <item type="scrap" min="-35" max="-35"/>
+                <item type="scrap" min="-15" max="-15"/>
                 <item type="fuel" min="3" max="3"/>
             </item_modify>
         </event>
@@ -296,3 +296,249 @@
         </event>
     </choice>
 </event>
+
+<!-- Anti-Ship Battery Trap: loaded by the mod in the middle of a fight, the enemy ship stays. -->
+<event name="AP_TRAP_ASB">
+    <text id="ap_trap_asb_text"/>
+    <environment type="PDS" target="player"/>
+</event>
+
+<!-- Medbay and Clone Bay share a place: a blueprint received for the one the ship lacks asks before swapping (systems.lua). -->
+<event name="AP_SWAP_TO_CLONEBAY">
+    <text id="ap_swap_clonebay_text"/>
+    <choice hidden="true">
+        <text id="ap_swap_keep_medbay"/>
+        <event/>
+    </choice>
+    <choice hidden="true">
+        <text id="ap_swap_to_clonebay"/>
+        <event load="AP_SWAP_TO_CLONEBAY_DO"/>
+    </choice>
+</event>
+<event name="AP_SWAP_TO_CLONEBAY_DO">
+    <text id="ap_swap_done_clonebay"/>
+</event>
+<event name="AP_SWAP_TO_MEDBAY">
+    <text id="ap_swap_medbay_text"/>
+    <choice hidden="true">
+        <text id="ap_swap_keep_clonebay"/>
+        <event/>
+    </choice>
+    <choice hidden="true">
+        <text id="ap_swap_to_medbay"/>
+        <event load="AP_SWAP_TO_MEDBAY_DO"/>
+    </choice>
+</event>
+<event name="AP_SWAP_TO_MEDBAY_DO">
+    <text id="ap_swap_done_medbay"/>
+</event>
+
+<!-- Hull Breach Trap: the breach itself is opened by the mod, this only tells the player. -->
+<event name="AP_TRAP_BREACH">
+    <text id="ap_trap_breach_text"/>
+</event>
+
+<!-- Power Surge Trap: the enemy of the fight unleashes a Flagship power surge. -->
+<event name="AP_TRAP_SURGE_LASER">
+    <text id="ap_trap_surge_text"/>
+    <superBarrage player="false"/>
+    <triggeredEvent event="AP_TRAP_SURGE_LASER_AGAIN" seeded="false" loops="999" thisFight="true" minTime="25.0" maxTime="25.0">
+        <warningMessage id="warning_power_surge" x="692" y="84" time="5.0" centerText="true" flash="true" sound="surgeWarning" useWarningLine="true"/>
+    </triggeredEvent>
+</event>
+<event name="AP_TRAP_SURGE_LASER_AGAIN">
+    <superBarrage player="false"/>
+</event>
+
+<event name="AP_TRAP_SURGE_DRONES">
+    <text id="ap_trap_surge_text"/>
+    <superDrones player="false"/>
+    <triggeredEvent event="AP_TRAP_SURGE_DRONES_AGAIN" seeded="false" loops="999" thisFight="true" minTime="25.0" maxTime="25.0">
+        <warningMessage id="warning_power_surge" x="692" y="84" time="5.0" centerText="true" flash="true" sound="surgeWarning" useWarningLine="true"/>
+    </triggeredEvent>
+</event>
+<event name="AP_TRAP_SURGE_DRONES_AGAIN">
+    <superDrones player="false"/>
+</event>
+
+<!-- Lighter surges for sectors 1 and 2 (AP_SURGE_LIGHT_* in hyperspace.xml.append). Like the Flagship's, a surge comes
+     back every 25 seconds of the fight, announced by the same warning. -->
+<event name="AP_TRAP_SURGE_LASER_LIGHT">
+    <text id="ap_trap_surge_text"/>
+    <superBarrage player="false" name="AP_SURGE_LIGHT_LASER"/>
+    <triggeredEvent event="AP_TRAP_SURGE_LASER_LIGHT_AGAIN" seeded="false" loops="999" thisFight="true" minTime="25.0" maxTime="25.0">
+        <warningMessage id="warning_power_surge" x="692" y="84" time="5.0" centerText="true" flash="true" sound="surgeWarning" useWarningLine="true"/>
+    </triggeredEvent>
+</event>
+<event name="AP_TRAP_SURGE_LASER_LIGHT_AGAIN">
+    <superBarrage player="false" name="AP_SURGE_LIGHT_LASER"/>
+</event>
+
+<event name="AP_TRAP_SURGE_DRONES_LIGHT">
+    <text id="ap_trap_surge_text"/>
+    <superDrones player="false" name="AP_SURGE_LIGHT_DRONES"/>
+    <triggeredEvent event="AP_TRAP_SURGE_DRONES_LIGHT_AGAIN" seeded="false" loops="999" thisFight="true" minTime="25.0" maxTime="25.0">
+        <warningMessage id="warning_power_surge" x="692" y="84" time="5.0" centerText="true" flash="true" sound="surgeWarning" useWarningLine="true"/>
+    </triggeredEvent>
+</event>
+<event name="AP_TRAP_SURGE_DRONES_LIGHT_AGAIN">
+    <superDrones player="false" name="AP_SURGE_LIGHT_DRONES"/>
+</event>
+
+<!-- The trap's anti-ship battery powers down once the fight is over. -->
+<event name="AP_TRAP_ASB_END">
+    <text id="ap_trap_asb_end_text"/>
+    <removeHazards/>
+</event>
+
+<!-- Put back the beacon's own hazard after AP_TRAP_ASB_END cleared them all. No text: no box opens. -->
+<event name="AP_TRAP_RESTORE_ASTEROID">
+    <environment type="asteroid"/>
+</event>
+
+<event name="AP_TRAP_RESTORE_SUN">
+    <environment type="sun"/>
+</event>
+
+<event name="AP_TRAP_RESTORE_PULSAR">
+    <environment type="pulsar"/>
+</event>
+
+<event name="AP_TRAP_RESTORE_STORM">
+    <environment type="storm"/>
+</event>
+
+<!-- Hazard Trap: the fight's beacon gets a hazard it did not have; it clears when the fight is over. -->
+<event name="AP_TRAP_HAZARD_NEBULA">
+    <text id="ap_trap_hazard_text"/>
+    <environment type="nebula"/>
+</event>
+
+<event name="AP_TRAP_HAZARD_STORM">
+    <text id="ap_trap_hazard_text"/>
+    <environment type="storm"/>
+</event>
+
+<event name="AP_TRAP_HAZARD_ASTEROID">
+    <text id="ap_trap_hazard_text"/>
+    <environment type="asteroid"/>
+</event>
+
+<event name="AP_TRAP_HAZARD_SUN">
+    <text id="ap_trap_hazard_text"/>
+    <environment type="sun"/>
+</event>
+
+<event name="AP_TRAP_HAZARD_PULSAR">
+    <text id="ap_trap_hazard_text"/>
+    <environment type="pulsar"/>
+</event>
+
+<event name="AP_TRAP_HAZARD_END">
+    <text id="ap_trap_hazard_end_text"/>
+    <removeHazards/>
+</event>
+
+<event name="AP_TRAP_HAZARD_END_NEBULA">
+    <text id="ap_trap_hazard_end_text"/>
+    <removeHazards/>
+    <removeNebula/>
+</event>
+
+<!-- An Engi tech offers to overclock the reactor for a bet: scrap if it holds, damage if it does not. -->
+<event name="AP_EVT_OVERCLOCK">
+    <preventQuest/>
+    <text id="ap_evt_overclock_text"/>
+    <img back="AP_BACKGROUND" planet="AP_PLANET"/>
+    <beaconType load="AP_BEACON_SIGNAL"/>
+    <choice>
+        <text id="ap_evt_overclock_c1"/>
+        <event name="AP_EVT_OVERCLOCK_A">
+            <text id="ap_evt_overclock_c1_text"/>
+            <item_modify>
+                <item type="scrap" min="-30" max="-30"/>
+            </item_modify>
+            <choice>
+                <text id="continue"/>
+                <event load="AP_OVERCLOCK_ROLL"/>
+            </choice>
+        </event>
+    </choice>
+    <choice>
+        <text id="ap_evt_overclock_c2"/>
+        <event name="AP_EVT_OVERCLOCK_B">
+            <text id="ap_evt_overclock_c2_text"/>
+            <item_modify>
+                <item type="fuel" min="3" max="3"/>
+            </item_modify>
+            <damage amount="1" system="engines"/>
+        </event>
+    </choice>
+    <choice>
+        <text id="ap_evt_overclock_c3"/>
+        <event name="AP_EVT_OVERCLOCK_C">
+            <text id="ap_evt_overclock_c3_text"/>
+        </event>
+    </choice>
+</event>
+<eventList name="AP_OVERCLOCK_ROLL">
+    <event>
+        <text id="ap_evt_overclock_win"/>
+        <item_modify>
+            <item type="scrap" min="75" max="75"/>
+        </item_modify>
+    </event>
+    <event>
+        <text id="ap_evt_overclock_lose"/>
+        <damage amount="2"/>
+        <damage amount="1" system="engines"/>
+    </event>
+</eventList>
+
+<!-- A rare arms dealer: a weapon for scrap, or an augment for fuel. -->
+<event name="AP_EVT_ARMS_DEALER">
+    <preventQuest/>
+    <text id="ap_evt_arms_text"/>
+    <img back="AP_BACKGROUND" planet="AP_PLANET"/>
+    <beaconType load="AP_BEACON_SIGNAL"/>
+    <choice>
+        <text id="ap_evt_arms_c1"/>
+        <event name="AP_EVT_ARMS_DEALER_A">
+            <text id="ap_evt_arms_c1_text"/>
+            <item_modify>
+                <item type="scrap" min="-45" max="-45"/>
+            </item_modify>
+            <weapon name="RANDOM"/>
+        </event>
+    </choice>
+    <choice>
+        <text id="ap_evt_arms_c2"/>
+        <event name="AP_EVT_ARMS_DEALER_B">
+            <text id="ap_evt_arms_c2_text"/>
+            <item_modify>
+                <item type="fuel" min="-4" max="-4"/>
+            </item_modify>
+            <augment name="RANDOM"/>
+        </event>
+    </choice>
+    <choice>
+        <text id="ap_evt_arms_c3"/>
+        <event name="AP_EVT_ARMS_DEALER_C">
+            <text id="ap_evt_arms_c3_text"/>
+        </event>
+    </choice>
+</event>
+
+<!-- event_checks: one Archipelago event in every sector. The condition is checked here, at the beacon: a req on
+     the sector's priorityEvent would break the saves made before it (Hyperspace reads their saved reqs by index). -->
+<event name="AP_EVT_SECTOR_EVENT">
+    <preventQuest/>
+    <beaconType load="AP_BEACON_SIGNAL"/>
+    <loadEventList first="true" default="NOTHING">
+        <event load="AP_EVT_SECTOR_PICK" req="ap_event_checks" lvl="1"/>
+    </loadEventList>
+</event>
+<eventList name="AP_EVT_SECTOR_PICK">
+    <event load="AP_EVT_PACKAGE"/>
+    <event load="AP_EVT_HIJACK"/>
+</eventList>

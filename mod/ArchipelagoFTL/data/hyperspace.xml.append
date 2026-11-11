@@ -8,10 +8,19 @@
 
 <multipleOverCapacity enabled="true"/>
 
-<augments>
-    <aug name="ENERGY_SHIELD"><locked/></aug>
-    <aug name="SHIELD_RECHARGE"><locked/></aug>
-</augments>
+<!-- Power Surge Trap in sectors 1 and 2: a few basic lasers or two combat drones, not the Flagship's surge. -->
+<boss>
+    <surgeBarrage name="AP_SURGE_LIGHT_LASER">
+        <weapon difficulty="0" name="LASER_BURST_1" count="2"/>
+        <weapon difficulty="1" name="LASER_BURST_1" count="3"/>
+        <weapon difficulty="2" name="LASER_BURST_1" count="4"/>
+    </surgeBarrage>
+    <surgeDrones name="AP_SURGE_LIGHT_DRONES">
+        <drone difficulty="0" name="COMBAT_1" count="1"/>
+        <drone difficulty="1" name="COMBAT_1" count="2"/>
+        <drone difficulty="2" name="COMBAT_1" count="2"/>
+    </surgeDrones>
+</boss>
 
 <ships>
     <ship name="PLAYER_SHIP_ANAEROBIC" noAppend="true">
@@ -88,6 +97,12 @@
         <changeBackground>AP_BACKGROUND</changeBackground>
     </event>
     <event name="AP_EVT_SLUG_WHISPER">
+        <changeBackground>AP_BACKGROUND</changeBackground>
+    </event>
+    <event name="AP_EVT_OVERCLOCK">
+        <changeBackground>AP_BACKGROUND</changeBackground>
+    </event>
+    <event name="AP_EVT_ARMS_DEALER">
         <changeBackground>AP_BACKGROUND</changeBackground>
     </event>
     <event name="AP_EVT_ANOTHER_WORLD">
@@ -382,12 +397,14 @@
     <script>data/archipelago/contract.lua</script>
     <script>data/archipelago/checks.lua</script>
     <script>data/archipelago/combat.lua</script>
+    <script>data/archipelago/crewnames.lua</script>
     <script>data/archipelago/json.lua</script>
     <script>data/archipelago/network.lua</script>
     <script>data/archipelago/solo_order.lua</script>
     <script>data/archipelago/solo.lua</script>
     <script>data/archipelago/hud.lua</script>
     <script>data/archipelago/dashboard.lua</script>
+    <script>data/archipelago/saves.lua</script>
     <script>data/archipelago/connect.lua</script>
     <script>data/archipelago/loadout.lua</script>
     <script>data/archipelago/testkeys.lua</script>

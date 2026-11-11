@@ -6,6 +6,29 @@ end
 
 _G.apEventLog = {}
 
+-- event_beacons: which Archipelago events say ARCHIPELAGO on the map. The AP STORE beacons always do. "important"
+-- keeps the label on the events that carry a package (the relay and the pirates); the tolls, the Slug's hints and
+-- the surge from another world then look like any beacon. Seeds from before the option keep every label.
+local IMPORTANT_EVENTS = { "AP_EVT_PACKAGE", "AP_EVT_HIJACK", "AP_HIJACK_YIELD", "AP_HIJACK_WON", "AP_HIJACK_DEADCREW" }
+local OTHER_EVENTS = {
+    "AP_EVT_ZOLTAN_TITHE", "AP_EVT_ZOLTAN_TITHE_LINK", "AP_EVT_ZOLTAN_TOLL", "AP_EVT_SLUG_WHISPER",
+    "AP_EVT_ANOTHER_WORLD", "AP_EVT_ANOTHER_WORLD_LINK", "AP_EVT_ANOTHER_WORLD_PLAIN",
+    "AP_EVT_OVERCLOCK", "AP_EVT_ARMS_DEALER",
+}
+
+local beaconsMode = "marked"
+local sectorEventShown = nil
+
+function apApplyEventBeacons(mode)
+    mode = mode or "marked"
+    beaconsMode = mode
+    sectorEventShown = nil
+    if _G.apNetHideBeaconLabel == nil then return end
+    for _, name in ipairs(IMPORTANT_EVENTS) do apNetHideBeaconLabel(name, mode == "hidden") end
+    for _, name in ipairs(OTHER_EVENTS) do apNetHideBeaconLabel(name, mode ~= "marked") end
+    eventLog("event beacons: " .. mode)
+end
+
 local function record(name, detail)
     _G.apEventLog[#_G.apEventLog + 1] = { event = name, detail = detail }
     eventLog(name .. " : " .. detail)
@@ -43,13 +66,18 @@ local function drainTheLink(eventName)
 end
 
 local function sendTrapOutward(eventName)
-    if _G.apNetSendTrap == nil then
-        record(eventName, "offline: would have broadcast a trap")
-        return
+    local sent = _G.apTrapLinkSendToOne ~= nil and apTrapLinkSendToOne("Archipelago Signal Surge")
+    if sent then
+        record(eventName, "trap sent to another player")
+    else
+        -- No one seen on the link: the surge comes back, like a pact.
+        local effects = { "fire", "breach", "fuel_leak", "system_damage", "hull_damage" }
+        local effect = effects[math.random(1, #effects)]
+        record(eventName, "no one out there to receive it, the trap hits us (" .. effect .. ")")
+        if _G.apQueueItem then
+            _G.apQueueItem({ kind = "trap", eff = effect, display = apT("event.trap.own"), fromLink = true })
+        end
     end
-    local ok, result = pcall(_G.apNetSendTrap, "Archipelago Signal Surge")
-    local sent = ok and result ~= false
-    record(eventName, sent and "trap broadcast to others" or "no one out there to receive it")
     if _G.apNotifyStatus then
         _G.apNotifyStatus(apT(sent and "event.trap.sent" or "event.trap.nobody"))
     end
@@ -94,9 +122,62 @@ local function buyHint(eventName)
     end
 end
 
+-- event_checks: the events' own checks ("event:1"...) hand out their packages before the Archipelago shop's.
+local MAX_EVENT_CHECKS = 20
+
+local function eventPackages(count)
+    local found = {}
+    if not (_G.apLocationNameFor and _G.apCheckAlreadySent) then
+        return found
+    end
+    for n = 1, MAX_EVENT_CHECKS do
+        local key = "event:" .. n
+        if apLocationNameFor(key) ~= nil and not apCheckAlreadySent(key) then
+            local scouted = (_G.apNetScoutedItem and apNetScoutedItem(key)) or {}
+            found[#found + 1] = { location = key, event = true, item = scouted.item or apT("gift.something"),
+                                  slot = scouted.slot or apT("gift.someone"), kind = scouted.kind,
+                                  mine = scouted.mine == true }
+            if #found >= count then
+                break
+            end
+        end
+    end
+    return found
+end
+
+local function peekPackages(count)
+    local packages = eventPackages(count)
+    if #packages < count and _G.apShopGiftPeekMany then
+        for _, package in ipairs(apShopGiftPeekMany(count - #packages) or {}) do
+            packages[#packages + 1] = package
+        end
+    end
+    return packages
+end
+
+local function giveEventPackage(package)
+    if not (_G.apSendCheck and apSendCheck(package.location, apLocationNameFor(package.location))) then
+        return nil
+    end
+    return package
+end
+
 local function givePackage(package)
+    if package ~= nil and package.event then
+        local sent = giveEventPackage(package)
+        if sent ~= nil then
+            return sent
+        end
+    end
+    local first = eventPackages(1)[1]
+    if (package == nil or package.event) and first ~= nil then
+        local sent = giveEventPackage(first)
+        if sent ~= nil then
+            return sent
+        end
+    end
     local sent = nil
-    if package ~= nil and _G.apShopGiftGiveAt ~= nil then
+    if package ~= nil and not package.event and _G.apShopGiftGiveAt ~= nil then
         sent = _G.apShopGiftGiveAt(package.location)
     end
     if sent == nil and _G.apShopGiftGiveNext ~= nil then
@@ -134,7 +215,7 @@ end
 local hijacked = nil
 
 local function pickHijacked()
-    local packages = (_G.apShopGiftPeekMany and _G.apShopGiftPeekMany(3)) or {}
+    local packages = peekPackages(3)
     for _, package in ipairs(packages) do
         if not package.mine then
             return package
@@ -143,13 +224,23 @@ local function pickHijacked()
     return packages[1]
 end
 
+local HIJACK_HINTS = {
+    progression = "event.hijack.hint.progression", useful = "event.hijack.hint.useful",
+    filler = "event.hijack.hint.filler", trap = "event.hijack.hint.trap",
+}
+
 local function writeHijackText(event)
     hijacked = pickHijacked()
     if hijacked == nil then
         return
     end
     local key = hijacked.mine and "event.hijack.self" or "event.hijack.text"
-    event.text.data = apT(key, { slot = tostring(hijacked.slot), item = tostring(hijacked.item) })
+    local text = apT(key, { slot = tostring(hijacked.slot), item = tostring(hijacked.item) })
+    -- A vague word on what the package is worth, so a player can walk away from a trap.
+    if HIJACK_HINTS[hijacked.kind] then
+        text = text .. " " .. apT(HIJACK_HINTS[hijacked.kind])
+    end
+    event.text.data = text
     event.text.isLiteral = true
 end
 
@@ -165,7 +256,7 @@ end
 
 local function writePackageChoices(event)
     offeredPackages.a, offeredPackages.b = nil, nil
-    local packages = (_G.apShopGiftPeekMany and _G.apShopGiftPeekMany(2)) or {}
+    local packages = peekPackages(2)
     if packages[1] == nil then
         return
     end
@@ -248,6 +339,19 @@ for _, name in ipairs({ "AP_EVT_ZOLTAN_TITHE_LINK", "AP_EVT_ZOLTAN_TOLL", "AP_EV
     OUR_DECOR[name] = true
 end
 
+-- event_checks: each sector draws one guaranteed Archipelago event (the relay or the pirates) when the seed has
+-- event checks. Kept in the profile, since sector 1 is drawn before the run's first tick.
+function apApplySectorEvent()
+    local value = tonumber(_G.apSeedOption and apSeedOption("event_checks")) or 0
+    pcall(function() Hyperspace.metaVariables.ap_event_checks = value > 0 and 1 or 0 end)
+    -- Without event checks its beacon is an empty one: no ARCHIPELAGO label promising something.
+    local shown = value > 0 and beaconsMode ~= "hidden"
+    if shown ~= sectorEventShown and _G.apNetHideBeaconLabel ~= nil then
+        sectorEventShown = shown
+        apNetHideBeaconLabel("AP_EVT_SECTOR_EVENT", not shown)
+    end
+end
+
 -- The loadEventList of the tithe and the surge picks the link version only when it can work.
 local flagTicks = 0
 script.on_internal_event(Defines.InternalEvents.ON_TICK, function()
@@ -259,6 +363,7 @@ script.on_internal_event(Defines.InternalEvents.ON_TICK, function()
         Hyperspace.playerVariables.ap_energylink = (online and _G.apEnergyLink and _G.apEnergyLink.enabled) and 1 or 0
         Hyperspace.playerVariables.ap_traplink = (online and _G.apTrapLink and _G.apTrapLink.enabled) and 1 or 0
     end)
+    apApplySectorEvent()
 end)
 local SHOPS = { "AP_STORE_EVENT_3", "AP_STORE_EVENT_6", "AP_STORE_EVENT_9", "AP_STORE_EVENT_12" }
 for _, name in ipairs(SHOPS) do OUR_DECOR[name] = true end
@@ -336,6 +441,9 @@ for _, name in ipairs(SHOP_EVENTS) do
         local ok, err = pcall(setDecor)
         if not ok then
             eventLog("shop decor not applied: " .. tostring(err))
+        end
+        if _G.apShopGiftsAtApShop then
+            apTry(TAG, apShopGiftsAtApShop, true)
         end
     end)
 end

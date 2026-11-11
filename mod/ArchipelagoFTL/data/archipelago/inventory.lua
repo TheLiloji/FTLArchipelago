@@ -170,8 +170,10 @@ end
 
 local ALWAYS_THERE = { PLAYER_SHIP_HARD = true }
 
+-- kestrel_key: a seed may ask the Kestrel A for its key like any ship (FTL still shows it in the hangar).
 local function hasKey(ship)
-    return ALWAYS_THERE[ship] == true or ship == (_G.apSeedStartShip and apSeedStartShip()) or owned(ship)
+    local always = ALWAYS_THERE[ship] == true and not (_G.apSeedKestrelLocked and apSeedKestrelLocked())
+    return always or ship == (_G.apSeedStartShip and apSeedStartShip()) or owned(ship)
 end
 
 -- Whether a run may count with this layout: "ok", "not_in_seed" or "not_received". FTL unlocks ships on its
@@ -185,6 +187,10 @@ function apShipReceived(layout)
         return "not_in_seed"
     end
     local ship = layout:gsub("_[23]$", "")
+    -- Independent layouts: a Type B or C is its own item, the key only gives the Type A.
+    if layout ~= ship and _G.apSeedLayoutsIndependent and apSeedLayoutsIndependent() then
+        return owned(layout) and "ok" or "not_received"
+    end
     if not hasKey(ship) then
         return "not_received"
     end
@@ -209,8 +215,9 @@ function apApplyInventory()
     end
     for _, shipName in ipairs(names) do
         local ship = shipName:gsub("_[23]$", "")
-        -- A Type B or C waits for its ship's key: it is unlocked along with it.
-        if ship ~= shipName and not hasKey(ship) then
+        -- A Type B or C waits for its ship's key: it is unlocked along with it. Independent ones need none.
+        local independent = _G.apSeedLayoutsIndependent and apSeedLayoutsIndependent()
+        if ship ~= shipName and not hasKey(ship) and not independent then
             waiting = waiting + 1
         else
             local ok, err = apUnlockLayout(shipName, true)
@@ -252,6 +259,23 @@ function apInventoryAdd(descriptor)
     end
     repairInventory()
 
+    if descriptor.kind == "ship" and type(descriptor.bps) == "table" then
+        -- A progressive key: each copy (one per server index) gives the next layout of the list.
+        local copies = _G.apInventory.progressiveCopies or {}
+        _G.apInventory.progressiveCopies = copies
+        local seen = copies[descriptor.display or descriptor.bps[1]] or {}
+        copies[descriptor.display or descriptor.bps[1]] = seen
+        seen[descriptor.index ~= nil and descriptor.index >= 0 and descriptor.index or ("n" .. (#seen + 1))] = true
+        local count = 0
+        for _ in pairs(seen) do count = count + 1 end
+        local layouts = {}
+        for position = 1, math.min(count, #descriptor.bps) do layouts[#layouts + 1] = descriptor.bps[position] end
+        for _, blueprint in ipairs(layouts) do
+            apInventoryAdd({ kind = "ship", bp = blueprint })
+        end
+        return true
+    end
+
     if descriptor.kind == "ship" then
         local blueprint = descriptor.bp
         if type(blueprint) ~= "string" or blueprint == "" then
@@ -275,6 +299,11 @@ function apInventoryAdd(descriptor)
         if type(system) ~= "string" or system == "" then
             invLog("cap item without a system, ignored")
             return false
+        end
+        -- Progressive Unlocks the System: the item also stands for the system's blueprint.
+        if descriptor.ub then
+            _G.apInventory.blueprints = _G.apInventory.blueprints or {}
+            _G.apInventory.blueprints[system] = true
         end
         if type(descriptor.ship) == "string" then
             local caps = _G.apInventory.shipCaps

@@ -7,6 +7,17 @@ end
 -- Combat checks: with each ship, the first fights won in a run send "<ship>:fight:<n>". A fight that sends
 -- one gives part of its scrap only; missiles, fuel and drone parts stay as they are.
 local countedHere = false
+-- The enemy here fought us: an enemy that then stops being hostile while still alive accepted its surrender.
+local sawHostile = false
+-- An enemy that jumped away was not beaten: nothing counts at this beacon after that.
+local escapedHere = false
+local beatenTicks = 0
+local BEATEN_GRACE_TICKS = 180
+
+local function isHostile(enemy)
+    local ok, hostile = pcall(function() return enemy._targetable.hostile end)
+    return ok and hostile == true
+end
 
 local function fightsWon()
     -- The game keeps run variables as floats: 1.0 would make the key "fight:1.0".
@@ -16,6 +27,34 @@ end
 
 local function setFightsWon(n)
     pcall(function() Hyperspace.playerVariables.ap_fights_won = n end)
+end
+
+local function memberIs(member, method)
+    local ok, result = pcall(function() return member[method](member) end)
+    return ok and result == true
+end
+
+-- The enemy's own crew still alive, wherever they are: on their ship or boarding ours. Drones and crew that fade
+-- away on their own (Multiverse holograms, projections) are not crew to kill.
+local function enemyCrewAlive()
+    local alive = 0
+    for _, ship in ipairs({ Hyperspace.ships.enemy, Hyperspace.ships.player }) do
+        if ship ~= nil then
+            local list = ship.vCrewList
+            for i = 0, list:size() - 1 do
+                local member = list[i]
+                if member ~= nil and member.iShipId == 1 and not member.bDead and not memberIs(member, "IsDrone") then
+                    local okTemp, temporary = pcall(function()
+                        return member.extend.deathTimer ~= nil or member.extend.noSlot == true
+                    end)
+                    if not (okTemp and temporary) then
+                        alive = alive + 1
+                    end
+                end
+            end
+        end
+    end
+    return alive
 end
 
 local function enemyBeaten(enemy)
@@ -31,8 +70,12 @@ local function enemyBeaten(enemy)
     if enemy.bAutomated then
         return false
     end
-    local ok, crew = pcall(function() return enemy:CountCrew(false) end)
+    local ok, crew = pcall(enemyCrewAlive)
     return ok and crew == 0
+end
+
+local function enemySurrendered(enemy)
+    return enemy ~= nil and sawHostile and not enemy.bDestroyed and not isHostile(enemy)
 end
 
 local function currentShip()
@@ -60,22 +103,54 @@ function apCombatStatus()
     return { won = won, total = total, left = left, nextSends = nextSends }
 end
 
+-- combat_checks_mode per_sector: the fights won in the current sector, counted again from 1 in each sector.
+local function perSector()
+    local mode = _G.apSeedOption and apSeedOption("combat_checks_mode")
+    return mode == 1 or mode == "per_sector"
+end
+
+local function currentSector()
+    local ok, level = pcall(function() return Hyperspace.App.world.starMap.worldLevel end)
+    return ok and tonumber(level) and math.floor(level) + 1 or 1
+end
+
+local function sectorFightsWon(sector)
+    local ok, value = pcall(function() return Hyperspace.playerVariables["ap_fights_sector_" .. sector] end)
+    return ok and math.floor(tonumber(value) or 0) or 0
+end
+
+local function fightKey(ship, n)
+    if perSector() then
+        local sector = currentSector()
+        return ship .. ":sfight:" .. sector .. ":" .. n, sector
+    end
+    return ship .. ":fight:" .. n, nil
+end
+
 function apCombatReward(event)
-    if countedHere or not enemyBeaten(Hyperspace.ships.enemy) then
+    local enemy = Hyperspace.ships.enemy
+    if countedHere or escapedHere or not (enemyBeaten(enemy) or enemySurrendered(enemy)) then
         return false
     end
     countedHere = true
     local n = fightsWon() + 1
     setFightsWon(n)
+    if perSector() then
+        local sector = currentSector()
+        n = sectorFightsWon(sector) + 1
+        pcall(function() Hyperspace.playerVariables["ap_fights_sector_" .. sector] = n end)
+    end
     local ship = currentShip()
     if ship == nil then
         return false
     end
-    local key = ship .. ":fight:" .. n
+    local key, sector = fightKey(ship, n)
     if not (_G.apLocationNameFor and apLocationNameFor(key)) or apCheckAlreadySent(key) then
         return false
     end
-    local label = apT("check.label.fight", { n = n, ship = (_G.apShipLabel and apShipLabel(ship)) or ship })
+    local shipName = (_G.apShipLabel and apShipLabel(ship)) or ship
+    local label = sector and apT("check.label.sector_fight", { n = n, sector = sector, ship = shipName })
+        or apT("check.label.fight", { n = n, ship = shipName })
     if not apSendCheck(key, label) then
         return false
     end
@@ -91,20 +166,179 @@ function apCombatReward(event)
     return true
 end
 
+local function runStarted()
+    local ok, started = pcall(function() return Hyperspace.App.world.bStartedGame == true end)
+    return ok and started == true
+end
+
+-- Fights the run counted but the server never got: won offline before a crash, the counter comes back with the
+-- save while the check was only in memory. Sent on connecting and at each beacon.
+function apCombatCatchUp()
+    local ship = currentShip()
+    if ship == nil or not runStarted() or not (_G.apNetConnected and apNetConnected()) then
+        return 0
+    end
+    local caught = 0
+    if perSector() then
+        for sector = 1, 8 do
+            for n = 1, sectorFightsWon(sector) do
+                local key = ship .. ":sfight:" .. sector .. ":" .. n
+                if _G.apLocationNameFor and apLocationNameFor(key) and not apCheckAlreadySent(key) then
+                    local label = apT("check.label.sector_fight", { n = n, sector = sector,
+                        ship = (_G.apShipLabel and apShipLabel(ship)) or ship })
+                    if apSendCheck(key, label) then
+                        caught = caught + 1
+                    end
+                end
+            end
+        end
+    end
+    for n = 1, fightsWon() do
+        local key = ship .. ":fight:" .. n
+        if _G.apLocationNameFor and apLocationNameFor(key) and not apCheckAlreadySent(key) then
+            local label = apT("check.label.fight", { n = n, ship = (_G.apShipLabel and apShipLabel(ship)) or ship })
+            if apSendCheck(key, label) then
+                caught = caught + 1
+            end
+        end
+    end
+    if caught > 0 then
+        combatLog(caught .. " fight(s) won earlier in the run sent now")
+    end
+    return caught
+end
+
 script.on_internal_event(Defines.InternalEvents.PRE_CREATE_CHOICEBOX, function(event)
     apTry(TAG, function() apCombatReward(event) end)
+end)
+
+-- A surrender accepted with a reward counts on its choice box; one that only makes peace, on the next frame.
+script.on_internal_event(Defines.InternalEvents.ON_TICK, function()
+    local enemy = Hyperspace.ships.enemy
+    if enemy == nil or countedHere then
+        return
+    end
+    local okJump, jumping = pcall(function() return enemy.bJumping == true end)
+    if okJump and jumping and not enemy.bDestroyed then
+        if not escapedHere then
+            combatLog("the enemy jumped away: no fight won here")
+        end
+        escapedHere = true
+        return
+    end
+    if isHostile(enemy) then
+        sawHostile = true
+        -- The reward box counts the fight and cuts its scrap. A dead crew whose box never came (a Multiverse chain
+        -- of events, the last crew member marked dead late) still counts, a few seconds later.
+        local okCrew, crewLeft = pcall(enemyCrewAlive)
+        local okHull, hull = pcall(function() return enemy.ship.hullIntegrity.first end)
+        if not enemy.bAutomated and okCrew and crewLeft == 0 and okHull and tonumber(hull) and hull > 0 then
+            beatenTicks = beatenTicks + 1
+            if beatenTicks >= BEATEN_GRACE_TICKS then
+                apTry(TAG, function() apCombatReward(nil) end)
+            end
+        else
+            beatenTicks = 0
+        end
+    elseif sawHostile then
+        apTry(TAG, function() apCombatReward(nil) end)
+    end
 end)
 
 script.on_internal_event(Defines.InternalEvents.JUMP_ARRIVE, function(shipManager)
     if shipManager.iShipId == 0 then
         countedHere = false
+        sawHostile = false
+        escapedHere = false
+        beatenTicks = 0
+        apTry(TAG, apCombatCatchUp)
+    end
+end)
+
+-- A continued run loads its variables after on_init: the catch-up waits a moment, then runs once.
+local CATCH_UP_DELAY_TICKS = 60
+local catchUpIn = nil
+
+script.on_internal_event(Defines.InternalEvents.ON_TICK, function()
+    if catchUpIn == nil then
+        return
+    end
+    catchUpIn = catchUpIn - 1
+    if catchUpIn <= 0 then
+        catchUpIn = nil
+        apTry(TAG, apCombatCatchUp)
     end
 end)
 
 script.on_init(function(newGame)
     countedHere = false
+    sawHostile = false
+    escapedHere = false
     if newGame then
         setFightsWon(0)
+    else
+        catchUpIn = CATCH_UP_DELAY_TICKS
+    end
+end)
+
+-- flagship_sabotage 0-5: each phase of the Flagship arrives weakened, step by step: hull -10 %, shields -1,
+-- hull -10 % more, weapons -1, hull -10 % more. Once per phase and per run, kept in the run's save.
+local SABOTAGE_STEPS = { "hull", "shields", "hull", "weapons", "hull" }
+local SHIELDS, WEAPONS = 0, 3
+
+local function sabotageLevel()
+    local value = _G.apSeedOption and apSeedOption("flagship_sabotage")
+    return math.max(0, math.min(#SABOTAGE_STEPS, math.floor(tonumber(value) or 0)))
+end
+
+local function lowerSystem(enemy, id)
+    local system = enemy:GetSystem(id)
+    if system == nil then
+        return false
+    end
+    system:SetPowerCap(math.max(0, system:GetMaxPower() - 1))
+    return true
+end
+
+function apSabotageFlagship(enemy)
+    local level = sabotageLevel()
+    if enemy == nil or level == 0 then
+        return false
+    end
+    local name = tostring(enemy.myBlueprint.blueprintName)
+    if not name:find("BOSS", 1, true) then
+        return false
+    end
+    local variable = "ap_sabotage_" .. name
+    if math.floor(tonumber(Hyperspace.playerVariables[variable]) or 0) == 1 then
+        return false
+    end
+    Hyperspace.playerVariables[variable] = 1
+    local hullCut, done = 0, {}
+    for step = 1, level do
+        local what = SABOTAGE_STEPS[step]
+        if what == "hull" then
+            hullCut = hullCut + 10
+        elseif what == "shields" and lowerSystem(enemy, SHIELDS) then
+            done[#done + 1] = "shields"
+        elseif what == "weapons" and lowerSystem(enemy, WEAPONS) then
+            done[#done + 1] = "weapons"
+        end
+    end
+    if hullCut > 0 then
+        local hull = enemy.ship.hullIntegrity
+        enemy:DamageHull(math.floor(hull.second * hullCut / 100), true)
+    end
+    combatLog(string.format("flagship %s sabotaged: hull -%d%%, %s", name, hullCut, table.concat(done, ", ")))
+    if _G.apNotifyStatus then
+        _G.apNotifyStatus(apT("flagship.sabotaged", { n = level }))
+    end
+    return true
+end
+
+script.on_internal_event(Defines.InternalEvents.ON_TICK, function()
+    if Hyperspace.ships.enemy ~= nil then
+        apTry(TAG, apSabotageFlagship, Hyperspace.ships.enemy)
     end
 end)
 

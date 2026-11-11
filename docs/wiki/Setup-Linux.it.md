@@ -85,4 +85,8 @@ Se il pannello manca, o la connessione non funziona mai, guarda le [FAQ](FAQ.md)
 Metti il nuovo `ArchipelagoFTL.ftl` in `ftlman/mods/`, rilancia la riga `patch` del passo 3, poi il passo 4 con
 il nuovo `Hyperspace.1.6.13.amd64.so`.
 
-Avanti: [Giocare](Playing.md) (in inglese).
+Metti anche il nuovo `ftl.apworld` nella cartella `custom_worlds` di Archipelago, e avvisa la persona che genera
+il multiworld di fare lo stesso. Una partita già iniziata resta sulla versione con cui è stata fatta: la nuova
+versione è per un nuovo seed.
+
+Avanti: [Giocare](Playing.it.md).

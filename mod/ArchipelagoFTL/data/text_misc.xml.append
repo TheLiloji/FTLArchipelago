@@ -8,7 +8,8 @@
 <text name="ap_evt_package_c3_text">You keep your scrap and the relay drifts out of range. The packages will find another window.</text>
 
 <text name="ap_evt_zoltan_tithe_text">The checkpoint is a single Zoltan cruiser and a great deal of paperwork. "All vessels crossing the Third Ring contribute to the Ring," the officer explains, with the patience of someone who has explained it ten thousand times. "The contribution is not a toll. A toll is taken. A contribution is given."</text>
-<text name="ap_evt_zoltan_tithe_c1">Pay the tithe.</text>
+<text name="ap_evt_zoltan_tithe_c1">Pay the tithe. 1 more fuel goes to the shared reserve.</text>
+<text name="ap_evt_zoltan_toll_c1">Pay the tithe.</text>
 <text name="ap_evt_zoltan_tithe_c1_text">The officer accepts it without counting, which is more unsettling than if he had counted. The Ring routes the energy outward, into the shared reserve every Archipelago player draws from. Yours included, eventually.</text>
 <text name="ap_evt_zoltan_tithe_c2">Invoke right of passage.</text>
 <text name="ap_evt_zoltan_tithe_c2_text">It is your right, and the officer says so, and lets you take what the Ring holds. Nobody stops you. The Zoltan simply write it down. Somewhere out there, someone else will find the reserve emptier than they left it.</text>
@@ -40,7 +41,7 @@
 
 
 <text name="ap_store_text">A trader hails you on an unfamiliar frequency. Their manifest lists names you do not recognise, and goods addressed to people who are not aboard.</text>
-<text name="ap_evt_zoltan_toll_c1_text">The officer accepts it without counting it, which is more awkward than if he had. In return he hands over three fuel cells sealed in the Ring's name. Everything is noted.</text>
+<text name="ap_evt_zoltan_toll_c1_text">The officer accepts it without counting it, which is more awkward than if he had. In return he hands over three fuel cells sealed in the Ring's name.</text>
 <text name="ap_evt_zoltan_toll_c3">Go your way.</text>
 <text name="ap_evt_zoltan_toll_c3_text">The officer notes your refusal without comment and waves you through. The Zoltan note everything.</text>
 <text name="ap_evt_another_world_void">Discharge it into the void.</text>
@@ -61,3 +62,33 @@
 <text name="ap_evt_hijack_yield_text">They push the package out of an airlock. You pick it up and send it on its way.</text>
 <text name="ap_evt_hijack_destroyed_text">The pirate ship breaks apart. You pull the package from the wreck and send it on its way.</text>
 <text name="ap_evt_hijack_deadcrew_text">The pirate crew is dead. You send the package on its way, then strip their ship.</text>
+<text name="ap_trap_asb_text">A planetary defense battery wakes up and locks onto your ship. Somebody gave them your transponder code.</text>
+<text name="ap_trap_surge_text">The enemy ship's reactor howls. Somebody sent them a Flagship power surge.</text>
+<text name="ap_trap_breach_text">Hull alarm. A section of the plating tore open by itself: somebody wanted you breathing vacuum.</text>
+<text name="ap_swap_clonebay_text">The Clone Bay blueprint came in, but your Medbay takes its place. Swap them? The Medbay blueprint stays yours.</text>
+<text name="ap_swap_medbay_text">The Medbay blueprint came in, but your Clone Bay takes its place. Swap them? The Clone Bay blueprint stays yours.</text>
+<text name="ap_swap_keep_medbay">Keep the Medbay.</text>
+<text name="ap_swap_keep_clonebay">Keep the Clone Bay.</text>
+<text name="ap_swap_to_clonebay">Install the Clone Bay.</text>
+<text name="ap_swap_to_medbay">Install the Medbay.</text>
+<text name="ap_swap_done_clonebay">The Clone Bay now stands where the Medbay was.</text>
+<text name="ap_swap_done_medbay">The Medbay now stands where the Clone Bay was.</text>
+<text name="ap_trap_asb_end_text">The planetary defense battery powers down. The fight is over.</text>
+<text name="ap_trap_hazard_text">Your nav computer took a bad course correction from someone. This beacon is not as quiet as the charts said.</text>
+<text name="ap_trap_hazard_end_text">With the fight over, the space around the beacon settles down.</text>
+<text name="ap_evt_overclock_text">An Engi technician hails you from a cramped workshop pod. "Your reactor is running cautious. We could make it sing. Or melt. Usually sing." They name a price and a bet.</text>
+<text name="ap_evt_overclock_c1">Bet 30 scrap on the overclock.</text>
+<text name="ap_evt_overclock_c1_text">The technician plugs in with alarming enthusiasm. The reactor hums higher and higher.</text>
+<text name="ap_evt_overclock_c2">Let them test it on the engines instead.</text>
+<text name="ap_evt_overclock_c2_text">The test goes half right: the engines cough and spark, but the technician hands over three fuel cells for the trouble.</text>
+<text name="ap_evt_overclock_c3">Thank them and leave.</text>
+<text name="ap_evt_overclock_c3_text">The technician looks disappointed, then waves you off and goes back to their wires.</text>
+<text name="ap_evt_overclock_win">The overclock holds. The technician whoops, wins nothing, and pays you back twice over from a side bet on your ship.</text>
+<text name="ap_evt_overclock_lose">Something pops. Then something else. The reactor settles back to normal, but parts of the ship did not enjoy the trip.</text>
+<text name="ap_evt_arms_text">A heavily armed freighter idles at the beacon. Its captain smiles too much. "Fine weapons, fair prices, no questions. Today only."</text>
+<text name="ap_evt_arms_c1">Buy a weapon for 45 scrap.</text>
+<text name="ap_evt_arms_c1_text">The captain picks a crate without looking at it and has it hauled over. No refunds.</text>
+<text name="ap_evt_arms_c2">Trade 4 fuel for one of his gadgets.</text>
+<text name="ap_evt_arms_c2_text">The fuel goes over, a small sealed box comes back. It is, he swears, very rare.</text>
+<text name="ap_evt_arms_c3">Decline and keep moving.</text>
+<text name="ap_evt_arms_c3_text">"Your loss," the captain says, already looking for the next customer.</text>

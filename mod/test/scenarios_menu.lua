@@ -83,6 +83,38 @@ test("start-of-run menu: nothing to offer, nothing on screen", function()
     check(not menuShown(), "a weapon received only once is not yet in the menu")
 end)
 
+local function saidNothingYet()
+    local count = 0
+    for _, toast in ipairs(apToastsForTesting()) do
+        if toast.text == apT("loadout.nothing_yet") then count = count + 1 end
+    end
+    return count
+end
+
+test("start-of-run menu: with nothing to offer it says so once, and only for a connected run", function()
+    apNotifyResetForTesting()
+    apLoadoutResetToldForTesting()
+    apContractResetForTesting()
+    catalog({})
+    sim.startRun(true)
+    menuShown()
+    equals(saidNothingYet(), 0, "no seed, no message")
+    applySeed({ goal = { kind = "victories", count = 1 } })
+    catalog({})
+    sim.startRun(true)
+    menuShown()
+    equals(saidNothingYet(), 1, "a connected run is told why no menu opens")
+    sim.startRun(true)
+    menuShown()
+    equals(saidNothingYet(), 1, "and only once")
+    catalog({ LASER_BURST_3 = 2 })
+    apLoadoutResetToldForTesting()
+    apNotifyResetForTesting()
+    sim.startRun(true)
+    menuShown()
+    equals(saidNothingYet(), 0, "a menu with something in it needs no message")
+end)
+
 test("start-of-run menu: a click gives the weapon, only one per run", function()
     catalog({ LASER_BURST_3 = 2, BEAM_2 = 2 })
     sim.startRun(true)
@@ -291,4 +323,618 @@ test("start-of-run menu: a crew drone shows its sprite, a drone without a pictur
     check(icon ~= nil, "the other: its drone bar icon")
     apGameData.droneArt = saved
     sim.droneBlueprints.TEST_CREW_DRONE, sim.droneBlueprints.TEST_ICON_DRONE = nil, nil
+end)
+
+test("start-of-run menu: a drone picture the game lacks falls back to the drone it draws, never to the warning sign", function()
+    local saved = apGameData.droneArt
+    apGameData.droneArt = { TEST_MOVED_DRONE = "ship/drones/moved_away_base.png" }
+    sim.droneBlueprints.TEST_MOVED_DRONE = 2
+    sim.missingImages = { ["ship/drones/moved_away_base.png"] = true }
+    catalog({ TEST_MOVED_DRONE = 2 })
+    sim.images = {}
+    sim.startRun(true)
+    check(menuShown(), "open")
+    local fallback, warning
+    for _, image in ipairs(sim.images) do
+        if image.texture.name == "ship/drones/test_moved_drone_base.png" then fallback = image end
+        if image.texture.name == "missing" then warning = image end
+    end
+    check(fallback ~= nil, "the drone the game itself would draw")
+    check(warning == nil, "not the game's missing-file triangle")
+    apGameData.droneArt = saved
+    sim.droneBlueprints.TEST_MOVED_DRONE = nil
+    sim.missingImages = nil
+end)
+
+local function systemsThatDoNotAllFit(limit)
+    sim.hullPlaces = { [9] = true, [10] = true, [15] = true }
+    _G.apInventory = { ships = {}, systemCaps = {}, blueprints = {}, startingUpgrades = {}, shopAvailability = {} }
+    applySeed({ kinds = { "cap" }, options = { system_install = 1 } })
+    for _, name in ipairs({ "teleporter", "cloaking", "hacking" }) do
+        apQueueItem({ kind = "cap", sys = name, n = 0, display = name .. " blueprint" })
+    end
+    drain()
+    sim.systemLimit, sim.mainSystemsUsed = limit, 0
+    sim.startRun(true)
+end
+
+test("system install: more received systems than free slots, the player picks them in the start menu", function()
+    systemsThatDoNotAllFit(2)
+    equals(sim.player:HasSystem(9) or sim.player:HasSystem(10) or sim.player:HasSystem(15), false,
+        "no fixed order decides: nothing comes aboard by itself")
+    check(menuShown(), "the start-of-run menu opens with them")
+    check(sim.drawnText(apT("loadout.column.system")), "in a column of their own")
+    local labels = {}
+    for _, name in ipairs(apSystemInstallChoices()) do labels[#labels + 1] = apSystemLabel(name) end
+    table.sort(labels)
+    sim.click(apLoadoutPoint("row", "system", 2))
+    equals(#apSystemInstallChoices(), 2, "one picked, a slot is still free")
+    sim.click(apLoadoutPoint("row", "system", 1))
+    equals(#apSystemInstallChoices(), 0, "the second slot taken, nothing more to pick")
+    equals(sim.mainSystemsUsed, 2, "two systems came aboard, the third waits for a store")
+    sim.systemLimit, sim.mainSystemsUsed, sim.hullPlaces = nil, nil, nil
+end)
+
+test("system install: when they all fit, they all come aboard without asking", function()
+    systemsThatDoNotAllFit(8)
+    check(sim.player:HasSystem(9) and sim.player:HasSystem(10) and sim.player:HasSystem(15), "all three aboard")
+    equals(#apSystemInstallChoices(), 0, "nothing to choose")
+    sim.systemLimit, sim.mainSystemsUsed, sim.hullPlaces = nil, nil, nil
+end)
+
+test("system install: the choice is still there after a Continue", function()
+    systemsThatDoNotAllFit(1)
+    sim.startRun(false)
+    sim.tick(1)
+    equals(#apSystemInstallChoices(), 3, "the run's save keeps the systems to choose from")
+    sim.systemLimit, sim.mainSystemsUsed, sim.hullPlaces = nil, nil, nil
+end)
+
+local MEDBAY, CLONEBAY = 5, 13
+
+local function bayBlueprints(names, mode)
+    _G.apInventory = { ships = {}, systemCaps = {}, blueprints = {}, startingUpgrades = {}, shopAvailability = {} }
+    applySeed({ kinds = { "cap" }, options = { system_install = mode or 1 } })
+    for _, name in ipairs(names) do
+        apQueueItem({ kind = "cap", sys = name, n = 0, display = name .. " blueprint" })
+    end
+    drain()
+    sim.hullPlaces = { [MEDBAY] = true, [CLONEBAY] = true }
+    sim.systemLimit, sim.mainSystemsUsed = 8, 0
+end
+
+local function baysDone()
+    sim.systemLimit, sim.mainSystemsUsed, sim.hullPlaces = nil, nil, nil
+    sim.player._systemsHeld = nil
+end
+
+test("system install: a Clone Bay blueprint on a Medbay ship is a swap the start menu offers, never forced", function()
+    bayBlueprints({ "clonebay" })
+    sim.player._systemsHeld = { [MEDBAY] = true }
+    sim.startRun(true)
+    check(sim.player:HasSystem(MEDBAY) and not sim.player:HasSystem(CLONEBAY), "nothing swapped by itself")
+    equals(table.concat(apSystemInstallChoices(), ","), "clonebay", "the Clone Bay is offered")
+    check(menuShown(), "the start menu opens for it")
+    -- The row wraps the label on two lines: the Medbay only shows up there as the one replaced.
+    check(sim.drawnText(apSystemLabel("medbay")), "and the menu says it replaces the Medbay")
+    sim.click(apLoadoutPoint("row", "system", 1))
+    check(sim.player:HasSystem(CLONEBAY) and not sim.player:HasSystem(MEDBAY), "picked: the Clone Bay takes its place")
+    equals(#apSystemInstallChoices(), 0, "and the Medbay is not offered back")
+    baysDone()
+end)
+
+test("system install: both bays received and neither aboard, the start menu offers one or the other", function()
+    bayBlueprints({ "medbay", "clonebay" })
+    sim.startRun(true)
+    check(not sim.player:HasSystem(MEDBAY) and not sim.player:HasSystem(CLONEBAY), "the fixed order does not pick")
+    equals(#apSystemInstallChoices(), 2, "both are offered")
+    check(menuShown(), "the start menu opens for them")
+    local row = apSystemLabel("clonebay") < apSystemLabel("medbay") and 1 or 2
+    sim.click(apLoadoutPoint("row", "system", row))
+    check(sim.player:HasSystem(CLONEBAY), "the Clone Bay comes aboard")
+    equals(#apSystemInstallChoices(), 0, "and the Medbay is no longer offered")
+    baysDone()
+end)
+
+test("system install immediately: during a run, a short event asks before the Clone Bay replaces the Medbay", function()
+    bayBlueprints({}, 2)
+    sim.player._systemsHeld = { [MEDBAY] = true }
+    sim.startRun(true)
+    sim.jumpArrive()
+    sim.tick(2)
+    sim.loadedEvents = {}
+    apQueueItem({ kind = "cap", sys = "clonebay", n = 0, display = "Clone Bay blueprint" })
+    drain()
+    sim.tick(130)
+    local asked = 0
+    for _, name in ipairs(sim.loadedEvents) do
+        if name == "AP_SWAP_TO_CLONEBAY" then asked = asked + 1 end
+    end
+    equals(asked, 1, "the player is asked once")
+    check(sim.player:HasSystem(MEDBAY), "keeping the Medbay changes nothing")
+    sim.gameEvent("AP_SWAP_TO_CLONEBAY_DO")
+    check(sim.player:HasSystem(CLONEBAY) and not sim.player:HasSystem(MEDBAY), "replace: the Clone Bay is aboard")
+    baysDone()
+end)
+
+test("start-of-run menu: each weapon says its power and numbers, the store's text on hover", function()
+    catalog({ LASER_BURST_3 = 2, MISSILES_2 = 2 })
+    sim.blueprintStats = {
+        LASER_BURST_3 = { power = 2, shots = 3, cooldown = 12, missiles = 0, damage = { iDamage = 1 } },
+        MISSILES_2 = { power = 1, shots = 1, cooldown = 14, missiles = 1, damage = { iDamage = 2 } },
+    }
+    sim.rarityFor("LASER_BURST_3", 5).description = sim.textString("Fires three shots.")
+    sim.startRun(true)
+    check(menuShown(), "the menu is open")
+    check(sim.drawnText(apT("loadout.power", { n = 2 })), "the burst laser's power on its row")
+    check(sim.drawnText(apT("loadout.power", { n = 1 })), "and the missile launcher's")
+    local x, y = apLoadoutPoint("row", "weapon", 1)
+    local mouse = Hyperspace.Mouse
+    Hyperspace.Mouse = { position = { x = x, y = y } }
+    sim.renderGui()
+    Hyperspace.Mouse = mouse
+    check(sim.drawnText("Fires three shots."), "hovering shows the store's description")
+    check(sim.drawnText(apT("loadout.power", { n = 2 }) .. ", "
+        .. apT("loadout.weapon.stats", { damage = 1, shots = 3, cooldown = 12 })), "and all its numbers")
+    x, y = apLoadoutPoint("row", "weapon", 2)
+    Hyperspace.Mouse = { position = { x = x, y = y } }
+    sim.renderGui()
+    Hyperspace.Mouse = mouse
+    check(sim.drawnText(apT("loadout.power", { n = 1 }) .. ", "
+        .. apT("loadout.weapon.missile", { damage = 2, shots = 1, cooldown = 14 })), "a missile launcher says it uses missiles")
+    sim.blueprintStats = nil
+end)
+
+test("Multiverse ship without Oxygen: the start menu offers it for free, even without System Install", function()
+    _G.apInventory = { ships = {}, systemCaps = {}, blueprints = {}, startingUpgrades = {}, shopAvailability = {} }
+    applySeed({ kinds = { "cap" } })
+    sim.hullPlaces = { [2] = true }
+    sim.systemLimit, sim.mainSystemsUsed = 8, 0
+    sim.startRun(true)
+    equals(sim.player:HasSystem(2), false, "not put aboard by itself: the player may leave it")
+    equals(table.concat(apSystemInstallChoices(), ","), "oxygen", "offered in the start-of-run menu")
+    check(menuShown(), "the menu opens for it")
+    sim.click(apLoadoutPoint("row", "system", 1))
+    check(sim.player:HasSystem(2), "picked: Oxygen comes aboard")
+    sim.systemLimit, sim.mainSystemsUsed, sim.hullPlaces = nil, nil, nil
+end)
+
+test("a ship that starts with Oxygen is offered nothing", function()
+    _G.apInventory = { ships = {}, systemCaps = {}, blueprints = {}, startingUpgrades = {}, shopAvailability = {} }
+    applySeed({ kinds = { "cap" } })
+    sim.hullPlaces = { [2] = true }
+    sim.player._systemsHeld = { [2] = true }
+    sim.startRun(true)
+    equals(#apSystemInstallChoices(), 0, "Oxygen is already aboard")
+    sim.hullPlaces = nil
+end)
+
+local function profileSeedChange()
+    apContractResetForTesting()
+    apConnectResetForTesting()
+    apInventoryClear()
+    sim.profiles.on = true
+    sim.net.calls = {}
+    applySeed({ seed_hash = "seed-A" })
+    apInventoryAdd({ kind = "ship", bp = "PLAYER_SHIP_ROCK" })
+    applySeed({ seed_hash = "seed-B" })
+    sim.quitCalled = false
+end
+
+test("save profiles: a new seed gets its own save, the current one is kept, nothing is erased", function()
+    profileSeedChange()
+    sim.renderMenu()
+    check(sim.drawnText(apT("reset.yes.profile")), "the question offers the seed's own save")
+    for y = 150, 400 do
+        sim.click(640 - 200, y)
+        if sim.quitCalled then break end
+    end
+    equals(sim.netCalls("RequestProfileReset"), 0, "nothing is wiped")
+    equals(sim.netCalls("SwitchProfile"), 1, "the switch is asked for")
+    check(tostring(sim.profiles.pending):find("^seed%-") ~= nil, "to this seed's save: " .. tostring(sim.profiles.pending))
+    check(sim.quitCalled, "and FTL closes to load it")
+    sim.profiles.on = false
+end)
+
+test("save profiles: the Saves menu lists the saves, loads one and archives another after a confirmation", function()
+    apContractResetForTesting()
+    apConnectResetForTesting()
+    sim.profiles.on = true
+    sim.profiles.ids = { "main", "seed-1", "solo" }
+    sim.profiles.details["seed-1.label"] = "Navigator on archipelago.gg"
+    sim.profiles.details["seed-1.checks"] = "12/151"
+    sim.profiles.details["seed-1.last"] = "2026-10-25 22:10"
+    sim.started = false
+    sim.renderMenu()
+    check(sim.drawnText(apT("saves.button")), "the home screen has a Saves button")
+    check(apSavesOpen(), "it opens")
+    check(apSavesIsOpen(), "and stays open")
+    sim.renderMenu()
+    check(sim.drawnText("Navigator on archipelago.gg"), "each save says whose it is")
+    check(sim.drawnText(apT("saves.checks", { checks = "12/151" })), "how far it went")
+    check(sim.drawnText(apT("saves.last", { date = "2026-10-25 22:10" })), "and when it was played")
+    check(sim.drawnText(apT("saves.current")), "the one in use is marked")
+    check(sim.drawnText(apT("saves.solo")), "solo mode has its own")
+    -- Rows: main (in use), seed-1, solo. Archive solo twice, then load seed-1.
+    local archive3 = { x = 250 + 780 - 20 - 112 + 5, y = 160 + 96 + 2 * 58 + 15 }
+    sim.click(archive3.x, archive3.y)
+    equals(#sim.profiles.archived, 0, "a first click only asks to confirm")
+    sim.renderMenu()
+    check(sim.drawnText(apT("saves.archive.sure")), "and says so")
+    sim.click(archive3.x, archive3.y)
+    equals(sim.profiles.archived[1], "solo", "the second click archives it")
+    sim.quitCalled = false
+    sim.click(250 + 780 - 20 - 230 + 5, 160 + 96 + 58 + 15)
+    equals(sim.profiles.pending, "seed-1", "Load asks for that save")
+    check(sim.quitCalled, "and FTL closes to load it")
+    apSavesCloseForTesting()
+    sim.profiles.on = false
+    sim.profiles.ids = { "main" }
+end)
+
+test("save profiles: an older module has no Saves menu and keeps the old reset", function()
+    sim.profiles.on = false
+    apConnectResetForTesting()
+    sim.started = false
+    sim.renderMenu()
+    check(not sim.drawnText(apT("saves.button")), "no Saves button")
+    check(not apSavesOpen(), "nothing to open")
+end)
+
+test("save profiles: each save remembers its own seed, the first one keeps the old key", function()
+    sim.profiles.on = true
+    sim.profiles.current = "seed-7"
+    apNetRememberSeed(4242)
+    equals(sim.durable["ap_seed_tag@seed-7"], "4242", "this save's seed")
+    sim.profiles.current = "main"
+    equals(apNetSeedTag() == 4242, false, "the first save does not take it")
+    apNetRememberSeed(1111)
+    equals(sim.durable["ap_seed_tag"], "1111", "the first save keeps the key it always had")
+    sim.profiles.current = "seed-7"
+    equals(apNetSeedTag(), 4242, "and each finds its own back")
+    sim.profiles.current = "main"
+    sim.profiles.on = false
+end)
+
+local function profileConnect(hash)
+    apNetResetForTesting()
+    sim.net.calls = {}
+    apNetConnect("ws://localhost:38281", "Navigator", "")
+    sim.netEvent("connected", { name = "Navigator", extra = {
+        contract = 2, kinds = { "filler" }, kinds_required = {}, items = {},
+        loc = { ["shop:1"] = "Archipelago Shop 1" }, seed_hash = hash } })
+    sim.net.connected = true
+    sim.tick(1)
+end
+
+local function profileStart(current)
+    apContractResetForTesting()
+    apConnectResetForTesting()
+    apInventoryClear()
+    sim.profiles.on = true
+    sim.profiles.current = current
+    sim.profiles.pending = nil
+    sim.started = false
+    sim.durable = {}
+    sim.quitCalled = false
+end
+
+local function profileEnd()
+    sim.profiles.on = false
+    sim.profiles.current = "main"
+    sim.profiles.pending = nil
+    sim.durable = {}
+    apSeedChangeAcknowledged()
+end
+
+test("save profiles: a save that belongs to a seed asks on another seed, even with no progress (Windows b, e)", function()
+    profileStart("seed-1")
+    profileConnect("seed-A")
+    check(not apSeedChangeLeftovers(), "a new save takes its first seed without asking")
+    check(apNetSeedTag() ~= 0, "and keeps it")
+    profileConnect("seed-B")
+    check(apSeedChangeLeftovers(), "another seed on it: the question, though nothing was played")
+    profileEnd()
+end)
+
+test("save profiles: keeping the save leaves the other seed out, nothing renamed (Windows c)", function()
+    profileStart("main")
+    profileConnect("seed-A")
+    local mine = apNetSeedTag()
+    sim.profiles.details["main.label"] = "Navigator on A"
+    profileConnect("seed-B")
+    sim.renderMenu()
+    check(sim.drawnText(apT("reset.no")), "the question is up")
+    sim.net.calls = {}
+    sim.click(700, 385)
+    equals(sim.netCalls("Connect"), 0, "keeping does not connect the other seed")
+    equals(apNetSeedTag(), mine, "the save keeps its seed")
+    equals(sim.profiles.details["main.label"], "Navigator on A", "and its name")
+    check(not sim.quitCalled, "FTL stays open")
+    profileEnd()
+end)
+
+test("save profiles: solo from another save offers solo's own save (Windows d)", function()
+    profileStart("main")
+    sim.renderMenu()
+    sim.click(305, 586)
+    sim.renderMenu()
+    check(sim.drawnText(apT("reset.yes.profile")), "solo asks to use its own save")
+    check(sim.drawnText(apT("question.solo_save.title")), "under a solo title")
+    check(not sim.drawnText(apT("question.seed.title")), "not as if the seed had changed")
+    sim.click(400, 385)
+    equals(sim.profiles.pending, "solo", "the switch goes to the solo save")
+    check(sim.quitCalled, "FTL closes to load it")
+    profileEnd()
+end)
+
+test("save profiles: loading another save from solo does not start solo again there (Windows)", function()
+    profileStart("solo")
+    sim.durable["ap_solo_active"] = "1"
+    apSavesSwitch("main")
+    equals(sim.durable["ap_solo_active"], "0", "solo will not resume on the save just loaded")
+    apSavesSwitch("solo")
+    equals(sim.durable["ap_solo_active"], "1", "going back to the solo save resumes it")
+    profileEnd()
+end)
+
+test("sector locks: the same pass sent again is still one pass", function()
+    _G.apInventory = { ships = {}, systemCaps = {}, startingUpgrades = {}, shopAvailability = {} }
+    sim.startRun(true)
+    apQueueItem({ kind = "pass", bp = "PLAYER_SHIP_HARD", index = 4, display = "Sector Pass (The Kestrel)" })
+    sim.tick(60)
+    apQueueItem({ kind = "pass", bp = "PLAYER_SHIP_HARD", index = 4, display = "Sector Pass (The Kestrel)" })
+    sim.tick(60)
+    equals(_G.apInventory.passes.PLAYER_SHIP_HARD, 1, "one pass, not two")
+    _G.apInventory.passes, _G.apInventory.passIndices = nil, nil
+end)
+
+test("sector skip: a skipped sector opens the start-of-run menu again for one more pick", function()
+    apInventoryClear()
+    apInventory.shopAvailability.LASER_BURST_3 = 2
+    apContractResetForTesting()
+    applySeed({ options = { sector_skip = 1 } })
+    sim.meta["ap_reached_PLAYER_SHIP_HARD"] = 3
+    sim.startRun(true)
+    sim.starMap.worldLevel = 0
+    sim.starMap.currentLoc = sim.makeLocation()
+    sim.jumpArrive()
+    sim.renderGui()
+    sim.click(apLoadoutPoint("row", "weapon", 1))
+    sim.click(apLoadoutPoint("done"))
+    check(not apLoadoutOpen(), "first pick made, menu closed")
+    sim.starMap.worldLevel = 1
+    sim.starMap.currentLoc = sim.makeLocation()
+    sim.jumpArrive()
+    sim.renderGui()
+    check(apLoadoutOpen(), "the skip gives one more pick")
+    sim.starMap.worldLevel = 0
+    sim.meta["ap_reached_PLAYER_SHIP_HARD"] = nil
+end)
+
+test("sector skip: the extra pick says so, stays open when there is no room, and ends with the menu", function()
+    apInventoryClear()
+    apInventory.shopAvailability.LASER_BURST_3 = 2
+    apContractResetForTesting()
+    applySeed({ options = { sector_skip = 1 } })
+    sim.startRun(true)
+    sim.renderGui()
+    sim.click(apLoadoutPoint("done"))
+    _G.apLoadoutExtraPick = true
+    sim.jumpArrive()
+    sim.renderGui()
+    check(sim.drawnText(apT("loadout.hint.extra")), "the menu says it is the extra pick")
+    local restore = stub("apEquipmentHasRoom", function() return false end)
+    sim.clearLog()
+    sim.click(apLoadoutPoint("row", "weapon", 1))
+    check(sim.logged("cannot take") == false and apLoadoutOpen(), "no room: nothing taken, the menu stays")
+    local said = false
+    for _, line in ipairs(sim.screen) do
+        if line:find(apT("loadout.no_room", { name = "" }):sub(1, 12), 1, true) then said = true end
+    end
+    check(said, "and the player is told why")
+    restore()
+    sim.click(apLoadoutPoint("done"))
+    check(not apLoadoutOpen(), "closed with Finish")
+    sim.jumpArrive()
+    sim.renderGui()
+    check(not apLoadoutOpen(), "closed with Finish, the extra pick is gone: it never comes back beacon after beacon")
+end)
+
+test("save profiles: a refused seed does not rename the save in use", function()
+    sim.profiles.on = true
+    sim.profiles.current = "seed-1"
+    sim.profiles.details = { ["seed-1.label"] = "Captain on A", ["seed-1.checks"] = "9/163" }
+    apContractResetForTesting()
+    local restore = stub("apOwnSlotName", function() return "Navigator" end)
+    apSavesDescribe()
+    equals(sim.profiles.details["seed-1.label"], "Captain on A", "no seed loaded, the name stays")
+    sim.profiles.current = "main"
+    sim.profiles.details["main.label"] = "Captain on A"
+    apSavesDescribe()
+    equals(sim.profiles.details["main.label"], "Captain on A", "the first save too")
+    sim.profiles.current = "seed-1"
+    applySeed({ goal = { kind = "victories", count = 1 }, seed_hash = "another-seed" })
+    apSavesDescribe()
+    equals(sim.profiles.details["seed-1.label"], "Captain on A", "another seed's slot does not take this save")
+    equals(sim.profiles.details["seed-1.checks"], "9/163", "nor its checks")
+    sim.profiles.current = apSavesIdFor(apSeedFingerprint(), false, "Navigator")
+    apSavesDescribe()
+    equals(sim.profiles.details[sim.profiles.current .. ".label"] ~= nil, true, "its own save does")
+    restore()
+    sim.profiles.on = false
+end)
+
+test("save profiles: two slots of one seed get a save each", function()
+    sim.profiles.on = true
+    sim.profiles.pending = nil
+    sim.profiles.current = "seed-1"
+    sim.profiles.details = {}
+    apContractResetForTesting()
+    applySeed({ goal = { kind = "victories", count = 1 }, seed_hash = "shared-seed" })
+    local seed = apSeedFingerprint()
+    local captain = apSavesIdFor(seed, false, "Captain")
+    check(captain ~= apSavesIdFor(seed, false, "Navigator"), "the slot is part of the save's name")
+    sim.profiles.current = captain
+    local restore = stub("apOwnSlotName", function() return "Captain" end)
+    apSavesDescribe()
+    restore()
+    equals(sim.profiles.details[captain .. ".slot"], "Captain", "the save remembers its slot")
+    check(apSavesOtherSlot("Navigator"), "the other slot is told apart")
+    check(not apSavesOtherSlot("Captain"), "its own slot is at home")
+    restore = stub("apOwnSlotName", function() return "Navigator" end)
+    sim.profiles.details[captain .. ".label"] = "Captain on A"
+    apSavesDescribe()
+    restore()
+    equals(sim.profiles.details[captain .. ".label"], "Captain on A", "the other slot cannot rename it")
+    sim.profiles.current = "main"
+    sim.profiles.details["main.slot"] = "Captain"
+    sim.profiles.details["main.label"] = "Captain on A"
+    restore = stub("apOwnSlotName", function() return "Navigator" end)
+    apSavesDescribe()
+    equals(sim.profiles.details["main.label"], "Captain on A", "the first save neither")
+    sim.profiles.details["main.slot"] = nil
+    sim.profiles.pending = "seed-9"
+    apSavesDescribe()
+    restore()
+    equals(sim.profiles.details["main.label"], "Captain on A", "nor a slot on its way to another save")
+    sim.profiles.pending = nil
+    sim.profiles.on = false
+end)
+
+test("save profiles: a save named after its seed alone stays with the slot that played it", function()
+    sim.profiles.on = true
+    sim.profiles.details = { ["seed-5.label"] = "Captain on A" }
+    equals(apSavesIdFor(5, false, "Captain"), "seed-5", "its slot finds it")
+    check(apSavesIdFor(5, false, "Navigator") ~= "seed-5", "the other slot gets its own")
+    sim.profiles.on = false
+end)
+
+test("save profiles: the first save is found again by its slot, not made twice", function()
+    sim.profiles.on = true
+    sim.profiles.current = "seed-5-77"
+    sim.profiles.ids = { "main", "seed-5-77" }
+    sim.profiles.details = { ["main.slot"] = "Captain", ["seed-5-77.slot"] = "Navigator" }
+    local tag = stub("apNetSeedTagOf", function(id) return (id == "main" or id == "seed-5-77") and 5 or 0 end)
+    equals(apSavesIdFor(5, false, "Captain"), "main", "Captain goes back to the first save")
+    equals(apSavesIdFor(5, false, "Navigator"), "seed-5-77", "Navigator to its own")
+    check(apSavesIdFor(6, false, "Captain") ~= "main", "on another seed, the same name is another save")
+    check(apSavesIdFor(5, false, "Third") ~= "main", "a third slot gets a save of its own")
+    tag()
+    sim.profiles.ids = {}
+    sim.profiles.on = false
+end)
+
+test("save profiles: another slot of the same seed asks the question, and keeping leaves the save alone", function()
+    sim.profiles.on = true
+    sim.profiles.pending = nil
+    sim.profiles.details = {}
+    apContractResetForTesting()
+    local tag = stub("apNetSeedTag", function() return apSeedFingerprint({ hash = "shared-seed" }) end)
+    local online = stub("apNetConnected", function() return true end)
+    sim.profiles.current = "seed-1"
+    sim.profiles.details["seed-1.slot"] = "Captain"
+    sim.profiles.details["seed-1.label"] = "Captain on A"
+    apApplySlotData({ contract = 3, goal = { kind = "victories", count = 1 }, seed_hash = "shared-seed",
+                      kinds = {}, kinds_required = {}, loc = {}, items = {} }, "Navigator")
+    check(apSeedChangeLeftovers(), "the question is asked")
+    equals(apSeedChangeSlot(), "Navigator", "for that slot")
+    apSeedChangeAcknowledged()
+    apSavesDescribe()
+    equals(sim.profiles.details["seed-1.label"], "Captain on A", "the save keeps its name")
+    online()
+    tag()
+    sim.profiles.on = false
+end)
+
+test("slots of one seed: each counts its own items, and the old count stays with the save that played it", function()
+    apContractResetForTesting()
+    applySeed({ goal = { kind = "victories", count = 1 }, seed_hash = "shared-seed" })
+    local base = "ap_items_done_" .. tostring(apSeedFingerprint())
+    local slot = stub("apOwnSlotName", function() return "Captain" end)
+    apNetRemember(base, 4)
+    local captain = apNetSlotKey(base)
+    check(captain ~= base, "the slot is in the key")
+    equals(apNetRecall(captain), 4, "the old count moves to the slot")
+    equals(apNetRecall(base), 0, "and leaves the seed's name")
+    slot()
+    slot = stub("apOwnSlotName", function() return "Navigator" end)
+    check(apNetSlotKey(base) ~= captain, "the other slot has its own")
+    equals(apNetRecall(apNetSlotKey(base)), 0, "starting from zero")
+    apNetRemember(base, 7)
+    sim.profiles.on = true
+    sim.profiles.current = "seed-1-99"
+    apNetSlotKey(base)
+    equals(apNetRecall(base), 7, "a save with its slot in its name never takes an old count")
+    sim.profiles.on = false
+    slot()
+end)
+
+test("save profiles: the panel comes back on the slot of the save loaded, not the last one connected", function()
+    sim.profiles.on = true
+    sim.profiles.current = "seed-1"
+    sim.profiles.details = { ["seed-1.slot"] = "Captain", ["seed-1.uri"] = "other.host", ["seed-1.port"] = "1234" }
+    sim.net.last = { uri = "localhost:38281", slot = "Navigator" }
+    apContractResetForTesting()
+    sim.renderGui()
+    sim.hangarOpen = true
+    sim.renderMenu()
+    sim.hangarOpen = false
+    local place = apSavesLastPlace()
+    equals(place.slot, "Captain", "the save knows its slot")
+    sim.renderMenu()
+    sim.renderMenu()
+    equals(apConnectState().slot, "Captain", "the slot field follows")
+    equals(apConnectState().uri, "other.host", "and the address")
+    equals(apConnectState().port, "1234", "and the port")
+    sim.profiles.on = false
+end)
+
+test("seed question: nothing behind it answers until it is answered, New Game included", function()
+    sim.net.last = { uri = "", slot = "" }
+    sim.profiles.on = true
+    sim.profiles.current = "seed-1"
+    apContractResetForTesting()
+    local leftovers = stub("apSeedChangeLeftovers", function() return true end)
+    sim.renderMenu()
+    equals(sim.fireForTesting("ON_MOUSE_L_BUTTON_DOWN", 1078, 364), Defines.Chain.PREEMPT, "a click on New Game stops here")
+    equals(sim.fireForTesting("ON_KEY_DOWN", Defines.SDL.KEY_RETURN), Defines.Chain.PREEMPT, "and so does a key")
+    leftovers()
+    apSeedChangeAcknowledged()
+    sim.renderMenu()
+    equals(sim.fireForTesting("ON_MOUSE_L_BUTTON_DOWN", 1078, 364), Defines.Chain.CONTINUE, "once answered, the menu works")
+    sim.profiles.on = false
+end)
+
+test("seed question: its own save connects at the next launch, once, automatic connection off", function()
+    apNetRemember("ap_autoconnect", 0)
+    apNetRemember("ap_relaunch_connect", 1)
+    sim.net.last = { uri = "localhost:38281", slot = "Captain" }
+    apConnectResetAutoForTesting()
+    apContractResetForTesting()
+    local connected = 0
+    local tried = stub("apConnectNow", function() connected = connected + 1 end)
+    sim.mainMenu()
+    sim.renderGui()
+    sim.renderMenu()
+    tried()
+    equals(connected, 1, "it connects by itself")
+    equals(apNetRecall("ap_relaunch_connect"), 0, "and only for that launch")
+end)
+
+test("closing FTL for a save: the screen says so for a few frames first, and the link is closed before", function()
+    apQuitDelayForTesting(0.05)
+    sim.quitCalled = false
+    apQuitSoon(apT("saves.relaunch"), true)
+    sim.renderMenu()
+    check(not sim.quitCalled, "FTL is still open")
+    check(sim.drawnText(apT("saves.relaunch")), "and says what happens")
+    check(sim.drawnText(apT("restart.wait")), "and that it can take a while")
+    local clicksBefore = sim.netCalls("ConnectSlot")
+    sim.click(130, 586)
+    equals(sim.netCalls("ConnectSlot"), clicksBefore, "and nothing on the menu answers meanwhile")
+    for _ = 1, 8 do sim.renderMenu() end
+    check(sim.quitCalled, "then it closes")
+    equals(sim.netCalls("Disconnect") > 0, true, "the connection went first")
+    apQuitDelayForTesting(0)
 end)

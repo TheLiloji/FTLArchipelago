@@ -58,15 +58,40 @@ class FTLWorld(World):
 
     goal_location_name = locations.GOAL_LOCATION
 
+    # Universal Tracker regenerates the world from slot_data["tracker"], without the player's YAML.
+    ut_can_gen_without_yaml = True
+
+    @staticmethod
+    def interpret_slot_data(slot_data: dict[str, Any]) -> dict[str, Any]:
+        return slot_data
+
+    def _tracker_slot_data(self) -> dict[str, Any] | None:
+        passthrough = getattr(self.multiworld, "re_gen_passthrough", None) or {}
+        return (passthrough.get(self.game) or {}).get("tracker")
+
     def generate_early(self) -> None:
+        tracker = self._tracker_slot_data()
+        if tracker is not None:
+            for name, value in tracker["options"].items():
+                setattr(self.options, name, type(getattr(self.options, name)).from_any(value))
         self._check_option_combinations()
         self.start_ship = self._resolve_start_ship()
         self._draw_layouts()
+        if tracker is not None:
+            self.options.drawn_layouts = frozenset(tracker["layouts"])
         self.selected_layouts = locations.selected_layouts(self.options)
         self.created_locations = locations.selected_locations(self.options)
-        self.shop_items = items.selected_shop_items(self.options, self.random)
+        if tracker is not None:
+            self.shop_items = tuple(data.SHOP_ITEMS_BY_BLUEPRINT[name] for name in tracker["shop_items"])
+        else:
+            self.shop_items = items.selected_shop_items(self.options, self.random)
         self.enabled_items = items.enabled_items(self.options, self.shop_items)
+        self.system_unlocks = items.system_unlocks(self.enabled_items, self.options)
         self.bundles = items.bundled_families(self.options, self.shop_items, self.random)
+        if tracker is not None:
+            self.bundles = {family: [tuple(data.SHOP_ITEMS_BY_BLUEPRINT[name] for name in bundle)
+                                     for bundle in bundles]
+                            for family, bundles in tracker["bundles"].items()}
         self._balance_shop_and_filler()
 
         rules.validate_goal(self)
@@ -81,11 +106,23 @@ class FTLWorld(World):
         for message in self.logic.warnings:
             logging.getLogger("FTL").warning("FTL (%s) : %s", self.player_name, message)
 
+        # A blueprint given at the start stays a blueprint: its Progressive items only raise levels.
+        self.system_unlocks = {source: blueprint for source, blueprint in self.system_unlocks.items()
+                               if blueprint not in self.logic.starting_blueprints}
         for name in self.logic.starting_blueprints:
             self.push_precollected(self.create_item(name))
 
-        for name in self.logic.early_blueprints:
-            self.multiworld.local_early_items[self.player][name] = 1
+        for name in (*self.logic.early_blueprints, *self.logic.early_ship_keys):
+            self.multiworld.local_early_items[self.player][self._unlocking_item(name)] = 1
+
+    def _unlocking_item(self, name: str) -> str:
+        """With Progressive Unlocks the System, a blueprint wanted early is the first Progressive item of its system,
+        the starting ship's own one when upgrades are per ship."""
+        sources = sorted(source for source, blueprint in self.system_unlocks.items() if blueprint == name)
+        if not sources:
+            return name
+        own = f"{self.start_ship.display}: "
+        return next((source for source in sources if source.startswith(own)), sources[0])
 
     def _check_option_combinations(self) -> None:
         """Refuses what would leave a slot unplayable, and says when an option is corrected or does nothing."""
@@ -95,14 +132,26 @@ class FTLWorld(World):
                 "only knows letters a-z and A-Z, digits, spaces and : . - / ; _ ? >. Choose a name without "
                 "accents or other symbols."
             )
+        warn = logging.getLogger("FTL").warning
+        # Random or weighted options can roll these: corrected with a warning so the seed still generates.
         first = self.options.sectorsanity_first_sector.value
         last = self.options.sectorsanity_last_sector.value
         if self.options.sectorsanity != self.options.sectorsanity.option_disabled and first > last:
-            raise OptionError(
-                f"FTL: sectorsanity_first_sector ({first}) is higher than sectorsanity_last_sector ({last}), "
-                "which leaves no sector check at all. Swap them, or set sectorsanity to disabled."
-            )
-        warn = logging.getLogger("FTL").warning
+            warn("FTL (%s): sectorsanity_first_sector (%d) is higher than sectorsanity_last_sector (%d): swapped.",
+                 self.player_name, first, last)
+            self.options.sectorsanity_first_sector.value = last
+            self.options.sectorsanity_last_sector.value = first
+        if self.options.goal == options.Goal.option_victory_selection and not self.options.victory_layouts.value:
+            warn("FTL (%s): goal=victory_selection with no layout in victory_layouts: goal set to victory_count.",
+                 self.player_name)
+            self.options.goal.value = options.Goal.option_victory_count
+        reachable = len(locations.allowed_layouts(self.options))
+        if (self.options.goal == options.Goal.option_victory_count
+                and 0 < reachable < self.options.victories_required.value):
+            warn("FTL (%s): victories_required (%d) is higher than the %d layouts ship_layouts and "
+                 "excluded_layouts allow: lowered to %d.",
+                 self.player_name, self.options.victories_required.value, reachable, reachable)
+            self.options.victories_required.value = reachable
         if self.options.archives_required.value > self.options.archives.value:
             warn("FTL (%s): archives_required (%d) is higher than archives (%d): every Archive is needed.",
                  self.player_name, self.options.archives_required.value, self.options.archives.value)
@@ -119,7 +168,7 @@ class FTLWorld(World):
         return by_slot[slot]
 
     def _draw_layouts(self) -> None:
-        forced = [self.start_ship.blueprint, *data.ALWAYS_UNLOCKED_LAYOUTS]
+        forced = [self.start_ship.blueprint, *options.always_unlocked_layouts(self.options)]
         forced.extend(options.goal_layouts(self.options) or ())
         refused = sorted(data.LAYOUTS_BY_BLUEPRINT[blueprint].display
                          for blueprint in dict.fromkeys(forced) if blueprint in options.excluded_layouts(self.options))
@@ -145,7 +194,7 @@ class FTLWorld(World):
 
     def _starting_keys(self) -> tuple[str, ...]:
         always = {
-            data.LAYOUTS_BY_BLUEPRINT[blueprint].ship for blueprint in data.ALWAYS_UNLOCKED_LAYOUTS
+            data.LAYOUTS_BY_BLUEPRINT[blueprint].ship for blueprint in options.always_unlocked_layouts(self.options)
         }
         wanted = dict.fromkeys([self.start_ship.blueprint, *sorted(always)])
         return tuple(data.SHIP_KEY_NAMES[blueprint] for blueprint in wanted)
@@ -196,15 +245,49 @@ class FTLWorld(World):
         if places:
             hint_data.setdefault(self.player, {}).update(places)
 
+    # Progressive Unlocks the System: the first copy of a Progressive item also counts as its system's blueprint,
+    # once, however many Progressive items of that system (one per ship) are held.
+    def _blueprint_credit(self, state, blueprint: str) -> int:
+        counts = state.prog_items[self.player]
+        return 1 if any(counts[name] > 0 for name, target in self.system_unlocks.items() if target == blueprint) else 0
+
+    def collect(self, state, item) -> bool:
+        blueprint = getattr(self, "system_unlocks", {}).get(item.name)
+        before = self._blueprint_credit(state, blueprint) if blueprint else 0
+        changed = super().collect(state, item)
+        if changed and blueprint:
+            state.prog_items[self.player][blueprint] += self._blueprint_credit(state, blueprint) - before
+        return changed
+
+    def remove(self, state, item) -> bool:
+        blueprint = getattr(self, "system_unlocks", {}).get(item.name)
+        before = self._blueprint_credit(state, blueprint) if blueprint else 0
+        changed = super().remove(state, item)
+        if changed and blueprint:
+            counts = state.prog_items[self.player]
+            counts[blueprint] += self._blueprint_credit(state, blueprint) - before
+            if counts[blueprint] <= 0:
+                del counts[blueprint]
+        return changed
+
     def fill_slot_data(self) -> Mapping[str, Any]:
         descriptors = {item.name: data.item_descriptor(item) for item in self._items_in_seed()}
         shop_names = {item.blueprint: item.name for item in data.ITEMS if item.kind == data.KIND_SHOP}
+        independent = self.options.layout_unlocks == self.options.layout_unlocks.option_independent
         for name, descriptor in descriptors.items():
             item = data.ITEMS_BY_NAME[name]
             # The mod colours its journal by it.
             descriptor["c"] = CLASS_CODES[items.effective_classification(self, item)]
             if item.group == data.GROUP_SYSTEM_LEVELS and self.options.full_system_upgrades:
                 descriptor["n"] = item.count
+            if item.group == data.GROUP_SHIP_LAYOUTS and independent:
+                descriptor["k"] = data.KIND_LAYOUT
+            if item.group == data.GROUP_SHIP_KEYS and options.progressive_ship_keys(self.options):
+                descriptor["k"] = data.KIND_PROGRESSIVE_SHIP
+                descriptor["bps"] = [layout.blueprint
+                                     for layout in options.progressive_layouts(self.options, item.ship)]
+            if name in self.system_unlocks:
+                descriptor["ub"] = True
             if item.kind == data.KIND_BUNDLE:
                 members = self.bundles[item.family][int(name.rsplit(" ", 1)[1]) - 1]
                 descriptor["bps"] = [member.blueprint for member in members]
@@ -212,11 +295,15 @@ class FTLWorld(World):
 
         kinds = {descriptor["k"] for descriptor in descriptors.values()}
         required_kinds = {
-            data.ITEMS_BY_NAME[name].kind
+            descriptors[name]["k"]
             for name in descriptors
             if data.ITEMS_BY_NAME[name].classification in (
                 "progression", "progression_skip_balancing", "useful")
         }
+        # A mod that does not know it would never unlock these systems: it refuses the seed instead.
+        if self.system_unlocks:
+            kinds.add(data.KIND_CAP_UNLOCK)
+            required_kinds.add(data.KIND_CAP_UNLOCK)
 
         slot_data: dict[str, Any] = {
             "contract": data.CONTRACT_VERSION,
@@ -227,6 +314,9 @@ class FTLWorld(World):
             "start_ship": self.start_ship.blueprint,
             "layouts": [layout.blueprint for layout in self.selected_layouts],
             "language": options.mod_language(self.options),
+            "event_beacons": self.options.event_beacons.current_key,
+            "crew_names": self.options.crew_names.current_key,
+            "players": self._other_player_names(),
             "goal": self._goal_for_the_mod(),
             "loc": self._check_key_table(),
             "items": descriptors,
@@ -237,19 +327,84 @@ class FTLWorld(World):
             "links": self._links_for_the_mod(),
             "options": self.options.as_dict("death_link", "sectorsanity", "trap_chance",
                                             "victory_collects_layout", "free_upgrades",
-                                            "system_install", "run_start_scrap", "combat_check_scrap"),
+                                            "system_install", "run_start_scrap", "combat_check_scrap",
+                                            "shop_hints", "combat_checks_mode", "flagship_sabotage",
+                                            "sector_skip", "shop_deal_scrap", "sector_locks", "event_checks"),
+            "tracker": self._tracker_data(),
+            "logic": self._logic_for_the_mod(),
+            "kestrel_locked": not options.always_unlocked_layouts(self.options),
         }
         return slot_data
+
+    def _logic_for_the_mod(self) -> dict[str, Any]:
+        """A light copy of the logic for the dashboard's "in logic" marker. For each check: the layouts it can be
+        done with, and for each of them the system blueprints still missing; how many blueprints it needs in all;
+        how many Sector Passes its depth asks of the layout. Power milestones are left out: the marker is a hint."""
+        level = self.sector_logic_level
+        by_sector = bool(self.options.shop_by_sector)
+        gated = bool(self.options.system_blueprints)
+        layouts = self.selected_layouts
+        by_region = {locations.region_name(layout): layout for layout in layouts}
+        checks = {}
+        for location in self.created_locations:
+            region = locations.region_of(location, self.options)
+            able = [by_region[region]] if region in by_region else list(rules._layouts_able_to_try(self.options, location))
+            needed = rules.systems_a_location_needs(location)
+            ways = []
+            for layout in able:
+                missing = [system for system in needed if system not in layout.start_systems]
+                if any(system not in layout.empty_slots for system in missing):
+                    continue
+                items = [data.BLUEPRINT_ITEM_NAMES[system] for system in missing] if gated else []
+                ways.append({"l": layout.blueprint, "i": items})
+            depth = rules.location_depth(location, by_sector)
+            passes = 0
+            if self.options.sector_locks:
+                passes = 2 if depth >= 8 or rules.location_needs_flagship(location) else (1 if depth >= 5 else 0)
+            if passes and location.shop_slot is not None:
+                owners = {layout.blueprint for layout in rules.shop_slot_owners(self, location, layouts)}
+                ways = [way for way in ways if way["l"] in owners]
+            checks[location.check_id] = {"ways": ways, "bp": rules.blueprints_required(level, location, by_sector),
+                                         "pass": passes}
+        return {
+            "layouts": {layout.blueprint: list(rules.layout_requirements(self, layout)) for layout in layouts},
+            "passes": {layout.blueprint: f"Sector Pass ({layout.display})" for layout in layouts},
+            "checks": checks,
+            "blueprint_items": sorted(item.name for item in data.ITEMS if item.group == data.GROUP_BLUEPRINTS),
+            "unlocks": dict(sorted(self.system_unlocks.items())),
+        }
+
+    def _tracker_data(self) -> dict[str, Any]:
+        """What Universal Tracker needs to rebuild the same locations and logic: every option, and the random draws."""
+        names = [name for name in FTLOptions.type_hints if name not in PerGameCommonOptions.type_hints]
+        return {
+            "options": self.options.as_dict(*names),
+            "layouts": [layout.blueprint for layout in self.selected_layouts],
+            "shop_items": [item.blueprint for item in self.shop_items],
+            "bundles": {family: [[item.blueprint for item in bundle] for bundle in bundles]
+                        for family, bundles in self.bundles.items()},
+        }
+
+    def _other_player_names(self) -> list[str]:
+        # For the crew_names option: the mod names new crew after the other slots of the multiworld.
+        return [self.multiworld.get_player_name(player) for player in self.multiworld.player_ids
+                if player != self.player]
 
     def _balance_shop_and_filler(self) -> None:
         items_needed = items.items_wanting_a_place(self)
         non_shop_checks = sum(
             1 for location in self.created_locations if location.shop_slot is None
         )
-        room = non_shop_checks + self.options.shop_checks.value - self.options.minimum_filler.value
+        floor = items.filler_floor(self)
+        room = non_shop_checks + self.options.shop_checks.value - floor
         dropped = min(items.spare_items(self), max(0, items_needed - room))
+        if dropped:
+            logging.getLogger("FTL").warning(
+                "FTL (%s): %d Head Start, Reactor Power or extra crew item(s) left out: the seed has more "
+                "items than checks. Turn on more checks or raise shop_checks to keep them.",
+                self.player_name, dropped)
         wanted_slots = max(self.options.shop_checks.value,
-                    items_needed - dropped + self.options.minimum_filler.value - non_shop_checks)
+                    items_needed - dropped + floor - non_shop_checks)
         if wanted_slots > data.MAX_SHOP_SLOTS and self.options.progressive_systems_per_ship:
             left_out = items_needed - non_shop_checks - data.MAX_SHOP_SLOTS
             if left_out > 0:
@@ -314,7 +469,8 @@ class FTLWorld(World):
                 depth = max(depth, data.shop_sector(location.shop_slot))
             offers[location.check_id] = {
                 "price": pricing.price(pricing.price_tier(placed.item), depth),
-                "sphere": sphere,
+                # get_spheres starts at the locations open from the start, which Archipelago calls sphere 1.
+                "sphere": None if sphere is None else sphere + 1,
                 "kind": kind,
             }
         return offers
@@ -329,6 +485,7 @@ class FTLWorld(World):
         return {
             "death": {
                 "enabled": bool(self.options.death_link),
+                "toggle": bool(self.options.death_link_toggle),
                 "trigger": self.options.death_link_trigger.current_key,
                 "cloned": bool(self.options.death_link_cloned_crew),
                 "effect": self.options.death_link_effect.current_key,

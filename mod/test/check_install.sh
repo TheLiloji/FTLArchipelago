@@ -54,7 +54,7 @@ for lang in de es fr it pt; do
 done
 expect "placements in sector_data.xml"  "$(grep -o 'AP_EVT_[A-Z_]*' "$D/sector_data.xml" | wc -l)" "$placements"
 expect "Lua modules"                    "$(ls "$D/archipelago"/*.lua 2>/dev/null | wc -l)" "$modules"
-expect "Archipelago shops per sector"   "$(grep -c 'AP_STORE_EVENT' "$D/sector_data.xml")" 20
+expect "Archipelago shops per sector"   "$(grep -o 'name="AP_STORE_EVENT"' "$D/sector_data.xml" | wc -l)" "$(grep -c 'name="AP_STORE_EVENT"' "$SRC/sector_data.xml.append")"
 expect "embedded languages"             "$(grep -o 'apLangTables\["[a-z-]*"\]' "$D/archipelago/lang.lua" | sort -u | wc -l)" 6
 
 stale=0

@@ -28,6 +28,8 @@ ITEM_NAME_TO_ID: dict[str, int] = {item.name: item.code for item in data.ITEMS}
 
 
 def effective_classification(world: "FTLWorld", item: data.Item) -> str:
+    if item.name in getattr(world, "system_unlocks", {}):
+        return "progression"
     if item.group == data.GROUP_SYSTEM_LEVELS:
         options = getattr(world, "options", None)
         if options is not None and item.system in rules.systems_whose_levels_the_rules_read(options):
@@ -93,7 +95,8 @@ def enabled_items(options, shop_items: tuple[data.ShopItem, ...] = ()) -> tuple[
     systems = locations.available_systems(options)
     ship_room = locations.ship_systems(options)
     per_ship = bool(options.progressive_systems_per_ship)
-    layout_items = options.layout_unlocks == options.layout_unlocks.option_items
+    layout_items = options.layout_unlocks in (options.layout_unlocks.option_items,
+                                              options.layout_unlocks.option_independent)
     shop_blueprints = {item.blueprint for item in shop_items}
     bundle_counts = {family: len(chunk) for family, chunk in bundled_families(options, shop_items).items()}
 
@@ -135,6 +138,9 @@ def enabled_items(options, shop_items: tuple[data.ShopItem, ...] = ()) -> tuple[
         elif group in (data.GROUP_SHOP_WEAPONS, data.GROUP_SHOP_DRONES, data.GROUP_SHOP_AUGMENTS):
             if item.blueprint in shop_blueprints and ftl_options.bundle_size(options, item.family) == 1:
                 kept.append(item)
+        elif group == data.GROUP_SECTOR_PASSES:
+            if options.sector_locks and item.blueprint in layouts:
+                kept.append(item)
         elif group == data.GROUP_BUNDLES:
             if int(item.name.rsplit(" ", 1)[1]) <= bundle_counts.get(item.family, 0):
                 kept.append(item)
@@ -143,7 +149,20 @@ def enabled_items(options, shop_items: tuple[data.ShopItem, ...] = ()) -> tuple[
                 f"{item.name!r} belongs to group {group!r}, which items.enabled_items does not "
                 "know how to filter"
             )
-    return tuple(kept)
+    covered = set(system_unlocks(kept, options).values())
+    return tuple(item for item in kept if item.name not in covered)
+
+
+def system_unlocks(enabled, options) -> dict[str, str]:
+    """Progressive Unlocks the System: each Progressive item of the seed, and the blueprint its first copy gives."""
+    if not (options.progressive_unlocks_system and options.system_blueprints and options.progressive_systems):
+        return {}
+    return {
+        item.name: data.BLUEPRINT_ITEM_NAMES[item.system]
+        for item in enabled
+        if item.group in (data.GROUP_SYSTEM_LEVELS, data.GROUP_SHIP_SYSTEM_LEVELS)
+        and item.system in data.BLUEPRINT_ITEM_NAMES
+    }
 
 
 # Nice to have but not needed: when a seed has far more items than checks, these go first instead of
@@ -151,11 +170,31 @@ def enabled_items(options, shop_items: tuple[data.ShopItem, ...] = ()) -> tuple[
 SPARE_GROUPS = (data.GROUP_HEAD_STARTS, data.GROUP_BONUSES, data.GROUP_CREW_MEMBERS)
 
 
+def _is_spare(item: data.Item, rank: int) -> bool:
+    # The first crew member of each race always stays: with crew_members on, a run must meet some.
+    return item.group in SPARE_GROUPS and not (item.group == data.GROUP_CREW_MEMBERS and rank == 0)
+
+
+def filler_like_items(world: "FTLWorld") -> int:
+    """The crew members kept by _is_spare: extras like filler, they take filler slots before growing the shop."""
+    return sum(
+        1 for item in world.enabled_items
+        if item.count and item.group == data.GROUP_CREW_MEMBERS
+        and not effective_classification(world, item).startswith("progression")
+    )
+
+
+def filler_floor(world: "FTLWorld") -> int:
+    return max(0, world.options.minimum_filler.value - filler_like_items(world))
+
+
 def spare_items(world: "FTLWorld") -> int:
     return sum(
-        ftl_options.item_copies(world.options, item) for item in world.enabled_items
+        1 for item in world.enabled_items
         if item.count and item.group in SPARE_GROUPS
         and not effective_classification(world, item).startswith("progression")
+        for rank in range(ftl_options.item_copies(world.options, item))
+        if _is_spare(item, rank)
     )
 
 
@@ -191,12 +230,14 @@ def build_item_pool(world: "FTLWorld") -> list[FTLItem]:
         if effective_classification(world, item).startswith("progression"):
             required.extend([item.name] * copies)
         else:
-            spare = item.group in SPARE_GROUPS
-            optional.extend((spare, rank, item.name) for rank in range(copies))
+            optional.extend((_is_spare(item, rank), rank, item.name) for rank in range(copies))
 
-    if len(required) > capacity:
+    # Filler-only locations (rare Multiverse checks) take no progression: they do not count as room for it.
+    capacity_for_progression = capacity - sum(
+        1 for location in world.created_locations if location.group in data.FILLER_ONLY_GROUPS)
+    if len(required) > capacity_for_progression:
         raise OptionError(
-            f"FTL: {len(required)} progression items for only {capacity} locations. This "
+            f"FTL: {len(required)} progression items for only {capacity_for_progression} locations. This "
             "combination of options creates more required items than there are checks. Turn on "
             "sectorsanity or the achievements, or turn off the system blueprints."
         )
@@ -204,7 +245,7 @@ def build_item_pool(world: "FTLWorld") -> list[FTLItem]:
     world.random.shuffle(optional)
     optional.sort(key=lambda entry: (entry[0], entry[1]))
     room = capacity - len(required)
-    room -= min(options.minimum_filler.value, room)
+    room -= min(filler_floor(world), room)
     kept_optional = [name for _, _, name in optional[:room]]
 
     filler_needed = capacity - len(required) - len(kept_optional)

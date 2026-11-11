@@ -114,6 +114,9 @@ local SHIP_REFUSALS = { [1] = "not_received", [2] = "not_in_seed" }
 local SHIP_CODES = { not_received = 1, not_in_seed = 2 }
 local SHIP_MESSAGES = { not_received = "check.run_ship_not_received", not_in_seed = "check.run_ship_not_in_seed" }
 local shipRefusal = nil
+-- The layout already judged fine in this run: a key or a layout received later (waiting in the queue a moment)
+-- must not make it "unknown" again, or a purchase made meanwhile would be refused.
+local shipAccepted = nil
 local shipWarned = false
 local held, heldIds, heldVictory = {}, {}, nil
 
@@ -146,6 +149,9 @@ local function shipStatus()
     if shipRefusal ~= nil then
         return shipRefusal
     end
+    if shipAccepted ~= nil and shipAccepted == currentLayout() then
+        return "ok"
+    end
     if not (_G.apInventorySynced and apInventorySynced()) then
         return "unknown"
     end
@@ -154,6 +160,9 @@ local function shipStatus()
         return "unknown"
     end
     local status = _G.apShipReceived and apShipReceived(layout) or "ok"
+    if status == "ok" then
+        shipAccepted = layout
+    end
     if SHIP_CODES[status] then
         shipRefusal = status
         saveShipRefusal(SHIP_CODES[status])
@@ -301,20 +310,26 @@ function apCheckAlreadySent(id)
     return sent[id] == true
 end
 
+-- Only this slot's own locations count, each once: a key done offline that the seed does not have, or two keys
+-- for the same location, would push the share past 100 %.
 function apCheckCount()
-    local sentCount = 0
-    for _ in pairs(sent) do
-        sentCount = sentCount + 1
+    local names = (_G.apContractState and _G.apContractState.locNames) or {}
+    local total = 0
+    for _ in pairs(names) do
+        total = total + 1
     end
 
-    local total = 0
-    if _G.apContractState and _G.apContractState.locNames then
-        for _ in pairs(_G.apContractState.locNames) do
-            total = total + 1
+    local done = {}
+    local sentCount = 0
+    for key in pairs(sent) do
+        local name = names[key]
+        if name ~= nil and not done[name] then
+            done[name] = true
+            sentCount = sentCount + 1
         end
     end
 
-    return { sent = sentCount, total = total }
+    return { sent = math.min(sentCount, total), total = total }
 end
 
 function apAdoptCheckedLocations(names)
@@ -630,6 +645,7 @@ script.on_init(function(newGame)
     startingCrew = nil
     seedlessWarned = false
     shipRefusal = nil
+    shipAccepted = nil
     shipWarned = false
     held, heldIds, heldVictory = {}, {}, nil
     runFromSave = newGame == false
@@ -659,6 +675,7 @@ function apRunSeedForTesting(value)
     runFromSave = false
     seedlessWarned = false
     shipRefusal = nil
+    shipAccepted = nil
     shipWarned = false
     held, heldIds, heldVictory = {}, {}, nil
 end
@@ -668,7 +685,7 @@ local goalAnnounced = false
 local victoriesFor = nil
 
 local function victoryKey(layout)
-    return "ap_goalwin_" .. tostring(_G.apSeedFingerprint and apSeedFingerprint() or 0) .. "_" .. layout
+    return apNetSlotKey("ap_goalwin_" .. tostring(_G.apSeedFingerprint and apSeedFingerprint() or 0) .. "_" .. layout)
 end
 
 local function allLayouts()
@@ -994,3 +1011,214 @@ function apCheckStatus()
 end
 
 checkLog("check detection module loaded")
+
+-- sector_skip: a layout that already reached the next sector in an earlier run may skip sectors 1 to 4. Their
+-- first beacon becomes an exit: jump on at once for some scrap and one more pick in the start-of-run menu, or
+-- explore as usual. Each layout's deepest sector
+-- is kept in the profile.
+local SKIP_LAST_SECTOR = 4
+local SKIP_SCRAP = 60
+
+local function skipOn()
+    local value = _G.apSeedOption and apSeedOption("sector_skip")
+    return value == 1 or value == true
+end
+
+local function runVariable(name)
+    local ok, value = pcall(function() return Hyperspace.playerVariables[name] end)
+    return ok and math.floor(tonumber(value) or 0) or 0
+end
+
+-- The offered beacon is known by its place on the map: FTL rebuilds the location objects, and during a jump
+-- currentLoc is already the destination.
+local function locKey(loc)
+    local ok, x, y = pcall(function() return loc.loc.x, loc.loc.y end)
+    if not ok or x == nil then
+        return nil
+    end
+    return math.floor(x) * 10000 + math.floor(y)
+end
+
+local function isOfferedBeacon(loc)
+    local key = locKey(loc)
+    return key ~= nil and key == runVariable("ap_skip_loc") - 1
+end
+
+-- Refused (another beacon was chosen): the offered beacon stops being an exit for the rest of the sector.
+local function withdrawOffer()
+    Hyperspace.playerVariables.ap_skip_offered = 0
+    pcall(function()
+        local locations = Hyperspace.App.world.starMap.locations
+        for i = 0, locations:size() - 1 do
+            if isOfferedBeacon(locations[i]) then
+                locations[i].beacon = false
+            end
+        end
+    end)
+    checkLog("sector skip refused: the offered beacon is no exit any more")
+end
+
+local function deepestReached(layout)
+    local ok, value = pcall(function() return Hyperspace.metaVariables["ap_reached_" .. layout] end)
+    return ok and math.floor(tonumber(value) or 0) or 0
+end
+
+function apSectorSkipArrive()
+    local layout = currentLayout()
+    if layout == nil then
+        return
+    end
+    local sector = math.floor(Hyperspace.App.world.starMap.worldLevel) + 1
+    if sector > deepestReached(layout) then
+        Hyperspace.metaVariables["ap_reached_" .. layout] = sector
+    end
+    local previous = runVariable("ap_skip_sector")
+    if sector == previous then
+        Hyperspace.playerVariables.ap_skip_jumps = runVariable("ap_skip_jumps") + 1
+        if runVariable("ap_skip_offered") == sector then
+            withdrawOffer()
+        end
+        return
+    end
+    -- A new sector: the last one was skipped if the exit was taken from its first beacon.
+    if runVariable("ap_skip_offered") == previous and previous > 0 and runVariable("ap_skip_jumps") == 0 then
+        Hyperspace.ships.player:ModifyScrapCount(SKIP_SCRAP, false)
+        _G.apLoadoutExtraPick = true
+        checkLog("sector " .. previous .. " skipped, reward: " .. SKIP_SCRAP)
+        if _G.apNotifyStatus then
+            _G.apNotifyStatus(apT("sector_skip.done", { n = previous, scrap = SKIP_SCRAP }))
+        end
+    end
+    Hyperspace.playerVariables.ap_skip_sector = sector
+    Hyperspace.playerVariables.ap_skip_jumps = 0
+    if not skipOn() or sector > SKIP_LAST_SECTOR then
+        return
+    end
+    local done = deepestReached(layout) > sector
+        or apCheckAlreadySent(layout .. ":sector:" .. (sector + 1))
+    if not done then
+        return
+    end
+    local here = Hyperspace.App.world.starMap.currentLoc
+    here.beacon = true
+    Hyperspace.playerVariables.ap_skip_offered = sector
+    -- Its place is taken on the next ticks: on arrival FTL has not laid out the new sector's map yet.
+    Hyperspace.playerVariables.ap_skip_loc = 0
+    checkLog("sector " .. sector .. " can be skipped: its first beacon is an exit")
+    if _G.apNotifyStatus then
+        _G.apNotifyStatus(apT("sector_skip.offered", { n = sector, scrap = SKIP_SCRAP }))
+    end
+end
+
+script.on_internal_event(Defines.InternalEvents.JUMP_ARRIVE, function(shipManager)
+    if shipManager.iShipId == 0 then
+        apTry(TAG, apSectorSkipArrive)
+    end
+end)
+
+-- A new run starts at its first beacon without a jump: that beacon is judged once the run is under way.
+local skipStartTicks = 0
+script.on_internal_event(Defines.InternalEvents.ON_TICK, function()
+    skipStartTicks = (skipStartTicks + 1) % 30
+    if skipStartTicks ~= 0 or not inRun() then
+        return
+    end
+    if runVariable("ap_skip_sector") == 0 then
+        apTry(TAG, apSectorSkipArrive)
+        return
+    end
+    -- While the offer stands (no jump yet in this sector), its beacon stays an exit: FTL builds the start beacon
+    -- again as the run settles, which took the exit back.
+    apTry(TAG, function()
+        local sector = math.floor(Hyperspace.App.world.starMap.worldLevel) + 1
+        local here = Hyperspace.App.world.starMap.currentLoc
+        if here == nil or runVariable("ap_skip_offered") ~= sector or runVariable("ap_skip_sector") ~= sector
+            or runVariable("ap_skip_jumps") ~= 0 or Hyperspace.ships.player.bJumping then
+            return
+        end
+        if runVariable("ap_skip_loc") == 0 then
+            Hyperspace.playerVariables.ap_skip_loc = (locKey(here) or -1) + 1
+        end
+        if here.beacon ~= true and isOfferedBeacon(here) then
+            here.beacon = true
+        end
+    end)
+end)
+
+-- sector_locks: the exit of sector 4 (or 7) stays shut for a layout without its first (or second) Sector Pass,
+-- and opens as soon as the pass comes in.
+local lockedExit, lockedNeed, lockedLayout = nil, 0, nil
+
+local function locksOn()
+    local value = _G.apSeedOption and apSeedOption("sector_locks")
+    return value == 1 or value == true
+end
+
+local function passesFor(layout)
+    return (((_G.apInventory or {}).passes or {})[layout]) or 0
+end
+
+function apSectorLockArrive()
+    lockedExit = nil
+    if not locksOn() then
+        return
+    end
+    local layout = currentLayout()
+    local sector = math.floor(Hyperspace.App.world.starMap.worldLevel) + 1
+    local need = sector == 4 and 1 or (sector == 7 and 2 or 0)
+    local here = Hyperspace.App.world.starMap.currentLoc
+    if layout == nil or need == 0 or here == nil or here.beacon ~= true or passesFor(layout) >= need then
+        return
+    end
+    here.beacon = false
+    lockedExit, lockedNeed, lockedLayout = here, need, layout
+    checkLog("sector " .. sector .. " exit shut: " .. layout .. " needs Sector Pass " .. need)
+    if _G.apNotifyWarning then
+        _G.apNotifyWarning(apT("sector_locks.closed", { n = need, sector = sector }))
+    end
+end
+
+local lockTicks = 0
+script.on_internal_event(Defines.InternalEvents.ON_TICK, function()
+    lockTicks = (lockTicks + 1) % 60
+    if lockTicks ~= 0 or lockedExit == nil then
+        return
+    end
+    if passesFor(lockedLayout) >= lockedNeed then
+        lockedExit.beacon = true
+        lockedExit = nil
+        checkLog("sector exit opened: the pass came in")
+        if _G.apNotifyStatus then
+            _G.apNotifyStatus(apT("sector_locks.open"))
+        end
+    end
+end)
+
+script.on_internal_event(Defines.InternalEvents.JUMP_ARRIVE, function(shipManager)
+    if shipManager.iShipId == 0 then
+        apTry(TAG, apSectorLockArrive)
+    end
+end)
+
+-- A run that does not count says so for as long as it lasts, in the same few words as the hangar's marks.
+local REFUSED_MARKS = { not_received = "run.refused.no_key", not_in_seed = "run.refused.not_in_seed" }
+
+local function drawRefusedRun()
+    if _G.apDashboardOpen and apDashboardOpen() then
+        return
+    end
+    local key = inRun() and REFUSED_MARKS[shipRefusal or savedShipRefusal() or ""]
+    if not key then
+        return
+    end
+    local label = apT(key)
+    local width = apUi.width(14, label) + 32
+    local x = (1280 - width) / 2
+    apUi.rect(x, 90, width, 40, "window", 0.95)
+    apUi.outline(x, 90, width, 40, "warn", 2)
+    apUi.textCenter(14, 640, 98, width - 16, "warn", label)
+end
+
+script.on_render_event(Defines.RenderEvents.GUI_CONTAINER, function() end, function()
+    apTry(TAG, drawRefusedRun)
+end)

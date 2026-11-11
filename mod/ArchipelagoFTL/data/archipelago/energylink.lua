@@ -152,7 +152,11 @@ function apEnergyLinkContribute()
         energyLog("deposited " .. table.concat(given, " + ") .. " = " .. humanJoules(net)
             .. " (after " .. math.floor(DEPOSIT_LOSS * 100) .. "% loss)")
         if _G.apNotifyStatus then
-            _G.apNotifyStatus(apT("energylink.sent", { what = table.concat(given, " + ") }))
+            -- What lands in the reserve, in fuel: the dashboard's figure grows by this, not by what was given.
+            local fuel = net / JOULES_PER_FUEL
+            local shown = fuel == math.floor(fuel) and tostring(math.floor(fuel))
+                or (_G.apDecimal and apDecimal(fuel) or string.format("%.1f", fuel))
+            _G.apNotifyStatus(apT("energylink.sent", { what = table.concat(given, " + "), net = shown }))
         end
     end
     return net
@@ -234,9 +238,47 @@ function apEnergyLinkGranted(joules)
     return units
 end
 
+-- Every change of ours is already counted in state.pool: a pool grown by a whole fuel unit or more since the
+-- last look was filled by the other players, and the player is told.
 function apEnergyLinkSync(joules)
-    state.pool = joules or 0
+    local value = tonumber(joules) or 0
+    if state.poolKnown then
+        local added = math.floor((value - state.pool) / JOULES_PER_FUEL)
+        if added >= 1 then
+            energyLog("the other players put " .. added .. " fuel unit(s) in the shared pool")
+            if _G.apNotifyStatus then
+                _G.apNotifyStatus(apT("energylink.others", { n = added }))
+            end
+        end
+    end
+    state.pool = value
+    state.poolKnown = true
 end
+
+-- The pool in whole fuel units, nil until the server told it.
+function apEnergyLinkPoolFuel()
+    if not state.poolKnown then
+        return nil
+    end
+    return math.floor(math.max(0, state.pool) / JOULES_PER_FUEL)
+end
+
+-- Other slots fill and drain the pool too: a look every 20 seconds keeps the dashboard's figure fresh.
+-- Adding 0 changes nothing and answers with the pool's value.
+local lookTicks = 0
+script.on_internal_event(Defines.InternalEvents.ON_TICK, function()
+    lookTicks = lookTicks + 1
+    if lookTicks < (state.poolKnown and 60 * 20 or 60 * 2) then
+        return
+    end
+    lookTicks = 0
+    if _G.apEnergyLink and _G.apEnergyLink.enabled and _G.apNetEnergyLinkDeposit then
+        local ok, looked = pcall(_G.apNetEnergyLinkDeposit, 0)
+        if not ok or looked == false then
+            state.poolKnown = false
+        end
+    end
+end)
 
 local function considerWithdrawal()
     local config = _G.apEnergyLink

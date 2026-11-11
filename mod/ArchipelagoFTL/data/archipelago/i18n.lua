@@ -36,6 +36,15 @@ function apLangSet(code, source)
     return true
 end
 
+-- A number with one decimal, written the way the player's language writes it ("6.8" in English, "6,8" elsewhere).
+function apDecimal(value)
+    local text = string.format("%.1f", value)
+    if state.code ~= nil and state.code ~= "en" then
+        text = text:gsub("%.", ",")
+    end
+    return text
+end
+
 function apLangFromGameSetting()
     local ok, raw = pcall(function()
         return tostring(Hyperspace.Settings.language)
@@ -182,6 +191,7 @@ function apRaceLabel(name)
     if name == nil or name == "" then
         return "?"
     end
+    name = (_G.apRaceNames or {})[name] or name
     local text = textLibraryLookup("crew_" .. name .. "_title")
     if text then return text end
     -- Multiverse writes its race names in the crew blueprints, not in the text library.
@@ -193,15 +203,26 @@ function apRaceLabel(name)
     end
     return tostring(name)
 end
+-- A ship by its class ("Federation Cruiser"), never by the name of its Type A ("The Osprey"): B and C layouts
+-- add their letter. The ship's own name is the fallback when it has no class text.
 function apShipLabel(name)
     if name == nil or name == "" then
         return "?"
     end
-    local ok, text = pcall(function()
+    local base, variant = tostring(name):match("^(.-)_([23])$")
+    base = base or tostring(name)
+    local ok, class = pcall(function()
+        local bp = Hyperspace.Global.GetInstance():GetBlueprints():GetShipBlueprint(base, -1)
+        return bp ~= nil and bp.shipClass:GetText() or nil
+    end)
+    if ok and type(class) == "string" and class ~= "" then
+        return class .. (variant == "2" and " B" or variant == "3" and " C" or "")
+    end
+    local okOwn, text = pcall(function()
         local bp = Hyperspace.Global.GetInstance():GetBlueprints():GetShipBlueprint(name, -1)
         return bp ~= nil and bp.name:GetText() or nil
     end)
-    if ok and type(text) == "string" and text ~= "" then
+    if okOwn and type(text) == "string" and text ~= "" then
         return text
     end
     return tostring(name)

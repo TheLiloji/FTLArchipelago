@@ -74,11 +74,17 @@ function apApplySlotData(slotData, slotName, solo)
         local incoming = apSeedFingerprint(identity)
         contractLog(string.format("seed fingerprint: stored %d, incoming %d, hash %s",
             stored, incoming, tostring(identity.hash)))
-        if incoming ~= stored
-            and _G.apProfileHasShips and _G.apProfileHasShips() then
+        -- With save profiles, a save that already belongs to a seed asks on any other seed, progress or not:
+        -- the answer gives that seed its own save. Without them, only a profile with ships has something to lose.
+        local bound = _G.apSavesSupported ~= nil and apSavesSupported() and stored ~= 0
+        -- Two slots of one seed share its fingerprint, but not their progress: each has its own save.
+        local otherSlot = incoming == stored and _G.apSavesOtherSlot ~= nil and apSavesOtherSlot(identity.slot)
+        if otherSlot or (incoming ~= stored
+            and (bound or (_G.apProfileHasShips and _G.apProfileHasShips()))) then
             state.seedChangedWithUnlocks = true
             state.seedChangeReason = stored == 0 and "foreign" or "seedchange"
             state.refusedFingerprint = incoming
+            state.refusedSlot = identity.slot
             if onServer and _G.apNetDisconnect then pcall(_G.apNetDisconnect) end
             if state.seedChangeReason == "foreign" then
                 return refuse(apT("contract.reason.foreign"))
@@ -162,6 +168,8 @@ function apApplySlotData(slotData, slotName, solo)
 
     state.goal = slotData.goal
     state.startShip = slotData.start_ship
+    if _G.apApplyEventBeacons then apApplyEventBeacons(slotData.event_beacons) end
+    if _G.apCrewNamesConfigure then apCrewNamesConfigure(slotData.crew_names, slotData.players) end
     state.layouts = nil
     if type(slotData.layouts) == "table" then
         state.layouts = {}
@@ -171,6 +179,10 @@ function apApplySlotData(slotData, slotName, solo)
     end
     state.seedName = slotData.seed_name
     state.options = slotData.options or {}
+    if _G.apApplySectorEvent then apApplySectorEvent() end
+    state.logic = type(slotData.logic) == "table" and slotData.logic or nil
+    state.kestrelLocked = slotData.kestrel_locked == true
+    state.receivedByIndex = {}
 
     state.itemDescriptors = slotData.items or {}
     state.capTotals = slotData.caps or {}
@@ -254,7 +266,84 @@ local function announceLostItem(itemName)
     end
 end
 
+-- The "in logic" marker (seeds from 0.6 on): a light copy of the logic, what each layout needs and how many
+-- system blueprints each check needs, against the items received so far. Power and system needs are left out.
+local function receivedCounts()
+    local counts = {}
+    for _, name in pairs(state.receivedByIndex or {}) do
+        counts[name] = (counts[name] or 0) + 1
+    end
+    -- Progressive Unlocks the System: a Progressive item held counts as its blueprint, once.
+    local credited = {}
+    for source, blueprint in pairs(((state.logic or {}).unlocks) or {}) do
+        if (counts[source] or 0) > 0 and not credited[blueprint] then
+            credited[blueprint] = true
+            counts[blueprint] = (counts[blueprint] or 0) + 1
+        end
+    end
+    return counts
+end
+
+local function hasAll(counts, names)
+    local wanted = {}
+    for _, name in ipairs(names or {}) do
+        wanted[name] = (wanted[name] or 0) + 1
+    end
+    for name, count in pairs(wanted) do
+        if (counts[name] or 0) < count then
+            return false
+        end
+    end
+    return true
+end
+
+function apInLogic(checkKey)
+    local logic = state.logic
+    if logic == nil or logic.checks == nil then
+        return nil
+    end
+    local entry = logic.checks[checkKey]
+    if entry == nil then
+        return nil
+    end
+    local counts = receivedCounts()
+    local have = 0
+    for _, name in ipairs(logic.blueprint_items or {}) do
+        have = have + (counts[name] or 0)
+    end
+    if have < (entry.bp or 0) then
+        return false
+    end
+    -- With shop_per_ship, a deep shop slot is only sold aboard its owner: only the owner's passes open it.
+    -- Seeds made before this fix list every layout, so the owner is worked out here.
+    local owner, perClass
+    local slot = tonumber(tostring(checkKey):match("^shop:(%d+)$"))
+    local config = _G.apShopConfig or {}
+    if slot ~= nil and (entry.pass or 0) > 0 and config.owners ~= nil then
+        owner = config.owners[math.floor((slot - 1) / (config.sectors or 1)) % #config.owners + 1]
+        perClass = config.per == "per_class"
+    end
+    -- One layout of the seed, received, past the sectors this check asks, with the systems it needs.
+    for _, way in ipairs(entry.ways or {}) do
+        local passName = (logic.passes or {})[way.l]
+        local needs = (logic.layouts or {})[way.l]
+        local aboard = owner == nil or way.l == owner or (perClass and way.l:gsub("_[23]$", "") == owner)
+        if needs ~= nil and aboard and hasAll(counts, needs) and hasAll(counts, way.i)
+            and ((entry.pass or 0) == 0 or (passName ~= nil and (counts[passName] or 0) >= entry.pass)) then
+            return true
+        end
+    end
+    return false
+end
+
+function apNoteReceived(itemName, index)
+    if index ~= nil and index >= 0 and state.receivedByIndex ~= nil then
+        state.receivedByIndex[index] = tostring(itemName)
+    end
+end
+
 function apReceiveItem(itemName, sender, isReplay, index)
+    apNoteReceived(itemName, index)
     -- A refused seed still sends its items; they come again once it is accepted.
     if state.refusal ~= nil then
         contractLog("item ignored, the seed is refused: " .. tostring(itemName))
@@ -303,8 +392,11 @@ function apReceiveItem(itemName, sender, isReplay, index)
     end
 
     return apQueueItem({
-        kind = kind,
+        -- A layout that needs no key is received like any ship: apShipReceived knows the seed is independent.
+        -- A progressive ship key is a ship too: "bps" says which layout each copy gives.
+        kind = (kind == "layout" or kind == "progressive_ship") and "ship" or kind,
         bp = descriptor.bp,
+        bps = kind == "progressive_ship" and descriptor.bps or nil,
         sys = descriptor.sys,
         ship = descriptor.ship,
         res = descriptor.res,
@@ -313,6 +405,7 @@ function apReceiveItem(itemName, sender, isReplay, index)
         skill = descriptor.skill,
         tiers = descriptor.tiers,
         n = descriptor.n or 1,
+        ub = descriptor.ub == true or nil,
         display = itemName,
         sender = sender,
         isReplay = isReplay == true,
@@ -378,28 +471,46 @@ function apLayoutInSeed(blueprint)
     return state.layouts == nil or state.layouts[blueprint] == true
 end
 
+function apSeedKestrelLocked()
+    return state.kestrelLocked == true
+end
+
 function apSeedStartShip()
     return state.startShip
 end
 
 -- With layout_unlocks: items the seed has a Type B or C among its items; with vanilla it has none, and
 -- FTL unlocks them itself. Read from the items so older seeds, which do not send that option, work too.
-local layoutItemsFor, layoutItems = nil, false
+-- With independent, those items come as "layout": a Type B or C then needs no key.
+local layoutItemsFor, layoutItems, layoutsIndependent = nil, false, false
 
-function apSeedHasLayoutItems()
+local function readLayoutItems()
     local descriptors = state.itemDescriptors or {}
     if layoutItemsFor == descriptors then
-        return layoutItems
+        return
     end
-    layoutItemsFor, layoutItems = descriptors, false
+    layoutItemsFor, layoutItems, layoutsIndependent = descriptors, false, false
     for _, descriptor in pairs(descriptors) do
-        if type(descriptor) == "table" and descriptor.k == "ship" and type(descriptor.bp) == "string"
-            and descriptor.bp:match("_[23]$") then
+        if type(descriptor) == "table" and descriptor.k == "progressive_ship" then
             layoutItems = true
-            break
+        elseif type(descriptor) == "table" and type(descriptor.bp) == "string" and descriptor.bp:match("_[23]$") then
+            if descriptor.k == "layout" then
+                layoutItems, layoutsIndependent = true, true
+            elseif descriptor.k == "ship" then
+                layoutItems = true
+            end
         end
     end
+end
+
+function apSeedHasLayoutItems()
+    readLayoutItems()
     return layoutItems
+end
+
+function apSeedLayoutsIndependent()
+    readLayoutItems()
+    return layoutsIndependent
 end
 
 function apSeedChangeLeftovers()
@@ -418,8 +529,34 @@ function apSeedChangeFingerprint()
     return state.refusedFingerprint
 end
 
+function apSeedChangeSlot()
+    return state.refusedSlot
+end
+
 function apOwnSlotName()
     return (state.identity or {}).slot
+end
+
+function apSlotNumber(slot)
+    local number = 0
+    slot = tostring(slot)
+    for index = 1, #slot do
+        number = (number * 31 + slot:byte(index)) % 2147483647
+    end
+    return number
+end
+
+-- Two slots of one seed share its fingerprint, not their progress: what is kept per seed is kept per slot too.
+function apSlotSuffix()
+    local slot = apOwnSlotName()
+    if slot == nil or slot == "" then
+        return ""
+    end
+    return "_" .. tostring(apSlotNumber(slot))
+end
+
+function apSeedLoaded()
+    return state.connected == true
 end
 
 function apSeedSummary()
@@ -432,7 +569,7 @@ function apSeedSummary()
         goal = state.goal,
         options = state.options or {},
         links = {
-            death = _G.apDeathLink and _G.apDeathLink.enabled or false,
+            death = _G.apDeathLink and _G.apDeathLink.offered or false,
             energy = _G.apEnergyLink and _G.apEnergyLink.enabled or false,
             trap = _G.apTrapLink and _G.apTrapLink.enabled or false,
         },
@@ -479,6 +616,9 @@ function apContractResetForTesting()
     state.startShip = nil
     state.seedName = nil
     state.options = {}
+    state.logic = nil
+    state.kestrelLocked = false
+    state.receivedByIndex = {}
     state.identity = nil
     state.lastIdentity = nil
     state.systemCapsActive = true
@@ -486,6 +626,7 @@ function apContractResetForTesting()
 end
 
 function apContractUnload()
+    if _G.apApplyEventBeacons then apApplyEventBeacons("marked") end
     local identity = state.identity or state.lastIdentity
     apContractResetForTesting()
     state.lastIdentity = identity

@@ -17,4 +17,4 @@ requires:
   progressive_systems: false
   head_starts: false
   trap_chance: 0
-  sector_logic: relaxed
+  sector_logic: none

@@ -560,6 +560,19 @@ test("dashboard: a system already on the ship counts its upgrades, its blueprint
     check(sim.drawnText(apT("dash.system.locked")), "and a system the ship lacks still reads as locked")
 end)
 
+test("dashboard: upgrades received before the blueprint are counted, not shown as locked", function()
+    applySeed({ caps = { cloaking = 3 } })
+    _G.apInventory = { ships = {}, systemCaps = { cloaking = 3 }, blueprints = {}, startingUpgrades = {}, shopAvailability = {} }
+    sim.startRun(true)
+    check(not apSystemUnlocked("cloaking"), "no cloaking blueprint in this test")
+    apToggleHud()
+    apDashboardPage(3)
+    sim.renderGui()
+    apToggleHud()
+    check(sim.drawnText(apT("dash.system.aboard", { received = 2, total = 3 })),
+        "cloaking reads 2/3, blueprint missing, not locked")
+end)
+
 test("dashboard: the ships page only lists the seed's layouts", function()
     sim.startRun(true)
     applySeed({
@@ -572,6 +585,36 @@ test("dashboard: the ships page only lists the seed's layouts", function()
     check(sim.drawnText(apT("dash.ships.header", { done = 1, total = 3 })), "three layouts in the seed")
     check(not sim.drawnText(apShipLabel("PLAYER_SHIP_MANTIS")), "a ship left out is not listed")
     check(sim.drawnText(apT("dash.ships.type", { letter = "C" })), "the Rock C is")
+    closeDashboard()
+end)
+
+test("dashboard: a seed with many ships scrolls the ships page instead of drawing names over each other", function()
+    sim.startRun(true)
+    dashboardSeed()
+    local gameShips, seedShips, inSeed = _G.apGameData.ships, _G.apSeedShips, _G.apLayoutInSeed
+    local many = {}
+    for index = 1, 28 do many[index] = { name = "PLAYER_SHIP_HARD", layouts = 1 } end
+    _G.apGameData.ships = many
+    if seedShips then _G.apSeedShips = function() return many end end
+    _G.apLayoutInSeed = function() return true end
+    openDashboard("ships")
+    local names, counts = {}, {}
+    for _, draw in ipairs(sim.draws) do
+        if draw.text == apShipLabel("PLAYER_SHIP_HARD") then names[#names + 1] = draw end
+        local value = tostring(draw.text)
+        if value == apT("dash.ships.clear") or value:find(apT("dash.ships.remaining", { n = 0 }):gsub("0", ""), 1, true) then
+            counts[#counts + 1] = draw
+        end
+    end
+    _G.apGameData.ships, _G.apSeedShips, _G.apLayoutInSeed = gameShips, seedShips, inSeed
+    check(#names > 0 and #names < 28, "only the cards that fit are drawn")
+    local apart = #counts > 0
+    for _, name in ipairs(names) do
+        for _, count in ipairs(counts) do
+            if count.x == name.x and math.abs(count.y - name.y) < 16 then apart = false end
+        end
+    end
+    check(apart, "a ship's name and its checks left keep their own lines")
     closeDashboard()
 end)
 
@@ -611,5 +654,362 @@ test("dashboard: the This run card only promises what the seed's settings let an
     seed({})
     openDashboard("overview")
     check(not sim.drawnText(apT("dash.run.free_upgrades")), "and nothing without the options")
+    closeDashboard()
+end)
+
+test("in logic: a check is in logic once its layout's items and its blueprints are received", function()
+    apContractResetForTesting()
+    applySeed({ loc = { ["PLAYER_SHIP_ROCK:sector:3"] = "Rock Cruiser A: Reach sector 3" },
+                items = { ["Rock Cruiser Key"] = { k = "ship", bp = "PLAYER_SHIP_ROCK" },
+                          ["Shields blueprint"] = { k = "cap", sys = "shields" } },
+                logic = { layouts = { PLAYER_SHIP_ROCK = { "Rock Cruiser Key" } },
+                          checks = { ["PLAYER_SHIP_ROCK:sector:3"] = { ways = { { l = "PLAYER_SHIP_ROCK", i = {} } },
+                                                                        bp = 1, pass = 0 } },
+                          blueprint_items = { "Shields blueprint" } } })
+    equals(apInLogic("PLAYER_SHIP_ROCK:sector:3"), false, "nothing received yet")
+    apReceiveItem("Rock Cruiser Key", "Nina", false, 0)
+    equals(apInLogic("PLAYER_SHIP_ROCK:sector:3"), false, "the ship, not the blueprint")
+    apReceiveItem("Shields blueprint", "Nina", false, 1)
+    equals(apInLogic("PLAYER_SHIP_ROCK:sector:3"), true, "both: in logic")
+    apContractResetForTesting()
+    applySeed({})
+    equals(apInLogic("PLAYER_SHIP_ROCK:sector:3"), nil, "a seed without the logic copy says nothing")
+end)
+
+test("progressive unlocks the system: the first Progressive item unlocks its system and is its blueprint in logic", function()
+    apContractResetForTesting()
+    _G.apInventory.blueprints = {}
+    applySeed({ kinds = { "ship", "cap", "cap_unlock" }, kinds_required = { "cap_unlock" },
+                loc = { ["PLAYER_SHIP_ROCK:sector:3"] = "Rock Cruiser A: Reach sector 3" },
+                items = { ["Rock Cruiser Key"] = { k = "ship", bp = "PLAYER_SHIP_ROCK" },
+                          ["Progressive Shields"] = { k = "cap", sys = "shields", ub = true } },
+                logic = { layouts = { PLAYER_SHIP_ROCK = { "Rock Cruiser Key" } },
+                          checks = { ["PLAYER_SHIP_ROCK:sector:3"] = { ways = { { l = "PLAYER_SHIP_ROCK",
+                                                                                  i = { "Shields blueprint" } } },
+                                                                        bp = 1, pass = 0 } },
+                          blueprint_items = { "Shields blueprint" },
+                          unlocks = { ["Progressive Shields"] = "Shields blueprint" } } })
+    check(not sim.logged("SEED REFUSED"), "the mod knows the seed's kind")
+    apReceiveItem("Rock Cruiser Key", "Nina", false, 0)
+    equals(apInLogic("PLAYER_SHIP_ROCK:sector:3"), false, "no shields yet")
+    apReceiveItem("Progressive Shields", "Nina", false, 1)
+    sim.tick(240)
+    equals(_G.apInventory.blueprints.shields, true, "the shields are unlocked")
+    equals(apInLogic("PLAYER_SHIP_ROCK:sector:3"), true, "and count as the blueprint: in logic")
+end)
+
+test("in logic: a shared shop slot past sector 4 needs one layout holding both its key and its pass", function()
+    apContractResetForTesting()
+    applySeed({ loc = { ["shop:6:1"] = "AP Store: Sector 6, slot 1" },
+                logic = { layouts = { PLAYER_SHIP_ROCK = { "Rock Cruiser Key" }, PLAYER_SHIP_STEALTH = { "Stealth Cruiser Key" } },
+                          passes = { PLAYER_SHIP_ROCK = "Sector Pass (Rock)", PLAYER_SHIP_STEALTH = "Sector Pass (Stealth)" },
+                          checks = { ["shop:6:1"] = { ways = { { l = "PLAYER_SHIP_ROCK", i = {} },
+                                                               { l = "PLAYER_SHIP_STEALTH", i = {} } }, bp = 0, pass = 1 } },
+                          blueprint_items = {} } })
+    apReceiveItem("Rock Cruiser Key", "Nina", false, 0)
+    apReceiveItem("Sector Pass (Stealth)", "Nina", false, 1)
+    equals(apInLogic("shop:6:1"), false, "the Rock without its pass, a pass for a Stealth not received: not in logic")
+    apReceiveItem("Sector Pass (Rock)", "Nina", false, 2)
+    equals(apInLogic("shop:6:1"), true, "the Rock with its own pass: in logic")
+    apContractResetForTesting()
+    applySeed({})
+end)
+
+test("in logic: with shop_per_ship, a deep shop slot only counts its owner's pass, even from an older seed", function()
+    apContractResetForTesting()
+    local saved = _G.apShopConfig.owners
+    _G.apShopConfig.owners, _G.apShopConfig.sectors, _G.apShopConfig.per = { "PLAYER_SHIP_ROCK", "PLAYER_SHIP_STEALTH" }, 8, nil
+    applySeed({ loc = { ["shop:14"] = "AP Store: slot 14" },
+                logic = { layouts = { PLAYER_SHIP_ROCK = { "Rock Cruiser Key" }, PLAYER_SHIP_STEALTH = { "Stealth Cruiser Key" } },
+                          passes = { PLAYER_SHIP_ROCK = "Sector Pass (Rock)", PLAYER_SHIP_STEALTH = "Sector Pass (Stealth)" },
+                          checks = { ["shop:14"] = { ways = { { l = "PLAYER_SHIP_ROCK", i = {} },
+                                                              { l = "PLAYER_SHIP_STEALTH", i = {} } }, bp = 0, pass = 1 } },
+                          blueprint_items = {} } })
+    apReceiveItem("Rock Cruiser Key", "Nina", false, 0)
+    apReceiveItem("Stealth Cruiser Key", "Nina", false, 1)
+    apReceiveItem("Sector Pass (Rock)", "Nina", false, 2)
+    equals(apInLogic("shop:14"), false, "slot 14 is sold aboard the Stealth: the Rock's pass does not open it")
+    apReceiveItem("Sector Pass (Stealth)", "Nina", false, 3)
+    equals(apInLogic("shop:14"), true, "the Stealth's own pass does")
+    _G.apShopConfig.owners, _G.apShopConfig.sectors = saved, nil
+    apContractResetForTesting()
+    applySeed({})
+end)
+
+test("in logic: Sector Passes, the ship's own systems and unowned ships count like the apworld's logic", function()
+    apContractResetForTesting()
+    applySeed({ loc = { ["PLAYER_SHIP_ROCK:sector:5"] = "Rock Cruiser A: Reach sector 5",
+                        ["sys:cloaking"] = "Install Cloaking", ["crew:engi"] = "First Engi aboard" },
+                logic = { layouts = { PLAYER_SHIP_ROCK = { "Rock Cruiser Key" }, PLAYER_SHIP_STEALTH = { "Stealth Cruiser Key" } },
+                          passes = { PLAYER_SHIP_ROCK = "Sector Pass (Rock)", PLAYER_SHIP_STEALTH = "Sector Pass (Stealth)" },
+                          checks = {
+                              ["PLAYER_SHIP_ROCK:sector:5"] = { ways = { { l = "PLAYER_SHIP_ROCK", i = {} } }, bp = 0, pass = 1 },
+                              ["sys:cloaking"] = { ways = { { l = "PLAYER_SHIP_ROCK", i = { "Cloaking blueprint" } },
+                                                            { l = "PLAYER_SHIP_STEALTH", i = {} } }, bp = 0, pass = 0 },
+                              ["crew:engi"] = { ways = { { l = "PLAYER_SHIP_ROCK", i = {} } }, bp = 0, pass = 0 },
+                          },
+                          blueprint_items = {} } })
+    equals(apInLogic("crew:engi"), false, "no ship received: nothing in logic")
+    apReceiveItem("Rock Cruiser Key", "Nina", false, 0)
+    equals(apInLogic("crew:engi"), true, "the Rock: the Engi check is in logic")
+    equals(apInLogic("PLAYER_SHIP_ROCK:sector:5"), false, "sector 5 needs the Rock's first Sector Pass")
+    apReceiveItem("Sector Pass (Stealth)", "Nina", false, 1)
+    equals(apInLogic("PLAYER_SHIP_ROCK:sector:5"), false, "another ship's pass does not count")
+    apReceiveItem("Sector Pass (Rock)", "Nina", false, 2)
+    equals(apInLogic("PLAYER_SHIP_ROCK:sector:5"), true, "its own pass does")
+    equals(apInLogic("sys:cloaking"), false, "Cloaking on the Rock needs its blueprint")
+    apReceiveItem("Stealth Cruiser Key", "Nina", false, 3)
+    equals(apInLogic("sys:cloaking"), true, "the Stealth starts with it")
+    apContractResetForTesting()
+    applySeed({})
+end)
+
+test("dashboard: the EnergyLink chip shows the shared pool in fuel, and a look at it is no empty answer", function()
+    sim.startRun(true)
+    dashboardSeed()
+    apEnergyLinkConfigure({ enabled = true })
+    _G.apEnergyLinkState.poolKnown = false
+    local summary = apSeedSummary
+    local restore = stub("apSeedSummary", function()
+        local s = summary()
+        s.links.energy = true
+        return s
+    end)
+    openDashboard("overview")
+    check(sim.drawnText(apT("dash.links.energy", { n = "?" })), "unknown until the server tells")
+    closeDashboard()
+    sim.clearLog()
+    sim.netEvent("energy", { index = 0, value = 3500000 })
+    sim.tick(2)
+    openDashboard("overview")
+    check(sim.drawnText(apT("dash.links.energy", { n = "3" })), "3.5 fuel worth of joules: 3 fuel")
+    local said = false
+    for _, line in ipairs(sim.screen) do
+        if line:find(apT("energylink.empty"), 1, true) then said = true end
+    end
+    check(not said, "a look at the pool does not say it is empty")
+    closeDashboard()
+
+    -- The three links in French, with the pool's long label: TrapLink still gets its chip (Windows, 11/11).
+    local trapRestore = stub("apSeedSummary", function()
+        local s = summary()
+        s.links.energy, s.links.death, s.links.trap = true, true, true
+        return s
+    end)
+    apLangResolve("fr")
+    -- A pool long enough that its label cannot share the card with the two other chips.
+    local poolRestore = stub("apEnergyLinkPoolFuel", function() return 123456789012345678 end)
+    openDashboard("overview")
+    poolRestore()
+    check(sim.drawnText("TrapLink"), "TrapLink is not pushed out by the pool's label")
+    check(sim.drawnText(apT("dash.links.energy_short", { n = "123456789012345678" })),
+        "the pool keeps its figure in the short label (Windows, 11/11)")
+    check(sim.drawnText("DeathLink"), "nor DeathLink")
+    closeDashboard()
+    apLangResolve(nil)
+    trapRestore()
+    restore()
+    apEnergyLinkConfigure({ enabled = false })
+end)
+
+test("EnergyLink: fuel the other players put in the shared reserve is announced, our own is not", function()
+    sim.startRun(true)
+    apEnergyLinkConfigure({ enabled = true })
+    _G.apEnergyLinkState.poolKnown = false
+    apEnergyLinkSync(2000000)
+    sim.clearLog()
+    apEnergyLinkSync(7500000)
+    local said = false
+    for _, line in ipairs(sim.screen) do
+        if line:find(apT("energylink.others", { n = 5 }), 1, true) then said = true end
+    end
+    check(said, "5 fuel came from the others: the player reads it")
+    sim.clearLog()
+    _G.apEnergyLinkState.pool = _G.apEnergyLinkState.pool + 3000000
+    apEnergyLinkSync(10500000)
+    local quiet = true
+    for _, line in ipairs(sim.screen) do
+        if line:find(apT("energylink.others", { n = 3 }), 1, true) then quiet = false end
+    end
+    check(quiet, "our own deposit, already counted, is not taken for the others'")
+    apEnergyLinkConfigure({ enabled = false })
+end)
+
+local function hangarWithSeed()
+    sim.started = true
+    sim.menuOpen = nil
+    sim.hangarOpen = true
+    dashboardSeed()
+end
+
+local function leaveHangar()
+    if apDashboardOpen() then apToggleHud() end
+    sim.hangarOpen = false
+end
+
+test("dashboard: TAB in the hangar opens it on the ships page, without pausing, and TAB or Esc closes it", function()
+    hangarWithSeed()
+    local gui = Hyperspace.App.gui
+    gui.bPaused = false
+    sim.keyDown(Defines.SDL.KEY_TAB)
+    check(apDashboardOpen(), "TAB opens it in the hangar")
+    sim.renderMenu()
+    check(sim.drawnText(apT("dash.ships.header", { done = 0, total = 28 }):sub(1, 10)), "on the ships page")
+    check(sim.drawnText(apT("dash.footer.hangar")), "and the footer does not say the game is paused")
+    equals(gui.bPaused, false, "there is no game to pause")
+    sim.keyDown(Defines.SDL.KEY_TAB)
+    check(not apDashboardOpen(), "TAB closes it")
+    sim.keyDown(Defines.SDL.KEY_TAB)
+    sim.keyDown(Defines.SDL.KEY_ESCAPE)
+    check(not apDashboardOpen(), "Esc closes it")
+    equals(gui.bPaused, false, "and nothing was left paused")
+    leaveHangar()
+end)
+
+test("dashboard: TAB does nothing on the title screen or in the hangar without a seed", function()
+    sim.started = true
+    sim.menuOpen = nil
+    sim.hangarOpen = false
+    dashboardSeed()
+    sim.keyDown(Defines.SDL.KEY_TAB)
+    check(not apDashboardOpen(), "the title screen keeps TAB for the connection form")
+    apContractResetForTesting()
+    sim.hangarOpen = true
+    sim.keyDown(Defines.SDL.KEY_TAB)
+    check(not apDashboardOpen(), "no seed, no dashboard in the hangar")
+    leaveHangar()
+end)
+
+test("dashboard: what depends on the run says to start one in the hangar", function()
+    hangarWithSeed()
+    sim.keyDown(Defines.SDL.KEY_TAB)
+    for _, page in ipairs({ "overview", "systems" }) do
+        apDashboardPage(page)
+            sim.renderMenu()
+        check(apDashboardOpen(), page .. " draws without a run")
+        check(sim.drawnText(apT("dash.need_run")), page .. " says to start a run")
+    end
+    leaveHangar()
+end)
+
+test("dashboard: starting a run with it open closes it and the run plays", function()
+    hangarWithSeed()
+    sim.keyDown(Defines.SDL.KEY_TAB)
+    sim.hangarOpen = false
+    sim.startRun(true)
+    check(not apDashboardOpen(), "the run starts with the dashboard closed")
+    local gui = Hyperspace.App.gui
+    gui.bPaused = false
+    sim.keyDown(Defines.SDL.KEY_TAB)
+    equals(gui.bPaused, true, "in the run TAB pauses again")
+    sim.keyDown(Defines.SDL.KEY_TAB)
+    equals(gui.bPaused, false, "and resumes")
+end)
+
+test("dashboard: the title screen closes a dashboard left open in the hangar", function()
+    hangarWithSeed()
+    sim.keyDown(Defines.SDL.KEY_TAB)
+    sim.hangarOpen = false
+    sim.renderMenu()
+    check(not apDashboardOpen(), "closed once the hangar is gone")
+end)
+
+local function shipsDrawn()
+    local names = {}
+    sim.renderMenu()
+    for _, draw in ipairs(sim.draws) do
+        names[#names + 1] = tostring(draw.text)
+    end
+    return names
+end
+
+local function positionOf(names, wanted)
+    for index, name in ipairs(names) do
+        if name == wanted then return index end
+    end
+    return nil
+end
+
+test("dashboard: ships go by checks left, none left at the very end, and U or the button hides the locked ones", function()
+    hangarWithSeed()
+    apDashboardResetFilterForTesting()
+    local label = function(name) return apShipLabel(name) end
+    _G.apInventory.ships = { "PLAYER_SHIP_HARD", "PLAYER_SHIP_FED", "PLAYER_SHIP_STEALTH" }
+    local contract = _G.apContractState
+    contract.locNames = {
+        ["PLAYER_SHIP_FED:sector:2"] = "a",
+        ["PLAYER_SHIP_HARD:sector:2"] = "b", ["PLAYER_SHIP_HARD:sector:3"] = "c",
+        ["PLAYER_SHIP_ROCK:sector:2"] = "d", ["PLAYER_SHIP_ROCK:sector:3"] = "e", ["PLAYER_SHIP_ROCK:sector:4"] = "f",
+    }
+    sim.keyDown(Defines.SDL.KEY_TAB)
+    local names = shipsDrawn()
+    check(positionOf(names, label("PLAYER_SHIP_HARD")) < positionOf(names, label("PLAYER_SHIP_FED")),
+        "the most checks left comes first")
+    check(positionOf(names, label("PLAYER_SHIP_FED")) < positionOf(names, label("PLAYER_SHIP_STEALTH")),
+        "a ship with nothing left goes last")
+    check(positionOf(names, label("PLAYER_SHIP_ROCK")) == nil, "from the hangar, ships not unlocked are hidden")
+
+    sim.keyDown(Defines.SDL.KEY_u)
+    names = shipsDrawn()
+    check(positionOf(names, label("PLAYER_SHIP_ROCK")) ~= nil, "U shows them again")
+    check(positionOf(names, label("PLAYER_SHIP_FED")) < positionOf(names, label("PLAYER_SHIP_ROCK")),
+        "after what can be flown, even with more checks left")
+    check(positionOf(names, label("PLAYER_SHIP_ROCK")) < positionOf(names, label("PLAYER_SHIP_STEALTH")),
+        "but before what has nothing left")
+
+    local filter = apDashboardAreaForTesting("filter:1")
+    sim.click(filter.x + 4, filter.y + 4)
+    names = shipsDrawn()
+    check(positionOf(names, label("PLAYER_SHIP_ROCK")) == nil, "the button hides them")
+    _G.apInventory.ships = {}
+    apDashboardResetFilterForTesting()
+    leaveHangar()
+end)
+
+test("dashboard: checks left count every layout of a class, and a class with an underscore in its name", function()
+    sim.startRun(true)
+    applySeed({
+        goal = { kind = "victories", count = 1 },
+        layouts = { "PLAYER_SHIP_HARD" },
+        loc = { ["PLAYER_SHIP_HARD:victory"] = "a", ["PLAYER_SHIP_HARD_2:victory"] = "b",
+                ["PLAYER_SHIP_HARD_3:sector:2"] = "c" },
+    })
+    openDashboard("ships")
+    check(sim.drawnText(apT("dash.ships.remaining", { n = 3 })), "A, B and C count for the class")
+    closeDashboard()
+    local saved = _G.apGameData.ships
+    _G.apGameData.ships = { { name = "PLAYER_SHIP_AUTO_FED", layouts = 1 } }
+    applySeed({
+        goal = { kind = "victories", count = 1 },
+        loc = { ["PLAYER_SHIP_AUTO_FED:victory"] = "a", ["PLAYER_SHIP_AUTO_FED_2:victory"] = "b" },
+    })
+    openDashboard("ships")
+    _G.apGameData.ships = saved
+    check(sim.drawnText(apT("dash.ships.remaining", { n = 2 })), "the whole name counts")
+    closeDashboard()
+end)
+
+test("dashboard: from a run the ships page keeps every ship, until the filter is asked for, and it stays", function()
+    apDashboardResetFilterForTesting()
+    sim.startRun(true)
+    dashboardSeed()
+    openDashboard("ships")
+    check(sim.drawnText(apShipLabel("PLAYER_SHIP_ROCK")), "a run lists the ships not unlocked")
+    sim.keyDown(Defines.SDL.KEY_u)
+    closeDashboard()
+    openDashboard("ships")
+    check(not sim.drawnText(apShipLabel("PLAYER_SHIP_ROCK")), "the choice holds when it opens again")
+    closeDashboard()
+    apDashboardResetFilterForTesting()
+end)
+
+test("dashboard: the run card counts the crew waiting for a free seat", function()
+    sim.startRun(true)
+    dashboardSeed()
+    local restore = _G.apOwedCrewCount
+    _G.apOwedCrewCount = function() return 2 end
+    openDashboard("overview")
+    _G.apOwedCrewCount = restore
+    check(sim.drawnText(apT("dash.run.crew_waiting", { n = 2 })), "the wait stays visible after the message")
     closeDashboard()
 end)

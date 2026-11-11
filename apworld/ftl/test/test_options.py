@@ -2,7 +2,10 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
+from unittest import mock
 
+from BaseClasses import CollectionState
+from Fill import distribute_items_restrictive
 from Options import OptionError
 
 from .. import data, items, locations, options, rules
@@ -43,6 +46,7 @@ class TestMinimalSeed(FTLTestBase):
         "system_blueprints": False,
         "progressive_systems": False,
         "shop_checks": 0,
+        "event_checks": 0,
         "victories_required": 3,
     }
 
@@ -172,13 +176,18 @@ class TestEverythingEnabled(FTLTestBase):
         "sector_logic": "strict",
         "victories_required": 3,
         "combat_checks": 10,
+        "event_checks": 20,
+        "reactor_checks": True,
     }
 
     def test_every_location_of_the_table_exists(self) -> None:
         unused_shop_slots = data.MAX_SHOP_SLOTS - self.world.options.shop_checks.value
         per_ship = len(data.LOCATION_NAME_GROUPS[data.GROUP_SHIP_SYSTEMS])
+        always_free = len(locations.ON_EVERY_SHIP)
+        # Per-run and per-sector fight checks exclude each other: this seed counts per run.
+        per_sector = len(data.LOCATION_NAME_GROUPS[data.GROUP_SECTOR_FIGHTS])
         self.assertEqual(len(self.addressed_locations()),
-                         len(data.LOCATIONS) - unused_shop_slots - per_ship)
+                         len(data.LOCATIONS) - unused_shop_slots - per_ship - always_free - per_sector)
 
     def test_pool_size_still_matches(self) -> None:
         self.assertEqual(len(self.multiworld.itempool), len(self.addressed_locations()))
@@ -203,6 +212,26 @@ class TestEverythingEnabled(FTLTestBase):
             if data.LOCATIONS_BY_NAME[location.name].sector == data.SECTOR_COUNT
         )
         self.assertFalse(deep.can_reach(self.multiworld.state), deep.name)
+
+
+class TestCombatChecksPerSector(FTLTestBase):
+
+    options = {"combat_checks": 1, "combat_checks_mode": "per_sector", "fights_per_sector": 2,
+               "ship_layouts": "all_layouts", "layout_count": 28}
+
+    def test_each_ship_gets_its_fights_in_every_sector_and_no_per_run_ones(self) -> None:
+        names = {location.name for location in self.addressed_locations()}
+        per_sector = [location for location in data.LOCATIONS if location.group == data.GROUP_SECTOR_FIGHTS
+                      and location.fight <= 2 and location.ship == "PLAYER_SHIP_HARD"]
+        self.assertEqual(len(per_sector), 2 * data.SECTOR_COUNT)
+        self.assertTrue(all(location.name in names for location in per_sector))
+        self.assertFalse(any(location.group == data.GROUP_FIGHTS and location.name in names
+                             for location in data.LOCATIONS))
+        self.assertNotIn("Kestrel Cruiser: Sector 1 fight 3 won", names)
+
+    def test_a_sector_fight_is_as_deep_as_its_sector(self) -> None:
+        location = data.LOCATIONS_BY_NAME["Kestrel Cruiser: Sector 6 fight 1 won"]
+        self.assertEqual(rules.location_depth(location), 6)
 
 
 class TestVanillaLayoutUnlocks(FTLTestBase):
@@ -238,6 +267,78 @@ class TestLayoutItems(FTLTestBase):
             data.LAYOUTS_BY_BLUEPRINT[ship.blueprint]
         )))
         self.assertFalse(self.can_reach_region(locations.region_name(layout_b)))
+
+
+class TestIndependentLayouts(FTLTestBase):
+
+    options = {"layout_count": 28, "layout_unlocks": "independent", "ship_layouts": "all_layouts"}
+
+    def _layout_b(self) -> data.Layout:
+        ship = _a_ship_that_is_not_given_for_free(self.world)
+        return next(
+            layout for layout in data.LAYOUTS if layout.ship == ship.blueprint and layout.variant == 1
+        )
+
+    def test_type_b_needs_its_item_but_not_the_ship_key(self) -> None:
+        layout_b = self._layout_b()
+        key = data.SHIP_KEY_NAMES[layout_b.ship]
+        self.collect_all_but(key)
+        self.assertTrue(self.can_reach_region(locations.region_name(layout_b)))
+        self.assertFalse(self.can_reach_region(locations.region_name(data.LAYOUTS_BY_BLUEPRINT[layout_b.ship])))
+
+    def test_the_ship_key_alone_gives_only_type_a(self) -> None:
+        layout_b = self._layout_b()
+        self.collect_all_but(data.LAYOUT_ITEM_NAMES[layout_b.blueprint])
+        self.assertTrue(self.can_reach_region(locations.region_name(data.LAYOUTS_BY_BLUEPRINT[layout_b.ship])))
+        self.assertFalse(self.can_reach_region(locations.region_name(layout_b)))
+
+    def test_the_mod_is_told_with_a_kind_an_older_mod_refuses(self) -> None:
+        slot = self.world.fill_slot_data()
+        layout_b = self._layout_b()
+        self.assertEqual(slot["items"][data.LAYOUT_ITEM_NAMES[layout_b.blueprint]]["k"], data.KIND_LAYOUT)
+        self.assertEqual(slot["items"][data.SHIP_KEY_NAMES[layout_b.ship]]["k"], data.KIND_SHIP)
+        self.assertIn(data.KIND_LAYOUT, slot["kinds_required"])
+
+
+class TestProgressiveShipKeys(FTLTestBase):
+
+    options = {"layout_count": 28, "layout_unlocks": "progressive", "ship_layouts": "all_layouts"}
+
+    def _ship(self) -> data.Ship:
+        return _a_ship_that_is_not_given_for_free(self.world)
+
+    def _layouts(self, ship: data.Ship) -> list[data.Layout]:
+        return sorted((layout for layout in data.LAYOUTS if layout.ship == ship.blueprint),
+                      key=lambda layout: layout.variant)
+
+    def test_one_key_per_layout_and_no_layout_item(self) -> None:
+        ship = self._ship()
+        names = [item.name for item in self.multiworld.itempool]
+        self.assertEqual(names.count(data.SHIP_KEY_NAMES[ship.blueprint]), len(self._layouts(ship)))
+        self.assertEqual(set(names) & set(data.LAYOUT_ITEM_NAMES.values()), set())
+
+    def test_each_copy_opens_the_next_layout(self) -> None:
+        ship = self._ship()
+        key = data.SHIP_KEY_NAMES[ship.blueprint]
+        layouts = self._layouts(ship)
+        for copies in range(len(layouts) + 1):
+            state = CollectionState(self.multiworld)
+            for item in self.multiworld.itempool:
+                if item.player == self.player and item.name != key:
+                    state.collect(item, True)
+            state.prog_items[self.player][key] = copies
+            state.stale[self.player] = True
+            for position, layout in enumerate(layouts):
+                self.assertEqual(state.can_reach_region(locations.region_name(layout), self.player),
+                                 position < copies, f"{layout.blueprint} with {copies} key(s)")
+
+    def test_the_mod_gets_the_order_and_a_kind_an_older_mod_refuses(self) -> None:
+        ship = self._ship()
+        slot = self.world.fill_slot_data()
+        descriptor = slot["items"][data.SHIP_KEY_NAMES[ship.blueprint]]
+        self.assertEqual(descriptor["k"], data.KIND_PROGRESSIVE_SHIP)
+        self.assertEqual(descriptor["bps"], [layout.blueprint for layout in self._layouts(ship)])
+        self.assertIn(data.KIND_PROGRESSIVE_SHIP, slot["kinds_required"])
 
 
 class TestSectorsanityFirstSector(FTLTestBase):
@@ -339,25 +440,19 @@ class TestVictorySelectionOutsideTheSeed(FTLTestBase):
 class TestGoalBeyondReach(FTLTestBase):
 
     options = {"ship_layouts": "type_a_only", "victories_required": len(data.SHIPS) + 1}
-    auto_construct = False
 
-    def test_generation_is_refused_with_a_readable_message(self) -> None:
-        with self.assertRaises(OptionError) as raised:
-            self.world_setup()
-        self.assertIn("victories_required", str(raised.exception))
+    def test_the_goal_is_lowered_to_the_layouts_the_seed_can_hold(self) -> None:
+        reachable = len(locations.allowed_layouts(self.world.options))
+        self.assertEqual(self.world.options.victories_required.value, reachable)
+        self.assertEqual(self.world.options.layout_count.value, reachable)
 
 
 class TestVictorySelectionWithoutAnyLayout(FTLTestBase):
 
     options = {"goal": "victory_selection", "victory_layouts": []}
-    auto_construct = False
 
-    def test_generation_is_refused_with_a_readable_message(self) -> None:
-        with self.assertRaises(OptionError) as raised:
-            self.world_setup()
-        message = str(raised.exception)
-        self.assertIn("victory_layouts", message)
-        self.assertIn("victory_count", message)
+    def test_the_goal_falls_back_to_victory_count(self) -> None:
+        self.assertEqual(self.world.options.goal.value, options.Goal.option_victory_count)
 
 
 class TestPlandoNamesAnItemThatDoesNotExist(FTLTestBase):
@@ -388,7 +483,7 @@ class TestPlandoBeforeTheWorldHasPlanned(FTLTestBase):
 
 class TestThePlanDoesChangeClassifications(FTLTestBase):
 
-    options = {"sector_logic": "relaxed", "systemsanity": "disabled", "ship_achievements": False}
+    options = {"sector_logic": "none", "systemsanity": "disabled", "ship_achievements": False}
 
     def test_some_blueprint_is_useful_with_the_plan_and_progression_without(self) -> None:
         changed = [
@@ -522,14 +617,10 @@ class TestSectorCeilingBelowFloor(FTLTestBase):
 
     options = {"sectorsanity": "full", "sectorsanity_first_sector": 6,
                "sectorsanity_last_sector": 3}
-    auto_construct = False
 
-    def test_generation_is_refused_with_a_readable_message(self) -> None:
-        with self.assertRaises(OptionError) as raised:
-            self.world_setup()
-        message = str(raised.exception)
-        self.assertIn("sectorsanity_first_sector", message)
-        self.assertIn("sectorsanity_last_sector", message)
+    def test_the_two_sectors_are_swapped(self) -> None:
+        self.assertEqual(self.world.options.sectorsanity_first_sector.value, 3)
+        self.assertEqual(self.world.options.sectorsanity_last_sector.value, 6)
 
 
 class TestSectorCeilingBelowFloorWithoutSectorChecks(FTLTestBase):
@@ -714,6 +805,36 @@ class TestCrewChecks(FTLTestBase):
         self.assertFalse(any("Crystal" in name for name in crew))
 
 
+class TestCrewChecksFollowTheRun(FTLTestBase):
+
+    def test_a_rare_race_waits_for_a_deeper_run_and_a_human_does_not(self) -> None:
+        level = self.world.sector_logic_level
+        human = data.LOCATIONS_BY_NAME["First Human aboard"]
+        lanius = data.LOCATIONS_BY_NAME["First Lanius aboard"]
+        self.assertEqual(rules.blueprints_required(level, human), 0)
+        self.assertGreater(rules.blueprints_required(level, lanius), 0)
+        self.assertGreater(rules.location_depth(lanius), rules.location_depth(
+            data.LOCATIONS_BY_NAME["First Engi aboard"]))
+
+
+class TestFightChecksFollowTheRun(FTLTestBase):
+    options = {"sector_logic": "strict", "combat_checks": 10}
+
+    def test_the_tenth_fight_waits_for_a_deeper_run_and_the_first_does_not(self) -> None:
+        level = self.world.sector_logic_level
+        fights = sorted((location for location in data.LOCATIONS if location.group == data.GROUP_FIGHTS
+                         and location.ship == data.LOCATIONS_BY_NAME[self.any_fight()].ship),
+                        key=lambda location: location.fight)
+        self.assertEqual(rules.blueprints_required(level, fights[0]), 0)
+        self.assertGreater(rules.blueprints_required(level, fights[-1]), 0)
+        depths = [rules.location_depth(location) for location in fights]
+        self.assertEqual(depths, sorted(depths), "a later fight is never an earlier check")
+
+    def any_fight(self) -> str:
+        return next(location.name for location in self.addressed_locations()
+                    if data.LOCATIONS_BY_NAME[location.name].group == data.GROUP_FIGHTS)
+
+
 class TestCrewChecksOff(FTLTestBase):
     options = {"crew_checks": False}
 
@@ -757,8 +878,10 @@ class TestWeaponsComeTwice(FTLTestBase):
 
 
 def _filler_count(test: FTLTestBase) -> int:
+    # The first crew member of each race counts as filler (MinimumFiller).
     return len([item for item in test.multiworld.itempool
-                if data.ITEMS_BY_NAME[item.name].group in (data.GROUP_FILLER, data.GROUP_TRAPS)])
+                if data.ITEMS_BY_NAME[item.name].group in (data.GROUP_FILLER, data.GROUP_TRAPS)]
+               ) + items.filler_like_items(test.world)
 
 
 def _real_items_expected(test: FTLTestBase) -> int:
@@ -783,11 +906,19 @@ class TestMoreItemsThanChecksGrowsTheShop(FTLTestBase):
                 self.assertIn(item.name, places, "every item has its place")
 
     def test_head_starts_and_crew_go_first_instead_of_growing_the_shop(self) -> None:
+        crew = [item for item in self.world.enabled_items if item.count and item.group == data.GROUP_CREW_MEMBERS]
         kept = [item for item in self.multiworld.itempool
                 if data.ITEMS_BY_NAME[item.name].group in items.SPARE_GROUPS and not item.advancement]
-        self.assertLessEqual(len(kept), len(self.world.precollected_item_names),
-                             "only the slots freed by items given at the start keep one")
+        self.assertLessEqual(len(kept), len(crew) + len(self.world.precollected_item_names),
+                             "only the first crew member of each race and the slots freed by items "
+                             "given at the start keep one")
         self.assertLess(len(kept), items.spare_items(self.world), "the others left the pool")
+
+    def test_every_race_keeps_its_first_crew_member(self) -> None:
+        names = [item.name for item in self.multiworld.itempool]
+        for item in self.world.enabled_items:
+            if item.count and item.group == data.GROUP_CREW_MEMBERS:
+                self.assertIn(item.name, names, "crew_members on must bring each race at least once")
 
 
 class TestMoreChecksThanItemsAddsFiller(FTLTestBase):
@@ -856,3 +987,174 @@ class TestExcludingAShipThatMustBeIn(FTLTestBase):
             self.world_setup()
         self.assertIn("Kestrel Cruiser A", str(raised.exception))
         self.assertIn("excluded_layouts", str(raised.exception))
+
+
+class TestEventBeaconsDefault(FTLTestBase):
+
+    def test_only_the_important_events_are_labelled_by_default(self) -> None:
+        self.assertEqual(self.world.fill_slot_data()["event_beacons"], "important")
+
+
+class TestEventBeaconsHidden(FTLTestBase):
+
+    options = {"event_beacons": "hidden"}
+
+    def test_the_mod_is_told(self) -> None:
+        self.assertEqual(self.world.fill_slot_data()["event_beacons"], "hidden")
+
+
+class TestCrewNamesDefault(FTLTestBase):
+
+    def test_new_crew_is_named_after_the_multiworld_by_default(self) -> None:
+        slot_data = self.world.fill_slot_data()
+        self.assertEqual(slot_data["crew_names"], "multiworld")
+        self.assertEqual(slot_data["players"], [], "alone in the multiworld: no one else to name a crew after")
+
+
+class TestCrewNamesTeam(FTLTestBase):
+
+    options = {"crew_names": "multiworld_and_team"}
+
+    def test_the_mod_is_told(self) -> None:
+        self.assertEqual(self.world.fill_slot_data()["crew_names"], "multiworld_and_team")
+
+    def test_the_other_slots_are_listed_without_this_one(self) -> None:
+        names = {1: "Tester", 2: "Nina", 3: "Berserker"}
+        with mock.patch.object(type(self.multiworld), "player_ids", new=property(lambda _: (1, 2, 3))), \
+                mock.patch.object(self.multiworld, "get_player_name", side_effect=names.get):
+            self.assertEqual(self.world._other_player_names(), ["Nina", "Berserker"])
+
+
+class TestEarlyShipKeysDefault(FTLTestBase):
+
+    def test_one_key_is_placed_in_the_first_checks(self) -> None:
+        keys = self.world.logic.early_ship_keys
+        self.assertEqual(len(keys), 1)
+        owned = set(self.world.precollected_item_names)
+        for key in keys:
+            self.assertIn(key, data.SHIP_KEY_NAMES.values())
+            self.assertNotIn(key, owned)
+            self.assertEqual(self.multiworld.local_early_items[self.player].get(key), 1)
+
+    def test_the_key_lands_in_a_check_reachable_from_the_start(self) -> None:
+        distribute_items_restrictive(self.multiworld)
+        state = CollectionState(self.multiworld)
+        for key in self.world.logic.early_ship_keys:
+            spots = [location for location in self.multiworld.get_locations(self.player)
+                     if location.item is not None and location.item.name == key]
+            self.assertEqual(len(spots), 1, key)
+            self.assertTrue(spots[0].can_reach(state), f"{key} is at {spots[0].name}, out of reach at the start")
+
+
+class TestEarlyShipKeysSeveral(FTLTestBase):
+
+    options = {"early_ship_keys": 3, "layout_count": 15}
+
+    def test_three_different_keys(self) -> None:
+        keys = self.world.logic.early_ship_keys
+        self.assertEqual(len(set(keys)), 3)
+        for key in keys:
+            self.assertEqual(self.multiworld.local_early_items[self.player].get(key), 1)
+
+
+class TestEarlyShipKeysOff(FTLTestBase):
+
+    options = {"early_ship_keys": 0}
+
+    def test_no_key_is_forced_early(self) -> None:
+        self.assertEqual(self.world.logic.early_ship_keys, ())
+        early = self.multiworld.local_early_items[self.player]
+        self.assertFalse(set(early) & set(data.SHIP_KEY_NAMES.values()))
+
+
+class TestEarlyShipKeysWithNoOtherShip(FTLTestBase):
+
+    options = {"layout_count": 1, "victories_required": 1, "early_ship_keys": 5}
+
+    def test_only_the_ships_in_the_seed_can_come_early(self) -> None:
+        in_seed = {data.SHIP_KEY_NAMES[layout.ship] for layout in self.world.selected_layouts}
+        self.assertLessEqual(set(self.world.logic.early_ship_keys), in_seed)
+
+
+class TestEarlyShipKeysProgressive(FTLTestBase):
+
+    options = {"layout_unlocks": "progressive", "early_ship_keys": 2, "layout_count": 15}
+
+    def test_one_copy_of_each_key_comes_early(self) -> None:
+        for key in self.world.logic.early_ship_keys:
+            self.assertEqual(self.multiworld.local_early_items[self.player].get(key), 1)
+
+
+class TestKestrelNeedsItsKey(FTLTestBase):
+    options = {"kestrel_key": True, "start_ship": "rock_cruiser", "layout_count": 6}
+
+    def test_the_kestrel_key_is_not_given_at_the_start(self) -> None:
+        start = [item.name for item in self.multiworld.precollected_items[self.player]]
+        self.assertNotIn("Kestrel Cruiser Key", start)
+        self.assertIn("Rock Cruiser Key", start)
+        self.assertTrue(self.world.fill_slot_data()["kestrel_locked"])
+
+
+class TestKestrelKeyIgnoredWhenStartingWithIt(FTLTestBase):
+    options = {"kestrel_key": True, "start_ship": "kestrel_cruiser"}
+
+    def test_the_kestrel_stays_given(self) -> None:
+        start = [item.name for item in self.multiworld.precollected_items[self.player]]
+        self.assertIn("Kestrel Cruiser Key", start)
+        self.assertFalse(self.world.fill_slot_data()["kestrel_locked"])
+
+
+class TestSectorLocksWithShopBySector(FTLTestBase):
+    options = {"sector_locks": True, "layout_count": 4, "shop_by_sector": True, "shop_checks": 40}
+
+    def test_a_pass_only_counts_for_a_ship_whose_key_came(self) -> None:
+        slot = next(location for location in self.world.created_locations
+                    if location.shop_slot is not None and rules.location_depth(location, True) >= 5)
+        rule = rules._sector_lock_rule(self.world, slot, self.world.selected_layouts)
+        other = next(layout for layout in self.world.selected_layouts
+                     if data.SHIP_KEY_NAMES[layout.ship] not in self.world.precollected_item_names)
+        state = CollectionState(self.multiworld)
+        for _ in range(2):
+            state.collect(self.world.create_item(f"Sector Pass ({other.display})"), True)
+        self.assertFalse(rule(state), "the pass of a ship not received opens nothing")
+        for name in rules.layout_requirements(self.world, other):
+            state.collect(self.world.create_item(name), True)
+        self.assertTrue(rule(state), "once its key and blueprints are in, it does")
+
+
+class TestSectorLocksWithShopPerShip(FTLTestBase):
+    options = {"sector_locks": True, "layout_count": 4, "shop_by_sector": True, "shop_checks": 40,
+               "shop_per_ship": "per_layout"}
+
+    def test_only_the_owners_pass_opens_its_deep_slots(self) -> None:
+        owners = locations.shop_owners(self.world.options)
+        for slot in self.world.created_locations:
+            if slot.shop_slot is None or rules.location_depth(slot, True) < 5:
+                continue
+            owner = owners[data.shop_owner(slot.shop_slot, len(owners), True)]
+            other = next(layout for layout in self.world.selected_layouts if layout != owner)
+            rule = rules._sector_lock_rule(self.world, slot, self.world.selected_layouts)
+            state = CollectionState(self.multiworld)
+            for layout in (owner, other):
+                for name in rules.layout_requirements(self.world, layout):
+                    state.collect(self.world.create_item(name), True)
+            for _ in range(2):
+                state.collect(self.world.create_item(f"Sector Pass ({other.display})"), True)
+            self.assertFalse(rule(state), "another ship's pass does not open the owner's shop")
+            for _ in range(2):
+                state.collect(self.world.create_item(f"Sector Pass ({owner.display})"), True)
+            self.assertTrue(rule(state), "the owner's pass does")
+            return
+        self.fail("no deep shop slot")
+
+
+class TestSectorLocks(FTLTestBase):
+    options = {"sector_locks": True, "layout_count": 4, "sector_logic": "strict"}
+
+    def test_two_passes_per_layout_and_deep_checks_need_them(self) -> None:
+        passes = [item.name for item in self.multiworld.itempool if item.name.startswith("Sector Pass (")]
+        self.assertEqual(len(passes), 2 * len(self.world.selected_layouts))
+        layout = self.world.selected_layouts[0]
+        deep = self.world.get_location(f"{layout.display}: Reach sector 6")
+        self.collect_all_but([f"Sector Pass ({layout.display})"])
+        self.assertFalse(deep.can_reach(self.multiworld.state), "no pass, no sector 6")

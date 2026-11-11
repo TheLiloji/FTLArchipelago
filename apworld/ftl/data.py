@@ -15,9 +15,14 @@ CREW_CHECK_FORMAT = "crew:{race}"
 SYSTEM_LEVEL_CHECK_FORMAT = "sys:{system}:{level}"
 SHIP_SYSTEM_CHECK_FORMAT = "{ship}:sys:{system}"
 FIGHT_CHECK_FORMAT = "{ship}:fight:{n}"
+SECTOR_FIGHT_CHECK_FORMAT = "{ship}:sfight:{sector}:{n}"
+EVENT_CHECK_FORMAT = "event:{n}"
+REACTOR_CHECK_FORMAT = "reactor:{n}"
 
 KIND_SHIP = "ship"
 KIND_CAP = "cap"
+# Not an item kind: a seed where the first Progressive item unlocks its system asks the mod to know it.
+KIND_CAP_UNLOCK = "cap_unlock"
 KIND_START = "start"
 KIND_FILLER = "filler"
 KIND_TRAP = "trap"
@@ -28,10 +33,19 @@ KIND_AUGMENT = "augment"
 KIND_ARCHIVE = "archive"
 KIND_CREW = "crew"
 KIND_BUNDLE = "bundle"
+# A Sector Pass (sector_locks): "bp" names the layout it lets past sectors 4 and 7.
+KIND_PASS = "pass"
+# A Type B or C that needs no ship key (layout_unlocks: independent). A mod that does not know it refuses the seed.
+KIND_LAYOUT = "layout"
+# A ship key that comes once per layout (layout_unlocks: progressive): "bps" lists what each copy gives, in order.
+KIND_PROGRESSIVE_SHIP = "progressive_ship"
 
 KINDS_IMPLEMENTED = (
     KIND_SHIP, KIND_CAP, KIND_START, KIND_FILLER, KIND_TRAP,
-    KIND_SHOP, KIND_WEAPON, KIND_DRONE, KIND_AUGMENT, KIND_ARCHIVE, KIND_CREW, KIND_BUNDLE,
+    KIND_SHOP, KIND_WEAPON, KIND_DRONE, KIND_AUGMENT, KIND_ARCHIVE, KIND_CREW, KIND_BUNDLE, KIND_LAYOUT,
+    KIND_PROGRESSIVE_SHIP,
+    KIND_PASS,
+    KIND_CAP_UNLOCK,
 )
 
 REACTOR_TARGET = "reactor"
@@ -69,6 +83,7 @@ ITEM_OFFSET_ARCHIVE = 12_000
 ITEM_OFFSET_CREW = 13_000
 ITEM_OFFSET_SHIP_SYSTEM_LEVEL = 14_000
 ITEM_OFFSET_BUNDLE = 16_000
+ITEM_OFFSET_SECTOR_PASS = 17_000
 
 LOCATION_OFFSET_SECTOR = 0
 LOCATION_OFFSET_VICTORY = 10_000
@@ -81,9 +96,18 @@ LOCATION_OFFSET_SHIP_SYSTEM = 70_000
 # Taken by the Multiverse achievements on the Multiverse branch, already released there: never reuse it.
 LOCATION_OFFSET_MV_ACH = 80_000
 LOCATION_OFFSET_FIGHT = 90_000
+LOCATION_OFFSET_SECTOR_FIGHT = 100_000
+LOCATION_OFFSET_EVENT = 105_000
+LOCATION_OFFSET_REACTOR = 106_000
 
 # Combat checks: the first fights a ship wins in a run, at most this many per ship.
 MAX_FIGHTS_PER_SHIP = 10
+# Combat checks per sector: the first fights won in each sector of a run, at most this many per sector.
+MAX_FIGHTS_PER_SECTOR = 5
+# Archipelago events: the packages the relay and pirate events hand out, their own checks before the shop's.
+MAX_EVENT_CHECKS = 20
+# Reactor checks: the reactor power reached in a run, and the sector a run usually has it by.
+REACTOR_THRESHOLDS = ((10, 2), (15, 4), (20, 6), (25, 7))
 
 MAX_ACHIEVEMENTS_PER_SHIP = 10
 
@@ -530,11 +554,15 @@ TRAPS_RAW: tuple[tuple[int, str, str, int], ...] = (
     (4, "Rebel Fleet Trap", "fleet_advance", 2),
     (5, "Hull Damage Trap", "hull_damage", 3),
     (6, "Boarding Party Trap", "boarding", 2),
+    (7, "Anti-Ship Battery Trap", "asb", 2),
+    (8, "Power Surge Trap", "power_surge", 2),
+    (9, "Hazard Trap", "hazard", 2),
+    (10, "O2 Drain Trap", "o2_drain", 3),
 )
 
 RESOURCES_IMPLEMENTED = ("scrap", "fuel", "missiles", "drone_parts", "hull", "crew")
 TRAP_EFFECTS_IMPLEMENTED = ("fire", "breach", "fuel_leak", "system_damage", "fleet_advance",
-                            "hull_damage", "boarding")
+                            "hull_damage", "boarding", "asb", "power_surge", "hazard", "o2_drain")
 
 BONUS_RAW: tuple[tuple[int, str, str, int, str], ...] = (
     (0, "Reactor Power", REACTOR_TARGET, 8, "useful"),
@@ -556,6 +584,7 @@ GROUP_SHOP_DRONES = "Drones"
 GROUP_SHOP_AUGMENTS = "Augmentations"
 GROUP_ARCHIVES = "Archives"
 GROUP_BUNDLES = "Bundles"
+GROUP_SECTOR_PASSES = "Sector Passes"
 
 SHOP_FAMILIES: tuple[str, ...] = ("weapon", "drone", "augment")
 SHOP_FAMILY_GROUPS: dict[str, str] = {
@@ -581,6 +610,9 @@ GROUP_SHIP_ACHIEVEMENTS = "Ship achievements"
 GROUP_GENERAL_ACHIEVEMENTS = "General achievements"
 GROUP_SHOP_SLOTS = "Archipelago shop"
 GROUP_FIGHTS = "Fights won"
+GROUP_SECTOR_FIGHTS = "Fights won per sector"
+GROUP_EVENTS = "Archipelago events"
+GROUP_REACTOR = "Reactor power"
 # Location groups that only ever hold filler: the logic does not count them as room for the items it needs.
 FILLER_ONLY_GROUPS: frozenset[str] = frozenset()
 
@@ -951,6 +983,19 @@ def _build_items() -> tuple[Item, ...]:
                 count=2 if family in ("weapon", "drone") else 1,
             ))
 
+    # sector_locks: two progressive passes per layout, one to go past sector 4, the second past sector 7.
+    for layout in LAYOUTS:
+        items.append(Item(
+            name=f"Sector Pass ({layout.display})",
+            code=ITEM_ID_BASE + ITEM_OFFSET_SECTOR_PASS + layout.index,
+            group=GROUP_SECTOR_PASSES,
+            classification="progression",
+            kind=KIND_PASS,
+            blueprint=layout.blueprint,
+            ship=layout.ship,
+            count=2,
+        ))
+
     return tuple(items)
 
 
@@ -1046,6 +1091,42 @@ def _build_locations() -> tuple[Location, ...]:
                 fight=n,
                 description=f"Win {n} fight(s) in a single run with the {ship.display}.",
             ))
+
+    for ship in SHIPS:
+        for sector in range(1, SECTOR_COUNT + 1):
+            for n in range(1, MAX_FIGHTS_PER_SECTOR + 1):
+                locations.append(Location(
+                    name=f"{ship.display}: Sector {sector} fight {n} won",
+                    code=(LOCATION_ID_BASE + LOCATION_OFFSET_SECTOR_FIGHT + ship.slot * 40
+                          + (sector - 1) * MAX_FIGHTS_PER_SECTOR + n),
+                    check_id=SECTOR_FIGHT_CHECK_FORMAT.format(ship=ship.blueprint, sector=sector, n=n),
+                    group=GROUP_SECTOR_FIGHTS,
+                    ship=ship.blueprint,
+                    sector=sector,
+                    fight=n,
+                    description=f"Win {n} fight(s) in sector {sector} of a run with the {ship.display}.",
+                ))
+
+    for power, sector in REACTOR_THRESHOLDS:
+        locations.append(Location(
+            name=f"Reactor Power {power}",
+            code=LOCATION_ID_BASE + LOCATION_OFFSET_REACTOR + power,
+            check_id=REACTOR_CHECK_FORMAT.format(n=power),
+            group=GROUP_REACTOR,
+            sector=sector,
+            level=power,
+            description=f"Have a reactor of {power} power in a run.",
+        ))
+
+    for n in range(1, MAX_EVENT_CHECKS + 1):
+        locations.append(Location(
+            name=f"Archipelago Event {n}",
+            code=LOCATION_ID_BASE + LOCATION_OFFSET_EVENT + n,
+            check_id=EVENT_CHECK_FORMAT.format(n=n),
+            group=GROUP_EVENTS,
+            fight=n,
+            description=f"Free the package of the {n}th Archipelago event (a relay or the pirates).",
+        ))
 
     for slot, race, label in CREW_RACES:
         locations.append(Location(
@@ -1240,7 +1321,8 @@ def _check_vanilla_totals() -> None:
         "sellable items": (len(SHOP_ITEMS), 74),
         "locations": (len(LOCATIONS), 28 * SECTOR_COUNT + 28 + 30 + 21 + MAX_SHOP_SLOTS
                       + sum(system.max_level for system in SYSTEMS) + len(CREW_RACES)
-                      + 10 * 16 + 10 * MAX_FIGHTS_PER_SHIP),
+                      + 10 * 16 + 10 * MAX_FIGHTS_PER_SHIP + 10 * SECTOR_COUNT * MAX_FIGHTS_PER_SECTOR
+                      + MAX_EVENT_CHECKS + len(REACTOR_THRESHOLDS)),
     }
     wrong = {label: pair for label, pair in expected.items() if pair[0] != pair[1]}
     if wrong:

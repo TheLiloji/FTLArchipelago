@@ -117,7 +117,7 @@ test("journal: the items received survive a restart, per seed", function()
     applySeed({ seed_hash = "journal-seed" })
     _G.apReceivedHistory = {}
     apRecordReceived("Glaive Beam", "Axel")
-    local stored = sim.durable["ap_journal_" .. tostring(apSeedFingerprint())]
+    local stored = sim.durable[apJournalKey()]
     check(stored ~= nil and stored:find("Glaive Beam", 1, true), "the journal is written to the module's memory")
 
     _G.apReceivedHistory = {}
@@ -128,6 +128,25 @@ test("journal: the items received survive a restart, per seed", function()
     sim.renderGui()
     check(sim.drawnText("Glaive Beam"), "and read back for the same seed")
     apToggleHud()
+end)
+
+test("journal: two slots of the same multiworld keep their own items", function()
+    sim.startRun(true)
+    sim.durable = {}
+    apContractResetForTesting()
+    applySeed({ seed_hash = "shared-seed" }, "Alice")
+    _G.apReceivedHistory = {}
+    apRecordReceived("Glaive Beam", "Axel", 0)
+    local alice = apJournalKey()
+
+    apContractResetForTesting()
+    applySeed({ seed_hash = "shared-seed" }, "Bob")
+    check(apJournalKey() ~= alice, "another slot, another journal")
+    apRecordReceived("Hull Repair", "Axel", 0)
+    local stored = sim.durable[apJournalKey()] or ""
+    check(stored:find("Hull Repair", 1, true) ~= nil, "Bob's item is in Bob's journal")
+    check(stored:find("Glaive Beam", 1, true) == nil, "and Alice's is not")
+    check((sim.durable[alice] or ""):find("Hull Repair", 1, true) == nil, "nor Bob's in Alice's")
 end)
 
 test("seed question: keeping the progress reconnects by itself", function()
@@ -626,7 +645,9 @@ test("hangar: the ship list marks the layouts the seed leaves out", function()
     sim.shipList = { open = true, page = 0, variant = 0 }
     sim.openedList = 2
     sim.renderMenu()
-    equals(count(), 0, "first opening: nothing over FTL's help")
+    equals(count(), 3, "first opening: the marks outside FTL's help, in the left and right columns")
+    check(not marked(751, 338), "none over the help itself")
+    check(marked(956, 161), "the right column keeps its marks")
     sim.shipList.open = false
     sim.renderMenu()
     sim.shipList.open = true
@@ -641,10 +662,14 @@ test("hangar: the ship list marks the layouts the seed leaves out", function()
     sim.shipList = { open = false, page = 0, variant = 0 }
 end)
 
-local function ctrlV()
+local function ctrlKey(key)
     sim.keyDown(Defines.SDL.KEY_LCTRL)
-    sim.keyDown(Defines.SDL.KEY_v)
+    sim.keyDown(key)
     sim.keyUp(Defines.SDL.KEY_LCTRL)
+end
+
+local function ctrlV()
+    ctrlKey(Defines.SDL.KEY_v)
 end
 
 test("connection panel: Ctrl+V pastes, and an address with its port fills both fields", function()
@@ -662,8 +687,9 @@ test("connection panel: Ctrl+V pastes, and an address with its port fills both f
     equals(apConnectState().port, "54321", "and its port")
     sim.keyDown(Defines.SDL.KEY_DOWN)
     sim.clipboard = "port 38 281"
+    ctrlKey(Defines.SDL.KEY_a)
     ctrlV()
-    equals(apConnectState().port, "38281", "the port keeps only digits")
+    equals(apConnectState().port, "38281", "Ctrl+A then Ctrl+V replaces the field, the port keeps only digits")
     sim.clipboard = ""
     ctrlV()
     equals(apConnectState().message, apT("connect.paste_empty"), "an empty clipboard says so")
@@ -685,6 +711,39 @@ test("connection panel: Ctrl+V pastes, and an address with its port fills both f
     sim.keyDown(Defines.SDL.KEY_DOWN)
     sim.keyDown(Defines.SDL.KEY_v)
     equals(apConnectState().port, "38281", "v alone is still a letter, not a paste (and the port refuses it)")
+    sim.clipboard = nil
+end)
+
+test("connection panel: paste at the cursor, arrows, Ctrl+A and a held Backspace", function()
+    apConnectResetForTesting()
+    apNetResetForTesting()
+    sim.renderMenu()
+    for _, letter in ipairs({ "t", "e", "r" }) do sim.keyDown(Defines.SDL["KEY_" .. letter]) end
+    sim.keyDown(Defines.SDL.KEY_LEFT)
+    sim.keyDown(Defines.SDL.KEY_LEFT)
+    sim.clipboard = "est"
+    ctrlV()
+    equals(apConnectState().slot, "tester", "pasted at the cursor, not in place of the field")
+    sim.keyDown(Defines.SDL.KEY_HOME)
+    sim.keyDown(Defines.SDL.KEY_DELETE)
+    equals(apConnectState().slot, "ester", "Delete removes the character after the cursor")
+    sim.keyDown(Defines.SDL.KEY_END)
+    sim.keyDown(Defines.SDL.KEY_BACKSPACE)
+    equals(apConnectState().slot, "este", "Backspace removes the one before")
+    for _ = 1, 40 do sim.renderMenu() end
+    equals(apConnectState().slot, "", "held down, it keeps going")
+    sim.keyUp(Defines.SDL.KEY_BACKSPACE)
+    sim.clipboard = "Navigator"
+    ctrlV()
+    ctrlKey(Defines.SDL.KEY_a)
+    sim.keyDown(Defines.SDL.KEY_BACKSPACE)
+    sim.keyUp(Defines.SDL.KEY_BACKSPACE)
+    equals(apConnectState().slot, "", "Ctrl+A then Backspace empties the field")
+    sim.clipboard = "Navigator"
+    ctrlV()
+    ctrlKey(Defines.SDL.KEY_a)
+    sim.keyDown(Defines.SDL.KEY_x)
+    equals(apConnectState().slot, "x", "Ctrl+A then a letter replaces it")
     sim.clipboard = nil
 end)
 

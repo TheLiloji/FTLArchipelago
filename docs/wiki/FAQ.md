@@ -61,10 +61,47 @@ Archipelago one, and a dated copy is kept next to it.
   count as two).
 - Does the seed need Archives? The goal waits until you have enough of them.
 
+## I left an AP STORE without buying a package
+
+It is not lost. A package you did not buy stays in the shop and comes back at a later AP STORE. With
+**Archipelago Shop per Ship**, it comes back at an AP STORE of a ship it belongs to.
+
+## How many layouts does Layouts in the Seed give me?
+
+It is the total number of layouts you can fly, your starting layout and the Kestrel Cruiser A included. With 7,
+you get those two plus 5 more drawn at random. A Type B or C only comes with its ship's Type A.
+
+## Does one Progressive upgrade count for every ship?
+
+Yes, by default: one "Progressive Shields" raises the shields of all your ships. With **Progressive Upgrades per
+Ship**, each upgrade belongs to one ship ("Kestrel Cruiser: Progressive Shields") and counts for all its layouts.
+
+## I got a Progressive item but the system is still locked
+
+A Progressive item raises how far a system can be upgraded, its blueprint unlocks it. They are two items, so you
+can get levels before the system itself. Turn on **Progressive Unlocks the System** and the first Progressive item
+unlocks the system too.
+
 ## Steam put FTL back to 1.6.14 (Windows)
 
 A Steam update can undo the switch to 1.6.9. Install Hyperspace again with ftlman, apply, and copy the
 Archipelago `Hyperspace.dll` again.
+
+## I have FTL from Epic Games (Windows)
+
+ftlman cannot switch the Epic version of FTL to 1.6.9, the only Windows version Hyperspace runs on. Put FTL 1.6.9
+in place yourself, following [Hyperspace's own install guide](https://github.com/FTL-Hyperspace/FTL-Hyperspace), then follow the Windows setup as usual.
+
+## Which Hyperspace file do I need?
+
+On Windows, only `Hyperspace.dll`. The `Hyperspace.1.6.12.amd64.so` and `Hyperspace.1.6.13.amd64.so` files of the
+release are for Linux: 1.6.13 for the Steam version, 1.6.12 for GOG and Humble.
+
+## The console does not open on an AZERTY keyboard
+
+Hyperspace opens its console with the `\` key, and reads the key itself, not the character. On a French keyboard
+`\` is AltGr+8, which is the `8` key for the game, so the console never opens. Give the console another key in
+**Options**, **Controls** (Insert works well). It is saved as `console=` in `settings.ini`.
 
 ## The game hangs on the loading screen
 

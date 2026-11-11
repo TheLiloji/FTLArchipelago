@@ -8,7 +8,8 @@
 <text name="ap_evt_package_c3_text" language="de">Ihr behaltet euren Schrott, und das Relais verschwindet aus der Reichweite. Die Pakete finden ein anderes Fenster.</text>
 
 <text name="ap_evt_zoltan_tithe_text" language="de">Die Kontrolle besteht aus einem einzelnen Zoltan-Kreuzer und sehr viel Papierkram. "Alle Schiffe, die den Dritten Ring queren, tragen zum Ring bei", erklärt der Offizier mit der Geduld von jemandem, der das zehntausendmal erklärt hat. "Ein Beitrag ist kein Zoll. Zoll wird genommen. Ein Beitrag wird gegeben."</text>
-<text name="ap_evt_zoltan_tithe_c1" language="de">Den Zehnt zahlen.</text>
+<text name="ap_evt_zoltan_tithe_c1" language="de">Den Zehnt zahlen. 1 weiterer Treibstoff geht an die gemeinsame Reserve.</text>
+<text name="ap_evt_zoltan_toll_c1" language="de">Den Zehnt zahlen.</text>
 <text name="ap_evt_zoltan_tithe_c1_text" language="de">Der Offizier nimmt es an, ohne zu zählen, was beunruhigender ist, als hätte er gezählt. Der Ring leitet die Energie nach außen, in den gemeinsamen Vorrat, aus dem jeder Archipelago-Spieler schöpft. Ihr irgendwann auch.</text>
 <text name="ap_evt_zoltan_tithe_c2" language="de">Das Durchfahrtsrecht geltend machen.</text>
 <text name="ap_evt_zoltan_tithe_c2_text" language="de">Es ist euer Recht, der Offizier sagt es selbst, und er lässt euch nehmen, was der Ring hält. Niemand hält euch auf. Die Zoltan schreiben es nur auf. Irgendwo da draußen wird jemand den Vorrat leerer vorfinden, als er ihn verlassen hat.</text>
@@ -40,7 +41,7 @@
 
 
 <text name="ap_store_text" language="de">Ein Händler ruft euch auf einer unbekannten Frequenz. Seine Ladeliste nennt Namen, die ihr nicht kennt, und Waren für Leute, die nicht an Bord sind.</text>
-<text name="ap_evt_zoltan_toll_c1_text" language="de">Der Offizier nimmt sie an, ohne nachzuzählen, was peinlicher ist, als wenn er gezählt hätte. Im Gegenzug überreicht er drei Treibstoffzellen, versiegelt im Namen des Rings. Alles wird notiert.</text>
+<text name="ap_evt_zoltan_toll_c1_text" language="de">Der Offizier nimmt sie an, ohne nachzuzählen, was peinlicher ist, als wenn er gezählt hätte. Im Gegenzug überreicht er drei Treibstoffzellen, versiegelt im Namen des Rings.</text>
 <text name="ap_evt_zoltan_toll_c3" language="de">Deines Weges gehen.</text>
 <text name="ap_evt_zoltan_toll_c3_text" language="de">Der Offizier notiert deine Weigerung kommentarlos und winkt dich durch. Die Zoltan notieren alles.</text>
 <text name="ap_evt_another_world_void" language="de">Sie ins Leere entladen.</text>
@@ -61,3 +62,33 @@
 <text name="ap_evt_hijack_yield_text" language="de">Sie stoßen das Paket aus einer Luftschleuse. Du sammelst es ein und schickst es weiter.</text>
 <text name="ap_evt_hijack_destroyed_text" language="de">Das Piratenschiff bricht auseinander. Du ziehst das Paket aus dem Wrack und schickst es weiter.</text>
 <text name="ap_evt_hijack_deadcrew_text" language="de">Die Piratencrew ist tot. Du schickst das Paket weiter und nimmst dann ihr Schiff aus.</text>
+<text name="ap_trap_asb_text" language="de">Eine planetare Verteidigungsbatterie erwacht und erfasst dein Schiff. Jemand hat ihnen deinen Transpondercode gegeben.</text>
+<text name="ap_trap_surge_text" language="de">Der Reaktor des feindlichen Schiffs heult auf. Jemand hat ihnen eine Energiewelle des Flaggschiffs geschickt.</text>
+<text name="ap_trap_breach_text" language="de">Hüllenalarm. Ein Stück der Panzerung ist von selbst aufgerissen: Jemand wollte, dass ihr Vakuum atmet.</text>
+<text name="ap_swap_clonebay_text" language="de">Der Bauplan der Klonstation ist da, aber deine Krankenstation belegt ihren Platz. Tauschen? Der Bauplan der Krankenstation bleibt dir.</text>
+<text name="ap_swap_medbay_text" language="de">Der Bauplan der Krankenstation ist da, aber deine Klonstation belegt ihren Platz. Tauschen? Der Bauplan der Klonstation bleibt dir.</text>
+<text name="ap_swap_keep_medbay" language="de">Die Krankenstation behalten.</text>
+<text name="ap_swap_keep_clonebay" language="de">Die Klonstation behalten.</text>
+<text name="ap_swap_to_clonebay" language="de">Die Klonstation einbauen.</text>
+<text name="ap_swap_to_medbay" language="de">Die Krankenstation einbauen.</text>
+<text name="ap_swap_done_clonebay" language="de">Die Klonstation steht jetzt, wo die Krankenstation war.</text>
+<text name="ap_swap_done_medbay" language="de">Die Krankenstation steht jetzt, wo die Klonstation war.</text>
+<text name="ap_trap_asb_end_text" language="de">Die planetare Verteidigungsbatterie schaltet ab. Der Kampf ist vorbei.</text>
+<text name="ap_trap_hazard_text" language="de">Jemand hat deinem Navigationscomputer eine falsche Kurskorrektur untergeschoben. Diese Bake ist nicht so ruhig, wie die Karten behaupten.</text>
+<text name="ap_trap_hazard_end_text" language="de">Nach dem Kampf beruhigt sich der Raum um die Bake.</text>
+<text name="ap_evt_overclock_text" language="de">Ein Engi-Techniker funkt Sie aus einer engen Werkstattkapsel an. &quot;Ihr Reaktor läuft vorsichtig. Wir könnten ihn singen lassen. Oder schmelzen. Meistens singen.&quot; Er nennt einen Preis und eine Wette.</text>
+<text name="ap_evt_overclock_c1" language="de">30 Schrott auf das Übertakten setzen.</text>
+<text name="ap_evt_overclock_c1_text" language="de">Der Techniker stöpselt sich mit beunruhigender Begeisterung ein. Der Reaktor summt immer höher.</text>
+<text name="ap_evt_overclock_c2" language="de">Ihn lieber an den Triebwerken testen lassen.</text>
+<text name="ap_evt_overclock_c2_text" language="de">Der Test klappt halb: die Triebwerke husten und sprühen Funken, aber der Techniker gibt Ihnen drei Brennstoffzellen für die Mühe.</text>
+<text name="ap_evt_overclock_c3" language="de">Danken und weiterfliegen.</text>
+<text name="ap_evt_overclock_c3_text" language="de">Der Techniker wirkt enttäuscht, winkt dann ab und kehrt zu seinen Kabeln zurück.</text>
+<text name="ap_evt_overclock_win" language="de">Die Übertaktung hält. Der Techniker jubelt, gewinnt nichts und zahlt Ihnen dank einer Nebenwette auf Ihr Schiff das Doppelte zurück.</text>
+<text name="ap_evt_overclock_lose" language="de">Etwas knallt. Dann noch etwas. Der Reaktor beruhigt sich wieder, aber Teile des Schiffs fanden die Reise nicht gut.</text>
+<text name="ap_evt_arms_text" language="de">Ein schwer bewaffneter Frachter wartet am Leuchtfeuer. Sein Kapitän lächelt zu viel. &quot;Gute Waffen, faire Preise, keine Fragen. Nur heute.&quot;</text>
+<text name="ap_evt_arms_c1" language="de">Eine Waffe für 45 Schrott kaufen.</text>
+<text name="ap_evt_arms_c1_text" language="de">Der Kapitän greift eine Kiste, ohne hinzusehen, und lässt sie herüberschaffen. Kein Umtausch.</text>
+<text name="ap_evt_arms_c2" language="de">4 Treibstoff gegen eines seiner Geräte tauschen.</text>
+<text name="ap_evt_arms_c2_text" language="de">Der Treibstoff geht hinüber, eine kleine versiegelte Kiste kommt zurück. Sehr selten, schwört er.</text>
+<text name="ap_evt_arms_c3" language="de">Ablehnen und weiterfliegen.</text>
+<text name="ap_evt_arms_c3_text" language="de">&quot;Ihr Pech&quot;, sagt der Kapitän und sucht schon den nächsten Kunden.</text>

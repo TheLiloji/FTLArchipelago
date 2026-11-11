@@ -1,3 +1,6 @@
+-- Set while FTL closes itself: nothing on the menu answers any more.
+local quitting = nil
+
 local TAG = "[AP-connect] "
 
 local function connectLog(message)
@@ -34,12 +37,64 @@ local shiftHeld = false
 local ctrlHeld = false
 -- Fields the last refusal blames, drawn in red until they are edited.
 local blamed = {}
+-- Editing: the cursor of the focused field (nil = at the end), Ctrl+A's selection of the whole field, and
+-- Backspace held down, which repeats like in any text box.
+local selectAll = false
+local backspaceFrames = nil
+local BACKSPACE_DELAY, BACKSPACE_EVERY = 24, 3
+
+local function cursorOf(field)
+    if field.cursor == nil or field.cursor > #field.value then
+        return #field.value
+    end
+    return field.cursor
+end
+
+local function insertText(field, text)
+    if selectAll then
+        field.value, field.cursor, selectAll = "", 0, false
+    end
+    local at = cursorOf(field)
+    text = text:sub(1, math.max(0, field.max - #field.value))
+    field.value = field.value:sub(1, at) .. text .. field.value:sub(at + 1)
+    field.cursor = at + #text
+end
+
+local function deleteBack(field)
+    if selectAll then
+        field.value, field.cursor, selectAll = "", 0, false
+        return
+    end
+    local at = cursorOf(field)
+    if at > 0 then
+        field.value = field.value:sub(1, at - 1) .. field.value:sub(at + 1)
+        field.cursor = at - 1
+    end
+end
+
+local function deleteForward(field)
+    if selectAll then
+        field.value, field.cursor, selectAll = "", 0, false
+        return
+    end
+    local at = cursorOf(field)
+    field.value = field.value:sub(1, at) .. field.value:sub(at + 2)
+    field.cursor = at
+end
+
+local function setFocus(index)
+    focus = index
+    selectAll = false
+    backspaceFrames = nil
+end
 
 local onMenu = false
 
 local AUTO_KEY = "ap_autoconnect"
 -- The password typed before a seed change relaunches FTL, kept for that one relaunch only.
 local RELAUNCH_PASSWORD_KEY = "relaunch_password"
+-- The player picked that seed's save: the next launch connects to it, automatic connection or not.
+local RELAUNCH_CONNECT_KEY = "ap_relaunch_connect"
 local autoTried = false
 local soloTried = false
 
@@ -55,7 +110,23 @@ end
 
 local soloQuestion = false
 
+-- With save profiles, solo plays in its own save: starting it from another save asks first.
+local soloProfileQuestion = false
+
+local function soloNeedsItsSave()
+    if not (_G.apSavesSupported and apSavesSupported()) or apSavesCurrent() == "solo" then
+        return false
+    end
+    soloProfileQuestion = true
+    _G.apSoloPending = true
+    connectLog("solo asked from another save: its own save is offered")
+    return true
+end
+
 local function toggleSolo()
+    if not _G.apSoloEnabled and soloNeedsItsSave() then
+        return
+    end
     if _G.apSoloEnabled then
         connectLog("solo mode stopped from the panel")
         if _G.apSoloStop then _G.apSoloStop() end
@@ -108,7 +179,14 @@ end
 
 local resetAsked = false
 
+local function profilesOn()
+    return _G.apSavesSupported ~= nil and apSavesSupported()
+end
+
 local function resetQuestionText()
+    if profilesOn() then
+        return apT(_G.apSoloPending and "reset.question.profile.solo" or "reset.question.profile")
+    end
     local reason = _G.apSeedChangeReason and _G.apSeedChangeReason() or "seedchange"
     if reason == "foreign" then
         return apT("reset.question.foreign")
@@ -117,6 +195,9 @@ local function resetQuestionText()
 end
 
 local function resetQuestionOpen()
+    if soloProfileQuestion then
+        return true
+    end
     if resetAsked then
         return false
     end
@@ -128,26 +209,36 @@ end
 
 local function acceptReset()
     resetAsked = true
+    soloProfileQuestion = false
     local solo = _G.apSoloPending
     _G.apSoloPending = false
     local autoBefore = autoActive()
-    local done = _G.apNetRequestProfileReset and _G.apNetRequestProfileReset()
-    if done and _G.apNetForgetProgress then
-        _G.apNetForgetProgress(_G.apSeedChangeFingerprint and apSeedChangeFingerprint() or nil)
+    local done
+    if profilesOn() then
+        -- Its own save for this seed (or for solo): the current one stays as it is, swapped at the next launch.
+        local fingerprint = _G.apSeedChangeFingerprint and apSeedChangeFingerprint() or nil
+        done = apSavesSwitch(apSavesIdFor(fingerprint, solo, _G.apSeedChangeSlot and apSeedChangeSlot() or nil))
+    else
+        done = _G.apNetRequestProfileReset and _G.apNetRequestProfileReset()
+        if done and _G.apNetForgetProgress then
+            _G.apNetForgetProgress(_G.apSeedChangeFingerprint and apSeedChangeFingerprint() or nil)
+        end
+        if done and solo and _G.apSoloForgetProgress then _G.apSoloForgetProgress(true) end
     end
-    if done and solo and _G.apSoloForgetProgress then _G.apSoloForgetProgress(true) end
     if autoBefore and _G.apNetRemember then _G.apNetRemember(AUTO_KEY, 1) end
+    if done and not solo and _G.apNetRemember then _G.apNetRemember(RELAUNCH_CONNECT_KEY, 1) end
     if _G.apSeedChangeAcknowledged then _G.apSeedChangeAcknowledged() end
     if done then
         local relaunch = _G.apNetRelaunchWhenClosed and _G.apNetRelaunchWhenClosed() or false
         if relaunch and FIELDS[4].value ~= "" and _G.apNetRememberText then
             _G.apNetRememberText(RELAUNCH_PASSWORD_KEY, FIELDS[4].value)
         end
-        message, messageTone = apT(relaunch and "reset.relaunch" or "reset.asked"), "good"
-        connectLog("profile erased, dated copy kept alongside"
+        local closingKey = profilesOn() and (relaunch and "saves.relaunch" or "saves.restart")
+            or (relaunch and "reset.relaunch" or "reset.asked")
+        message, messageTone = apT(closingKey), "good"
+        connectLog((profilesOn() and "save switched for the next launch" or "profile erased, dated copy kept alongside")
             .. (relaunch and ", automatic relaunch planned" or ", relaunch by hand"))
-        local closed = pcall(function() Hyperspace.App:OnExit() end)
-        connectLog(closed and "game close requested" or "close failed, do it by hand")
+        apQuitSoon(message, relaunch)
     else
         message, messageTone = apT("reset.failed"), "warn"
         connectLog("reset failed: nothing was erased, progress is kept")
@@ -155,6 +246,21 @@ local function acceptReset()
 end
 
 local function declineReset()
+    if soloProfileQuestion then
+        soloProfileQuestion = false
+        _G.apSoloPending = false
+        message, messageTone = apT("reset.kept.profile"), "dim"
+        return
+    end
+    -- With save profiles, keeping means this save stays with its own seed: the other seed is not taken in.
+    if profilesOn() then
+        _G.apSoloPending = false
+        if _G.apSeedChangeAcknowledged then _G.apSeedChangeAcknowledged() end
+        if _G.apNetDisconnect then pcall(_G.apNetDisconnect) end
+        message, messageTone = apT("reset.kept.profile"), "dim"
+        connectLog("the save keeps its own seed: the other seed is not loaded")
+        return
+    end
     if _G.apSeedChangeFingerprint and _G.apNetRememberSeed then
         local fingerprint = _G.apSeedChangeFingerprint()
         if fingerprint ~= nil then _G.apNetRememberSeed(fingerprint) end
@@ -182,15 +288,19 @@ local function currentQuestion()
                  no = "solo.restart", noTone = "warn", decline = restartSolo }
     end
     if resetQuestionOpen() then
-        return { title = apT("question.seed.title"), text = resetQuestionText(),
-                 yes = "reset.yes", yesTone = "warn", accept = acceptReset,
+        -- Starting solo from another save is not a seed change: the title says what is asked.
+        return { title = apT(soloProfileQuestion and "question.solo_save.title" or "question.seed.title"),
+                 text = resetQuestionText(),
+                 yes = profilesOn() and "reset.yes.profile" or "reset.yes",
+                 yesTone = profilesOn() and "good" or "warn", accept = acceptReset,
                  no = "reset.no", noTone = "dim", decline = declineReset }
     end
     return nil
 end
 
+-- A window of the home screen is open (the seed question, the Saves menu): the title and messages step aside.
 function apConnectQuestionOpen()
-    return currentQuestion() ~= nil
+    return currentQuestion() ~= nil or (_G.apSavesIsOpen ~= nil and apSavesIsOpen())
 end
 
 local function hangarOpen()
@@ -228,6 +338,8 @@ local function geometry()
     g.resetYes = { x = QUESTION.x + 18, y = buttonsTop, w = buttonWidth, h = QUESTION_BUTTON_H }
     g.resetNo = { x = QUESTION.x + 36 + buttonWidth, y = buttonsTop, w = buttonWidth, h = QUESTION_BUTTON_H }
     g.shortcuts = PANEL.bottom - 34
+    g.saves = { x = PANEL.x + PANEL.w - PAD - 110, y = g.auto.y - 4, w = 110, h = 22 }
+    g.savesStatus = { x = PANEL.x + PANEL.w - PAD - 110, y = PANEL.bottom - STATUS_H + 10, w = 110, h = 22 }
     return g
 end
 
@@ -270,20 +382,26 @@ local function drawForm()
         ui.rect(box.x, box.y, box.w, box.h, focused and "hover" or "card")
         ui.outline(box.x, box.y, box.w, box.h, wrong and "bad" or (focused and "border" or "faint"), 1)
         local value = displayValue(field)
-        if focused then
-            value = value .. "_"
+        if focused and selectAll and value ~= "" then
+            ui.rect(box.x + 6, box.y + 3, math.min(box.w - 12, ui.width(10, value) + 4), box.h - 6, "border")
         end
         ui.text(10, box.x + 8, box.y + 5, box.w - 16, focused and "title" or "text", value)
+        if focused and not selectAll then
+            local caret = ui.width(10, value:sub(1, cursorOf(field)))
+            ui.rect(box.x + 8 + math.min(caret, box.w - 18), box.y + 4, 1, box.h - 8, "title")
+        end
     end
 
-    ui.checkbox(g.auto.x, g.auto.y, autoActive(), apT("connect.auto"), g.auto.w)
+    if profilesOn() then
+        ui.button(g.saves, apT("saves.button"), "secondary")
+    end
+    ui.checkbox(g.auto.x, g.auto.y, autoActive(), apT("connect.auto"), g.auto.w - (profilesOn() and 120 or 0))
     ui.button(g.button, apT(attempt ~= nil and "connect.button.busy" or "connect.button"), "primary", attempt ~= nil)
     ui.button(g.solo, apT("connect.solo"), "secondary")
 
+    -- How to paste is said once, with the other keys below.
     if message ~= nil then
         ui.wrapped(9, g.message.x, g.message.y, g.message.w, messageTone, message)
-    else
-        ui.wrapped(9, g.message.x, g.message.y, g.message.w, "dim", apT("connect.paste_hint"))
     end
     ui.wrapped(9, p.x + PAD, g.shortcuts, p.w - PAD * 2, "dim", apT("connect.keys"))
 end
@@ -320,6 +438,9 @@ local function drawStatus()
     end
     ui.text(9, s.x + PAD, s.y + 94, s.w - PAD * 2, "dim", apT("connect.keys.run"))
     ui.button(g.leave, apT(solo and "connect.solo.stop" or "connect.disconnect"), "secondary")
+    if profilesOn() then
+        ui.button(g.savesStatus, apT("saves.button"), "secondary")
+    end
 end
 
 local function resumeLast()
@@ -345,6 +466,13 @@ local function resumeLast()
     if last.slot then
         FIELDS[3].value = last.slot
         focus = 4
+    end
+    local place = _G.apSavesLastPlace and apSavesLastPlace() or nil
+    if place ~= nil then
+        FIELDS[3].value = place.slot
+        focus = 4
+        if place.uri ~= "" then FIELDS[1].value = place.uri end
+        if place.port ~= "" then FIELDS[2].value = place.port end
     end
 end
 
@@ -385,6 +513,11 @@ local function followAttempt()
         blamed = { [1] = true, [2] = true }
         attempt = nil
     end
+end
+
+function apConnectResetAutoForTesting()
+    autoTried = false
+    onMenu = false
 end
 
 function apConnectNow()
@@ -440,6 +573,8 @@ function apConnectResetForTesting()
         field.value = DEFAULTS[index]
     end
     focus, message, messageTone, shiftHeld, ctrlHeld, blamed = FOCUS_INITIAL, nil, "dim", false, false, {}
+    selectAll, backspaceFrames = false, nil
+    for _, field in ipairs(FIELDS) do field.cursor = nil end
     onMenu = false
     autoTried = false
     soloTried = false
@@ -513,7 +648,8 @@ local function paste()
         if field.key == "uri" then text = bare end
     end
     if field.digitsOnly then text = text:gsub("%D", "") end
-    field.value = text:sub(1, field.max)
+    -- At the cursor, like any text box; with Ctrl+A first, in place of the whole field.
+    insertText(field, text)
     blamed[focus] = nil
 end
 
@@ -524,10 +660,20 @@ script.on_internal_event(Defines.InternalEvents.ON_KEY_UP, function(key)
     if key == Defines.SDL.KEY_LCTRL or key == Defines.SDL.KEY_RCTRL then
         ctrlHeld = false
     end
+    if key == Defines.SDL.KEY_BACKSPACE then
+        backspaceFrames = nil
+    end
     return Defines.Chain.CONTINUE
 end)
 
 script.on_internal_event(Defines.InternalEvents.ON_KEY_DOWN, function(key)
+    if quitting then
+        return Defines.Chain.PREEMPT
+    end
+    -- A question stands until it is answered: nothing behind it answers.
+    if onMenu and currentQuestion() ~= nil then
+        return Defines.Chain.PREEMPT
+    end
     if not onMenu or seedActive() then
         return Defines.Chain.CONTINUE
     end
@@ -543,13 +689,37 @@ script.on_internal_event(Defines.InternalEvents.ON_KEY_DOWN, function(key)
         paste()
         return Defines.Chain.PREEMPT
     end
+    if ctrlHeld and key == Defines.SDL.KEY_a then
+        selectAll = true
+        return Defines.Chain.PREEMPT
+    end
 
     if key == Defines.SDL.KEY_TAB or key == Defines.SDL.KEY_DOWN then
-        focus = focus % #FIELDS + 1
+        setFocus(focus % #FIELDS + 1)
         return Defines.Chain.PREEMPT
     end
     if key == Defines.SDL.KEY_UP then
-        focus = (focus - 2) % #FIELDS + 1
+        setFocus((focus - 2) % #FIELDS + 1)
+        return Defines.Chain.PREEMPT
+    end
+    local field = FIELDS[focus]
+    if key == Defines.SDL.KEY_LEFT or key == Defines.SDL.KEY_RIGHT then
+        local at = selectAll and (key == Defines.SDL.KEY_LEFT and 0 or #field.value) or cursorOf(field)
+        if not selectAll then
+            at = at + (key == Defines.SDL.KEY_LEFT and -1 or 1)
+        end
+        field.cursor = math.max(0, math.min(#field.value, at))
+        selectAll = false
+        return Defines.Chain.PREEMPT
+    end
+    if key == Defines.SDL.KEY_HOME or key == Defines.SDL.KEY_END then
+        field.cursor = key == Defines.SDL.KEY_HOME and 0 or #field.value
+        selectAll = false
+        return Defines.Chain.PREEMPT
+    end
+    if key == Defines.SDL.KEY_DELETE then
+        blamed[focus] = nil
+        deleteForward(field)
         return Defines.Chain.PREEMPT
     end
     if key == Defines.SDL.KEY_RETURN or key == Defines.SDL.KEY_KP_ENTER then
@@ -558,14 +728,13 @@ script.on_internal_event(Defines.InternalEvents.ON_KEY_DOWN, function(key)
     end
     if key == Defines.SDL.KEY_BACKSPACE then
         blamed[focus] = nil
-        local field = FIELDS[focus]
-        field.value = field.value:sub(1, -2)
+        deleteBack(field)
+        backspaceFrames = 0
         return Defines.Chain.PREEMPT
     end
 
     local c = character(key)
     if c ~= nil then
-        local field = FIELDS[focus]
         -- On a French keyboard the dot is Shift and the ";" key, which reads as ":" here. An address has no
         -- use for a colon (the port has its own field), so there it is a dot.
         if field.key == "uri" and c == ":" and key == Defines.SDL.KEY_SEMICOLON then
@@ -574,9 +743,7 @@ script.on_internal_event(Defines.InternalEvents.ON_KEY_DOWN, function(key)
         if field.digitsOnly and not c:match("%d") then
             return Defines.Chain.PREEMPT
         end
-        if #field.value < field.max then
-            field.value = field.value .. c
-        end
+        insertText(field, c)
         blamed[focus] = nil
         return Defines.Chain.PREEMPT
     end
@@ -584,10 +751,16 @@ script.on_internal_event(Defines.InternalEvents.ON_KEY_DOWN, function(key)
 end)
 
 script.on_internal_event(Defines.InternalEvents.ON_MOUSE_L_BUTTON_DOWN, function(x, y)
+    if quitting then
+        return Defines.Chain.PREEMPT
+    end
     if not onMenu then
         return Defines.Chain.CONTINUE
     end
     x, y = apMousePosition(x, y)
+    if _G.apSavesClick and apSavesClick(x, y) then
+        return Defines.Chain.PREEMPT
+    end
     local g = geometry()
     local question = currentQuestion()
     if question ~= nil then
@@ -599,6 +772,11 @@ script.on_internal_event(Defines.InternalEvents.ON_MOUSE_L_BUTTON_DOWN, function
             question.decline()
             return Defines.Chain.PREEMPT
         end
+        return Defines.Chain.PREEMPT
+    end
+    if question == nil and profilesOn() and inside(seedActive() and g.savesStatus or g.saves, x, y) then
+        apSavesOpen()
+        return Defines.Chain.PREEMPT
     end
     if seedActive() then
         if inside(g.leave, x, y) then
@@ -609,7 +787,7 @@ script.on_internal_event(Defines.InternalEvents.ON_MOUSE_L_BUTTON_DOWN, function
     end
     for index, box in ipairs(g.fields) do
         if inside(box, x, y) then
-            focus = index
+            setFocus(index)
             return Defines.Chain.PREEMPT
         end
     end
@@ -634,10 +812,59 @@ script.on_internal_event(Defines.InternalEvents.JUMP_ARRIVE, function()
     return Defines.Chain.CONTINUE
 end)
 
+-- FTL draws nothing more once it is told to close: the player gets the time to read why the game goes away.
+local QUIT_AFTER_SECONDS = 2
+
+local quitAfterSeconds = QUIT_AFTER_SECONDS
+
+function apQuitDelayForTesting(seconds)
+    quitAfterSeconds = seconds
+end
+
+local function frameSeconds()
+    local ok, factor = pcall(function() return Hyperspace.FPS.SpeedFactor end)
+    factor = ok and tonumber(factor) or nil
+    return (factor and factor > 0) and math.min(factor * 0.0625, 0.25) or 1 / 60
+end
+
+local function drawQuitting()
+    local w, h = 620, 96
+    local x, y = math.floor((1280 - w) / 2), math.floor((720 - h) / 2)
+    apUi.rect(0, 0, 1280, 720, "shade")
+    apUi.rect(x, y, w, h, "window")
+    apUi.outline(x, y, w, h, "border", 2)
+    apUi.wrapped(12, x + 20, y + 18, w - 40, "title", quitting.text)
+    if quitting.relaunch then
+        apUi.text(10, x + 20, y + h - 26, w - 40, "dim", apT("restart.wait"))
+    end
+end
+
+local function followQuit()
+    pcall(drawQuitting)
+    quitting.age = quitting.age + frameSeconds()
+    if quitting.age >= quitAfterSeconds then
+        if _G.apNetDisconnect then pcall(_G.apNetDisconnect) end
+        local closed = pcall(function() Hyperspace.App:OnExit() end)
+        connectLog(closed and "game close requested" or "close failed, do it by hand")
+        quitting = nil
+    end
+end
+
+function apQuitSoon(text, relaunch)
+    quitting = { text = tostring(text), relaunch = relaunch == true, age = 0 }
+    if quitAfterSeconds == 0 then
+        followQuit()
+    end
+end
+
 script.on_render_event(
     Defines.RenderEvents.MAIN_MENU,
     function() end,
     function()
+        if quitting then
+            followQuit()
+            return
+        end
         if not onMenu then
             pcall(resumeLast)
 
@@ -649,7 +876,9 @@ script.on_render_event(
                 end
             end
 
-            if not autoTried and autoActive() and not seedActive() then
+            local chosen = _G.apNetRecall ~= nil and _G.apNetRecall(RELAUNCH_CONNECT_KEY) == 1
+            if chosen then _G.apNetRemember(RELAUNCH_CONNECT_KEY, 0) end
+            if not autoTried and (autoActive() or chosen) and not seedActive() then
                 autoTried = true
                 local state = apConnectState()
                 if state.slot ~= "" then
@@ -665,6 +894,14 @@ script.on_render_event(
         end
         onMenu = true
 
+        -- Backspace held: after a short wait, one more character goes every few frames.
+        if backspaceFrames ~= nil then
+            backspaceFrames = backspaceFrames + 1
+            if backspaceFrames >= BACKSPACE_DELAY and (backspaceFrames - BACKSPACE_DELAY) % BACKSPACE_EVERY == 0 then
+                deleteBack(FIELDS[focus])
+            end
+        end
+
         local question = currentQuestion()
         if seedActive() then
             pcall(drawStatus)
@@ -673,6 +910,8 @@ script.on_render_event(
         end
         if question ~= nil then
             pcall(drawQuestion, question)
+        elseif _G.apSavesDraw then
+            apSavesDraw()
         end
     end
 )

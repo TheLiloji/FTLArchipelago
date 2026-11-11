@@ -71,6 +71,7 @@ local function makeCrew(name, species, shipId)
         bDead = false,
         health = pair(100, 100),
         GetName = function(self) return self._name end,
+        SetName = function(self, text) self._name = text.data end,
         CountForVictory = function(self) return not self.bDead end,
         IsDead = function(self) return self.bDead end,
         Kill = function(self) self.bDead = true end,
@@ -115,6 +116,26 @@ local function makeShip(shipId)
         makeSystem("oxygen", 1, 3, 4),
         makeSystem("pilot", 1, 3, 5),
     })
+    -- Every room full of air; the oxygen system is the one in vSystemList.
+    local oxygen = ship.vSystemList[3]
+    local levels = {}
+    for i = 1, #rooms do
+        levels[i] = 100
+    end
+    oxygen.oxygenLevels = vector(levels)
+    oxygen.Functioning = function(self)
+        return self.powerState.first > 0 and self.healthState.first > 0
+    end
+    -- Hyperspace hooks EmptyOxygen into doing nothing outside the ship builder.
+    oxygen.EmptyOxygen = function() end
+    oxygen.ModifyRoomOxygen = function(self, roomId, amount)
+        if roomId < 0 or roomId >= self.oxygenLevels:size() then
+            error("Invalid roomId: " .. tostring(roomId))
+        end
+        local store = self.oxygenLevels._store
+        store[roomId + 1] = math.max(0, math.min(100, store[roomId + 1] + amount))
+    end
+    ship.oxygenSystem = oxygen
     ship.vCrewList = vector({
         makeCrew("Ruwen", "human", 0),
         makeCrew("Zoltan", "energy", 0),
@@ -167,6 +188,16 @@ local function makeShip(shipId)
         return n
     end
     function ship:StartFire(roomId) self._fires[#self._fires + 1] = roomId end
+    ship._breachRooms = {}
+    function ship.ship:GetHullBreaches(onlyDamaged)
+        return vector(sim.hullBreaches or {})
+    end
+
+    function ship.ship:BreachRandomHull(roomId)
+        ship._breaches = ship._breaches + 1
+        ship._breachRooms[#ship._breachRooms + 1] = roomId
+        return true
+    end
     function ship:DamageArea(_, damage)
         if damage.breachChance and damage.breachChance > 0 then
             self._breaches = self._breaches + 1
@@ -209,7 +240,13 @@ local function makeShip(shipId)
         end
         return nil
     end
-    function ship:RemoveSystem(systemType) ship._removed[#ship._removed + 1] = systemType end
+    function ship:RemoveSystem(systemType)
+        ship._removed[#ship._removed + 1] = systemType
+        if (ship._systemsHeld or {})[systemType] then
+            ship._systemsHeld[systemType] = nil
+            if sim.systemLimit ~= nil then sim.mainSystemsUsed = math.max(0, (sim.mainSystemsUsed or 0) - 1) end
+        end
+    end
     function ship:GetWeaponList() return vector(ship._weapons) end
     function ship:RemoveItem(name, _)
         for i, held in ipairs(ship._weapons) do
@@ -240,12 +277,21 @@ local function makeShip(shipId)
         end
         return nil
     end })
-    function ship:CanFitSystem(id) return (sim.systemSlotsFree or 8) > 0 end
+    function ship:CanFitSystem(id)
+        if sim.systemLimit ~= nil then
+            return (sim.mainSystemsUsed or 0) < sim.systemLimit
+        end
+        return (sim.systemSlotsFree or 8) > 0
+    end
     function ship:CanFitSubsystem(id) return (sim.systemSlotsFree or 8) > 0 end
     function ship:AddSystem(id)
         self._systemsHeld = self._systemsHeld or {}
         self._systemsHeld[id] = true
         sim.systemsAdded = (sim.systemsAdded or 0) + 1
+        -- With a system limit set, a main system takes a slot like in Hyperspace.
+        if sim.systemLimit ~= nil then
+            sim.mainSystemsUsed = (sim.mainSystemsUsed or 0) + 1
+        end
         return 1
     end
 
@@ -271,6 +317,8 @@ local function resetWorld()
     sim.player = makeShip(0)
     sim.cloneQueue = {}
     sim.space = {
+        sunLevel = false, pulsarLevel = false, bStorm = false, bPDS = false,
+        asteroidGenerator = { bRunning = false },
         currentPlanet = { tex = nil, x = 0, y = 0, w = 0, h = 0 },
         SwitchBackground = function(_, name)
             sim.decor.background = name
@@ -328,6 +376,12 @@ local function resetWorld()
         LastUri = function() return sim.net.last.uri end,
         LastSlot = function() return sim.net.last.slot end,
         Clipboard = function() return sim.clipboard or "" end,
+        SetShopLock = function(_, name, locked)
+            sim.net.shopLocks = sim.net.shopLocks or {}
+            sim.net.shopLocks[name] = locked or nil
+        end,
+        ClearShopLocks = function() sim.net.shopLocks = {} end,
+        SetShopLockTip = function(_, text) sim.net.shopLockTip = text end,
         Platform = function() return sim.platform or "windows" end,
         Connect = function(_, uri, slot, password)
             sim.net.calls[#sim.net.calls + 1] =
@@ -346,6 +400,35 @@ local function resetWorld()
             return sim.net.durableMemory ~= false
         end,
         ProfileResetRequested = function() return sim.net.resetRequested == true end,
+        -- Off unless a test turns it on: the other tests play an older module, without save profiles.
+        ProfileId = function() if sim.profiles.on then return sim.profiles.current end return nil end,
+        ProfileIds = function()
+            local ids = { sim.profiles.current }
+            for _, id in ipairs(sim.profiles.ids) do
+                if id ~= sim.profiles.current then ids[#ids + 1] = id end
+            end
+            return vector(ids)
+        end,
+        SwitchProfile = function(_, id)
+            sim.net.calls[#sim.net.calls + 1] = { "SwitchProfile", id = id }
+            sim.profiles.pending = id ~= sim.profiles.current and id or nil
+            return true
+        end,
+        PendingProfile = function() return sim.profiles.pending or "" end,
+        ArchiveProfile = function(_, id)
+            if id == sim.profiles.current then return false end
+            local kept = {}
+            for _, other in ipairs(sim.profiles.ids) do
+                if other ~= id then kept[#kept + 1] = other end
+            end
+            sim.profiles.ids = kept
+            sim.profiles.archived[#sim.profiles.archived + 1] = id
+            return true
+        end,
+        DescribeProfile = function(_, key, value)
+            sim.profiles.details[sim.profiles.current .. "." .. key] = value
+        end,
+        ProfileDetail = function(_, id, key) return sim.profiles.details[id .. "." .. key] or "" end,
         RelaunchWhenClosed = function()
             sim.net.calls[#sim.net.calls + 1] = { "RelaunchWhenClosed" }
             return sim.net.relaunchPossible ~= false
@@ -390,6 +473,19 @@ local function resetWorld()
             return locked
         end,
         AchievementStatus = function(_, name) return sim.achievements[name] or -1 end,
+        HangarShip = function() return sim.hangarOpen and (sim.hangarShip or "PLAYER_SHIP_HARD") or "" end,
+        HangarHover = function() return sim.hangarHover end,
+        SwitchHangarShip = function(_, blueprint)
+            if not sim.hangarOpen then return false end
+            sim.hangarShip = blueprint
+            return true
+        end,
+        SetGame = function(_, game) sim.net.game = game end,
+        HideBeaconLabel = function(_, name, hidden)
+            sim.hiddenBeacons = sim.hiddenBeacons or {}
+            sim.hiddenBeacons[name] = hidden == true or nil
+            return true
+        end,
         ScoutLocations = function(_, names)
             sim.net.calls[#sim.net.calls + 1] = { "ScoutLocations", count = #names }
             return true
@@ -399,8 +495,16 @@ local function resetWorld()
             sim.net.calls[#sim.net.calls + 1] = { "SendDeath", cause = cause }
             return true
         end,
+        SendTrapTo = function(_, slot, name)
+            sim.net.calls[#sim.net.calls + 1] = { "SendTrapTo", slot = slot, name = name }
+            return true
+        end,
         SendTrap = function(_, name)
             sim.net.calls[#sim.net.calls + 1] = { "SendTrap", name = name }
+            return true
+        end,
+        AnnounceTrapLink = function(_, reply)
+            sim.net.calls[#sim.net.calls + 1] = { "AnnounceTrapLink", reply = reply }
             return true
         end,
         EnergyDeposit = function(_, joules)
@@ -422,12 +526,18 @@ local function resetWorld()
         end,
     }
     sim.net.durableMemory = true
+    sim.profiles = { current = "main", ids = { "main" }, details = {}, archived = {} }
 
     _G.Hyperspace = {
         version = "1.23.1-test",
 
         Resources = {
             GetImageId = function(_, name)
+                -- Like the game: a file it lacks gives one shared warning picture, not nil.
+                if (sim.missingImages or {})[name] or name == "archipelago/no_such_image.png" then
+                    sim.missingPicture = sim.missingPicture or { name = "missing", width = 25, height = 22 }
+                    return sim.missingPicture
+                end
                 return { name = name, width = 460, height = 460 }
             end,
         },
@@ -466,7 +576,7 @@ local function resetWorld()
             menu = setmetatable({}, {
                 __index = function(_, key)
                     if key == "shipBuilder" then return { bOpen = sim.hangarOpen == true } end
-                    if key == "bOpen" then return sim.menuOpen ~= false end
+                    if key == "bOpen" then return sim.menuOpen == nil or sim.menuOpen == true end
                     if key == "bScoreScreen" then return sim.subScreen == "scores" end
                     if key == "bCreditScreen" then return sim.subScreen == "credits" end
                     if key == "bSelectSave" then return sim.subScreen == "sauvegardes" end
@@ -593,6 +703,11 @@ local function resetWorld()
         CustomShipSelect = {
             GetInstance = function()
                 return {
+                    -- systemLimit counts against sim.mainSystemsUsed: the ship's own systems are not modelled.
+                    GetDefinition = function()
+                        return { systemLimit = sim.systemLimit and (sim.systemLimit - (sim.mainSystemsUsed or 0))
+                            or 8 }
+                    end,
                     IsOpen = function() return sim.shipList.open end,
                     FirstPage = function() return sim.shipList.page == 0 end,
                     shipSelect = { currentType = sim.shipList.variant },
@@ -671,7 +786,13 @@ local function resetWorld()
                 end,
             },
         },
-        CustomEventsParser = { GetInstance = function() return nil end },
+        TextString = function() return { data = "", isLiteral = false } end,
+        CustomEventsParser = { GetInstance = function()
+            return { LoadEvent = function(_, _, name)
+                sim.loadedEvents = sim.loadedEvents or {}
+                sim.loadedEvents[#sim.loadedEvents + 1] = name
+            end }
+        end },
     }
 
     sim.gameTexts = {
@@ -739,7 +860,11 @@ function sim.blueprintOrEmpty(name, family)
     if family[name] == nil then
         return { name = "", type = -1, desc = { rarity = 0, baseRarity = 0, locked = false, title = "" } }
     end
-    return { name = name, type = 0, desc = sim.rarityFor(name, family[name]), droneImage = name:lower() }
+    local bp = { name = name, type = 0, desc = sim.rarityFor(name, family[name]), droneImage = name:lower() }
+    for key, value in pairs((sim.blueprintStats or {})[name] or {}) do
+        bp[key] = value
+    end
+    return bp
 end
 
 local function textString(value, literal)
@@ -763,6 +888,19 @@ end
 
 function sim.resetBlueprints()
     descCache = {}
+end
+
+-- What FTL does on every new map, then the sector's own rarity list on top.
+function sim.newSectorRarities(sectorList)
+    for _, desc in pairs(descCache) do
+        desc.rarity = desc.baseRarity
+    end
+    for name, rarity in pairs(sectorList or {}) do
+        if descCache[name] ~= nil then
+            descCache[name].rarity = rarity
+        end
+    end
+    sim.starMap.worldLevel = sim.starMap.worldLevel + 1
 end
 
 _G.Defines = {
@@ -889,6 +1027,10 @@ function sim.renderGui()
 end
 
 function sim.renderMenu()
+    -- Drawing the menu means the run is over, unless the test closed the menu itself.
+    if sim.menuOpen == "closed by the run" then
+        sim.menuOpen = nil
+    end
     replayRender("MAIN_MENU")
 end
 
@@ -941,6 +1083,17 @@ function fire(id, ...)
             sim.errors = (sim.errors or 0) + 1
         end
     end
+end
+
+-- Fires like the game: the first handler that preempts stops the event, and the caller sees it.
+function sim.fireForTesting(id, ...)
+    for _, fn in ipairs(sim.handlers[id] or {}) do
+        local ok, chain = pcall(fn, ...)
+        if ok and chain == Defines.Chain.PREEMPT then
+            return chain
+        end
+    end
+    return Defines.Chain.CONTINUE
 end
 
 local function watchResources()
@@ -1012,6 +1165,7 @@ end
 
 function sim.startRun(newGame)
     sim.started = true
+    sim.menuOpen = "closed by the run"
     if newGame ~= false then
         sim.runVariables = {}
     end
@@ -1021,6 +1175,10 @@ function sim.startRun(newGame)
             sim.log[#sim.log + 1] = "[HARNESS] error in on_init: " .. tostring(err)
             sim.errors = (sim.errors or 0) + 1
         end
+    end
+    -- Multiverse's own start event follows a new run, unless the test plays it itself.
+    if newGame ~= false and _G.apStartWipeEvent and not sim.holdStartEvent then
+        sim.gameEvent(_G.apStartWipeEvent)
     end
 end
 
@@ -1100,9 +1258,11 @@ function sim.clearLog()
 end
 
 function sim.reset()
+    if _G.apQuitDelayForTesting then apQuitDelayForTesting(0) end
     sim.clearLog()
     sim.resetBlueprints()
     sim.started = false
+    sim.holdStartEvent = nil
     sim.ticks = 0
     sim.errors = 0
     resetWorld()

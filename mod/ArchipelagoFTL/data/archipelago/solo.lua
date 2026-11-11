@@ -136,7 +136,7 @@ local function soloGifts()
         local key = checkKey(entry)
         if isShop(key) and not state.given[index] then
             local descriptor = descriptors[entry.item] or {}
-            gifts[#gifts + 1] = { mine = true, item = entry.item, location = key,
+            gifts[#gifts + 1] = { mine = true, item = entry.item, location = key, sphere = entry.sphere,
                                   kind = GIFT_KIND[descriptor.k] or "useful" }
         end
     end
@@ -226,6 +226,7 @@ function apSoloStart(force)
     remember(KEY_SEED, _G.apSeedFingerprint and apSeedFingerprint() or 0)
     remember(KEY_ACTIVE, 1)
     _G.apSoloEnabled = true
+    if _G.apSavesDescribe then pcall(_G.apSavesDescribe) end
     -- A reconnection still pending from an earlier server would load that seed over this one.
     if _G.apNetDisconnect then pcall(_G.apNetDisconnect) end
 
@@ -277,6 +278,7 @@ function apSoloResume()
     end
 
     _G.apSoloEnabled = true
+    if _G.apSavesDescribe then pcall(_G.apSavesDescribe) end
     if _G.apNetDisconnect then pcall(_G.apNetDisconnect) end
     state.delivered, state.given = 0, {}
     for _, index in ipairs(indices) do
@@ -326,6 +328,16 @@ function apSoloForgetProgress(startAfter)
     remember(KEY_GIVEN, 0)
     remember(KEY_SEED, 0)
     remember(KEY_ACTIVE, startAfter and 1 or 0)
+end
+
+-- Solo moves to its own save: it starts again by itself there, with its progress.
+function apSoloRememberActive()
+    remember(KEY_ACTIVE, 1)
+end
+
+-- Another save is loaded: solo must not start again by itself on it.
+function apSoloForgetActive()
+    remember(KEY_ACTIVE, 0)
 end
 
 function apSoloWasActive()

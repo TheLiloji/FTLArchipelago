@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import collections
 import re
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Callable
@@ -12,6 +13,7 @@ from . import data, options as options_module
 from .locations import (
     MENU_REGION,
     ship_systems,
+    shop_owners,
     entrance_name,
     region_name,
     region_of,
@@ -41,7 +43,7 @@ class _SectorLogicTier:
 
 
 SECTOR_LOGIC_TIERS: dict[int, _SectorLogicTier] = {
-    SectorLogic.option_relaxed: _SectorLogicTier(sectors=(), flagship=0),
+    SectorLogic.option_none: _SectorLogicTier(sectors=(), flagship=0),
     SectorLogic.option_standard: _SectorLogicTier(sectors=((4, 2), (6, 4)), flagship=5),
     SectorLogic.option_strict: _SectorLogicTier(sectors=((3, 3), (5, 6), (7, 9)), flagship=11),
     SectorLogic.option_power: _SectorLogicTier(sectors=(), flagship=0),
@@ -124,11 +126,24 @@ _MENTIONS_A_SYSTEM = re.compile(
 )
 
 
+# How deep a run usually goes before a first crew member of each race joins: Lanius are rare before sector 5.
+CREW_RACE_DEPTH: dict[str, int] = {"human": 0, "engi": 3, "energy": 3, "mantis": 3, "rock": 4, "slug": 4,
+                                   "anaerobic": 5}
+
+
 def location_depth(location: data.Location, shop_by_sector: bool = False) -> int:
     if shop_by_sector and location.shop_slot is not None:
         return data.shop_sector(location.shop_slot)
-    if location.group == data.GROUP_SECTORS:
+    if location.group == data.GROUP_CREW:
+        return CREW_RACE_DEPTH[location.race]
+    if location.group in (data.GROUP_SECTORS, data.GROUP_SECTOR_FIGHTS, data.GROUP_REACTOR):
         return location.sector or 0
+    if location.group == data.GROUP_FIGHTS:
+        # A run wins about four fights per sector: the tenth one is a third-sector check.
+        return (location.fight + 3) // 4
+    if location.group == data.GROUP_EVENTS:
+        # Archipelago events show up about twice a sector.
+        return min(data.SECTOR_COUNT, (location.fight + 1) // 2)
     if location.group == data.GROUP_VICTORIES:
         return data.SECTOR_COUNT
     found = _REACH_SECTOR.search(location.description)
@@ -160,8 +175,17 @@ def blueprints_required(level: int, location: data.Location, shop_by_sector: boo
     return required
 
 
-def power_milestone(level: int, location: data.Location, shop_by_sector: bool = False) -> int | str | None:
-    if level != SectorLogic.option_power:
+def power_milestones_apply(level: int, options) -> bool:
+    """power always reads the milestones. standard and strict add them to their blueprints once Progressive System
+    Upgrades caps the levels: otherwise five blueprints could send a ship with one shield layer to the Flagship."""
+    if level == SectorLogic.option_power:
+        return True
+    return bool(options.progressive_systems) and level in (SectorLogic.option_standard, SectorLogic.option_strict)
+
+
+def power_milestone(options, level: int, location: data.Location,
+                    shop_by_sector: bool = False) -> int | str | None:
+    if not power_milestones_apply(level, options):
         return None
     if location_needs_flagship(location):
         return "boss"
@@ -169,11 +193,12 @@ def power_milestone(level: int, location: data.Location, shop_by_sector: bool = 
     return 8 if depth >= 8 else 5 if depth >= 5 else None
 
 
-def _logic_demand(level: int, location: data.Location, shop_by_sector: bool) -> int:
-    """What a check asks before the first items: its blueprint count, or 1 for a power milestone."""
-    if power_milestone(level, location, shop_by_sector) is not None:
-        return 1
-    return blueprints_required(level, location, shop_by_sector)
+def _logic_demand(options, level: int, location: data.Location, shop_by_sector: bool) -> int:
+    """What a check asks before the first items: its blueprint count, and at least 1 for a power milestone."""
+    required = blueprints_required(level, location, shop_by_sector)
+    if power_milestone(options, level, location, shop_by_sector) is not None:
+        return max(required, 1)
+    return required
 
 
 def power_wanted(options, milestone: int | str, layout: data.Layout) -> dict[str, int]:
@@ -238,7 +263,7 @@ def _power_rule(world: "FTLWorld", location: data.Location,
 def power_upgrade_names(options) -> frozenset[str]:
     """The items the power logic reads: Progressive levels of its systems, and the Shields blueprint for the
     ships that start without shields."""
-    if options.sector_logic.value != SectorLogic.option_power:
+    if not power_milestones_apply(options.sector_logic.value, options):
         return frozenset()
     names: set[str] = set()
     layouts = selected_layouts(options)
@@ -263,6 +288,7 @@ class LogicPlan:
     early_blueprints: tuple[str, ...]
     progression_blueprints: frozenset[str]
     extra_ship_keys: tuple[str, ...]
+    early_ship_keys: tuple[str, ...]
     warnings: tuple[str, ...]
 
 
@@ -277,14 +303,16 @@ def plan(world: "FTLWorld") -> LogicPlan:
 
     asked = options.sector_logic.value
     if not options.system_blueprints and asked != SectorLogic.option_power:
-        asked = SectorLogic.option_relaxed
+        # Nothing left to count, but capped levels still need their milestones. none asked for nothing.
+        milestones = options.progressive_systems and asked in (SectorLogic.option_standard, SectorLogic.option_strict)
+        asked = SectorLogic.option_power if milestones else SectorLogic.option_none
     warnings: list[str] = []
 
-    candidates = ((asked, SectorLogic.option_relaxed) if asked == SectorLogic.option_power
-                  else range(asked, SectorLogic.option_relaxed - 1, -1))
+    candidates = ((asked, SectorLogic.option_none) if asked == SectorLogic.option_power
+                  else range(asked, SectorLogic.option_none - 1, -1))
     level = next(
         (candidate for candidate in candidates if _fits(world, candidate, start_items)),
-        SectorLogic.option_relaxed,
+        SectorLogic.option_none,
     )
     if level != asked:
         warnings.append(
@@ -309,18 +337,27 @@ def plan(world: "FTLWorld") -> LogicPlan:
         for layout in layouts
         for name in blueprints_gating_layout(options, layout)
     }
-    if level in (SectorLogic.option_relaxed, SectorLogic.option_power):
+    if level in (SectorLogic.option_none, SectorLogic.option_power):
         progression = (frozenset(gating) | blueprints_the_system_rules_read(options)
                        | (power_upgrade_names(options) & frozenset(data.BLUEPRINT_ITEM_NAMES.values())))
     else:
         progression = frozenset(data.BLUEPRINT_ITEM_NAMES.values())
 
+    early_keys = _early_ship_keys(world, level, start_items)
+    if len(early_keys) < options.early_ship_keys.value and len(early_keys) < len(_early_key_candidates(world, start_items)):
+        warnings.append(
+            f"early_ship_keys lowered from {options.early_ship_keys.value} to {len(early_keys)}: "
+            "only that many checks can be reached from the very start. "
+            "Enable sectorsanity or ship achievements to place more keys early."
+        )
+
     return LogicPlan(
         sector_logic=level,
         starting_blueprints=starting_blueprints,
-        early_blueprints=_early_blueprints(world, level, start_items),
+        early_blueprints=_early_blueprints(world, level, start_items, len(early_keys)),
         progression_blueprints=progression,
         extra_ship_keys=extra_keys,
+        early_ship_keys=early_keys,
         warnings=tuple(warnings),
     )
 
@@ -349,7 +386,7 @@ def _relieve_with_free_keys(
 
 def _free_ship_keys(world: "FTLWorld") -> tuple[str, ...]:
     ships = {world.start_ship.blueprint}
-    ships.update(data.LAYOUTS_BY_BLUEPRINT[bp].ship for bp in data.ALWAYS_UNLOCKED_LAYOUTS)
+    ships.update(data.LAYOUTS_BY_BLUEPRINT[bp].ship for bp in options_module.always_unlocked_layouts(world.options))
     return tuple(data.SHIP_KEY_NAMES[ship] for ship in sorted(ships))
 
 
@@ -368,7 +405,7 @@ def _reachable_regions(world: "FTLWorld", start_items: set[str]) -> set[str]:
     reachable.update(
         region_name(layout)
         for layout in selected_layouts(world.options)
-        if start_items.issuperset(layout_requirements(world, layout))
+        if _met_at_start(start_items, layout_requirements(world, layout))
     )
     return reachable
 
@@ -379,15 +416,15 @@ def _sphere_zero_room(world: "FTLWorld", level: int, start_items: set[str]) -> i
         1
         for location in world.created_locations
         if region_of(location, world.options) in reachable
-        and _logic_demand(level, location, bool(world.options.shop_by_sector)) == 0
+        and _logic_demand(world.options, level, location, bool(world.options.shop_by_sector)) == 0
     )
 
 
 def _bootstrap_cost(world: "FTLWorld", start_items: set[str]) -> int:
     costs = [
-        len(set(layout_requirements(world, layout)) - start_items)
+        _missing_at_start(start_items, layout_requirements(world, layout))
         for layout in selected_layouts(world.options)
-        if not start_items.issuperset(layout_requirements(world, layout))
+        if not _met_at_start(start_items, layout_requirements(world, layout))
     ]
     return min(costs, default=1)
 
@@ -404,7 +441,7 @@ def _fits(
     for location in world.created_locations:
         if location.group in data.FILLER_ONLY_GROUPS:
             continue
-        demand = _logic_demand(level, location, bool(world.options.shop_by_sector))
+        demand = _logic_demand(world.options, level, location, bool(world.options.shop_by_sector))
         demands[demand] = demands.get(demand, 0) + 1
     for demand in sorted(demands):
         if demand and sum(n for d, n in demands.items() if d < demand) < demand + margin:
@@ -416,7 +453,7 @@ def _fits(
 
 
 def _progression_item_count(world: "FTLWorld", level: int) -> int:
-    if level in (SectorLogic.option_relaxed, SectorLogic.option_power):
+    if level in (SectorLogic.option_none, SectorLogic.option_power):
         progression_blueprints = {
             name
             for layout in selected_layouts(world.options)
@@ -450,8 +487,25 @@ def _progression_item_count(world: "FTLWorld", level: int) -> int:
     return count
 
 
-def _early_blueprints(world: "FTLWorld", level: int, start_items: set[str]) -> tuple[str, ...]:
-    room = _sphere_zero_room(world, level, start_items) - _bootstrap_cost(world, start_items)
+def _early_key_candidates(world: "FTLWorld", start_items: set[str]) -> list[str]:
+    return sorted(
+        data.SHIP_KEY_NAMES[layout.blueprint]
+        for layout in selected_layouts(world.options)
+        if layout.variant == 0 and data.SHIP_KEY_NAMES[layout.blueprint] not in start_items
+    )
+
+
+def _early_ship_keys(world: "FTLWorld", level: int, start_items: set[str]) -> tuple[str, ...]:
+    """Type A keys put in the player's own first checks, so a second ship does not hang on the luck of the fill."""
+    candidates = _early_key_candidates(world, start_items)
+    wanted = min(world.options.early_ship_keys.value, len(candidates), _sphere_zero_room(world, level, start_items))
+    return tuple(sorted(world.random.sample(candidates, wanted)))
+
+
+def _early_blueprints(
+    world: "FTLWorld", level: int, start_items: set[str], taken: int = 0
+) -> tuple[str, ...]:
+    room = _sphere_zero_room(world, level, start_items) - _bootstrap_cost(world, start_items) - taken
     wanted = dict.fromkeys(
         [*_keystone_blueprints(world), *blueprints_placed_early(world.options)]
     )
@@ -468,10 +522,32 @@ def _keystone_blueprints(world: "FTLWorld") -> tuple[str, ...]:
     return tuple(name for _, name in sorted(majority, reverse=True))
 
 
+def _has_requirements(state: CollectionState, names: tuple[str, ...], player: int) -> bool:
+    """A name listed twice asks for two copies (progressive ship keys)."""
+    if len(set(names)) == len(names):
+        return state.has_all(names, player)
+    return state.has_all_counts(collections.Counter(names), player)
+
+
+def _met_at_start(start_items: set[str], names: tuple[str, ...]) -> bool:
+    """The start items hold one copy of each: a name asked twice is not met."""
+    return _missing_at_start(start_items, names) == 0
+
+
+def _missing_at_start(start_items: set[str], names: tuple[str, ...]) -> int:
+    return sum(max(0, count - (name in start_items)) for name, count in collections.Counter(names).items())
+
+
 def layout_requirements(world: "FTLWorld", layout: data.Layout) -> tuple[str, ...]:
     unlocks = world.options.layout_unlocks
-    names = [data.SHIP_KEY_NAMES[layout.ship]]
-    if layout.variant > 0 and unlocks == unlocks.option_items:
+    independent = unlocks == unlocks.option_independent
+    key = data.SHIP_KEY_NAMES[layout.ship]
+    names = [] if layout.variant > 0 and independent else [key]
+    if unlocks == unlocks.option_progressive:
+        # The nth copy of the key gives the nth layout: the name repeats once per copy needed.
+        copies = 1 + options_module.progressive_layouts(world.options, layout.ship).index(layout)
+        names = [key] * copies
+    elif layout.variant > 0 and unlocks != unlocks.option_vanilla:
         names.append(data.LAYOUT_ITEM_NAMES[layout.blueprint])
     names.extend(blueprints_gating_layout(world.options, layout))
     return tuple(names)
@@ -482,6 +558,44 @@ def _has_blueprints(player: int, count: int) -> Callable[[CollectionState], bool
     return lambda state: state.has_group(group, player, count)
 
 
+def sector_pass_needs(world: "FTLWorld", layout: data.Layout, count: int) -> tuple[str, ...]:
+    """sector_locks: the passes a layout needs to go past sector 4 (one) or 7 (two)."""
+    if not world.options.sector_locks or count <= 0:
+        return ()
+    return (f"Sector Pass ({layout.display})",) * count
+
+
+def shop_slot_owners(world: "FTLWorld", location: data.Location, layouts) -> list[data.Layout]:
+    """The layouts aboard which a shop slot is sold: with shop_per_ship only its owner (or the owner's class)."""
+    owners = shop_owners(world.options)
+    if not owners:
+        return list(layouts)
+    owner = owners[data.shop_owner(location.shop_slot, len(owners), bool(world.options.shop_by_sector))]
+    if world.options.shop_per_ship == world.options.shop_per_ship.option_per_class:
+        return [layout for layout in layouts if layout.ship == owner.ship]
+    return [layout for layout in layouts if layout.blueprint == owner.blueprint]
+
+
+def _sector_lock_rule(world: "FTLWorld", location: data.Location, layouts) -> Callable[[CollectionState], bool] | None:
+    depth = location_depth(location, bool(world.options.shop_by_sector))
+    count = 2 if depth >= 8 or location_needs_flagship(location) else (1 if depth >= 5 else 0)
+    if count == 0:
+        return None
+    if location.layout is not None:
+        able = [layout for layout in layouts if layout.blueprint == location.layout]
+    elif location.ship is not None:
+        able = [layout for layout in layouts if layout.ship == location.ship]
+    elif location.shop_slot is not None:
+        able = shop_slot_owners(world, location, layouts)
+    else:
+        able = list(layouts)
+    # A pass only opens the sectors of a layout the player can fly: a shop slot shared by every ship
+    # needs one layout holding both its key and its passes.
+    needs = tuple(layout_requirements(world, layout) + sector_pass_needs(world, layout, count) for layout in able)
+    player = world.player
+    return lambda state: any(_has_requirements(state, names, player) for names in needs)
+
+
 def set_rules(world: "FTLWorld") -> None:
     player = world.player
     level = world.sector_logic_level
@@ -490,15 +604,21 @@ def set_rules(world: "FTLWorld") -> None:
     for layout in layouts:
         requirements = layout_requirements(world, layout)
         entrance = world.get_entrance(entrance_name(layout))
-        set_rule(entrance, lambda state, names=requirements: state.has_all(names, player))
+        set_rule(entrance, lambda state, names=requirements: _has_requirements(state, names, player))
 
     for location in world.created_locations:
         count = blueprints_required(level, location, bool(world.options.shop_by_sector))
         if count:
             set_rule(world.get_location(location.name), _has_blueprints(player, count))
-        milestone = power_milestone(level, location, bool(world.options.shop_by_sector))
+        milestone = power_milestone(world.options, level, location, bool(world.options.shop_by_sector))
         if milestone is not None:
-            set_rule(world.get_location(location.name), _power_rule(world, location, milestone))
+            add_rule(world.get_location(location.name), _power_rule(world, location, milestone))
+
+    if world.options.sector_locks:
+        for location in world.created_locations:
+            rule = _sector_lock_rule(world, location, layouts)
+            if rule is not None:
+                add_rule(world.get_location(location.name), rule)
 
     _set_system_rules(world, layouts)
 
@@ -565,7 +685,7 @@ def systems_whose_levels_the_rules_read(options) -> frozenset[str]:
     if options.systemsanity == options.systemsanity.option_every_level:
         return frozenset(data.SYSTEMS_BY_ID)
     systems: set[str] = set()
-    if options.sector_logic.value == SectorLogic.option_power and not options.progressive_systems_per_ship:
+    if power_milestones_apply(options.sector_logic.value, options) and not options.progressive_systems_per_ship:
         systems.update(data.POWER_SYSTEMS)
     for location in selected_locations(options):
         systems.update(SYSTEMS_AN_ACHIEVEMENT_MAXES.get(location.achievement or "", ()))
@@ -626,19 +746,13 @@ def _set_system_rules(world: "FTLWorld", layouts) -> None:
 
     for location in world.created_locations:
         upgrades = _upgrades_needed(options, location)
-        if upgrades and options.progressive_systems_per_ship:
-            add_rule(world.get_location(location.name), _per_ship_upgrade_rule(world, location, upgrades))
+        if upgrades:
+            add_rule(world.get_location(location.name), _upgrade_rule(world, location, upgrades))
             continue
 
         rule = _system_rule(world, location)
         if rule is not None:
             add_rule(world.get_location(location.name), rule)
-        for system, count in upgrades.items():
-            name = f"Progressive {data.SYSTEMS_BY_ID[system].display}"
-            if options.full_system_upgrades:
-                count = 1
-            add_rule(world.get_location(location.name),
-                     lambda state, name=name, count=count: state.has(name, player, count))
 
 
 def _upgrades_needed(options, location: data.Location) -> dict[str, int]:
@@ -662,24 +776,41 @@ def _upgrade_ships(world: "FTLWorld", location: data.Location, systems) -> tuple
     return tuple(other for other in room if all(system in room[other] for system in systems))
 
 
-def _per_ship_upgrade_rule(world: "FTLWorld", location: data.Location,
-                           upgrades: dict[str, int]) -> Callable[[CollectionState], bool]:
+def start_level(layout: data.Layout, system: str) -> int:
+    """The level a layout starts a system at: read from ftl.dat for the power systems, else 1 if aboard."""
+    known = data.LAYOUT_START_LEVELS[layout.blueprint].get(system)
+    if known is not None:
+        return known
+    return 1 if system in layout.start_systems else 0
+
+
+def _upgrade_rule(world: "FTLWorld", location: data.Location,
+                  upgrades: dict[str, int]) -> Callable[[CollectionState], bool]:
+    """In logic on one reachable layout holding the systems: the levels it starts with count, a bought system
+    starts at 1, and each Progressive item adds one (all of them with Full System Upgrades)."""
     player = world.player
-    gated = bool(world.options.system_blueprints)
-    ships = _upgrade_ships(world, location, upgrades)
+    options = world.options
+    gated = bool(options.system_blueprints)
+    per_ship = bool(options.progressive_systems_per_ship)
+    ships = _upgrade_ships(world, location, upgrades) if per_ship else None
     paths = []
-    for layout in _layouts_able_to_try(world.options, location):
-        if layout.ship not in ships:
+    for layout in _layouts_able_to_try(options, location):
+        if ships is not None and layout.ship not in ships:
             continue
         room = set(layout.start_systems) | set(layout.empty_slots)
         if not all(system in room for system in upgrades):
             continue
         missing = [system for system in upgrades if system not in layout.start_systems]
         blueprints = tuple(data.BLUEPRINT_ITEM_NAMES[system] for system in missing) if gated else ()
-        ship = data.SHIPS_BY_BLUEPRINT[layout.ship].display
-        needs = tuple((f"{ship}: Progressive {data.SYSTEMS_BY_ID[system].display}", count)
-                      for system, count in upgrades.items())
-        paths.append((region_name(layout), blueprints, needs))
+        prefix = f"{data.SHIPS_BY_BLUEPRINT[layout.ship].display}: " if per_ship else ""
+        needs = []
+        for system, count in upgrades.items():
+            count = max(0, count - max(0, start_level(layout, system) - 1))
+            if count and options.full_system_upgrades:
+                count = 1
+            if count:
+                needs.append((f"{prefix}Progressive {data.SYSTEMS_BY_ID[system].display}", count))
+        paths.append((region_name(layout), blueprints, tuple(needs)))
 
     if not paths:
         raise OptionError(
@@ -723,11 +854,12 @@ def _goal_rule(world: "FTLWorld") -> Callable[[CollectionState], bool]:
         layout for layout in selected_layouts(world.options)
         if chosen is None or layout.blueprint in chosen
     )
-    requirement_sets = tuple(layout_requirements(world, layout) for layout in goal_candidates)
+    requirement_sets = tuple(layout_requirements(world, layout) + sector_pass_needs(world, layout, 2)
+                             for layout in goal_candidates)
     options = world.options
-    # With power logic, a victory counts only on a layout ready for the Flagship.
+    # With power milestones, a victory counts only on a layout ready for the Flagship.
     flagship_ready = tuple(
-        power_wanted(options, "boss", layout) if world.sector_logic_level == SectorLogic.option_power else None
+        power_wanted(options, "boss", layout) if power_milestones_apply(world.sector_logic_level, options) else None
         for layout in goal_candidates
     )
 
@@ -751,7 +883,7 @@ def _goal_rule(world: "FTLWorld") -> Callable[[CollectionState], bool]:
             return False
         reached = 0
         for layout, names, wanted in zip(goal_candidates, requirement_sets, flagship_ready):
-            if state.has_all(names, player) and (wanted is None
+            if _has_requirements(state, names, player) and (wanted is None
                                                  or meets_power(options, state, player, layout, wanted)):
                 reached += 1
                 if reached >= needed:
@@ -808,7 +940,7 @@ def _check() -> None:
         if thresholds != sorted(thresholds) or counts != sorted(counts):
             raise ValueError(f"the tiers of level {level} are not increasing: {tier}")
 
-    for level in (SectorLogic.option_relaxed, SectorLogic.option_standard,
+    for level in (SectorLogic.option_none, SectorLogic.option_standard,
                   SectorLogic.option_strict, SectorLogic.option_power):
         if level not in SECTOR_LOGIC_TIERS:
             raise ValueError(f"sector logic level {level} has no declared tiers")

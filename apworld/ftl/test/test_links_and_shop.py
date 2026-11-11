@@ -250,7 +250,8 @@ class TestShopPrices(FTLTestBase):
             self.assertGreater(offer["price"], 0, f"{key} must never be free")
             placed = self.multiworld.get_location(f"Archipelago Shop {key[5:]}", self.player).item
             self.assertEqual(offer["kind"], pricing.importance(placed))
-            depth = max(offer["sphere"] or 1, data.shop_sector(int(key[5:])))
+            self.assertGreaterEqual(offer["sphere"], 1, "Archipelago counts the spheres of checks from 1")
+            depth = max((offer["sphere"] - 1) or 1, data.shop_sector(int(key[5:])))
             self.assertEqual(offer["price"], pricing.price(pricing.price_tier(placed), depth))
 
     def test_a_later_sector_sells_dearer_than_the_first(self) -> None:
@@ -325,6 +326,10 @@ class TestShopBySector(FTLTestBase):
         self.assertFalse(self.multiworld.get_location("Archipelago Shop 6", self.player).can_reach(state))
         for system in ("Shields", "Engines", "Oxygen", "Weapon Control"):
             state.collect(self.world.create_item(f"{system} blueprint"), True)
+        self.assertFalse(self.multiworld.get_location("Archipelago Shop 6", self.player).can_reach(state),
+                         "sector 6 also wants two shield layers")
+        for _ in range(2):
+            state.collect(self.world.create_item("Progressive Shields"), True)
         self.assertTrue(self.multiworld.get_location("Archipelago Shop 6", self.player).can_reach(state))
 
 

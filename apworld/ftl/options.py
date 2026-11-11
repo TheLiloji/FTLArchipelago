@@ -208,10 +208,11 @@ class ShipLayouts(Choice):
 
 
 class LayoutCount(Range):
-    """How many ship layouts are in the seed, drawn at random among those Ship Layouts allows.
+    """How many ship layouts you can fly in this seed, in total: your starting layout and the Kestrel
+    Cruiser A count in it. 7 means those two plus 5 more, drawn at random among those Ship Layouts allows.
 
-    Your starting ship and the Kestrel Cruiser A are always in, and a Type B or C only comes with its
-    ship's Type A. The others are left out: no key, no check. Raised to Victories Required if lower.
+    A Type B or C only comes with its ship's Type A. The layouts left out have no key and no check.
+    Raised to Victories Required if lower, and never below the layouts that are always in.
     """
 
     display_name = "Layouts in the Seed"
@@ -226,12 +227,33 @@ class LayoutUnlocks(Choice):
     items: each layout is its own Archipelago item, and you also need the ship's key to fly it.
     vanilla: layouts unlock the way FTL does it, by earning that ship's achievements. No layout
     items are created, and owning a ship key puts every one of its layouts in logic.
+    independent: each layout is its own item and needs nothing else: a Type B or C can be flown
+    without the ship's key, which only gives the Type A.
+    progressive: no layout items. The ship's key comes once per layout of that ship in the seed: the
+    first copy gives the Type A, the next ones the following layouts in order (B, then C).
     """
 
     display_name = "Layout Unlocks"
     option_items = 0
     option_vanilla = 1
+    option_independent = 2
+    option_progressive = 3
     default = option_items
+
+
+class EarlyShipKeys(Range):
+    """How many ship keys, on top of your starting ship and the Kestrel, are placed in your own first checks.
+
+    Those keys are drawn at random among the ships in the seed and land in checks you can reach from the
+    very start, in your own world: a second ship comes early instead of hours later. The number of keys
+    does not change, only where they land. With progressive layout unlocks, it is the first copy (Type A).
+    0 lets every key land anywhere, like before.
+    """
+
+    display_name = "Early Ship Keys"
+    range_start = 0
+    range_end = len(data.SHIPS) - 1
+    default = 1
 
 
 class Sectorsanity(Choice):
@@ -315,6 +337,96 @@ class CombatChecks(Range):
     default = 0
 
 
+class EventChecks(Range):
+    """The packages handed out by the Archipelago events (the relay, the pirates) become checks of their own,
+    "Archipelago Event 1", "Archipelago Event 2"... up to this number. The events give these first, then fall
+    back on the Archipelago shop's packages. 0 keeps the old way: every event package comes from the shop.
+    """
+
+    display_name = "Archipelago Event Checks"
+    range_start = 0
+    range_end = 20
+    default = 5
+
+
+class ReactorChecks(Toggle):
+    """Upgrading the reactor sends checks: Reactor Power 10, 15, 20 and 25, reached in any run.
+    The logic expects them around sectors 2, 4, 6 and 7.
+    """
+
+    display_name = "Reactor Checks"
+
+
+class SectorSkip(Toggle):
+    """A ship layout that already reached the next sector in an earlier run may skip sectors 1 to 4: the first
+    beacon of such a sector is an exit. Jumping on at once gives 60 scrap and one more pick in the start-of-run menu;
+    exploring as usual stays possible.
+    The skipped sector's checks wait for another run.
+    """
+
+    display_name = "Sector Skip"
+
+
+class ShopDealScrap(Range):
+    """The scrap the Archipelago shop's deals give, in percent of the usual amount. 0 turns the deals off."""
+
+    display_name = "Archipelago Shop Deal Scrap (%)"
+    range_start = 0
+    range_end = 200
+    default = 100
+
+
+class SectorLocks(Toggle):
+    """Each ship layout needs Sector Passes to go deeper: the first lets it past sector 4, the second past
+    sector 7. Without them, the exit of sector 4 (or 7) stays shut and says why. Two items per layout.
+    """
+
+    display_name = "Sector Locks"
+
+
+class KestrelKey(Toggle):
+    """When your starting ship is not the Kestrel, the Kestrel Cruiser A needs its key like any other ship.
+    Off: the Kestrel A is always yours, as before. FTL still lets you pick it in the hangar; a run with it
+    then sends nothing until its key comes in, and the game says so.
+    """
+
+    display_name = "Kestrel Needs Its Key"
+
+
+class FlagshipSabotage(Range):
+    """The multiworld sabotages the Flagship: each of its phases arrives weakened, more with each level.
+    1: hull -10 %. 2: and shields -1. 3: hull -20 %. 4: and weapons -1. 5: hull -30 %. 0 turns it off.
+    """
+
+    display_name = "Flagship Sabotage"
+    range_start = 0
+    range_end = 5
+    default = 0
+
+
+class CombatChecksMode(Choice):
+    """How Combat Checks per Ship count the fights won.
+    per_run: the first fights won in a run send "Fight 1 won", "Fight 2 won"... up to Combat Checks per Ship.
+    per_sector: in each sector of a run, the first fights won send "Sector 3 fight 1 won"... up to Fights per
+    Sector, so a run that reaches sector 8 can send checks in every sector. Combat Checks per Ship only needs
+    to be above 0 to turn them on.
+    """
+
+    display_name = "Combat Checks Mode"
+    option_per_run = 0
+    option_per_sector = 1
+    default = option_per_run
+
+
+class FightsPerSector(Range):
+    """With Combat Checks Mode on per_sector: how many fights in each sector send a check, for each ship."""
+
+    display_name = "Fights per Sector"
+    range_start = 1
+    range_end = 5
+    default = 2
+
+
 class CombatCheckScrap(Range):
     """The percentage of a fight's scrap you still get when that fight sends a combat check.
     Fights that send nothing keep their full reward.
@@ -351,8 +463,9 @@ class Systemsanity(Choice):
     """Installing a system sends a check.
 
     disabled: never. The default: most ships start with half of the systems.
-    first_install: once per system, 16 checks.
-    every_level: every upgrade level too, 68 checks. A much longer game.
+    first_install: once per system, 12 checks. Engines, Oxygen, Piloting and Weapon Control have none: every
+    ship starts with them, so the check would be free.
+    every_level: every upgrade level too, 64 checks. A much longer game.
     """
 
     display_name = "Systemsanity"
@@ -416,7 +529,7 @@ class SystemBlueprints(DefaultOnToggle):
     only capped.
 
     Turning this off also silences the five per-system blueprint logic options below, and leaves
-    Sector Logic with nothing to require.
+    Sector Logic with only the power milestones to require, if Progressive System Upgrades is on.
     """
 
     display_name = "System Blueprints"
@@ -425,7 +538,8 @@ class SystemBlueprints(DefaultOnToggle):
 class ProgressiveSystems(DefaultOnToggle):
     """Whether progressive system upgrades are items.
 
-    Each copy raises how far you may upgrade that system, up to the vanilla maximum.
+    Each copy raises how far you may upgrade that system, up to the vanilla maximum. By default one item
+    counts for every ship: "Progressive Shields" raises the shields of all of them.
     """
 
     display_name = "Progressive System Upgrades"
@@ -433,11 +547,21 @@ class ProgressiveSystems(DefaultOnToggle):
 
 class ProgressiveSystemsPerShip(Toggle):
     """With Progressive System Upgrades on: the upgrades belong to one ship each, like "Kestrel Cruiser:
-    Progressive Shields", and only raise that ship's systems. Many more items: when the shop would pass 400
-    slots, the last copies of useful items are left out instead of refusing the seed.
+    Progressive Shields", and only raise that ship's systems, whatever its layout (A, B or C). Off, one
+    "Progressive Shields" counts for every ship. Many more items: when the shop would pass 400 slots, the
+    last copies of useful items are left out instead of refusing the seed.
     """
 
     display_name = "Progressive Upgrades per Ship"
+
+
+class ProgressiveUnlocksSystem(Toggle):
+    """With System Blueprints and Progressive System Upgrades on: the first Progressive item of a system also
+    unlocks that system, so it has no separate blueprint item. The next copies only raise its level. Fewer
+    items to wait for, so systems come sooner; a system with no Progressive item keeps its blueprint.
+    """
+
+    display_name = "Progressive Unlocks the System"
 
 
 class FullSystemUpgrades(Toggle):
@@ -476,7 +600,8 @@ class SystemInstall(Choice):
 
 class RunStartScrap(Range):
     """At the start of every run, you get this percentage of all the scrap items you received so far.
-    Scrap items still give their scrap once when they arrive. 0 turns it off; 10 to 25 is a good range.
+    Scrap items still give their scrap once when they arrive. Off by default (0). If you turn it on, 10 to 25
+    is a good range.
     """
 
     display_name = "Run Start Scrap (%)"
@@ -488,6 +613,10 @@ class RunStartScrap(Range):
 class HeadStarts(DefaultOnToggle):
     """Head Start items give a free system level, or a reactor bar, at the start of every
     future run. They make each new run a little stronger.
+
+    They are extras: they only take checks left over once every other item has its place. With the
+    default options there are more items than checks, so few or none come. Turn on more checks
+    (sectorsanity, achievements) or raise Archipelago Shop Checks to get more of them.
     """
 
     display_name = "Head Starts"
@@ -509,7 +638,9 @@ class TrapChance(Range):
 class SectorLogic(Choice):
     """What the logic expects of your ship before sending you deep into the sectors.
 
-    relaxed: nothing. Every sector and every victory is in logic as soon as the layout is.
+    none: no requirement at all. Every sector and every victory is in logic as soon as the layout is, so the
+    generator may expect you to reach the Flagship with little more than your starting ship. For experienced
+    players. ("relaxed", its old name, still works.)
     standard: 2 system blueprints received for sector 4, 4 for sector 6, 5 for the Flagship.
     strict: 3 blueprints for sector 3, 6 for sector 5, 9 for sector 7, 11 for the Flagship.
     power: milestones on the ship that does the check, from its real start. Sector 5 needs 2 shield
@@ -517,13 +648,17 @@ class SectorLogic(Choice):
     that starts without shields may use Engines 5 for one layer before the Flagship. Lower with Victory
     Difficulty "any", higher with "hard" (4 layers for the Flagship).
 
+    With Progressive System Upgrades on, standard and strict also ask the power milestones on top of their
+    blueprints, and become power if System Blueprints is off.
+
     This never changes what the game allows, only what the generator considers fair. standard and strict
-    count blueprints without caring which, and do nothing if System Blueprints is off. power reads
-    upgrade levels, so it matters most with Progressive System Upgrades on.
+    count blueprints without caring which, and do nothing more if both System Blueprints and Progressive
+    System Upgrades are off. power reads upgrade levels, so it matters most with Progressive System Upgrades on.
     """
 
     display_name = "Sector Logic"
-    option_relaxed = 0
+    option_none = 0
+    alias_relaxed = 0
     option_standard = 1
     option_strict = 2
     option_power = 3
@@ -711,7 +846,8 @@ class ShopUnlockMode(Choice):
 
     locked: the item is removed from every shop until you receive it. Harsher, and much more of
     a moment when it finally arrives - this is the mode where finding a Burst Laser II in a shop
-    means another world sent it to you.
+    means another world sent it to you. Only the items of your seed are concerned: with a lower
+    shop_weapons, shop_drones or shop_augments, the others stay in shops.
     """
 
     display_name = "Shop Unlock Mode"
@@ -759,9 +895,24 @@ class ShopBySector(Toggle):
     display_name = "Archipelago Shop by Sector"
 
 
+class ShopHints(Choice):
+    """What the other players learn from your Archipelago shop.
+
+    seen (default): the packages you see in the Archipelago shop become hints on the server, so their owners
+    know where their item waits and that you saw it.
+    off: nothing is hinted, the shop stays your secret.
+    """
+
+    display_name = "Archipelago Shop Hints"
+    option_off = 0
+    option_seen = 1
+    default = option_seen
+
+
 class ShopPerShip(Choice):
     """Each package of the Archipelago shop belongs to one ship, and is only sold while you fly it.
-    This adds no packages: the shop's packages are split between the ships.
+    This adds no packages: the shop's packages are split between the ships in the seed. A package you
+    did not buy is not lost: it comes back at a later AP STORE of a ship it belongs to.
 
     off: every ship sees the whole shop.
     per_class: one owner per ship, whatever its layout (Kestrel).
@@ -779,7 +930,8 @@ class MinimumFiller(Range):
     """The minimum number of filler items (scrap, fuel, missiles, drone parts) in your seed.
 
     The seed balances itself: when your options create more checks than items, filler is added until
-    every check holds something. This number is the floor.
+    every check holds something. This number is the floor. With Crew Members, the first crew member of
+    each race counts as filler.
     """
 
     display_name = "Minimum Filler"
@@ -834,6 +986,16 @@ class DeathLinkClonedCrew(Toggle):
     display_name = "Death Link Cloned Crew"
 
 
+class DeathLinkToggle(DefaultOnToggle):
+    """With Death Link on: whether you can turn it off and on again during the game, by clicking it on the first
+    page of the TAB dashboard. While it is off you send no death and receive none.
+
+    Turn this off for a group that wants everyone tied together for the whole seed.
+    """
+
+    display_name = "Death Link Toggle"
+
+
 class DeathLinkEffect(Choice):
     """With Death Link on: what a death from another player does to you. None of them can
     destroy your ship or kill your last crew member.
@@ -854,6 +1016,38 @@ class DeathLinkEffect(Choice):
     option_major_incident = 4
     option_boarding = 5
     default = option_major_incident
+
+
+class EventBeacons(Choice):
+    """Which Archipelago event beacons say ARCHIPELAGO on the map. The AP STORE beacons always do.
+
+    marked: every Archipelago event is labelled.
+    important: only the events that carry a package (the package relay and the pirates) are labelled. The
+    Zoltan toll, the Slug's hints and the surge from another world look like any beacon until you visit them.
+    hidden: no Archipelago event is labelled: they all hide among the normal beacons.
+    """
+
+    display_name = "Event Beacons"
+    option_marked = 0
+    option_important = 1
+    option_hidden = 2
+    default = option_important
+
+
+class CrewNames(Choice):
+    """Names given to the crew members who join you during a run. Your starting crew keeps its names.
+
+    vanilla: FTL's own names.
+    multiworld: the other players of the multiworld first, by their slot names, then FTL's own names once
+    each of them is aboard.
+    multiworld_and_team: the same, then the people who made and tested this mod.
+    """
+
+    display_name = "Crew Names"
+    option_vanilla = 0
+    option_multiworld = 1
+    option_multiworld_and_team = 2
+    default = option_multiworld
 
 
 class ModLanguage(Choice):
@@ -891,15 +1085,23 @@ class FTLOptions(PerGameCommonOptions):
     death_link: DeathLink
     death_link_trigger: DeathLinkTrigger
     death_link_cloned_crew: DeathLinkClonedCrew
+    death_link_toggle: DeathLinkToggle
     death_link_effect: DeathLinkEffect
     energy_link: EnergyLink
     trap_link: TrapLink
 
     mod_language: ModLanguage
+    event_beacons: EventBeacons
+    crew_names: CrewNames
 
     goal: Goal
     victories_required: VictoriesRequired
     victory_difficulty: VictoryDifficulty
+    flagship_sabotage: FlagshipSabotage
+    sector_skip: SectorSkip
+    shop_deal_scrap: ShopDealScrap
+    kestrel_key: KestrelKey
+    sector_locks: SectorLocks
     archives: Archives
     archives_required: ArchivesRequired
     victory_layouts: VictoryLayouts
@@ -909,6 +1111,7 @@ class FTLOptions(PerGameCommonOptions):
     ship_layouts: ShipLayouts
     layout_count: LayoutCount
     layout_unlocks: LayoutUnlocks
+    early_ship_keys: EarlyShipKeys
 
     sectorsanity: Sectorsanity
     sectorsanity_first_sector: SectorsanityFirstSector
@@ -928,9 +1131,14 @@ class FTLOptions(PerGameCommonOptions):
     free_upgrades: FreeUpgrades
     system_install: SystemInstall
     run_start_scrap: RunStartScrap
+    event_checks: EventChecks
+    reactor_checks: ReactorChecks
     combat_checks: CombatChecks
+    combat_checks_mode: CombatChecksMode
+    fights_per_sector: FightsPerSector
     combat_check_scrap: CombatCheckScrap
     progressive_systems_per_ship: ProgressiveSystemsPerShip
+    progressive_unlocks_system: ProgressiveUnlocksSystem
     head_starts: HeadStarts
     trap_chance: TrapChance
     shop_weapons: ShopWeapons
@@ -944,6 +1152,7 @@ class FTLOptions(PerGameCommonOptions):
     shop_checks: ShopChecks
     shop_by_sector: ShopBySector
     shop_per_ship: ShopPerShip
+    shop_hints: ShopHints
     minimum_filler: MinimumFiller
 
     sector_logic: SectorLogic
@@ -956,24 +1165,44 @@ class FTLOptions(PerGameCommonOptions):
 
 
 ftl_option_groups = [
-    OptionGroup("Goal", [VictoriesRequired, VictoryDifficulty, Archives, ArchivesRequired]),
+    OptionGroup("Goal", [VictoriesRequired, VictoryDifficulty, FlagshipSabotage, Archives, ArchivesRequired,
+                         VictoryCollectsLayout]),
     OptionGroup(
-        "Game Size",
-        [ShipLayouts, LayoutCount, ExcludedLayouts, Sectorsanity, Systemsanity, ShipAchievementChecks, GeneralAchievementChecks,
-         CrewChecks, CombatChecks, CombatCheckScrap, ShopChecks],
+        "Ships",
+        [StartShip, ShipLayouts, LayoutCount, ExcludedLayouts, LayoutUnlocks, EarlyShipKeys, KestrelKey],
+    ),
+    OptionGroup(
+        "Checks",
+        [Sectorsanity, SectorsanityFirstSector, SectorsanityLastSector, Systemsanity, SystemsanityPerShip,
+         ShipAchievementChecks, GeneralAchievementChecks, CrossRunAchievementChecks, CrewChecks, EventChecks, ReactorChecks, CombatChecks,
+         CombatChecksMode, FightsPerSector, CombatCheckScrap],
+    ),
+    OptionGroup(
+        "Systems and Upgrades",
+        [SystemBlueprints, ProgressiveSystems, ProgressiveSystemsPerShip, ProgressiveUnlocksSystem,
+         FullSystemUpgrades, FreeUpgrades, SystemInstall],
+        start_collapsed=True,
+    ),
+    OptionGroup(
+        "Weapons, Drones, Augments, Crew",
+        [ShopWeapons, ShopDrones, ShopAugments, WeaponBundleSize, DroneBundleSize, AugmentBundleSize,
+         ShopUnlockMode, ShopItemDelivery, CrewMembers],
+        start_collapsed=True,
+    ),
+    OptionGroup(
+        "Archipelago Shop",
+        [ShopChecks, ShopBySector, ShopPerShip, ShopHints, ShopDealScrap],
+        start_collapsed=True,
+    ),
+    OptionGroup(
+        "Runs",
+        [HeadStarts, RunStartScrap, SectorSkip, SectorLocks, EventBeacons, SectorLogic, ModLanguage],
+        start_collapsed=True,
     ),
     OptionGroup(
         "Playing with Others",
-        [DeathLink, DeathLinkTrigger, DeathLinkClonedCrew, DeathLinkEffect, EnergyLink, TrapLink, TrapChance],
-    ),
-    OptionGroup(
-        "Advanced",
-        [StartShip, HeadStarts, ModLanguage, SectorsanityFirstSector, SectorsanityLastSector, VictoryCollectsLayout, LayoutUnlocks, CrossRunAchievementChecks,
-         SystemBlueprints, ProgressiveSystems, FullSystemUpgrades, FreeUpgrades, SystemInstall, RunStartScrap, CrewMembers, ShopWeapons, ShopDrones, ShopAugments,
-         WeaponBundleSize, DroneBundleSize, AugmentBundleSize,
-         ShopUnlockMode, ShopItemDelivery, ShopBySector, ShopPerShip, SystemsanityPerShip,
-         ProgressiveSystemsPerShip, SectorLogic],
-        start_collapsed=True,
+        [DeathLink, DeathLinkTrigger, DeathLinkClonedCrew, DeathLinkToggle, DeathLinkEffect, EnergyLink, TrapLink, TrapChance,
+         CrewNames],
     ),
     OptionGroup(
         "Expert (YAML only)",
@@ -1116,4 +1345,27 @@ def bundle_size(options: FTLOptions, family: str) -> int:
 def item_copies(options: FTLOptions, item: data.Item) -> int:
     if item.group == data.GROUP_SYSTEM_LEVELS and item.count and options.full_system_upgrades:
         return 1
+    if item.group == data.GROUP_SHIP_KEYS and item.count and progressive_ship_keys(options):
+        return max(1, len(progressive_layouts(options, item.ship)))
     return item.count
+
+
+def progressive_ship_keys(options) -> bool:
+    return options.layout_unlocks == options.layout_unlocks.option_progressive
+
+
+def progressive_layouts(options, ship: str) -> tuple[data.Layout, ...]:
+    """The layouts a progressive ship key gives, copy after copy: the seed's layouts of that ship, A first."""
+    from . import locations
+    return tuple(sorted((layout for layout in locations.selected_layouts(options) if layout.ship == ship),
+                        key=lambda layout: layout.variant))
+
+
+def always_unlocked_layouts(options) -> tuple[str, ...]:
+    """The layouts every seed gives at the start: the Kestrel A, unless kestrel_key asks for its key."""
+    kestrel = data.ALWAYS_UNLOCKED_LAYOUTS
+    start_slot = getattr(options, "start_ship").value
+    start_is_kestrel = any(ship.slot == start_slot and ship.blueprint in kestrel for ship in data.SHIPS)
+    if getattr(options, "kestrel_key", None) is not None and options.kestrel_key and not start_is_kestrel:
+        return ()
+    return kestrel

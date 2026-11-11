@@ -7,7 +7,8 @@
 <text name="ap_evt_package_c3_text" language="es">Te quedas con tu chatarra y el relé se aleja. Los paquetes encontrarán otra ventana.</text>
 
 <text name="ap_evt_zoltan_tithe_text" language="es">El puesto de control consiste en un solo crucero zoltan y una montaña de papeleo. "Toda nave que cruza el Tercer Anillo contribuye al Anillo", explica el oficial con la paciencia de alguien que ya lo ha explicado diez mil veces. "La contribución no es un peaje. El peaje se cobra. La contribución se entrega."</text>
-<text name="ap_evt_zoltan_tithe_c1" language="es">Pagar el diezmo.</text>
+<text name="ap_evt_zoltan_tithe_c1" language="es">Pagar el diezmo. 1 de combustible más va a la reserva compartida.</text>
+<text name="ap_evt_zoltan_toll_c1" language="es">Pagar el diezmo.</text>
 <text name="ap_evt_zoltan_tithe_c1_text" language="es">El oficial lo acepta sin contarlo, lo cual resulta más inquietante que si lo hubiera contado. El Anillo envía la energía al exterior, a la reserva común de la que se abastece cada jugador de Archipelago. Tú también, tarde o temprano.</text>
 <text name="ap_evt_zoltan_tithe_c2" language="es">Invocar el derecho de paso.</text>
 <text name="ap_evt_zoltan_tithe_c2_text" language="es">Es tu derecho, según confirma el oficial, y te permite tomar lo que guarda el Anillo. Nadie te detiene. Los zoltan simplemente lo registran. En algún lugar, alguien encontrará la reserva más vacía de lo que la dejó.</text>
@@ -38,7 +39,7 @@
 <text name="ap_signal_visited" language="es">Señal de Archipelago.</text>
 
 <text name="ap_store_text" language="es">Un mercader te contacta a través de una frecuencia desconocida. Su manifiesto enumera nombres que no reconoces y mercancías destinadas a personas que no están a bordo.</text>
-<text name="ap_evt_zoltan_toll_c1_text" language="es">El oficial la acepta sin contarla, lo cual resulta más incómodo que si lo hubiera hecho. A cambio, te entrega tres celdas de combustible selladas en nombre del Anillo. Todo queda registrado.</text>
+<text name="ap_evt_zoltan_toll_c1_text" language="es">El oficial la acepta sin contarla, lo cual resulta más incómodo que si lo hubiera hecho. A cambio, te entrega tres celdas de combustible selladas en nombre del Anillo.</text>
 <text name="ap_evt_zoltan_toll_c3" language="es">Seguir tu camino.</text>
 <text name="ap_evt_zoltan_toll_c3_text" language="es">El oficial registra tu negativa sin hacer comentarios y te deja pasar. Los zoltan lo registran todo.</text>
 <text name="ap_evt_another_world_void" language="es">Descargarla en el vacío.</text>
@@ -59,3 +60,33 @@
 <text name="ap_evt_hijack_yield_text" language="es">Expulsan el paquete por una esclusa. Lo recoges y lo envías a su destino.</text>
 <text name="ap_evt_hijack_destroyed_text" language="es">La nave pirata se rompe en pedazos. Sacas el paquete de los restos y lo envías a su destino.</text>
 <text name="ap_evt_hijack_deadcrew_text" language="es">La tripulación pirata ha muerto. Envías el paquete a su destino y luego desmantelas su nave.</text>
+<text name="ap_trap_asb_text" language="es">Una batería de defensa planetaria se activa y fija tu nave como objetivo. Alguien les dio tu código de transpondedor.</text>
+<text name="ap_trap_surge_text" language="es">El reactor de la nave enemiga ruge. Alguien les envió una sobrecarga de la nave insignia.</text>
+<text name="ap_trap_breach_text" language="es">Alarma de casco. Una parte del blindaje se ha abierto sola: alguien quería que respiraras vacío.</text>
+<text name="ap_swap_clonebay_text" language="es">Ha llegado el plano de la Sala de clonación, pero tu Enfermería ocupa su sitio. ¿Cambiarlas? El plano de la Enfermería sigue siendo tuyo.</text>
+<text name="ap_swap_medbay_text" language="es">Ha llegado el plano de la Enfermería, pero tu Sala de clonación ocupa su sitio. ¿Cambiarlas? El plano de la Sala de clonación sigue siendo tuyo.</text>
+<text name="ap_swap_keep_medbay" language="es">Quedarse con la Enfermería.</text>
+<text name="ap_swap_keep_clonebay" language="es">Quedarse con la Sala de clonación.</text>
+<text name="ap_swap_to_clonebay" language="es">Instalar la Sala de clonación.</text>
+<text name="ap_swap_to_medbay" language="es">Instalar la Enfermería.</text>
+<text name="ap_swap_done_clonebay" language="es">La Sala de clonación ocupa ahora el sitio de la Enfermería.</text>
+<text name="ap_swap_done_medbay" language="es">La Enfermería ocupa ahora el sitio de la Sala de clonación.</text>
+<text name="ap_trap_asb_end_text" language="es">La batería de defensa planetaria se apaga. El combate ha terminado.</text>
+<text name="ap_trap_hazard_text" language="es">Alguien le pasó una corrección de rumbo falsa a tu ordenador de navegación. Esta baliza no es tan tranquila como decían las cartas.</text>
+<text name="ap_trap_hazard_end_text" language="es">Terminado el combate, el espacio alrededor de la baliza se calma.</text>
+<text name="ap_evt_overclock_text" language="es">Un técnico engi te llama desde un módulo taller estrecho. «Tu reactor va con prudencia. Podríamos hacerlo cantar. O fundirse. Normalmente, cantar.» Te dice un precio y una apuesta.</text>
+<text name="ap_evt_overclock_c1" language="es">Apostar 30 de chatarra al overclock.</text>
+<text name="ap_evt_overclock_c1_text" language="es">El técnico se conecta con un entusiasmo inquietante. El reactor zumba cada vez más agudo.</text>
+<text name="ap_evt_overclock_c2" language="es">Dejar que lo pruebe en los motores.</text>
+<text name="ap_evt_overclock_c2_text" language="es">La prueba sale a medias: los motores tosen y echan chispas, pero el técnico te da tres células de combustible por las molestias.</text>
+<text name="ap_evt_overclock_c3" language="es">Darle las gracias e irse.</text>
+<text name="ap_evt_overclock_c3_text" language="es">El técnico parece decepcionado, luego te despide con la mano y vuelve a sus cables.</text>
+<text name="ap_evt_overclock_win" language="es">El overclock aguanta. El técnico grita de alegría, no gana nada y te paga el doble con una apuesta paralela sobre tu nave.</text>
+<text name="ap_evt_overclock_lose" language="es">Algo revienta. Luego otra cosa. El reactor vuelve a la normalidad, pero partes de la nave no disfrutaron del viaje.</text>
+<text name="ap_evt_arms_text" language="es">Un carguero muy armado espera en la baliza. Su capitán sonríe demasiado. «Buenas armas, precios justos, sin preguntas. Solo hoy.»</text>
+<text name="ap_evt_arms_c1" language="es">Comprar un arma por 45 de chatarra.</text>
+<text name="ap_evt_arms_c1_text" language="es">El capitán elige una caja sin mirarla y la hace trasladar. Sin devoluciones.</text>
+<text name="ap_evt_arms_c2" language="es">Cambiar 4 de combustible por uno de sus aparatos.</text>
+<text name="ap_evt_arms_c2_text" language="es">El combustible se va, vuelve una cajita sellada. Muy rara, jura.</text>
+<text name="ap_evt_arms_c3" language="es">Rechazar y seguir.</text>
+<text name="ap_evt_arms_c3_text" language="es">«Usted se lo pierde», dice el capitán, ya buscando al siguiente cliente.</text>

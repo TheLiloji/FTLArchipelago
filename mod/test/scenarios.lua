@@ -100,7 +100,7 @@ end
 
 local CONTRACT = 2
 
-local function applySeed(fields)
+local function applySeed(fields, slotName)
     local seed = {
         contract = CONTRACT, kinds = { "filler" }, kinds_required = {},
         items = {}, loc = {},
@@ -108,7 +108,7 @@ local function applySeed(fields)
     for key, value in pairs(fields or {}) do
         seed[key] = value
     end
-    local accepted = apApplySlotData(seed)
+    local accepted = apApplySlotData(seed, slotName)
     check(accepted ~= false, "the test seed is accepted by the contract")
     if accepted ~= false and _G.apRunSeedForTesting then apRunSeedForTesting(apSeedFingerprint()) end
     return accepted
@@ -405,7 +405,7 @@ test("language: a French player reads their run in French", function()
     drain()
 
     check(shownKey("item.received"), "the received item is announced in French")
-    check(shownKey("trap.sprung"), "so is the trap")
+    check(shownKey("trap.title.fleet_advance") or shownKey("trap.sprung"), "so is the trap, by its French name")
     check(shownKey("trap.fleet_advance"), "and its description")
     check(not sim.shown("Received "), "no leftover English")
     check(not sim.shown("Trap:"), "not for traps either")
@@ -438,8 +438,195 @@ test("boarding trap: an intruder comes aboard, on the enemy side", function()
     check(last.intruder == true, "and it is HOSTILE, not a recruit")
     equals(last.iShipId, 1, "it belongs to the enemy ship, so it doesn't count for us")
     check(last.iRoomId ~= nil, "it appears in a room of the ship")
-    check(shownKey("trap.boarding", { room = last.iRoomId }), "and the player sees it arrive")
+    local system = nil
+    for i = 0, sim.player.vSystemList:size() - 1 do
+        local candidate = sim.player.vSystemList[i]
+        if candidate.roomId == last.iRoomId then system = apSystemLabel(candidate.iSystemType) end
+    end
+    if system then
+        check(shownKey("trap.boarding.system", { system = system }), "and the player sees it arrive, by the room's system")
+    else
+        check(shownKey("trap.boarding.aboard"), "and the player sees it arrive")
+    end
+    check(not sim.shown("room " .. tostring(last.iRoomId)), "no room number the player cannot place")
     check(sim.logged("trap triggered: trap.boarding"), "the log names the effect, not the item")
+end)
+
+test("anti-ship battery trap: armed at a quiet beacon, sprung in the next fight", function()
+    sim.startRun(true)
+    sim.loadedEvents = {}
+    apQueueItem({ kind = "trap", eff = "asb" })
+    drain()
+    equals(apTrapAsbArmed(), 1, "the battery waits for a fight")
+    check(shownKey("trap.asb"), "and the player is warned")
+    sim.tick(120)
+    equals(#sim.loadedEvents, 0, "no fight, no battery")
+
+    sim.enemy = sim.makeShip(1)
+    sim.starMap.bossLevel = true
+    sim.tick(120)
+    equals(#sim.loadedEvents, 0, "never in the Last Stand")
+    sim.starMap.bossLevel = false
+    sim.space.bPDS = true
+    sim.tick(120)
+    equals(#sim.loadedEvents, 0, "a beacon that already has a battery keeps the trap for later")
+    sim.space.bPDS = false
+    sim.tick(120)
+    equals(sim.loadedEvents[1], "AP_TRAP_ASB", "the battery joins the fight")
+    equals(#sim.loadedEvents, 1, "once")
+    equals(apTrapAsbArmed(), 0, "and the trap is spent")
+    sim.enemy = nil
+end)
+
+test("anti-ship battery trap: at most two wait at once", function()
+    sim.startRun(true)
+    for _ = 1, 3 do
+        apQueueItem({ kind = "trap", eff = "asb" })
+    end
+    drain()
+    equals(apTrapAsbArmed(), 2, "two batteries wait")
+    check(sim.logged("trap asb impossible (floor reached), falling back to"), "the third becomes a gentler trap")
+end)
+
+test("power surge trap: waits for a fight, one fight trap per fight", function()
+    sim.startRun(true)
+    sim.jumpArrive()
+    sim.loadedEvents = {}
+    apQueueItem({ kind = "trap", eff = "power_surge" })
+    apQueueItem({ kind = "trap", eff = "asb" })
+    drain()
+    equals(apFightTrapArmed("power_surge"), 1, "the surge waits for a fight")
+    check(shownKey("trap.power_surge"), "and the player is warned")
+
+    sim.enemy = sim.makeShip(1)
+    sim.tick(240)
+    equals(#sim.loadedEvents, 1, "one trap per fight")
+    equals(sim.loadedEvents[1], "AP_TRAP_ASB", "the battery first")
+    sim.jumpArrive()
+    sim.tick(120)
+    local event = sim.loadedEvents[2]
+    check(event == "AP_TRAP_SURGE_LASER_LIGHT" or event == "AP_TRAP_SURGE_DRONES_LIGHT",
+        "the next fight gets the surge, a light one in sector 1 (" .. tostring(event) .. ")")
+    equals(apFightTrapArmed("power_surge"), 0, "and the trap is spent")
+    check(shownKey("trap.named", { name = apT("trap.title.power_surge"), effect = apT("trap.power_surge") }),
+        "the trap is named in the player's language")
+
+    apQueueItem({ kind = "trap", eff = "power_surge" })
+    sim.enemy = nil
+    sim.jumpArrive()
+    drain()
+    sim.starMap.worldLevel = 4
+    sim.enemy = sim.makeShip(1)
+    sim.jumpArrive()
+    sim.tick(120)
+    event = sim.loadedEvents[3]
+    check(event == "AP_TRAP_SURGE_LASER" or event == "AP_TRAP_SURGE_DRONES",
+        "from sector 3, the Flagship's own surge (" .. tostring(event) .. ")")
+    sim.starMap.worldLevel = 0
+    sim.enemy = nil
+end)
+
+test("anti-ship battery trap: the battery stops once the enemy gives up", function()
+    sim.startRun(true)
+    sim.jumpArrive()
+    sim.loadedEvents = {}
+    sim.space.bPDS = false
+    apQueueItem({ kind = "trap", eff = "asb" })
+    drain()
+    sim.enemy = sim.makeShip(1)
+    sim.tick(120)
+    equals(sim.loadedEvents[1], "AP_TRAP_ASB", "the battery joins the fight")
+    sim.tick(120)
+    equals(#sim.loadedEvents, 1, "and keeps firing while the enemy fights")
+    sim.enemy._targetable.hostile = false
+    sim.tick(120)
+    equals(sim.loadedEvents[2], "AP_TRAP_ASB_END", "a surrender switches it off")
+    sim.tick(120)
+    equals(#sim.loadedEvents, 2, "once")
+    sim.enemy = nil
+end)
+
+test("anti-ship battery trap: on an asteroid field, the asteroids stay once the battery stops", function()
+    sim.startRun(true)
+    sim.jumpArrive()
+    sim.loadedEvents = {}
+    sim.space.asteroidGenerator.bRunning = true
+    apQueueItem({ kind = "trap", eff = "asb" })
+    drain()
+    sim.enemy = sim.makeShip(1)
+    sim.tick(120)
+    equals(sim.loadedEvents[1], "AP_TRAP_ASB", "the battery joins the fight")
+    sim.enemy.bDestroyed = true
+    sim.tick(120)
+    equals(sim.loadedEvents[2], "AP_TRAP_ASB_END", "the battery stops with the fight")
+    equals(sim.loadedEvents[3], "AP_TRAP_RESTORE_ASTEROID", "and the beacon gets its asteroids back")
+    equals(#sim.loadedEvents, 3, "nothing else")
+    sim.space.asteroidGenerator.bRunning = false
+    sim.enemy = nil
+end)
+
+test("hazard trap: the next fight's beacon gets a hazard it lacked, gone once the fight is over", function()
+    sim.startRun(true)
+    sim.jumpArrive()
+    sim.loadedEvents = {}
+    sim.space.bNebula = false
+    sim.space.asteroidGenerator.bRunning = true
+    apQueueItem({ kind = "trap", eff = "hazard" })
+    drain()
+    equals(apFightTrapArmed("hazard"), 1, "the hazard waits for a fight")
+    check(shownKey("trap.named", { name = apT("trap.title.hazard"), effect = apT("trap.hazard") }),
+        "and the player is warned, in their language")
+    sim.enemy = sim.makeShip(1)
+    sim.tick(120)
+    local event = sim.loadedEvents[1]
+    check(event ~= nil and event:find("^AP_TRAP_HAZARD_") ~= nil, "a hazard joins the fight (" .. tostring(event) .. ")")
+    check(event ~= "AP_TRAP_HAZARD_ASTEROID", "never one the beacon already has")
+    sim.enemy._targetable.hostile = false
+    sim.tick(120)
+    local nebula = event == "AP_TRAP_HAZARD_NEBULA" or event == "AP_TRAP_HAZARD_STORM"
+    equals(sim.loadedEvents[2], nebula and "AP_TRAP_HAZARD_END_NEBULA" or "AP_TRAP_HAZARD_END",
+        "the hazard clears with the fight")
+    equals(sim.loadedEvents[3], "AP_TRAP_RESTORE_ASTEROID", "and the beacon keeps its own asteroids")
+    sim.space.asteroidGenerator.bRunning = false
+    sim.enemy = nil
+end)
+
+test("hazard trap: a nebula brought by the trap is removed, the beacon's own nebula stays", function()
+    for _, hadNebula in ipairs({ false, true }) do
+        sim.startRun(true)
+        sim.jumpArrive()
+        sim.loadedEvents = {}
+        sim.space.bNebula = hadNebula
+        sim.space.bStorm = true
+        sim.space.asteroidGenerator.bRunning = true
+        sim.space.sunLevel = true
+        sim.space.pulsarLevel = not hadNebula
+        apQueueItem({ kind = "trap", eff = "hazard" })
+        drain()
+        sim.enemy = sim.makeShip(1)
+        sim.tick(120)
+        if hadNebula then
+            equals(#sim.loadedEvents, 1, "a beacon in a nebula: the pulsar is all that is left")
+            equals(sim.loadedEvents[1], "AP_TRAP_HAZARD_PULSAR", "")
+        else
+            equals(sim.loadedEvents[1], "AP_TRAP_HAZARD_NEBULA", "the only hazard this beacon lacks")
+            sim.enemy.bDestroyed = true
+            sim.tick(120)
+            equals(sim.loadedEvents[2], "AP_TRAP_HAZARD_END_NEBULA", "the trap's nebula goes away")
+        end
+        sim.space.bStorm, sim.space.sunLevel, sim.space.pulsarLevel = false, false, false
+        sim.space.asteroidGenerator.bRunning = false
+        sim.space.bNebula = false
+        sim.enemy = nil
+    end
+end)
+
+test("a head start is announced with the system's name in the player's language", function()
+    sim.startRun(true)
+    sim.clearLog()
+    apQueueItem({ kind = "start", sys = "engines", n = 1, display = "Head Start: Engines" })
+    drain()
+    check(shownKey("start.received", { item = apSystemLabel("engines") }), "the game's name of the system")
 end)
 
 test("boarding trap: refused when only one crew member is left", function()
@@ -648,9 +835,20 @@ test("all five of the apworld's traps are applied", function()
     apQueueItem({ kind = "trap", eff = "system_damage" })
     apQueueItem({ kind = "trap", eff = "fleet_advance" })
     drain()
-
     check(#sim.player._fires > 0, "fire: a fire started")
+    check(sim.player._breaches == 0, "a burst springs one trap, then waits (release, collect)")
+    for _ = 1, 5 do
+        sim.tick(600)
+        drain()
+    end
+
     check(sim.player._breaches > 0, "breach: a breach opened")
+    check(#sim.player._breachRooms > 0, "the game's own breach, in a room: a hit with no damage opens none")
+    local told = false
+    for _, name in ipairs(sim.loadedEvents or {}) do
+        if name == "AP_TRAP_BREACH" then told = true end
+    end
+    check(told, "and a message box tells the player, like the power surge")
     check(sim.player.fuel_count < 16, "fuel_leak: fuel disappeared")
     check(sim.logged("trap.system_damage"), "system_damage: a system was hit")
     equals(sim.pursuit, 1, "fleet_advance: the rebel fleet advanced")
@@ -845,6 +1043,40 @@ test("scrap: EnergyLink only deposits what is above the threshold", function()
     _G.apEnergyLink.depositScrapAbove = 0
 end)
 
+test("EnergyLink: the deposit message says what lands in the reserve once the loss is taken", function()
+    if _G.apEnergyLink == nil or _G.apEnergyLinkContribute == nil then
+        check(true, "EnergyLink absent from this build: nothing to check")
+        return
+    end
+    sim.startRun(true)
+    _G.apEnergyLink.enabled = true
+    _G.apEnergyLink.depositScrapAbove = 0
+    local above = _G.apEnergyLink.depositFuelAbove
+    sim.player.fuel_count = above + 12
+    sim.clearLog()
+    local restore = stub("apNetEnergyLinkDeposit", function() return true end)
+    pcall(_G.apEnergyLinkContribute)
+    restore()
+    check(sim.shown(apT("energylink.sent", { what = apT("energylink.part.fuel", { n = 12 }), net = "9" })),
+        "12 fuel given, 9 in the reserve: the dashboard's figure grows by 9")
+    sim.player.fuel_count = above + 2
+    sim.clearLog()
+    restore = stub("apNetEnergyLinkDeposit", function() return true end)
+    pcall(_G.apEnergyLinkContribute)
+    restore()
+    check(sim.shown(apT("energylink.sent", { what = apT("energylink.part.fuel", { n = 2 }), net = "1.5" })),
+        "2 fuel given, 1.5 in the reserve")
+    apLangResolve("fr")
+    sim.player.fuel_count = above + 2
+    sim.clearLog()
+    restore = stub("apNetEnergyLinkDeposit", function() return true end)
+    pcall(_G.apEnergyLinkContribute)
+    restore()
+    check(sim.shown(apT("energylink.sent", { what = apT("energylink.part.fuel", { n = 2 }), net = "1,5" })),
+        "in French the decimal is a comma (Windows, 11/11)")
+    apLangResolve(nil)
+end)
+
 test("scrap: below the threshold, EnergyLink takes nothing", function()
     if _G.apEnergyLink == nil or _G.apEnergyLinkContribute == nil then
         check(true, "EnergyLink absent from this build: nothing to check")
@@ -1030,6 +1262,87 @@ test("trap: the fuel leak leaves enough to jump", function()
     end
 end)
 
+test("O2 drain trap: waits for a quiet beacon, then every room loses its air once", function()
+    sim.startRun(true)
+    local oxygen = sim.player.oxygenSystem
+    sim.enemy = sim.makeShip(1)
+    apQueueItem({ kind = "trap", eff = "o2_drain" })
+    drain()
+    equals(oxygen.oxygenLevels[0], 100, "no drain during a fight")
+    sim.enemy = nil
+    drain()
+    for room = 0, oxygen.oxygenLevels:size() - 1 do
+        equals(oxygen.oxygenLevels[room], 0, "room " .. room .. " has no air left")
+    end
+    check(shownKey("trap.o2_drain"), "the player is told")
+end)
+
+test("O2 drain trap: never without a working oxygen system, another trap instead", function()
+    sim.startRun(true)
+    local oxygen = sim.player.oxygenSystem
+    oxygen.healthState.first = 0
+    springTrapNow("o2_drain")
+    equals(oxygen.oxygenLevels[0], 100, "a broken oxygen system keeps the air in")
+    sim.player.oxygenSystem = nil
+    springTrapNow("o2_drain")
+    check(not sim.player.bDestroyed, "a ship without oxygen system takes another trap")
+end)
+
+test("O2 drain trap: a broken oxygen system lights a fire and says why", function()
+    sim.startRun(true)
+    apNotifyResetForTesting()
+    sim.player.oxygenSystem.healthState.first = 0
+    apQueueItem({ kind = "trap", eff = "o2_drain" })
+    drain()
+    check(shownKey("trap.o2_drain.down"), "the player knows why it is a fire, with no room number")
+end)
+
+test("O2 drain trap: with the hull breached the rooms keep some air", function()
+    sim.startRun(true)
+    apNotifyResetForTesting()
+    sim.hullBreaches = { {} }
+    local oxygen = sim.player.oxygenSystem
+    apQueueItem({ kind = "trap", eff = "o2_drain" })
+    drain()
+    sim.hullBreaches = nil
+    equals(oxygen.oxygenLevels[0], apTrapLimits.drainAirWithBreach, "the air stops at the floor")
+    check(shownKey("trap.o2_drain.breach"), "and the player is told")
+end)
+
+test("O2 drain trap: a badly hurt crew member gets air back, a healthy one does not", function()
+    sim.startRun(true)
+    local oxygen = sim.player.oxygenSystem
+    local hurt, fine = sim.player.vCrewList[0], sim.player.vCrewList[1]
+    hurt.iRoomId, fine.iRoomId = 0, 1
+    hurt.health.first, hurt.health.second = 20, 100
+    fine.health.first, fine.health.second = 100, 100
+    apQueueItem({ kind = "trap", eff = "o2_drain" })
+    drain()
+    sim.tick(12)
+    check(oxygen.oxygenLevels[0] >= apTrapLimits.drainGuardAir, "the hurt one has air")
+    equals(oxygen.oxygenLevels[1], 0, "the other room stays empty")
+end)
+
+test("hull breach trap: not on a ship short of air, a fire instead", function()
+    sim.startRun(true)
+    local oxygen = sim.player.oxygenSystem
+    for room = 0, oxygen.oxygenLevels:size() - 1 do
+        oxygen:ModifyRoomOxygen(room, -100)
+    end
+    local before = sim.player.ship.breaches and #sim.player.ship.breaches or 0
+    springTrapNow("breach")
+    check(sim.logged("falling back to fire"), "the breach gives way to a fire")
+    equals(sim.player.ship.breaches and #sim.player.ship.breaches or 0, before, "no hole in the hull")
+end)
+
+test("TrapLink: an oxygen trap from another game drains the air", function()
+    equals(apTrapLinkTranslate("Oxygen Trap"), "o2_drain", "'Oxygen'")
+    equals(apTrapLinkTranslate("Suffocation Trap"), "o2_drain", "'Suffocation'")
+    equals(apTrapLinkTranslate("Boarding Trap"), "boarding", "'Boarding' sends intruders aboard")
+    equals(apTrapLinkTranslate("Intruder Trap"), "boarding", "'Intruder' too")
+    equals(apTrapLinkTranslate("Invader Trap"), "boarding", "and 'Invader'")
+end)
+
 test("trap: the message names the system the way the game names it", function()
     sim.startRun(true)
     sim.clearLog()
@@ -1104,6 +1417,7 @@ test("trap: when nothing more is possible, the mod says so", function()
     sim.player.StartFire = failing
     sim.player.DamageArea = failing
     sim.player.GetRandomRoomCenter = failing
+    sim.player.ship.BreachRandomHull = failing
 
     sim.clearLog()
     springTrapNow("hull_damage")
@@ -1503,11 +1817,11 @@ test("in locked mode, the object disappears from shops until its item arrives", 
     _G.apInventory = { ships = {}, shopAvailability = {} }
     apShopConfigure({ mode = "locked", deliver = false, baseline = { "BEAM_2" } })
     sim.startRun(true)
-    equals(sim.rarityFor("BEAM_2", 4).rarity, 0, "the object is unfindable at first")
+    equals(sim.net.shopLocks.BEAM_2, true, "the object is unfindable at first")
 
     apQueueItem({ kind = "shop", bp = "BEAM_2" })
     drain()
-    check(sim.rarityFor("BEAM_2", 4).rarity > 0, "the received item makes it appear")
+    equals(sim.net.shopLocks.BEAM_2, nil, "the received item makes it appear")
 end)
 
 test("a reconnect doesn't relock what's already unlocked", function()
@@ -1529,7 +1843,7 @@ test("unlocking an object gives back its original rarity, no more, no less", fun
     sim.resetBlueprints()
     apShopConfigure({ mode = "locked", deliver = false, baseline = { "COMBAT_1" } })
     sim.startRun(true)
-    equals(sim.rarityFor("COMBAT_1", 2).rarity, 0, "removed from shops at first")
+    equals(sim.net.shopLocks.COMBAT_1, true, "removed from shops at first")
 
     apQueueItem({ kind = "shop", bp = "COMBAT_1" })
     drain()
@@ -1793,6 +2107,41 @@ local function seconds(count)
     sim.tick(count * 60)
 end
 
+test("TrapLink: each FTL on the link announces itself on connect, and the others count it as a partner", function()
+    apNetResetForTesting()
+    apContractResetForTesting()
+    apTrapLinkForgetPartner()
+    sim.net.calls = {}
+    apNetConnect("ws://localhost:38281", "Navigator", "")
+    sim.netEvent("connected", { name = "Navigator", extra = {
+        contract = CONTRACT, kinds = { "filler" }, kinds_required = {}, items = {}, loc = {},
+        links = { trap = { enabled = true } } } })
+    sim.net.connected = true
+    sim.tick(1)
+    local announced = false
+    for _, call in ipairs(sim.net.calls) do
+        if call[1] == "AnnounceTrapLink" and call.reply == false then announced = true end
+    end
+    check(announced, "the connection announces this FTL on TrapLink")
+    check(not apTrapLinkPartnerSeen(), "alone so far: no partner")
+    sim.net.calls = {}
+    sim.netEvent("trap_partner", { sender = "Axel", index = 0 })
+    sim.tick(1)
+    check(apTrapLinkPartnerSeen(), "another FTL announced itself: a partner, without any trap")
+    local answered = false
+    for _, call in ipairs(sim.net.calls) do
+        if call[1] == "AnnounceTrapLink" and call.reply == true then answered = true end
+    end
+    check(answered, "and it gets an answer, so it counts us too")
+    sim.net.calls = {}
+    sim.netEvent("trap_partner", { sender = "Axel", index = 1 })
+    sim.tick(1)
+    equals(sim.netCalls("AnnounceTrapLink"), 0, "an answer is not answered")
+    apTrapLinkForgetPartner()
+    _G.apTrapLink.enabled = false
+    apNetResetForTesting()
+end)
+
 test("network: a successful connection is told to the player", function()
     sim.startRun(true)
     apNetConnect("ws://localhost:38281", "Navigator", "")
@@ -1861,6 +2210,21 @@ test("network: a refusal with no reason is still reported", function()
     sim.netEvent("refused", { extra = "" })
     sim.tick(1)
     check(shownKey("net.refused.unknown"), "the player isn't left staring at a silent screen")
+end)
+
+test("network: the share of checks done counts only this seed's locations, never past 100 %", function()
+    sim.startRun(true)
+    apForgetChecksForTesting()
+    sim.net.checked = { "Archipelago Shop 1" }
+    apNetConnect("ws://localhost:38281", "Navigator", "")
+    sim.netEvent("connected", { name = "Navigator", extra = {
+        contract = CONTRACT, kinds = { "filler" }, kinds_required = {},
+        items = {}, loc = { ["shop:1"] = "Archipelago Shop 1", ["shop:2"] = "Archipelago Shop 2" },
+    } })
+    sim.tick(1)
+    apRestoreSentChecks({ "PLAYER_SHIP_HARD:sector:9" })
+    equals(apCheckCount().sent, 1, "the key the seed does not have is not counted")
+    equals(apCheckCount().total, 2, "out of the seed's two locations")
 end)
 
 test("network: checks already done are recovered from the server on reconnect", function()
@@ -2403,6 +2767,41 @@ test("scrap delivered behind a weapon that waits is not given again next session
     equals(sim.player.currentScrap, before, "the scrap already received is not credited twice")
 end)
 
+test("network: another game on the same seed name does not swallow its items as replays", function()
+    local seed = { contract = CONTRACT, kinds = { "filler" }, kinds_required = {}, loc = {},
+                   seed_hash = "same-name", items = { ["20 Scrap"] = { k = "filler", res = "scrap", n = 20 },
+                                                      ["50 Scrap"] = { k = "filler", res = "scrap", n = 50 } } }
+    local function session(names)
+        apContractResetForTesting()
+        apNetResetForTesting()
+        apNetConnect("ws://localhost:38281", "Navigator", "")
+        sim.netEvent("connected", { name = "Navigator", extra = seed })
+        for index, name in ipairs(names) do
+            sim.netEvent("item", { name = name, sender = "Nina", index = index - 1 })
+        end
+        sim.tick(1)
+        drain()
+        sim.tick(1)
+    end
+    sim.startRun(true)
+    sim.durable = {}
+    _G.apReceivedHistory = {}
+    session({ "20 Scrap", "20 Scrap" })
+    local start = sim.player.currentScrap
+
+    session({ "20 Scrap", "20 Scrap" })
+    equals(sim.player.currentScrap, start, "the same game again: nothing is credited twice")
+
+    session({ "50 Scrap" })
+    equals(sim.player.currentScrap, start + 50, "a shorter list: the server's item is new, not a replay")
+    check(sim.logged("another game on the same seed name"), "the log says why")
+    equals(#_G.apReceivedHistory, 1, "the journal starts over with that game's list")
+    equals(_G.apReceivedHistory[1].item, "50 Scrap", "and shows its item")
+
+    session({ "20 Scrap", "20 Scrap", "20 Scrap" })
+    equals(sim.player.currentScrap, start + 50 + 60, "a longer list with other names: all of it is new")
+end)
+
 test("after a reset, the scrap of a seed played before arrives again", function()
     local seed = { contract = CONTRACT, kinds = { "filler" }, kinds_required = {}, loc = {},
                    seed_hash = "reset-me", items = { ["20 Scrap"] = { k = "filler", res = "scrap", n = 20 } } }
@@ -2600,6 +2999,8 @@ test("network: a received death reaches DeathLink with its sender and cause", fu
     sim.tick(1)
     check(sim.logged("death received from Nina (hull breach)"),
         "the sender is the sender, the cause is the cause")
+    check(sim.shown("Nina"), "the player is told who died")
+    check(not sim.shown(apT("trap.sprung", { what = "" })), "a death from another world is not called a trap")
 end)
 
 test("network: a received trap reaches TrapLink with its sender and name", function()
@@ -2633,6 +3034,7 @@ test("network: asking an empty shared pool tells the player instead of staying s
     sim.startRun(true)
     local before = sim.player.fuel_count
     sim.clearLog()
+    _G.apEnergyLinkState.pendingRequest = 2000000
     sim.netEvent("energy", { name = "EnergyLink1", value = 0, index = 0 })
     sim.tick(1)
     equals(sim.player.fuel_count, before, "no fuel")
@@ -3310,8 +3712,45 @@ test("a deal announces its payoff and its risks", function()
     check(desc.shortTitle.data:find("+", 1, true), "and in the box, which is narrow")
     check(desc.description.data:find("fire", 1, true), "the possible traps are listed")
     check(desc.description.data:find("hull breach", 1, true), "all of them, not just the first")
-    check(desc.description.data:find("Two times out of three", 1, true),
+    check(desc.description.data:find("two times out of three", 1, true),
         "and the odds of getting hit by one yourself")
+    check(desc.description.data:find("next fight", 1, true), "and when it hits")
+end)
+
+test("a pact that turns on us waits for the next fight, not the quiet shop beacon", function()
+    sim.reset()
+    apShopGiftsConfigure(DEMO)
+    _G.apTrapLink.enabled = false
+    sim.startRun(true)
+    sim.jumpArrive()
+    sim.enemy = nil
+    local hull = sim.player.ship.hullIntegrity.first
+    local fuel = sim.player.fuel_count
+    sim.clearLog()
+    sim.sign("AP_DEAL_1")
+    sim.sign("AP_DEAL_2")
+    sim.sign("AP_DEAL_3")
+    sim.tick(240)
+    equals(apDealBacklashArmed(), 3, "without Trap Link, every pact comes back to us")
+    check(not sim.logged("pact backlash struck"), "nothing strikes at the shop beacon")
+    equals(sim.player.ship.hullIntegrity.first, hull, "the hull is untouched")
+    equals(sim.player.fuel_count, fuel, "and so is the fuel")
+
+    sim.enemy = sim.makeShip(1)
+    sim.enemy._targetable.hostile = false
+    sim.tick(240)
+    equals(apDealBacklashArmed(), 3, "a ship that is not hostile is not a fight")
+
+    sim.enemy._targetable.hostile = true
+    sim.tick(240)
+    equals(apDealBacklashArmed(), 1, "two strike in the first fight")
+    check(sim.logged("pact backlash struck"), "the log says so")
+    check(sim.shown(apT("deal.own_pact")), "the player is told it is their own pact")
+
+    sim.jumpArrive()
+    sim.tick(240)
+    equals(apDealBacklashArmed(), 0, "the last one in the next fight")
+    sim.enemy = nil
 end)
 
 test("signing a deal earns scrap", function()
@@ -3549,6 +3988,7 @@ test("online, a deal always promises someone else will pay", function()
         _G.apTrapLink.enabled = true
         sim.startRun(true)
         _G.apNetSendTrap = function() return true end
+        _G.apTrapLinkState.partnerAge = 0
         sim.clearLog()
 
         sim.sign("AP_DEAL_2")
@@ -3558,6 +3998,26 @@ test("online, a deal always promises someone else will pay", function()
         if shownKey("deal.other") then outward = outward + 1 end
     end
     check(outward > 0, "and most do go outward (" .. outward .. "/20)")
+    _G.apNetSendTrap = previous
+end)
+
+test("alone on Trap Link, a deal's trap always hits the player", function()
+    local previous = _G.apNetSendTrap
+    local sends = 0
+    for attempt = 1, 20 do
+        sim.reset()
+        apShopGiftsConfigure(DEMO)
+        _G.apTrapLink.enabled = true
+        _G.apTrapLinkState.partnerAge = nil
+        sim.startRun(true)
+        _G.apNetSendTrap = function() sends = sends + 1 return true end
+        sim.clearLog()
+
+        sim.sign("AP_DEAL_2")
+        sim.tick(120)
+        check(not shownKey("deal.other"), "attempt " .. attempt .. ": no trap seen from anyone else yet")
+    end
+    equals(sends, 0, "nothing goes out while no other slot showed up on the link")
     _G.apNetSendTrap = previous
 end)
 
@@ -3601,6 +4061,45 @@ test("a system given by an event is NOT removed", function()
 
     equals(#sim.player._removed, 0, "the system stays with the player")
     check(sim.logged("GIVEN by an event"), "and the mod says so")
+end)
+
+test("a store the beacon does not show (Multiverse store button): an allowed system, then a locked one", function()
+    sim.startRun(true)
+    _G.apInventory.systemCaps.battery = 1
+    _G.apInventory.systemCaps.drones = nil
+    local blueprints = _G.apInventory.blueprints
+    if blueprints then blueprints.battery, blueprints.drones = true, nil end
+    sim.jumpArrive()
+    sim.setStore(false)
+    sim.player.currentScrap = 200
+    sim.tick(1)
+    sim.clearLog()
+
+    sim.player.currentScrap = 165
+    sim.constructSystem("battery", 0, 35)
+    sim.tick(1)
+    sim.player.currentScrap = 115
+    sim.constructSystem("drones", 0, 50)
+    sim.tick(5)
+
+    equals(#sim.player._removed, 1, "only the locked system goes")
+    check(sim.logged("PURCHASE REFUSED: drones"), "Drone Control was bought, so it is refused")
+    equals(sim.player.currentScrap, 165, "and its 50 scrap come back")
+    check(not sim.logged("GIVEN by an event"), "a paid system is never taken for an event's gift")
+    _G.apInventory.systemCaps.battery = nil
+    if blueprints then blueprints.battery = nil end
+end)
+
+test("a store opened by a choice of the beacon's event counts as a store", function()
+    sim.startRun(true)
+    _G.apInventory.systemCaps.cloaking = nil
+    sim.jumpArrive()
+    sim.setStore(false)
+    sim.tick(1)
+    fire("PRE_CREATE_CHOICEBOX", { store = true, eventName = "STORE_LOAD_GENERIC", stuff = {} })
+    sim.constructSystem("cloaking", 0, 0)
+    sim.tick(5)
+    equals(#sim.player._removed, 1, "even when the scrap did not move, a store purchase is refused")
 end)
 
 test("an Archipelago event sets its backdrop, even on a beacon already drawn", function()
@@ -3978,6 +4477,24 @@ test("quitting a run to the menu is a run end, not a death", function()
     sim.tick(20)
     check(not sim.logged("RUN END"), "and it's announced only once")
     sim.started = true
+end)
+
+test("a major incident never breaches life support: no suffocation, no DeathLink sent back (Windows, 11/11)", function()
+    apDeathLinkConfigure({ enabled = true, effect = "major_incident" })
+    sim.startRun(true)
+    local oxygen
+    for i = 0, sim.player.vSystemList:size() - 1 do
+        local system = sim.player.vSystemList[i]
+        if system.name == "oxygen" then oxygen = system end
+    end
+    for _ = 1, 40 do
+        local before = oxygen.healthState.first
+        apDeathLinkReceive("Berserker", "died")
+        equals(oxygen.healthState.first, before, "the oxygen system is never the one hit")
+        oxygen.healthState.first = 2
+    end
+    check(not sim.shown(apT("deathlink.effect.major", { system = apSystemLabel("oxygen") })),
+        "and never named as the incident's room")
 end)
 
 test("a DeathLink with nothing left to break says so, instead of staying silent", function()
@@ -4703,9 +5220,28 @@ test("event: jamming the signal sends a trap to others", function()
     apEventsResetForTesting()
     local sent = 0
     local restore = stub("apNetSendTrap", function() sent = sent + 1 end)
+    local seen = stub("apTrapLinkPartnerSeen", function() return true end)
     playBranch("AP_EVT_ANOTHER_WORLD_B")
+    seen()
     restore()
     equals(sent, 1, "a trap went out to the multiworld")
+end)
+
+test("event: with no one seen on TrapLink, the surge hits our own ship", function()
+    sim.startRun(true)
+    apEventsResetForTesting()
+    local sent, queued = 0, {}
+    local restore = stub("apNetSendTrap", function() sent = sent + 1 end)
+    local seen = stub("apTrapLinkPartnerSeen", function() return false end)
+    local queue = stub("apQueueItem", function(item) queued[#queued + 1] = item end)
+    playBranch("AP_EVT_ANOTHER_WORLD_B")
+    queue()
+    seen()
+    restore()
+    equals(sent, 0, "nothing goes out into the void")
+    equals(#queued, 1, "the trap comes back")
+    equals(queued[1] and queued[1].kind, "trap", "as a trap on us")
+    check(shownKey("event.trap.nobody"), "and the player is told why")
 end)
 
 test("event: offline, the power surge doesn't pretend it hit someone", function()
@@ -4777,7 +5313,78 @@ test("event: the pirates hold another player's package and say whose", function(
     })
     local box = sim.openChoiceBox("AP_EVT_HIJACK", 3)
     check(box.text:find("Axel", 1, true) ~= nil, "a friend's package before the player's own: " .. box.text)
-    check(box.text:find("20 Scrap", 1, true) ~= nil, "and what's inside")
+    check(box.text:find("20 Scrap", 1, true) == nil, "not what's inside, only a vague word on it")
+    check(box.text:find(apT("event.hijack.hint.filler"), 1, true) ~= nil,
+        "with a word on what it is worth: junk here")
+end)
+
+test("event checks: the events hand out their own checks before the shop's packages", function()
+    sim.startRun(true)
+    apContractResetForTesting()
+    apForgetChecksForTesting()
+    applySeed({ loc = { ["event:1"] = "Archipelago Event 1", ["shop:1"] = "Archipelago Shop 1" } })
+    _G.apShopSlotCount = 1
+    apShopGiftsConfigure({
+        { location = "shop:1", slot = "Axel", item = "20 Scrap", sphere = 1, kind = "filler", cost = 25 },
+    })
+    local restore = stub("apNetScoutedItem", function(key)
+        if key == "event:1" then return { item = "Burst Laser II", slot = "Nina", kind = "useful" } end
+    end)
+    local box = sim.openChoiceBox("AP_EVT_HIJACK", 3)
+    check(box.text:find("Nina", 1, true) ~= nil, "the pirates hold the event's own package: " .. box.text)
+    check(box.text:find(apT("event.hijack.hint.useful"), 1, true) ~= nil, "with its worth")
+    sim.player.currentScrap = 100
+    _G.apEventBranchEffects["AP_EVT_HIJACK_B"]("AP_EVT_HIJACK_B")
+    restore()
+    check(apCheckAlreadySent("event:1"), "paying frees the event check")
+    check(not apCheckAlreadySent("shop:1"), "the shop keeps its package")
+end)
+
+test("event: the pirates' package hints at a trap, so the player can leave it", function()
+    sim.startRun(true)
+    _G.apShopSlotCount = 1
+    apShopGiftsConfigure({
+        { location = "shop:1", slot = "Axel", item = "Ice Trap", sphere = 1, kind = "trap", cost = 25 },
+    })
+    local box = sim.openChoiceBox("AP_EVT_HIJACK", 3)
+    check(box.text:find(apT("event.hijack.hint.trap"), 1, true) ~= nil, "something feels off: " .. box.text)
+    check(box.text:find(apT("event.hijack.hint.filler"), 1, true) == nil, "and only that")
+end)
+
+local function hintSeed(shopHints)
+    apContractResetForTesting()
+    apForgetChecksForTesting()
+    applySeed({ loc = { ["shop:1"] = "Archipelago Shop 1", ["shop:2"] = "Archipelago Shop 2" },
+                options = { shop_hints = shopHints } })
+    sim.startRun(true)
+    _G.apShopSlotCount = 2
+    apShopGiftsConfigure({
+        { location = "shop:1", slot = "Axel", item = "Ice Trap", sphere = 1, kind = "trap", cost = 25 },
+        { location = "shop:2", slot = "Nina", item = "Hookshot", sphere = 1, kind = "progression", cost = 40 },
+    })
+end
+
+test("shop hints: the packages seen at an Archipelago beacon become hints, once each", function()
+    hintSeed(1)
+    local hinted = {}
+    local restore = stub("apNetHintLocation", function(name) hinted[#hinted + 1] = name; return true end)
+    sim.jumpArrive()
+    equals(#hinted, 0, "nothing before the player reaches an Archipelago beacon")
+    sim.gameEvent("AP_STORE_EVENT_3")
+    check(#hinted >= 1 and hinted[1] == "Archipelago Shop 1", "the package on display is hinted: " .. tostring(hinted[1]))
+    local count = #hinted
+    apApplyShopGifts()
+    equals(#hinted, count, "a package already hinted is not hinted again")
+    restore()
+end)
+
+test("shop hints: off keeps the shop a secret", function()
+    hintSeed(0)
+    local hinted = 0
+    local restore = stub("apNetHintLocation", function() hinted = hinted + 1; return true end)
+    sim.gameEvent("AP_STORE_EVENT_3")
+    restore()
+    equals(hinted, 0, "no hint")
 end)
 
 test("event: winning the fight frees the pirates' package for free", function()
@@ -4946,6 +5553,20 @@ test("a trap received from our seed is broadcast to others", function()
     equals(#sent, 1, "the trap goes out to the multiworld")
     equals(sent[1], "Fire Trap", "under its Archipelago name")
     _G.apNetSendTrap = nil
+end)
+
+test("a fire trap names the room by its system, never by a number", function()
+    sim.startRun(true)
+    local restore = stub("apRandomRoomId", function() return 4 end)
+    apQueueItem({ kind = "trap", eff = "fire", display = "Fire Trap" })
+    drain()
+    restore()
+    for _, line in ipairs(sim.screen) do
+        check(not line:find(apT("trap.sprung", { what = "" }) .. apT("trap.title.fire"), 1, true),
+            "the trap's name is not preceded by the word trap again: " .. line)
+    end
+    check(shownKey("trap.fire.system", { system = apSystemLabel("oxygen") }), "room 4 holds the oxygen system")
+    check(not sim.shown("room 4"), "no bare number")
 end)
 
 test("a trap coming from the link is NOT rebroadcast", function()
@@ -5364,7 +5985,7 @@ test("slot_data does lock shops before any item", function()
     apApplySlotData(slotData({
         shop = { mode = "locked", deliver = false, baseline = { "BEAM_2" } },
     }))
-    equals(sim.rarityFor("BEAM_2", 4).rarity, 0, "the object is removed from shops")
+    equals(sim.net.shopLocks.BEAM_2, true, "the object is removed from shops")
 end)
 
 test("a received item is translated into a game action", function()
@@ -5530,7 +6151,33 @@ test("cap: a starting bonus opens its own notch, otherwise it's inert", function
 
     apInventoryAdd({ kind = "start", sys = "engines", n = 1 })
     apApplySystemRules()
-    equals(engines.maxLevel, 3, "the cap opens by one notch so the bonus can fit")
+    equals(engines.maxLevel, 2, "received during the run, the bonus waits for the next one")
+    engines.powerState.second = 2
+    sim.startRun(true)
+    engines = systemNamed("engines")
+    equals(engines.powerState.second, 3, "the next run gets the level")
+    equals(engines.maxLevel, 3, "the cap opens by one notch so the bonus fits")
+end)
+
+test("a head start received during a run waits for the next run, the cap with it", function()
+    _G.apInventory = { ships = {}, systemCaps = { engines = 2 }, startingUpgrades = {}, shopAvailability = {} }
+    sim.startRun(true)
+    local engines = systemNamed("engines")
+    local level = engines.powerState.second
+    apApplySystemRules()
+    local cap = engines.maxLevel
+    apQueueItem({ kind = "start", sys = "engines", n = 1, display = "Engines Head Start" })
+    drain()
+    apApplySystemRules()
+    equals(engines.maxLevel, cap, "no level an event or a store could sell before the run that gets it")
+    sim.startRun(false)
+    sim.tick(1)
+    apApplySystemRules()
+    equals(engines.maxLevel, cap, "nor after a Continue")
+    sim.startRun(true)
+    engines = systemNamed("engines")
+    equals(engines.powerState.second, level + 1, "the next run starts with it")
+    equals(engines.maxLevel, cap + 1, "and its cap counts it")
 end)
 
 test("cap: the game's maximum is never exceeded", function()
@@ -6759,8 +7406,12 @@ test("network: the scout passes a real vector, not a table", function()
 end)
 
 test("filler: an item whose delivery raises is retried, not dropped", function()
+    apSoloResetForTesting()
+    apInventoryClear()
     sim.startRun(true)
     apFillerResetForTesting()
+    -- An arrival delivery left due by an earlier test would make one more attempt.
+    sim.tick(1)
     local raising = true
     local restore = stub("apInventoryAdd", function()
         if raising then error("item not ready yet") end
@@ -7658,4 +8309,18 @@ test("arriving in a fight, weapons come aboard once it is over, at the same beac
     sim.enemy = nil
     sim.tick(2)
     equals(#sim.equipped.weapon, 1, "right after it, without waiting for another jump")
+end)
+
+test("TrapLink: a trap received long ago no longer counts as a partner on the link", function()
+    _G.apTrapLink.enabled = true
+    apTrapLinkReceive("Other", "Ice Trap")
+    check(apTrapLinkPartnerSeen(), "a trap just came in: someone is there")
+    apTrapLinkAgePartner(300)
+    check(apTrapLinkPartnerSeen(), "still there five minutes later")
+    apTrapLinkAgePartner(301)
+    check(not apTrapLinkPartnerSeen(), "ten minutes without a trap: no partner assumed")
+    apTrapLinkReceive("Other", "Ice Trap")
+    apTrapLinkForgetPartner()
+    check(not apTrapLinkPartnerSeen(), "and a disconnect forgets the partner too")
+    _G.apTrapLink.enabled = false
 end)

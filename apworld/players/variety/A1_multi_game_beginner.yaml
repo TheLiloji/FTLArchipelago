@@ -1,5 +1,5 @@
 # Preset A1: FTL is one slot among several games. New to FTL.
-# Short sessions between other games: no traps, no DeathLink, relaxed logic, many shop slots.
+# Short sessions between other games: no traps, no DeathLink, no logic requirements, many shop slots.
 # Measured: 109 locations, 32 free shop slots, ~13.9 checks per hour,
 # ~3.3 h to the goal, ~13 minutes max wait with nothing to send.
 # Change the name line, then generate as usual.
@@ -37,7 +37,7 @@ accessibility: full
   shop_augments: 4
   shop_unlock_mode: rarity_boost
   shop_item_delivery: true
-  sector_logic: relaxed
+  sector_logic: none
   shields_blueprint_logic: start_with
   sensors_blueprint_logic: start_with
   medbay_blueprint_logic: start_with
