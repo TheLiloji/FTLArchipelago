@@ -769,10 +769,25 @@ function apFillerRunCounts()
     return runCounts()
 end
 
+-- Said once per run: a run continued at the Multiverse start beacon keeps its items until the first jump.
+local toldWaitJump = false
+
+local function tellWaitJump()
+    if toldWaitJump or not startWipeDue() or not _G.apNotifyStatus then
+        return
+    end
+    local ok, started = pcall(function() return Hyperspace.App.world.bStartedGame end)
+    if ok and started then
+        toldWaitJump = true
+        apNotifyStatus(apT("item.wait_first_jump", { n = #pending }))
+    end
+end
+
 function apDeliverPending()
     if #pending == 0 then
         return
     end
+    tellWaitJump()
     local counts = runCounts()
     local inRun = safeToDeliver() and counts
     if not inRun and counts and not noRunStarted() and _G.apShopKeepOwed then
@@ -936,6 +951,7 @@ end
 
 script.on_init(function()
     _G.apTrapFleetPushes = 0
+    toldWaitJump = false
 end)
 
 script.on_internal_event(Defines.InternalEvents.JUMP_ARRIVE, function(shipManager)
