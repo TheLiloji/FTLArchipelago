@@ -431,9 +431,22 @@ end
 
 -- Multiverse's first event takes all scrap and fuel (game_mv.lua names it): what the seed gives at the start of a
 -- run waits for it, or it would be wiped. Kept in the run's save, set for a new run only.
+-- A ship at the start beacon with no fuel has been wiped already: the event ran in a part of the run the hook did
+-- not see (a run saved in the middle of the start dialogs, then continued). Waiting for the first jump would then
+-- block the run for good, since nothing can jump without fuel.
 local function startWipeDue()
     local ok, due = pcall(function() return Hyperspace.playerVariables.ap_start_wipe_due end)
-    return ok and math.floor(tonumber(due) or 0) == 1
+    if not ok or math.floor(tonumber(due) or 0) ~= 1 then return false end
+    local seen, empty = pcall(function()
+        local player = Hyperspace.ships.player
+        return Hyperspace.App.world.bStartedGame and player ~= nil and (tonumber(player.fuel_count) or 1) <= 0
+    end)
+    if seen and empty then
+        pcall(function() Hyperspace.playerVariables.ap_start_wipe_due = 0 end)
+        fillerLog("start event already over (no fuel left): run start resources can come")
+        return false
+    end
+    return true
 end
 
 if _G.apStartWipeEvent then
