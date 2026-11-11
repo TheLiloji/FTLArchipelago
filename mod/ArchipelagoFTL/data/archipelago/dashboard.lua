@@ -461,17 +461,33 @@ local function drawLinksCard(x, y, w, h)
         text(10, x + 16, y + 34, w - 32, "dim", apT("dash.links.none"))
         return
     end
-    local chipX = x + 16
-    for _, name in ipairs(links) do
-        local death = name == "DeathLink"
-        local active = not death or _G.apDeathLink.enabled
-        if name == "EnergyLink" then
-            -- The shared pool, in fuel like the mod gives it.
-            local fuel = _G.apEnergyLinkPoolFuel and apEnergyLinkPoolFuel() or nil
-            name = apT("dash.links.energy", { n = fuel ~= nil and tostring(fuel) or "?" })
-        elseif not active then
-            name = apT("dash.links.death_off")
+    -- Every link the seed has gets its chip: when the pool's long label leaves no room, it shows its name only.
+    local function labels(short)
+        local out = {}
+        for index, name in ipairs(links) do
+            if name == "EnergyLink" and not short then
+                -- The shared pool, in fuel like the mod gives it.
+                local fuel = _G.apEnergyLinkPoolFuel and apEnergyLinkPoolFuel() or nil
+                name = apT("dash.links.energy", { n = fuel ~= nil and tostring(fuel) or "?" })
+            elseif name == "DeathLink" and not _G.apDeathLink.enabled then
+                name = apT("dash.links.death_off")
+            end
+            out[index] = name
         end
+        return out
+    end
+    local function fits(names)
+        local total = 0
+        for _, name in ipairs(names) do total = total + width(10, name) + 28 end
+        return total - 8 <= w - 32
+    end
+    local names = labels(false)
+    if not fits(names) then names = labels(true) end
+    local chipX = x + 16
+    for index, linkName in ipairs(links) do
+        local death = linkName == "DeathLink"
+        local active = not death or _G.apDeathLink.enabled
+        local name = names[index]
         local chipW = width(10, name) + 20
         if chipX + chipW > x + w - 16 then break end
         local toggled = death and _G.apDeathLink.toggle ~= false
