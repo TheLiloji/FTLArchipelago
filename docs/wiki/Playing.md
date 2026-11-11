@@ -35,6 +35,11 @@ The **Saves** button on the panel lists them: one per seed, plus solo, with the 
 
 Only the ships you own can be picked. The others stay locked until their key arrives, and new ships show up the
 next time you are back in the hangar, never in the middle of a run. Type B and C layouts are items of their own. In the ship list, a layout the seed left out is marked **NOT IN SEED**: it never unlocks.
+
+The hangar opens on your starting ship. **RANDOM SHIP** and the **< >** arrows go through the ships you own. FTL
+always shows the Kestrel A, even when it cannot count: without its key (option `kestrel_key`) it is marked
+**NO KEY**, and out of the seed **NOT IN SEED**. On such a ship **START** is greyed out and refused with a short
+reason, so a run that would count for nothing never begins.
 Press **TAB** in the hangar to open the dashboard on its Ships page: the ships with the most checks left come
 first, and those with nothing left go to the bottom. **U** or the button shows or hides the ships you do not own.
 
