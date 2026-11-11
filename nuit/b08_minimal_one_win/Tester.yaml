@@ -1,0 +1,9 @@
+name: Tester
+game: "FTL: Faster Than Light"
+"FTL: Faster Than Light":
+  layout_count: 1
+  victories_required: 1
+  shop_checks: 5
+  sectorsanity: disabled
+  general_achievements: disabled
+  ship_achievements: false

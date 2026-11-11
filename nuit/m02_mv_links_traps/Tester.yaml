@@ -1,0 +1,7 @@
+name: Tester
+game: "FTL Multiverse"
+"FTL Multiverse":
+  trap_chance: 40
+  death_link: true
+  trap_link: true
+  energy_link: true

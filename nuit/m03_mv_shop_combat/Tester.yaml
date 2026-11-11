@@ -1,0 +1,7 @@
+name: Tester
+game: "FTL Multiverse"
+"FTL Multiverse":
+  shop_checks: 80
+  combat_checks: 10
+  combat_checks_mode: per_sector
+  shop_per_ship: per_class

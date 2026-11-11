@@ -1,0 +1,9 @@
+name: Tester
+game: "FTL: Faster Than Light"
+"FTL: Faster Than Light":
+  systemsanity: every_level
+  progressive_systems: true
+  system_blueprints: true
+  system_install: immediately
+  progressive_unlocks_system: true
+  free_upgrades: true

@@ -1,0 +1,6 @@
+name: Tester
+game: "FTL: Faster Than Light"
+"FTL: Faster Than Light":
+  layout_unlocks: progressive
+  layout_count: 15
+  victory_collects_layout: true

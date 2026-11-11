@@ -1,0 +1,7 @@
+name: Tester
+game: "FTL: Faster Than Light"
+"FTL: Faster Than Light":
+  layout_unlocks: independent
+  layout_count: 20
+  ship_layouts: all_layouts
+  early_ship_keys: 3

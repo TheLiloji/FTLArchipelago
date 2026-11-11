@@ -1,0 +1,7 @@
+name: Tester
+game: "FTL: Faster Than Light"
+"FTL: Faster Than Light":
+  sector_skip: true
+  sector_locks: true
+  flagship_sabotage: 5
+  sector_logic: power

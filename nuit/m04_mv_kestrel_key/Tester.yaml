@@ -1,0 +1,6 @@
+name: Tester
+game: "FTL Multiverse"
+"FTL Multiverse":
+  kestrel_key: true
+  layout_count: 12
+  layout_unlocks: progressive

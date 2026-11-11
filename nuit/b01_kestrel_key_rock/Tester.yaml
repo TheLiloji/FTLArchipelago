@@ -1,0 +1,8 @@
+name: Tester
+game: "FTL: Faster Than Light"
+"FTL: Faster Than Light":
+  start_ship: rock
+  kestrel_key: true
+  layout_count: 10
+  trap_chance: 30
+  death_link: true

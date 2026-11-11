@@ -1,0 +1,8 @@
+name: Tester
+game: "FTL: Faster Than Light"
+"FTL: Faster Than Light":
+  combat_checks: 10
+  combat_checks_mode: per_sector
+  fights_per_sector: 3
+  event_checks: 20
+  reactor_checks: true

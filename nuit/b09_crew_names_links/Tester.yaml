@@ -1,0 +1,10 @@
+name: Tester
+game: "FTL: Faster Than Light"
+"FTL: Faster Than Light":
+  crew_names: multiworld_and_team
+  energy_link: true
+  trap_link: true
+  death_link: true
+  death_link_effect: major_incident
+  crew_checks: true
+  crew_members: true

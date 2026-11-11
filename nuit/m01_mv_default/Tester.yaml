@@ -1,0 +1,4 @@
+name: Tester
+game: "FTL Multiverse"
+"FTL Multiverse":
+  death_link: false

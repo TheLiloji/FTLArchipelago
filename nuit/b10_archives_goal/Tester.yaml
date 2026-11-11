@@ -1,0 +1,8 @@
+name: Tester
+game: "FTL: Faster Than Light"
+"FTL: Faster Than Light":
+  archives: 10
+  archives_required: 10
+  victories_required: 3
+  head_starts: 5
+  run_start_scrap: 50

@@ -1,0 +1,9 @@
+name: Tester
+game: "FTL: Faster Than Light"
+"FTL: Faster Than Light":
+  shop_checks: 100
+  shop_by_sector: true
+  shop_per_ship: per_layout
+  shop_unlock_mode: locked
+  shop_hints: seen
+  shop_deal_scrap: 200
