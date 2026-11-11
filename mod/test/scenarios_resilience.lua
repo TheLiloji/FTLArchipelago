@@ -605,9 +605,13 @@ test("Multiverse: a run continued at the start beacon with no fuel left gets its
     sim.tick(240)
     equals(sim.player.currentScrap, 0, "held back while the ship still has its fuel")
     sim.player.fuel_count = 0
+    sim.tick(240)
+    equals(sim.player.currentScrap, 0, "a new run's tank is empty before the start event: still held back")
+    sim.startRun(false)
+    sim.player.fuel_count = 0
     apQueueItem({ kind = "filler", res = "fuel", n = 3, display = "Fuel Cache" })
     sim.tick(240)
-    equals(sim.player.fuel_count, 3, "no fuel means the start event already took it: the fuel comes")
+    equals(sim.player.fuel_count, 3, "continued with no fuel: the start event already took it, the fuel comes")
     equals(sim.player.currentScrap, 20, "and the scrap that waited")
 end)
 
