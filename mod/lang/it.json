@@ -475,6 +475,7 @@
     "hangar.refused.out_of_seed": "{ship}: non è in questo seed. Scegli un'altra nave.",
     "hangar.refused.not_received": "{ship}: non ancora ricevuta. Scegli un'altra nave.",
     "question.solo_save.title": "Modalità solo",
-    "dash.links.energy_short": "EnergyLink {n}"
+    "dash.links.energy_short": "EnergyLink {n}",
+    "item.wait_first_jump": "{n} oggetto/i attendono il tuo primo salto."
   }
 }
