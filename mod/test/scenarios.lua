@@ -1061,6 +1061,15 @@ test("EnergyLink: the deposit message says what lands in the reserve once the lo
     restore()
     check(sim.shown(apT("energylink.sent", { what = apT("energylink.part.fuel", { n = 2 }), net = "1.5" })),
         "2 fuel given, 1.5 in the reserve")
+    apLangResolve("fr")
+    sim.player.fuel_count = above + 2
+    sim.clearLog()
+    restore = stub("apNetEnergyLinkDeposit", function() return true end)
+    pcall(_G.apEnergyLinkContribute)
+    restore()
+    check(sim.shown(apT("energylink.sent", { what = apT("energylink.part.fuel", { n = 2 }), net = "1,5" })),
+        "in French the decimal is a comma (Windows, 11/11)")
+    apLangResolve(nil)
 end)
 
 test("scrap: below the threshold, EnergyLink takes nothing", function()
