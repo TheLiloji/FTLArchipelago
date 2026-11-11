@@ -438,7 +438,17 @@ test("boarding trap: an intruder comes aboard, on the enemy side", function()
     check(last.intruder == true, "and it is HOSTILE, not a recruit")
     equals(last.iShipId, 1, "it belongs to the enemy ship, so it doesn't count for us")
     check(last.iRoomId ~= nil, "it appears in a room of the ship")
-    check(shownKey("trap.boarding", { room = last.iRoomId }), "and the player sees it arrive")
+    local system = nil
+    for i = 0, sim.player.vSystemList:size() - 1 do
+        local candidate = sim.player.vSystemList[i]
+        if candidate.roomId == last.iRoomId then system = apSystemLabel(candidate.iSystemType) end
+    end
+    if system then
+        check(shownKey("trap.boarding.system", { system = system }), "and the player sees it arrive, by the room's system")
+    else
+        check(shownKey("trap.boarding.aboard"), "and the player sees it arrive")
+    end
+    check(not sim.shown("room " .. tostring(last.iRoomId)), "no room number the player cannot place")
     check(sim.logged("trap triggered: trap.boarding"), "the log names the effect, not the item")
 end)
 
@@ -1270,11 +1280,7 @@ test("O2 drain trap: a broken oxygen system lights a fire and says why", functio
     sim.player.oxygenSystem.healthState.first = 0
     apQueueItem({ kind = "trap", eff = "o2_drain" })
     drain()
-    local told = false
-    for room = 0, 20 do
-        told = told or shownKey("trap.o2_drain.down", { room = room })
-    end
-    check(told, "the player knows why it is a fire")
+    check(shownKey("trap.o2_drain.down"), "the player knows why it is a fire, with no room number")
 end)
 
 test("O2 drain trap: with the hull breached the rooms keep some air", function()
@@ -5530,6 +5536,16 @@ test("a trap received from our seed is broadcast to others", function()
     equals(#sent, 1, "the trap goes out to the multiworld")
     equals(sent[1], "Fire Trap", "under its Archipelago name")
     _G.apNetSendTrap = nil
+end)
+
+test("a fire trap names the room by its system, never by a number", function()
+    sim.startRun(true)
+    local restore = stub("apRandomRoomId", function() return 4 end)
+    apQueueItem({ kind = "trap", eff = "fire", display = "Fire Trap" })
+    drain()
+    restore()
+    check(shownKey("trap.fire.system", { system = apSystemLabel("oxygen") }), "room 4 holds the oxygen system")
+    check(not sim.shown("room 4"), "no bare number")
 end)
 
 test("a trap coming from the link is NOT rebroadcast", function()

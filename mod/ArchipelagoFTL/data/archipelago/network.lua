@@ -1149,6 +1149,11 @@ function apNetHangarShip()
     return moduleCall("HangarShip")
 end
 
+-- The hangar button under the mouse ("start", "left", "right", "random", "list" or ""); nil with an older library.
+function apNetHangarHover()
+    return moduleCall("HangarHover")
+end
+
 -- Shows another ship in the hangar (its blueprint name), as the arrows would. Nil with an older library.
 function apNetSwitchHangarShip(blueprint)
     return moduleCall("SwitchHangarShip", tostring(blueprint))

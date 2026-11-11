@@ -371,9 +371,7 @@
     "test.skip_combat": "Tecla de teste: combate terminado, motor FTL carregado.",
     "test.skip_combat.partial": "Tecla de teste: combate terminado, mas não foi possível carregar o motor FTL.",
     "trap.asb": "Defesas planetárias vão abrir fogo no teu próximo combate. Alguém lhes deu o teu código de transponder.",
-    "trap.boarding": "Algo subiu a bordo, sala {room}. A câmara de vácuo nunca se abriu.",
     "trap.breach": "Rombo no casco. A blindagem cedeu sozinha.",
-    "trap.fire": "Incêndio na sala {room}. Ninguém o acendeu.",
     "trap.fizzled": "A armadilha não achou mais nada para quebrar.",
     "trap.fleet_advance": "A frota rebelde ganha terreno. Alguém disse a eles onde você está.",
     "trap.from": "{trap}, de {slot}",
@@ -458,7 +456,7 @@
     "restart.wait": "Isto pode levar até um minuto.",
     "trap.o2_drain": "Todas as válvulas se abriram de uma vez. O ar acabou, o sistema de oxigênio está enchendo a nave de novo.",
     "trap.o2_drain.breach": "Todas as válvulas abriram, mas a brecha ativou a segurança: as salas mantêm algum ar.",
-    "trap.o2_drain.down": "O sistema de oxigênio está fora de serviço, não há ar para roubar: em vez disso, um incêndio na sala {room}.",
+    "trap.o2_drain.down": "O sistema de oxigênio está fora de serviço, não há ar para roubar: em vez disso, um incêndio a bordo.",
     "trap.title.o2_drain": "Armadilha de oxigênio",
     "shop.locked.tip": "Ainda não desbloqueado: primeiro receba do Archipelago.",
     "deathlink.turned_on": "DeathLink ligado.",
@@ -469,6 +467,12 @@
     "hangar.kestrel_locked": "Kestrel A: ainda sem chave. Escolha outra nave.",
     "run.refused.no_key": "SEM CHAVE: ESTA PARTIDA NÃO CONTA",
     "run.refused.not_in_seed": "FORA DA SEED: ESTA PARTIDA NÃO CONTA",
-    "net.error.unreachable.lost": "O servidor continua sem responder. Os seus checks ficam guardados e são enviados assim que ele voltar."
+    "net.error.unreachable.lost": "O servidor continua sem responder. Os seus checks ficam guardados e são enviados assim que ele voltar.",
+    "trap.fire.system": "Incêndio na sala {system}. Ninguém o acendeu.",
+    "trap.fire.aboard": "Incêndio a bordo. Ninguém o acendeu.",
+    "trap.boarding.system": "Algo subiu a bordo, sala {system}. A câmara de vácuo nunca se abriu.",
+    "trap.boarding.aboard": "Algo subiu a bordo. A câmara de vácuo nunca se abriu.",
+    "hangar.refused.out_of_seed": "{ship}: fora desta seed. Escolha outra nave.",
+    "hangar.refused.not_received": "{ship}: ainda não recebida. Escolha outra nave."
   }
 }

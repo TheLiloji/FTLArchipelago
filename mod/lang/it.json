@@ -371,9 +371,7 @@
     "test.skip_combat": "Tasto di prova: combattimento finito, motore FTL carico.",
     "test.skip_combat.partial": "Tasto di prova: combattimento finito, ma il motore FTL non si è potuto caricare.",
     "trap.asb": "Le difese planetarie apriranno il fuoco nel tuo prossimo combattimento. Qualcuno ha dato loro il tuo codice transponder.",
-    "trap.boarding": "Qualcosa è salito a bordo, stanza {room}. La camera di equilibrio non si è mai aperta.",
     "trap.breach": "Falla nello scafo. La corazza ha ceduto da sola.",
-    "trap.fire": "Incendio nella sala {room}. Nessuno l'ha acceso.",
     "trap.fizzled": "La trappola non ha più trovato niente da rompere.",
     "trap.fleet_advance": "La flotta ribelle guadagna terreno. Qualcuno le ha detto dove sei.",
     "trap.from": "{trap}, da {slot}",
@@ -458,7 +456,7 @@
     "restart.wait": "Può richiedere fino a un minuto.",
     "trap.o2_drain": "Tutte le valvole si sono aperte insieme. L'aria è sparita, il sistema dell'ossigeno sta riempiendo di nuovo la nave.",
     "trap.o2_drain.breach": "Tutte le valvole si sono aperte, ma la breccia ha attivato la sicura: le stanze conservano un po' d'aria.",
-    "trap.o2_drain.down": "Il sistema dell'ossigeno è fuori uso, niente aria da rubare: al suo posto, un incendio nella stanza {room}.",
+    "trap.o2_drain.down": "Il sistema dell'ossigeno è fuori uso, niente aria da rubare: al suo posto, un incendio a bordo.",
     "trap.title.o2_drain": "Trappola dell'ossigeno",
     "shop.locked.tip": "Non ancora sbloccato: prima devi riceverlo da Archipelago.",
     "deathlink.turned_on": "DeathLink attivo.",
@@ -469,6 +467,12 @@
     "hangar.kestrel_locked": "Kestrel A: ancora nessuna chiave. Scegli un'altra nave.",
     "run.refused.no_key": "SENZA CHIAVE: QUESTA PARTITA NON CONTA",
     "run.refused.not_in_seed": "FUORI DAL SEED: QUESTA PARTITA NON CONTA",
-    "net.error.unreachable.lost": "Il server continua a non rispondere. I tuoi check restano salvati e partono appena torna."
+    "net.error.unreachable.lost": "Il server continua a non rispondere. I tuoi check restano salvati e partono appena torna.",
+    "trap.fire.system": "Incendio nella sala {system}. Nessuno l'ha acceso.",
+    "trap.fire.aboard": "Incendio a bordo. Nessuno l'ha acceso.",
+    "trap.boarding.system": "Qualcosa è salito a bordo, stanza {system}. La camera di equilibrio non si è mai aperta.",
+    "trap.boarding.aboard": "Qualcosa è salito a bordo. La camera di equilibrio non si è mai aperta.",
+    "hangar.refused.out_of_seed": "{ship}: non è in questo seed. Scegli un'altra nave.",
+    "hangar.refused.not_received": "{ship}: non ancora ricevuta. Scegli un'altra nave."
   }
 }

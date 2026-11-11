@@ -126,6 +126,29 @@ script.on_internal_event(Defines.InternalEvents.ON_TICK, function()
     end
 end)
 
+-- A room is named by the system in it: a number means nothing to the player. Nil for a room with none.
+local function roomSystem(player, room)
+    local ok, label = pcall(function()
+        local list = player.vSystemList
+        for i = 0, list:size() - 1 do
+            local system = list[i]
+            if system ~= nil and math.floor(system.roomId) == room then
+                return apSystemLabel(Hyperspace.ShipSystem.SystemIdToName(system.iSystemType))
+            end
+        end
+        return nil
+    end)
+    return ok and label or nil
+end
+
+local function where(player, room, systemKey, aboardKey)
+    local system = roomSystem(player, room)
+    if system ~= nil then
+        return systemKey, { system = system }
+    end
+    return aboardKey, {}
+end
+
 local TRAP_DELIVERY = {
     fire = function(player)
         local room = apRandomRoomId(player)
@@ -133,7 +156,7 @@ local TRAP_DELIVERY = {
             return nil
         end
         player:StartFire(room)
-        return "trap.fire", { room = room }
+        return where(player, room, "trap.fire.system", "trap.fire.aboard")
     end,
     -- A breach the game draws in a room, the way a hit opens one; a damage with no damage points opens none.
     -- BreachRandomHull says nothing back in Lua (seen in game): one call, one breach.
@@ -183,7 +206,7 @@ local TRAP_DELIVERY = {
         if not ok then
             return nil
         end
-        return "trap.boarding", { room = room }
+        return where(player, room, "trap.boarding.system", "trap.boarding.aboard")
     end,
     fuel_leak = function(player)
         local available = player.fuel_count - TRAP_LIMITS.fuelFloor
@@ -224,7 +247,7 @@ local TRAP_DELIVERY = {
                 return nil
             end
             player:StartFire(room)
-            return "trap.o2_drain.down", { room = room }
+            return "trap.o2_drain.down", {}
         end
         local breached = hullBreached(player)
         local floor = breached and TRAP_LIMITS.drainAirWithBreach or 0

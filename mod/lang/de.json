@@ -371,9 +371,7 @@
     "test.skip_combat": "Testtaste: Kampf beendet, FTL-Antrieb geladen.",
     "test.skip_combat.partial": "Testtaste: Kampf beendet, aber der FTL-Antrieb konnte nicht geladen werden.",
     "trap.asb": "Planetare Verteidigungsanlagen eröffnen in deinem nächsten Kampf das Feuer. Jemand hat ihnen deinen Transpondercode gegeben.",
-    "trap.boarding": "Etwas ist an Bord gekommen, Raum {room}. Die Luftschleuse wurde nie geöffnet.",
     "trap.breach": "Hüllenbruch. Die Panzerung gab von selbst nach.",
-    "trap.fire": "Feuer in Raum {room}. Niemand hat es gelegt.",
     "trap.fizzled": "Die Falle fand nichts mehr zum Zerbrechen.",
     "trap.fleet_advance": "Die Rebellenflotte rückt vor. Jemand hat ihnen gesagt, wo du bist.",
     "trap.from": "{trap}, von {slot}",
@@ -458,7 +456,7 @@
     "restart.wait": "Das kann bis zu einer Minute dauern.",
     "trap.o2_drain": "Alle Ventile haben sich auf einmal geöffnet. Die Luft ist weg, das Sauerstoffsystem füllt das Schiff wieder auf.",
     "trap.o2_drain.breach": "Alle Ventile öffneten sich, aber das Leck löste die Sicherung aus: Die Räume behalten etwas Luft.",
-    "trap.o2_drain.down": "Das Sauerstoffsystem ist aus, es gibt keine Luft zu stehlen: Stattdessen bricht in Raum {room} ein Feuer aus.",
+    "trap.o2_drain.down": "Das Sauerstoffsystem ist aus, es gibt keine Luft zu stehlen: Stattdessen bricht an Bord ein Feuer aus.",
     "trap.title.o2_drain": "Sauerstofffalle",
     "shop.locked.tip": "Noch nicht freigeschaltet: Erhalte es zuerst von Archipelago.",
     "deathlink.turned_on": "DeathLink an.",
@@ -469,6 +467,12 @@
     "hangar.kestrel_locked": "Kestrel A: noch kein Schlüssel. Wähle ein anderes Schiff.",
     "run.refused.no_key": "KEIN SCHLÜSSEL: DIESER DURCHLAUF ZÄHLT NICHT",
     "run.refused.not_in_seed": "NICHT IM SEED: DIESER DURCHLAUF ZÄHLT NICHT",
-    "net.error.unreachable.lost": "Der Server antwortet weiterhin nicht. Deine Checks bleiben gespeichert und werden gesendet, sobald er zurück ist."
+    "net.error.unreachable.lost": "Der Server antwortet weiterhin nicht. Deine Checks bleiben gespeichert und werden gesendet, sobald er zurück ist.",
+    "trap.fire.system": "Feuer im Raum {system}. Niemand hat es gelegt.",
+    "trap.fire.aboard": "Feuer an Bord. Niemand hat es gelegt.",
+    "trap.boarding.system": "Etwas ist an Bord gekommen, Raum {system}. Die Luftschleuse wurde nie geöffnet.",
+    "trap.boarding.aboard": "Etwas ist an Bord gekommen. Die Luftschleuse wurde nie geöffnet.",
+    "hangar.refused.out_of_seed": "{ship}: nicht in diesem Seed. Wähle ein anderes Schiff.",
+    "hangar.refused.not_received": "{ship}: noch nicht erhalten. Wähle ein anderes Schiff."
   }
 }
