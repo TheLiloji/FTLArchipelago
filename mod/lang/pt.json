@@ -369,9 +369,7 @@
     "test.skip_combat": "Tecla de teste: combate terminado, motor FTL carregado.",
     "test.skip_combat.partial": "Tecla de teste: combate terminado, mas não foi possível carregar o motor FTL.",
     "trap.asb": "Defesas planetárias vão abrir fogo no teu próximo combate. Alguém lhes deu o teu código de transponder.",
-    "trap.boarding": "Algo subiu a bordo, sala {room}. A câmara de vácuo nunca se abriu.",
     "trap.breach": "Rombo no casco. A blindagem cedeu sozinha.",
-    "trap.fire": "Incêndio na sala {room}. Ninguém o acendeu.",
     "trap.fizzled": "A armadilha não achou mais nada para quebrar.",
     "trap.fleet_advance": "A frota rebelde ganha terreno. Alguém disse a eles onde você está.",
     "trap.from": "{trap}, de {slot}",
@@ -467,6 +465,10 @@
     "hangar.kestrel_locked": "Kestrel A: ainda sem chave. Escolha outra nave.",
     "run.refused.no_key": "SEM CHAVE: ESTA PARTIDA NÃO CONTA",
     "run.refused.not_in_seed": "FORA DA SEED: ESTA PARTIDA NÃO CONTA",
-    "net.error.unreachable.lost": "O servidor continua sem responder. Os seus checks ficam guardados e são enviados assim que ele voltar."
+    "net.error.unreachable.lost": "O servidor continua sem responder. Os seus checks ficam guardados e são enviados assim que ele voltar.",
+    "trap.fire.system": "Incêndio na sala {system}. Ninguém o acendeu.",
+    "trap.fire.aboard": "Incêndio a bordo. Ninguém o acendeu.",
+    "trap.boarding.system": "Algo subiu a bordo, sala {system}. A câmara de vácuo nunca se abriu.",
+    "trap.boarding.aboard": "Algo subiu a bordo. A câmara de vácuo nunca se abriu."
   }
 }

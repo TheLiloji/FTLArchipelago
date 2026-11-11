@@ -369,9 +369,7 @@
     "test.skip_combat": "Test key: combat over, FTL drive charged.",
     "test.skip_combat.partial": "Test key: combat over, but the FTL drive could not be charged.",
     "trap.asb": "Planetary defenses will open fire in your next fight. Somebody gave them your transponder code.",
-    "trap.boarding": "Something came aboard in room {room}. The airlock never opened.",
     "trap.breach": "Hull breach. The plating gave on its own.",
-    "trap.fire": "Fire in room {room}. Nobody lit it.",
     "trap.fizzled": "The trap found nothing left to break.",
     "trap.fleet_advance": "The rebel fleet gained ground. Somebody told them where you are.",
     "trap.from": "{trap}, from {slot}",
@@ -467,6 +465,10 @@
     "hangar.kestrel_locked": "Kestrel A: no key yet. Pick another ship.",
     "run.refused.no_key": "NO KEY: THIS RUN DOES NOT COUNT",
     "run.refused.not_in_seed": "NOT IN SEED: THIS RUN DOES NOT COUNT",
-    "net.error.unreachable.lost": "The server still does not answer. Your checks are kept and go out as soon as it is back."
+    "net.error.unreachable.lost": "The server still does not answer. Your checks are kept and go out as soon as it is back.",
+    "trap.fire.system": "Fire in the {system} room. Nobody lit it.",
+    "trap.fire.aboard": "Fire aboard. Nobody lit it.",
+    "trap.boarding.system": "Something came aboard in the {system} room. The airlock never opened.",
+    "trap.boarding.aboard": "Something came aboard. The airlock never opened."
   }
 }
