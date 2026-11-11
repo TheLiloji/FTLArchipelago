@@ -6,8 +6,10 @@ end
 
 -- crew_names: a crew member who joins during a run takes the name of another player of the multiworld, then
 -- (multiworld_and_team) of someone who made or tested the mod. Once every name is aboard, FTL's own stay.
-local TEAM = { "Liloji", "Trapper", "Eto", "File Missing", "Yunus", "Rhythm", "Duck", "Fletchy", "Mongolico",
-               "Studkid", "Simba", "Astron", "Tom" }
+-- The people thanked in the README, in short ASCII forms (FTL's own names go up to 15 letters).
+local TEAM = { "Liloji", "Trapper", "Eto", "File Missing", "Yunus", "Tom", "Rhythm", "Otto", "Cigogne", "SynthKat",
+               "Astron", "Three", "Mulac", "Richard", "Nowi", "Maple", "Jam", "Wyndrose", "Fletchy", "Mongolico",
+               "Simba", "Roobyroo", "Studkid", "Duck", "Kholdstare" }
 
 local config = { mode = "vanilla", players = {} }
 
