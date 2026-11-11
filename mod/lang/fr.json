@@ -168,10 +168,10 @@
     "difficulty.hard": "Difficile",
     "difficulty.normal": "Normal",
     "energylink.empty": "La réserve commune est à sec.",
-    "energylink.part.fuel": "{n} de carburant",
-    "energylink.part.scrap": "{n} de ferraille",
+    "energylink.part.fuel": "{n} carburant",
+    "energylink.part.scrap": "{n} ferraille",
     "energylink.received": "Reçu : {n} de carburant, de la réserve commune",
-    "energylink.sent": "{what} versé dans la réserve commune : {net} carburant après la perte de 25 %.",
+    "energylink.sent": "Versé dans la réserve commune : {what}, soit {net} carburant après la perte de 25 %.",
     "event.gift.nothing": "Aucun colis en attente : rien n'a été expédié, vos {scrap} ferraille vous sont rendus.",
     "event.gift.sent": "Colis parti : {item}, adressé à {slot}",
     "event.hijack.self": "Un vaisseau pirate s'est posé sur un relais Archipelago. Il a saisi votre propre colis et demande 20 ferraille pour le relâcher.",
@@ -473,6 +473,7 @@
     "trap.boarding.aboard": "Quelque chose est monté à bord. La porte du sas n'a jamais été ouverte.",
     "hangar.refused.out_of_seed": "{ship} : hors de cette seed. Choisissez un autre vaisseau.",
     "hangar.refused.not_received": "{ship} : pas encore reçu. Choisissez un autre vaisseau.",
-    "question.solo_save.title": "Mode solo"
+    "question.solo_save.title": "Mode solo",
+    "dash.links.energy_short": "EnergyLink {n}"
   }
 }

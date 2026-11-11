@@ -36,6 +36,15 @@ function apLangSet(code, source)
     return true
 end
 
+-- A number with one decimal, written the way the player's language writes it ("6.8" in English, "6,8" elsewhere).
+function apDecimal(value)
+    local text = string.format("%.1f", value)
+    if state.code ~= nil and state.code ~= "en" then
+        text = text:gsub("%.", ",")
+    end
+    return text
+end
+
 function apLangFromGameSetting()
     local ok, raw = pcall(function()
         return tostring(Hyperspace.Settings.language)

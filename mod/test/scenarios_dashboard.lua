@@ -877,6 +877,8 @@ test("dashboard: the EnergyLink chip shows the shared pool in fuel, and a look a
     openDashboard("overview")
     poolRestore()
     check(sim.drawnText("TrapLink"), "TrapLink is not pushed out by the pool's label")
+    check(sim.drawnText(apT("dash.links.energy_short", { n = "123456789012345678" })),
+        "the pool keeps its figure in the short label (Windows, 11/11)")
     check(sim.drawnText("DeathLink"), "nor DeathLink")
     closeDashboard()
     apLangResolve(nil)

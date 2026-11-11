@@ -8,6 +8,13 @@ local pending = {}
 
 local toldCrewFull = false
 
+-- Resources whose delivery waits (a full crew): logged once, until one goes through.
+local deferredLogged = {}
+
+-- Game ticks left before the next trap may spring (about ten seconds of play between two traps).
+local TRAP_GAP_TICKS = 600
+local trapGapTicks = 0
+
 local RESOURCE_DELIVERY = {
     scrap = function(player, n)
         player:ModifyScrapCount(n, false)
@@ -33,7 +40,10 @@ local RESOURCE_DELIVERY = {
         local added = 0
         for _ = 1, n do
             if player:IsCrewFull() then
-                fillerLog("crew full: " .. (n - added) .. " crew member(s) not delivered")
+                -- Retried at every delivery pass: the log says it once, not every few seconds.
+                if not deferredLogged.crew then
+                    fillerLog("crew full: " .. (n - added) .. " crew member(s) not delivered")
+                end
                 -- Tried again at every delivery pass: said for the first try only.
                 if added == 0 and not toldCrewFull and _G.apNotifyStatus then
                     toldCrewFull = true
@@ -482,9 +492,13 @@ local function deliverOne(descriptor)
         end
         local key, params = deliver(player, amount)
         if key == nil then
-            fillerLog("delivery deferred: " .. tostring(descriptor.res))
+            if not deferredLogged[descriptor.res] then
+                deferredLogged[descriptor.res] = true
+                fillerLog("delivery deferred: " .. tostring(descriptor.res) .. " (said once until it goes through)")
+            end
             return false, "retry"
         end
+        deferredLogged[descriptor.res] = nil
         fillerLog("delivered: " .. key)
         if _G.apNotifyItem then
             _G.apNotifyItem(descriptor.display or apT(key, params), descriptor.sender,
@@ -678,6 +692,28 @@ local function deliverOne(descriptor)
                     { name = descriptor.display or tostring(descriptor.eff) }))
             end
             return false
+        end
+        -- A burst (a release, a collect, traps received while out of a run) would spring them all at once and
+        -- end the run: one trap, then a breather before the next.
+        local fightTrap = descriptor.eff == "asb" or descriptor.eff == "power_surge"
+        if trapGapTicks > 0 and not fightTrap then
+            if not deferredLogged.trap then
+                deferredLogged.trap = true
+                fillerLog("trap waits a few seconds after the previous one")
+            end
+            return false, "retry"
+        end
+        deferredLogged.trap = nil
+        -- Only a burst is spaced: a lone trap springs at once, and so does the last one of a burst.
+        local others = 0
+        for _, waiting in ipairs(pending) do
+            if waiting.kind == "trap" and waiting ~= descriptor and waiting.eff ~= "asb"
+                and waiting.eff ~= "power_surge" then
+                others = others + 1
+            end
+        end
+        if others > 0 and not fightTrap then
+            trapGapTicks = TRAP_GAP_TICKS
         end
         local key, params = springTrap(player, descriptor.eff)
         if key == nil then
@@ -886,6 +922,7 @@ end
 
 function apFillerResetForTesting()
     pending = {}
+    trapGapTicks = 0
 end
 
 function apFillerPendingForTesting()
@@ -1131,6 +1168,9 @@ end)
 
 local pollDivider = 0
 script.on_internal_event(Defines.InternalEvents.ON_TICK, function()
+    if trapGapTicks > 0 then
+        trapGapTicks = trapGapTicks - 1
+    end
     pollDivider = (pollDivider + 1) % 120
     if pollDivider == 0 then
         apDeliverPending()

@@ -474,6 +474,7 @@
     "trap.boarding.aboard": "Algo entró a bordo. La esclusa nunca se abrió.",
     "hangar.refused.out_of_seed": "{ship}: no está en esta seed. Elige otra nave.",
     "hangar.refused.not_received": "{ship}: aún no recibida. Elige otra nave.",
-    "question.solo_save.title": "Modo solo"
+    "question.solo_save.title": "Modo solo",
+    "dash.links.energy_short": "EnergyLink {n}"
   }
 }

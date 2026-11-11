@@ -462,14 +462,15 @@ local function drawLinksCard(x, y, w, h)
         text(10, x + 16, y + 34, w - 32, "dim", apT("dash.links.none"))
         return
     end
-    -- Every link the seed has gets its chip: when the pool's long label leaves no room, it shows its name only.
+    -- Every link the seed has gets its chip: when the pool's long label leaves no room, it drops the word fuel.
     local function labels(short)
         local out = {}
         for index, name in ipairs(links) do
-            if name == "EnergyLink" and not short then
-                -- The shared pool, in fuel like the mod gives it.
+            if name == "EnergyLink" then
+                -- The shared pool, in fuel like the mod gives it; the short label keeps the figure.
                 local fuel = _G.apEnergyLinkPoolFuel and apEnergyLinkPoolFuel() or nil
-                name = apT("dash.links.energy", { n = fuel ~= nil and tostring(fuel) or "?" })
+                name = apT(short and "dash.links.energy_short" or "dash.links.energy",
+                           { n = fuel ~= nil and tostring(fuel) or "?" })
             elseif name == "DeathLink" and not _G.apDeathLink.enabled then
                 name = apT("dash.links.death_off")
             end

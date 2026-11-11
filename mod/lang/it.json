@@ -474,6 +474,7 @@
     "trap.boarding.aboard": "Qualcosa è salito a bordo. La camera di equilibrio non si è mai aperta.",
     "hangar.refused.out_of_seed": "{ship}: non è in questo seed. Scegli un'altra nave.",
     "hangar.refused.not_received": "{ship}: non ancora ricevuta. Scegli un'altra nave.",
-    "question.solo_save.title": "Modalità solo"
+    "question.solo_save.title": "Modalità solo",
+    "dash.links.energy_short": "EnergyLink {n}"
   }
 }

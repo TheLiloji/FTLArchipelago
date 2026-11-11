@@ -835,8 +835,13 @@ test("all five of the apworld's traps are applied", function()
     apQueueItem({ kind = "trap", eff = "system_damage" })
     apQueueItem({ kind = "trap", eff = "fleet_advance" })
     drain()
-
     check(#sim.player._fires > 0, "fire: a fire started")
+    check(sim.player._breaches == 0, "a burst springs one trap, then waits (release, collect)")
+    for _ = 1, 5 do
+        sim.tick(600)
+        drain()
+    end
+
     check(sim.player._breaches > 0, "breach: a breach opened")
     check(#sim.player._breachRooms > 0, "the game's own breach, in a room: a hit with no damage opens none")
     local told = false
@@ -1061,6 +1066,15 @@ test("EnergyLink: the deposit message says what lands in the reserve once the lo
     restore()
     check(sim.shown(apT("energylink.sent", { what = apT("energylink.part.fuel", { n = 2 }), net = "1.5" })),
         "2 fuel given, 1.5 in the reserve")
+    apLangResolve("fr")
+    sim.player.fuel_count = above + 2
+    sim.clearLog()
+    restore = stub("apNetEnergyLinkDeposit", function() return true end)
+    pcall(_G.apEnergyLinkContribute)
+    restore()
+    check(sim.shown(apT("energylink.sent", { what = apT("energylink.part.fuel", { n = 2 }), net = "1,5" })),
+        "in French the decimal is a comma (Windows, 11/11)")
+    apLangResolve(nil)
 end)
 
 test("scrap: below the threshold, EnergyLink takes nothing", function()
