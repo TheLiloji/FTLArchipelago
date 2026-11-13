@@ -94,4 +94,8 @@ quelle règle a refusé. Désactiver SELinux marche aussi, mais ce n'est pas né
 Mets le nouveau `ArchipelagoFTL.ftl` dans `ftlman/mods/`, relance la ligne `patch` de l'étape 3, puis refais
 l'étape 4 avec le nouveau `Hyperspace.1.6.13.amd64.so`.
 
-Ensuite : [Jouer](Playing.md) (en anglais).
+Remplace aussi `ftl.apworld` dans le dossier `custom_worlds` d'Archipelago, et préviens la personne qui génère le
+multiworld de faire pareil. Une partie déjà commencée reste sur la version avec laquelle elle a été faite : la
+nouvelle version, c'est pour une nouvelle seed.
+
+Ensuite : [Jouer](Playing.fr.md).

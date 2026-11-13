@@ -290,7 +290,9 @@ local function currentQuestion()
                  no = "solo.restart", noTone = "warn", decline = restartSolo }
     end
     if resetQuestionOpen() then
-        return { title = apT("question.seed.title"), text = resetQuestionText(),
+        -- Starting solo from another save is not a seed change: the title says what is asked.
+        return { title = apT(soloProfileQuestion and "question.solo_save.title" or "question.seed.title"),
+                 text = resetQuestionText(),
                  yes = profilesOn() and "reset.yes.profile" or "reset.yes",
                  yesTone = profilesOn() and "good" or "warn", accept = acceptReset,
                  no = "reset.no", noTone = "dim", decline = declineReset }
@@ -399,10 +401,9 @@ local function drawForm()
     ui.button(g.button, apT(attempt ~= nil and "connect.button.busy" or "connect.button"), "primary", attempt ~= nil)
     ui.button(g.solo, apT("connect.solo"), "secondary")
 
+    -- How to paste is said once, with the other keys below.
     if message ~= nil then
         ui.wrapped(9, g.message.x, g.message.y, g.message.w, messageTone, message)
-    else
-        ui.wrapped(9, g.message.x, g.message.y, g.message.w, "dim", apT("connect.paste_hint"))
     end
     ui.wrapped(9, p.x + PAD, g.shortcuts, p.w - PAD * 2, "dim", apT("connect.keys"))
 end

@@ -792,6 +792,25 @@ test("dashboard: the EnergyLink chip shows the shared pool in fuel, and a look a
     end
     check(not said, "a look at the pool does not say it is empty")
     closeDashboard()
+
+    -- The three links in French, with the pool's long label: TrapLink still gets its chip (Windows, 11/11).
+    local trapRestore = stub("apSeedSummary", function()
+        local s = summary()
+        s.links.energy, s.links.death, s.links.trap = true, true, true
+        return s
+    end)
+    apLangResolve("fr")
+    -- A pool long enough that its label cannot share the card with the two other chips.
+    local poolRestore = stub("apEnergyLinkPoolFuel", function() return 123456789012345678 end)
+    openDashboard("overview")
+    poolRestore()
+    check(sim.drawnText("TrapLink"), "TrapLink is not pushed out by the pool's label")
+    check(sim.drawnText(apT("dash.links.energy_short", { n = "123456789012345678" })),
+        "the pool keeps its figure in the short label (Windows, 11/11)")
+    check(sim.drawnText("DeathLink"), "nor DeathLink")
+    closeDashboard()
+    apLangResolve(nil)
+    trapRestore()
     restore()
     apEnergyLinkConfigure({ enabled = false })
 end)

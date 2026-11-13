@@ -660,6 +660,8 @@ test("save profiles: solo from another save offers solo's own save (Windows d)",
     sim.click(305, 586)
     sim.renderMenu()
     check(sim.drawnText(apT("reset.yes.profile")), "solo asks to use its own save")
+    check(sim.drawnText(apT("question.solo_save.title")), "under a solo title")
+    check(not sim.drawnText(apT("question.seed.title")), "not as if the seed had changed")
     sim.click(400, 385)
     equals(sim.profiles.pending, "solo", "the switch goes to the solo save")
     check(sim.quitCalled, "FTL closes to load it")

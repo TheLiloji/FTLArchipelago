@@ -223,10 +223,17 @@ function apNotifyResetForTesting()
     toasts = {}
 end
 
-function apNotifyTrap(description)
-    local line = apT("trap.sprung", { what = description })
+-- named: the line already starts with the trap's own name ("Fire Trap: ..."), so "Trap:" is not said twice.
+function apNotifyTrap(description, named)
+    local line = named and description or apT("trap.sprung", { what = description })
     print(line)
     push(line, "bad")
+end
+
+-- A blow from another world that is not a trap (a DeathLink): red like a trap, without the "Trap:" word.
+function apNotifyAlert(description)
+    print(description)
+    push(description, "bad")
 end
 
 function apNotifyStatus(message)

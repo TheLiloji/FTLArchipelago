@@ -405,7 +405,7 @@ test("language: a French player reads their run in French", function()
     drain()
 
     check(shownKey("item.received"), "the received item is announced in French")
-    check(shownKey("trap.sprung"), "so is the trap")
+    check(shownKey("trap.title.fleet_advance") or shownKey("trap.sprung"), "so is the trap, by its French name")
     check(shownKey("trap.fleet_advance"), "and its description")
     check(not sim.shown("Received "), "no leftover English")
     check(not sim.shown("Trap:"), "not for traps either")
@@ -438,7 +438,17 @@ test("boarding trap: an intruder comes aboard, on the enemy side", function()
     check(last.intruder == true, "and it is HOSTILE, not a recruit")
     equals(last.iShipId, 1, "it belongs to the enemy ship, so it doesn't count for us")
     check(last.iRoomId ~= nil, "it appears in a room of the ship")
-    check(shownKey("trap.boarding", { room = last.iRoomId }), "and the player sees it arrive")
+    local system = nil
+    for i = 0, sim.player.vSystemList:size() - 1 do
+        local candidate = sim.player.vSystemList[i]
+        if candidate.roomId == last.iRoomId then system = apSystemLabel(candidate.iSystemType) end
+    end
+    if system then
+        check(shownKey("trap.boarding.system", { system = system }), "and the player sees it arrive, by the room's system")
+    else
+        check(shownKey("trap.boarding.aboard"), "and the player sees it arrive")
+    end
+    check(not sim.shown("room " .. tostring(last.iRoomId)), "no room number the player cannot place")
     check(sim.logged("trap triggered: trap.boarding"), "the log names the effect, not the item")
 end)
 
@@ -825,8 +835,13 @@ test("all five of the apworld's traps are applied", function()
     apQueueItem({ kind = "trap", eff = "system_damage" })
     apQueueItem({ kind = "trap", eff = "fleet_advance" })
     drain()
-
     check(#sim.player._fires > 0, "fire: a fire started")
+    check(sim.player._breaches == 0, "a burst springs one trap, then waits (release, collect)")
+    for _ = 1, 5 do
+        sim.tick(600)
+        drain()
+    end
+
     check(sim.player._breaches > 0, "breach: a breach opened")
     check(#sim.player._breachRooms > 0, "the game's own breach, in a room: a hit with no damage opens none")
     local told = false
@@ -1051,6 +1066,15 @@ test("EnergyLink: the deposit message says what lands in the reserve once the lo
     restore()
     check(sim.shown(apT("energylink.sent", { what = apT("energylink.part.fuel", { n = 2 }), net = "1.5" })),
         "2 fuel given, 1.5 in the reserve")
+    apLangResolve("fr")
+    sim.player.fuel_count = above + 2
+    sim.clearLog()
+    restore = stub("apNetEnergyLinkDeposit", function() return true end)
+    pcall(_G.apEnergyLinkContribute)
+    restore()
+    check(sim.shown(apT("energylink.sent", { what = apT("energylink.part.fuel", { n = 2 }), net = "1,5" })),
+        "in French the decimal is a comma (Windows, 11/11)")
+    apLangResolve(nil)
 end)
 
 test("scrap: below the threshold, EnergyLink takes nothing", function()
@@ -1270,11 +1294,7 @@ test("O2 drain trap: a broken oxygen system lights a fire and says why", functio
     sim.player.oxygenSystem.healthState.first = 0
     apQueueItem({ kind = "trap", eff = "o2_drain" })
     drain()
-    local told = false
-    for room = 0, 20 do
-        told = told or shownKey("trap.o2_drain.down", { room = room })
-    end
-    check(told, "the player knows why it is a fire")
+    check(shownKey("trap.o2_drain.down"), "the player knows why it is a fire, with no room number")
 end)
 
 test("O2 drain trap: with the hull breached the rooms keep some air", function()
@@ -1318,6 +1338,9 @@ end)
 test("TrapLink: an oxygen trap from another game drains the air", function()
     equals(apTrapLinkTranslate("Oxygen Trap"), "o2_drain", "'Oxygen'")
     equals(apTrapLinkTranslate("Suffocation Trap"), "o2_drain", "'Suffocation'")
+    equals(apTrapLinkTranslate("Boarding Trap"), "boarding", "'Boarding' sends intruders aboard")
+    equals(apTrapLinkTranslate("Intruder Trap"), "boarding", "'Intruder' too")
+    equals(apTrapLinkTranslate("Invader Trap"), "boarding", "and 'Invader'")
 end)
 
 test("trap: the message names the system the way the game names it", function()
@@ -2744,6 +2767,41 @@ test("scrap delivered behind a weapon that waits is not given again next session
     equals(sim.player.currentScrap, before, "the scrap already received is not credited twice")
 end)
 
+test("network: another game on the same seed name does not swallow its items as replays", function()
+    local seed = { contract = CONTRACT, kinds = { "filler" }, kinds_required = {}, loc = {},
+                   seed_hash = "same-name", items = { ["20 Scrap"] = { k = "filler", res = "scrap", n = 20 },
+                                                      ["50 Scrap"] = { k = "filler", res = "scrap", n = 50 } } }
+    local function session(names)
+        apContractResetForTesting()
+        apNetResetForTesting()
+        apNetConnect("ws://localhost:38281", "Navigator", "")
+        sim.netEvent("connected", { name = "Navigator", extra = seed })
+        for index, name in ipairs(names) do
+            sim.netEvent("item", { name = name, sender = "Nina", index = index - 1 })
+        end
+        sim.tick(1)
+        drain()
+        sim.tick(1)
+    end
+    sim.startRun(true)
+    sim.durable = {}
+    _G.apReceivedHistory = {}
+    session({ "20 Scrap", "20 Scrap" })
+    local start = sim.player.currentScrap
+
+    session({ "20 Scrap", "20 Scrap" })
+    equals(sim.player.currentScrap, start, "the same game again: nothing is credited twice")
+
+    session({ "50 Scrap" })
+    equals(sim.player.currentScrap, start + 50, "a shorter list: the server's item is new, not a replay")
+    check(sim.logged("another game on the same seed name"), "the log says why")
+    equals(#_G.apReceivedHistory, 1, "the journal starts over with that game's list")
+    equals(_G.apReceivedHistory[1].item, "50 Scrap", "and shows its item")
+
+    session({ "20 Scrap", "20 Scrap", "20 Scrap" })
+    equals(sim.player.currentScrap, start + 50 + 60, "a longer list with other names: all of it is new")
+end)
+
 test("after a reset, the scrap of a seed played before arrives again", function()
     local seed = { contract = CONTRACT, kinds = { "filler" }, kinds_required = {}, loc = {},
                    seed_hash = "reset-me", items = { ["20 Scrap"] = { k = "filler", res = "scrap", n = 20 } } }
@@ -2941,6 +2999,8 @@ test("network: a received death reaches DeathLink with its sender and cause", fu
     sim.tick(1)
     check(sim.logged("death received from Nina (hull breach)"),
         "the sender is the sender, the cause is the cause")
+    check(sim.shown("Nina"), "the player is told who died")
+    check(not sim.shown(apT("trap.sprung", { what = "" })), "a death from another world is not called a trap")
 end)
 
 test("network: a received trap reaches TrapLink with its sender and name", function()
@@ -4419,6 +4479,24 @@ test("quitting a run to the menu is a run end, not a death", function()
     sim.started = true
 end)
 
+test("a major incident never breaches life support: no suffocation, no DeathLink sent back (Windows, 11/11)", function()
+    apDeathLinkConfigure({ enabled = true, effect = "major_incident" })
+    sim.startRun(true)
+    local oxygen
+    for i = 0, sim.player.vSystemList:size() - 1 do
+        local system = sim.player.vSystemList[i]
+        if system.name == "oxygen" then oxygen = system end
+    end
+    for _ = 1, 40 do
+        local before = oxygen.healthState.first
+        apDeathLinkReceive("Berserker", "died")
+        equals(oxygen.healthState.first, before, "the oxygen system is never the one hit")
+        oxygen.healthState.first = 2
+    end
+    check(not sim.shown(apT("deathlink.effect.major", { system = apSystemLabel("oxygen") })),
+        "and never named as the incident's room")
+end)
+
 test("a DeathLink with nothing left to break says so, instead of staying silent", function()
     apDeathLinkConfigure({ enabled = true, effect = "major_incident" })
     sim.startRun(true)
@@ -5480,6 +5558,20 @@ test("a trap received from our seed is broadcast to others", function()
     equals(#sent, 1, "the trap goes out to the multiworld")
     equals(sent[1], "Fire Trap", "under its Archipelago name")
     _G.apNetSendTrap = nil
+end)
+
+test("a fire trap names the room by its system, never by a number", function()
+    sim.startRun(true)
+    local restore = stub("apRandomRoomId", function() return 4 end)
+    apQueueItem({ kind = "trap", eff = "fire", display = "Fire Trap" })
+    drain()
+    restore()
+    for _, line in ipairs(sim.screen) do
+        check(not line:find(apT("trap.sprung", { what = "" }) .. apT("trap.title.fire"), 1, true),
+            "the trap's name is not preceded by the word trap again: " .. line)
+    end
+    check(shownKey("trap.fire.system", { system = apSystemLabel("oxygen") }), "room 4 holds the oxygen system")
+    check(not sim.shown("room 4"), "no bare number")
 end)
 
 test("a trap coming from the link is NOT rebroadcast", function()
