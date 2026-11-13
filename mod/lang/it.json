@@ -483,6 +483,7 @@
     "hangar.refused.not_received": "{ship}: non ancora ricevuta. Scegli un'altra nave.",
     "question.solo_save.title": "Modalità solo",
     "dash.links.energy_short": "EnergyLink {n}",
-    "item.wait_first_jump": "{n} oggetto/i attendono il tuo primo salto."
+    "item.wait_first_jump": "{n} oggetto/i attendono il tuo primo salto.",
+    "button.dashboard": "Pannello di Archipelago (TAB)"
   }
 }

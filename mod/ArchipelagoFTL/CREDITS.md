@@ -7,6 +7,12 @@ project. The original is `mod/art/ftl_archipelago_logo.png` in the repository;
 `mod/tools/gen_logo_art.py` builds the in-game copies from it: `img/ap_logo.png` (main menu and
 start-of-run menu) and `img/systemUI/weapbox_icon_W_ap.png`.
 
+## Dashboard button and Multiverse addon icon, by Trapper444
+
+The button that opens the dashboard during a run (`img/ap_button.png` and `img/ap_button_hover.png`) and the
+small icon among the Multiverse addons (`img/addons/ftl_archipelago_*.png`, Multiverse build only) were drawn by
+**Trapper444** for this project.
+
 ## Spanish translation, by Trapper444
 
 The Spanish texts of the mod (`lang/es.json` and `data/text-es.xml.append`) were translated by
