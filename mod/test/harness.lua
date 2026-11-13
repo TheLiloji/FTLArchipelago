@@ -1016,6 +1016,10 @@ _G.Graphics = {
             sim.images[#sim.images + 1] = { texture = texture, x = x, y = y, w = w, h = h }
             return true
         end,
+        GL_BlitImage = function(texture, x, y, w, h, _, _, _)
+            sim.images[#sim.images + 1] = { texture = texture, x = x, y = y, w = w, h = h }
+            return true
+        end,
         GL_BlitImagePartial = function(texture, x, y, w, h, u1, u2, v1, v2, alpha)
             sim.images[#sim.images + 1] = { texture = texture, x = x, y = y, w = w, h = h,
                                             part = { u1, u2, v1, v2 }, alpha = alpha }

@@ -419,6 +419,7 @@
     <script>data/archipelago/hud.lua</script>
     <script>data/archipelago/chat.lua</script>
     <script>data/archipelago/dashboard.lua</script>
+    <script>data/archipelago/hudbutton.lua</script>
     <script>data/archipelago/saves.lua</script>
     <script>data/archipelago/connect.lua</script>
     <script>data/archipelago/loadout.lua</script>

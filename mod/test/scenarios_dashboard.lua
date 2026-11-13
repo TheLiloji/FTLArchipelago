@@ -1211,3 +1211,41 @@ test("Multiverse addon icon: lit while connected, dark when not", function()
     restore()
     _G.mods = nil
 end)
+
+test("dashboard button: drawn in a run, coloured under the mouse, a click opens the dashboard", function()
+    sim.startRun(true)
+    local area = apHudButtonArea()
+    sim.images = {}
+    sim.renderGui()
+    local drawn
+    for _, image in ipairs(sim.images) do
+        if image.texture and image.texture.name == "ap_button.png" then drawn = image end
+    end
+    check(drawn ~= nil and drawn.x == area.x and drawn.w == area.w, "the plain button is drawn in its corner")
+    Hyperspace.Mouse = { position = { x = area.x + 5, y = area.y + 5 } }
+    sim.images = {}
+    sim.renderGui()
+    local hover
+    for _, image in ipairs(sim.images) do
+        if image.texture and image.texture.name == "ap_button_hover.png" then hover = image end
+    end
+    check(hover ~= nil, "the coloured one under the mouse")
+    Hyperspace.Mouse = nil
+    sim.click(area.x - 5, area.y + 5)
+    check(not apDashboardOpen(), "a click beside it does nothing")
+    sim.click(area.x + 5, area.y + 5)
+    check(apDashboardOpen(), "a click on it opens the dashboard")
+    apToggleHud()
+end)
+
+test("dashboard button: not drawn outside a run", function()
+    sim.startRun(true)
+    sim.menuOpen = true
+    Hyperspace.App.menu.bOpen = true
+    sim.images = {}
+    sim.renderGui()
+    for _, image in ipairs(sim.images) do
+        check(not (image.texture and image.texture.name == "ap_button.png"), "no button on the menu")
+    end
+    Hyperspace.App.menu.bOpen = false
+end)

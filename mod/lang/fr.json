@@ -485,6 +485,8 @@
     "hangar.refused.not_received": "{ship} : pas encore reçu. Choisissez un autre vaisseau.",
     "question.solo_save.title": "Mode solo",
     "dash.links.energy_short": "EnergyLink {n}",
-    "item.wait_first_jump": "{n} objet(s) attendent votre premier saut."
+    "item.wait_first_jump": "{n} objet(s) attendent votre premier saut.",
+    "item.wait_first_jump": "{n} objet(s) attendent votre premier saut.",
+    "button.dashboard": "Tableau de bord Archipelago (TAB)"
   }
 }

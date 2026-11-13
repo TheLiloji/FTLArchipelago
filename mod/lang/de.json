@@ -486,6 +486,8 @@
     "hangar.refused.not_received": "{ship}: noch nicht erhalten. Wähle ein anderes Schiff.",
     "question.solo_save.title": "Solomodus",
     "dash.links.energy_short": "EnergyLink {n}",
-    "item.wait_first_jump": "{n} Gegenstand/Gegenstände warten auf deinen ersten Sprung."
+    "item.wait_first_jump": "{n} Gegenstand/Gegenstände warten auf deinen ersten Sprung.",
+    "item.wait_first_jump": "{n} Gegenstand/Gegenstände warten auf deinen ersten Sprung.",
+    "button.dashboard": "Archipelago-Übersicht (TAB)"
   }
 }
