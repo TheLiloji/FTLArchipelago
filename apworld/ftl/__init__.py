@@ -344,7 +344,7 @@ class FTLWorld(World):
                                             "sector_skip", "shop_deal_scrap", "sector_locks", "event_checks"),
             "tracker": self._tracker_data(),
             "logic": self._logic_for_the_mod(),
-            "kestrel_locked": not options.always_unlocked_layouts(self.options),
+            "kestrel_locked": not locations.always_unlocked(self.options),
         }
         return slot_data
 

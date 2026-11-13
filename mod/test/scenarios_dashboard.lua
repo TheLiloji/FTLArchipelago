@@ -867,6 +867,25 @@ test("dashboard: the EnergyLink chip shows the shared pool in fuel, and a look a
     end
     check(not said, "a look at the pool does not say it is empty")
     closeDashboard()
+
+    -- The three links in French, with the pool's long label: TrapLink still gets its chip (Windows, 11/11).
+    local trapRestore = stub("apSeedSummary", function()
+        local s = summary()
+        s.links.energy, s.links.death, s.links.trap = true, true, true
+        return s
+    end)
+    apLangResolve("fr")
+    -- A pool long enough that its label cannot share the card with the two other chips.
+    local poolRestore = stub("apEnergyLinkPoolFuel", function() return 123456789012345678 end)
+    openDashboard("overview")
+    poolRestore()
+    check(sim.drawnText("TrapLink"), "TrapLink is not pushed out by the pool's label")
+    check(sim.drawnText(apT("dash.links.energy_short", { n = "123456789012345678" })),
+        "the pool keeps its figure in the short label (Windows, 11/11)")
+    check(sim.drawnText("DeathLink"), "nor DeathLink")
+    closeDashboard()
+    apLangResolve(nil)
+    trapRestore()
     restore()
     apEnergyLinkConfigure({ enabled = false })
 end)
@@ -1177,4 +1196,18 @@ test("chat: offline, nothing is sent and the page says why", function()
     equals(#sim.net.said, 0, "nothing said")
     equals(apChatLines()[1].text, apT("chat.offline"), "the page explains it")
     closeDashboard()
+end)
+
+test("Multiverse addon icon: lit while connected, dark when not", function()
+    local icon = { name = "FTL_ARCHIPELAGO", image = "multiverse's own" }
+    _G.mods = { multiverse = { icons = { { name = "OTHER" }, icon } } }
+    local connected = true
+    local restore = stub("apNetConnected", function() return connected end)
+    equals(apMvAddonRefresh(), "on", "connected")
+    equals(icon.image.primitive, "addons/ftl_archipelago_on.png", "the lit picture")
+    connected = false
+    equals(apMvAddonRefresh(), "off", "the link is lost")
+    equals(icon.image.primitive, "addons/ftl_archipelago_off.png", "the dark picture")
+    restore()
+    _G.mods = nil
 end)

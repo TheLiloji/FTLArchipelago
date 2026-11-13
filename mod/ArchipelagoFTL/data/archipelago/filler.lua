@@ -8,6 +8,13 @@ local pending = {}
 
 local toldCrewFull = false
 
+-- Resources whose delivery waits (a full crew): logged once, until one goes through.
+local deferredLogged = {}
+
+-- Game ticks left before the next trap may spring (about ten seconds of play between two traps).
+local TRAP_GAP_TICKS = 600
+local trapGapTicks = 0
+
 local RESOURCE_DELIVERY = {
     scrap = function(player, n)
         player:ModifyScrapCount(n, false)
@@ -33,7 +40,10 @@ local RESOURCE_DELIVERY = {
         local added = 0
         for _ = 1, n do
             if player:IsCrewFull() then
-                fillerLog("crew full: " .. (n - added) .. " crew member(s) not delivered")
+                -- Retried at every delivery pass: the log says it once, not every few seconds.
+                if not deferredLogged.crew then
+                    fillerLog("crew full: " .. (n - added) .. " crew member(s) not delivered")
+                end
                 -- Tried again at every delivery pass: said for the first try only.
                 if added == 0 and not toldCrewFull and _G.apNotifyStatus then
                     toldCrewFull = true
@@ -126,6 +136,29 @@ script.on_internal_event(Defines.InternalEvents.ON_TICK, function()
     end
 end)
 
+-- A room is named by the system in it: a number means nothing to the player. Nil for a room with none.
+local function roomSystem(player, room)
+    local ok, label = pcall(function()
+        local list = player.vSystemList
+        for i = 0, list:size() - 1 do
+            local system = list[i]
+            if system ~= nil and math.floor(system.roomId) == room then
+                return apSystemLabel(Hyperspace.ShipSystem.SystemIdToName(system.iSystemType))
+            end
+        end
+        return nil
+    end)
+    return ok and label or nil
+end
+
+local function where(player, room, systemKey, aboardKey)
+    local system = roomSystem(player, room)
+    if system ~= nil then
+        return systemKey, { system = system }
+    end
+    return aboardKey, {}
+end
+
 local TRAP_DELIVERY = {
     fire = function(player)
         local room = apRandomRoomId(player)
@@ -133,7 +166,7 @@ local TRAP_DELIVERY = {
             return nil
         end
         player:StartFire(room)
-        return "trap.fire", { room = room }
+        return where(player, room, "trap.fire.system", "trap.fire.aboard")
     end,
     -- A breach the game draws in a room, the way a hit opens one; a damage with no damage points opens none.
     -- BreachRandomHull says nothing back in Lua (seen in game): one call, one breach.
@@ -183,7 +216,7 @@ local TRAP_DELIVERY = {
         if not ok then
             return nil
         end
-        return "trap.boarding", { room = room }
+        return where(player, room, "trap.boarding.system", "trap.boarding.aboard")
     end,
     fuel_leak = function(player)
         local available = player.fuel_count - TRAP_LIMITS.fuelFloor
@@ -224,7 +257,7 @@ local TRAP_DELIVERY = {
                 return nil
             end
             player:StartFire(room)
-            return "trap.o2_drain.down", { room = room }
+            return "trap.o2_drain.down", {}
         end
         local breached = hullBreached(player)
         local floor = breached and TRAP_LIMITS.drainAirWithBreach or 0
@@ -398,13 +431,30 @@ end
 
 -- Multiverse's first event takes all scrap and fuel (game_mv.lua names it): what the seed gives at the start of a
 -- run waits for it, or it would be wiped. Kept in the run's save, set for a new run only.
+-- A continued run still waiting at the start beacon with no fuel has been wiped already: the event ran before the
+-- save and the hook never sees it. Waiting for the first jump would block the run for good, since nothing can jump
+-- without fuel. A new run is left alone: Multiverse empties the tank before its event, which then takes the rest.
+local continuedRun = false
+
 local function startWipeDue()
     local ok, due = pcall(function() return Hyperspace.playerVariables.ap_start_wipe_due end)
-    return ok and math.floor(tonumber(due) or 0) == 1
+    if not ok or math.floor(tonumber(due) or 0) ~= 1 then return false end
+    local seen, empty = pcall(function()
+        local player = Hyperspace.ships.player
+        return continuedRun and Hyperspace.App.world.bStartedGame and player ~= nil
+            and (tonumber(player.fuel_count) or 1) <= 0
+    end)
+    if seen and empty then
+        pcall(function() Hyperspace.playerVariables.ap_start_wipe_due = 0 end)
+        fillerLog("start event already over (no fuel left): run start resources can come")
+        return false
+    end
+    return true
 end
 
 if _G.apStartWipeEvent then
     script.on_init(function(newGame)
+        continuedRun = not newGame
         if newGame then
             pcall(function() Hyperspace.playerVariables.ap_start_wipe_due = 1 end)
         end
@@ -459,9 +509,13 @@ local function deliverOne(descriptor)
         end
         local key, params = deliver(player, amount)
         if key == nil then
-            fillerLog("delivery deferred: " .. tostring(descriptor.res))
+            if not deferredLogged[descriptor.res] then
+                deferredLogged[descriptor.res] = true
+                fillerLog("delivery deferred: " .. tostring(descriptor.res) .. " (said once until it goes through)")
+            end
             return false, "retry"
         end
+        deferredLogged[descriptor.res] = nil
         fillerLog("delivered: " .. key)
         if _G.apNotifyItem then
             _G.apNotifyItem(descriptor.display or apT(key, params), descriptor.sender,
@@ -656,6 +710,28 @@ local function deliverOne(descriptor)
             end
             return false
         end
+        -- A burst (a release, a collect, traps received while out of a run) would spring them all at once and
+        -- end the run: one trap, then a breather before the next.
+        local fightTrap = descriptor.eff == "asb" or descriptor.eff == "power_surge"
+        if trapGapTicks > 0 and not fightTrap then
+            if not deferredLogged.trap then
+                deferredLogged.trap = true
+                fillerLog("trap waits a few seconds after the previous one")
+            end
+            return false, "retry"
+        end
+        deferredLogged.trap = nil
+        -- Only a burst is spaced: a lone trap springs at once, and so does the last one of a burst.
+        local others = 0
+        for _, waiting in ipairs(pending) do
+            if waiting.kind == "trap" and waiting ~= descriptor and waiting.eff ~= "asb"
+                and waiting.eff ~= "power_surge" then
+                others = others + 1
+            end
+        end
+        if others > 0 and not fightTrap then
+            trapGapTicks = TRAP_GAP_TICKS
+        end
         local key, params = springTrap(player, descriptor.eff)
         if key == nil then
             fillerLog("trap fizzled: all floors already reached")
@@ -673,7 +749,7 @@ local function deliverOne(descriptor)
                 title = apT(TRAP_TITLES[descriptor.eff])
             end
             if title ~= nil and title ~= "" then
-                _G.apNotifyTrap(apT("trap.named", { name = title, effect = effect }))
+                _G.apNotifyTrap(apT("trap.named", { name = title, effect = effect }), true)
             else
                 _G.apNotifyTrap(effect)
             end
@@ -731,10 +807,25 @@ function apFillerRunCounts()
     return runCounts()
 end
 
+-- Said once per run: a run continued at the Multiverse start beacon keeps its items until the first jump.
+local toldWaitJump = false
+
+local function tellWaitJump()
+    if toldWaitJump or not startWipeDue() or not _G.apNotifyStatus then
+        return
+    end
+    local ok, started = pcall(function() return Hyperspace.App.world.bStartedGame end)
+    if ok and started then
+        toldWaitJump = true
+        apNotifyStatus(apT("item.wait_first_jump", { n = #pending }))
+    end
+end
+
 function apDeliverPending()
     if #pending == 0 then
         return
     end
+    tellWaitJump()
     local counts = runCounts()
     local inRun = safeToDeliver() and counts
     if not inRun and counts and not noRunStarted() and _G.apShopKeepOwed then
@@ -863,6 +954,7 @@ end
 
 function apFillerResetForTesting()
     pending = {}
+    trapGapTicks = 0
 end
 
 function apFillerPendingForTesting()
@@ -899,6 +991,7 @@ end
 
 script.on_init(function()
     _G.apTrapFleetPushes = 0
+    toldWaitJump = false
 end)
 
 script.on_internal_event(Defines.InternalEvents.JUMP_ARRIVE, function(shipManager)
@@ -1047,7 +1140,7 @@ local function strikeDealBacklash()
     end
     fillerLog("pact backlash struck: " .. key)
     if _G.apNotifyTrap then
-        _G.apNotifyTrap(apT("trap.named", { name = apT("deal.own_pact"), effect = apT(key, params) }))
+        _G.apNotifyTrap(apT("trap.named", { name = apT("deal.own_pact"), effect = apT(key, params) }), true)
     end
 end
 
@@ -1110,6 +1203,9 @@ end)
 
 local pollDivider = 0
 script.on_internal_event(Defines.InternalEvents.ON_TICK, function()
+    if trapGapTicks > 0 then
+        trapGapTicks = trapGapTicks - 1
+    end
     pollDivider = (pollDivider + 1) % 120
     if pollDivider == 0 then
         apDeliverPending()

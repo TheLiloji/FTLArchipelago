@@ -142,6 +142,7 @@ function apDeathLinkSend(cause)
             return false
         end
         sent = result ~= false
+        deathLog((sent and "death sent: " or "death not sent, the server refused it: ") .. tostring(cause))
     else
         deathLog("(offline) would have sent a death: " .. tostring(cause))
     end
@@ -196,12 +197,16 @@ end
 
 local EFFECTS = {}
 
+-- A breach and a fire in life support suffocate the crew: the run is lost and sends its own DeathLink back, and
+-- the deaths bounce between players. The incident hits the other systems only.
+local LIFE_SUPPORT = { oxygen = true, medbay = true, clonebay = true }
+
 EFFECTS.major_incident = function(player)
     local candidates = {}
     local systems = player.vSystemList
     for i = 0, systems:size() - 1 do
         local system = systems[i]
-        if system ~= nil and system.healthState.first > 0 then
+        if system ~= nil and system.healthState.first > 0 and not LIFE_SUPPORT[tostring(system.name)] then
             candidates[#candidates + 1] = system
         end
     end
@@ -332,15 +337,15 @@ function apDeathLinkReceive(source, cause)
     if key == nil then
         deathLog("no effect applicable for the death of " .. tostring(source))
         if _G.apNotifyTrap then
-            _G.apNotifyTrap(apT("deathlink.fizzled"))
+            (_G.apNotifyAlert or _G.apNotifyTrap)(apT("deathlink.fizzled"))
         end
         return false
     end
 
     deathLog(string.format("death received from %s (%s) -> %s", tostring(source), tostring(cause), key))
-    if _G.apNotifyTrap then
+    if _G.apNotifyAlert then
         local who = (source and source ~= "") and source or apT("deathlink.someone")
-        _G.apNotifyTrap(apT("deathlink.received",
+        _G.apNotifyAlert(apT("deathlink.received",
                             { who = who, effect = apT(key, params) }))
     end
     return true

@@ -154,7 +154,8 @@ function apEnergyLinkContribute()
         if _G.apNotifyStatus then
             -- What lands in the reserve, in fuel: the dashboard's figure grows by this, not by what was given.
             local fuel = net / JOULES_PER_FUEL
-            local shown = fuel == math.floor(fuel) and tostring(math.floor(fuel)) or string.format("%.1f", fuel)
+            local shown = fuel == math.floor(fuel) and tostring(math.floor(fuel))
+                or (_G.apDecimal and apDecimal(fuel) or string.format("%.1f", fuel))
             _G.apNotifyStatus(apT("energylink.sent", { what = table.concat(given, " + "), net = shown }))
         end
     end

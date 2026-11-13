@@ -91,4 +91,8 @@ Fehlt das Feld oder klappt die Verbindung nie, sieh in die [FAQ](FAQ.md) (Englis
 Schließe FTL. Lege die neue `ArchipelagoFTL.ftl` in den Ordner `mods` von ftlman, klicke auf **Apply** und
 kopiere danach die neue `Hyperspace.dll` wieder in den FTL-Ordner.
 
-Weiter: [Playing](Playing.md) (Englisch).
+Leg auch die neue `ftl.apworld` in den Ordner `custom_worlds` von Archipelago, und sag der Person, die die
+Multiworld erzeugt, dass sie das auch tun soll. Ein schon begonnenes Spiel bleibt auf der Version, mit der es
+erzeugt wurde: Die neue Version ist für einen neuen Seed.
+
+Weiter: [Spielen](Playing.de.md).

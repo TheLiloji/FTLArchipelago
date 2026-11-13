@@ -589,9 +589,30 @@ test("Multiverse: a start without the wiping event is not held back past the fir
     apQueueItem({ kind = "filler", res = "scrap", n = 20, display = "20 Scrap" })
     sim.tick(240)
     equals(sim.player.currentScrap, 0, "held back at the start beacon")
+    check(shownKey("item.wait_first_jump", { n = 1 }), "and the player is told the items wait for the first jump")
     sim.jumpArrive()
     sim.tick(240)
     equals(sim.player.currentScrap, 20, "given after the first jump")
+end)
+
+test("Multiverse: a run continued at the start beacon with no fuel left gets its items at once", function()
+    _G.apInventory = { ships = {}, systemCaps = {}, startingUpgrades = {}, shopAvailability = {} }
+    applySeed({ kinds = { "filler" } })
+    apInventoryMarkSynced()
+    sim.holdStartEvent = true
+    sim.startRun(true)
+    apQueueItem({ kind = "filler", res = "scrap", n = 20, display = "20 Scrap" })
+    sim.tick(240)
+    equals(sim.player.currentScrap, 0, "held back while the ship still has its fuel")
+    sim.player.fuel_count = 0
+    sim.tick(240)
+    equals(sim.player.currentScrap, 0, "a new run's tank is empty before the start event: still held back")
+    sim.startRun(false)
+    sim.player.fuel_count = 0
+    apQueueItem({ kind = "filler", res = "fuel", n = 3, display = "Fuel Cache" })
+    sim.tick(240)
+    equals(sim.player.fuel_count, 3, "continued with no fuel: the start event already took it, the fuel comes")
+    equals(sim.player.currentScrap, 20, "and the scrap that waited")
 end)
 
 local function fightSeed(percent)
@@ -941,6 +962,27 @@ test("network: the first encrypted attempt failing does not make a responding se
 
     check(not shownKey("net.error.unreachable"),
         "apclientpp tries wss then ws: this first failure is not an outage")
+end)
+
+test("network: a server that worked then goes silent mid-run is not blamed on the address", function()
+    sim.startRun(true)
+    apNetResetForTesting()
+    apNetConnect("localhost:38281", "Navigator", "")
+    sim.netEvent("connected", { name = "Navigator", extra = slotData({ seed_hash = "LOST" }) })
+    sim.net.connected = true
+    sim.tick(10)
+    sim.netEvent("disconnected", {})
+    sim.net.connected = false
+    sim.netEvent("error", { name = "unreachable", extra = "Connection refused" })
+    sim.tick(400)
+    check(shownKey("net.error.unreachable.lost"), "the player is told the checks wait")
+    check(not shownKey("net.error.unreachable"), "not to check an address that worked")
+
+    apNetResetForTesting()
+    apNetConnect("localhost:38281", "Navigator", "")
+    sim.netEvent("error", { name = "unreachable", extra = "Connection refused" })
+    sim.tick(400)
+    check(shownKey("net.error.unreachable"), "a server never reached still asks to check the address")
 end)
 
 test("contract: seeds from contracts 1 to 3 are accepted, contract 4 is refused", function()

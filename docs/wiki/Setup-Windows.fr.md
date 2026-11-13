@@ -83,9 +83,13 @@ Lance FTL depuis Steam. Sur le menu principal, tu dois voir le logo Archipelago 
 ![Menu principal après l'installation](../images/connect-panel.jpg)
 
 Si le panneau n'est pas là, ou si la connexion ne marche jamais, regarde la [FAQ](FAQ.md) (en anglais).
-Ensuite : [Playing](Playing.md) (en anglais).
+Ensuite : [Jouer](Playing.fr.md).
 
 ## Passer à une nouvelle version
 
 Ferme FTL. Mets le nouveau `ArchipelagoFTL.ftl` dans le dossier `mods` de ftlman, clique sur **Apply**, puis
 recopie le nouveau `Hyperspace.dll` dans le dossier de FTL.
+
+Remplace aussi `ftl.apworld` dans le dossier `custom_worlds` d'Archipelago, et préviens la personne qui génère le
+multiworld de faire pareil. Une partie déjà commencée reste sur la version avec laquelle elle a été faite : la
+nouvelle version, c'est pour une nouvelle seed.

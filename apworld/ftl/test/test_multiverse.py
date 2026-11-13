@@ -332,3 +332,12 @@ class TestMultiverseCharactersOffByDefault(FTLTestBase):
     def test_no_character_check(self) -> None:
         self.assertFalse(any(location.name.startswith("Recruit ")
                              for location in self.multiworld.get_locations(self.player)))
+
+
+class TestMultiverseIgnoresKestrelKey(FTLTestBase):
+    """Multiverse always starts on its own Kestrel: kestrel_key locks nothing there."""
+
+    options = {"multiverse": True, "kestrel_key": True}
+
+    def test_the_mod_is_not_told_the_kestrel_is_locked(self) -> None:
+        self.assertFalse(self.world.fill_slot_data()["kestrel_locked"])

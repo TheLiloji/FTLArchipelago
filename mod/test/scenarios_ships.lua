@@ -745,6 +745,132 @@ test("kestrel key: a seed that locks the Kestrel refuses its runs until the key 
     shipDone()
 end)
 
+test("kestrel key: in the hangar the Kestrel A without its key is marked and START is refused", function()
+    shipConnect({ "Rock Cruiser Key" }, { kestrel_locked = true })
+    sim.hangarOpen = true
+    sim.shipList.open = false
+    sim.renderMenu()
+    -- The hangar opens on the starting ship; the player then goes back to the Kestrel.
+    sim.hangarShip = "PLAYER_SHIP_HARD"
+    sim.renderMenu()
+    check(sim.drawnText(apT("hangar.needs_key")), "the hangar says the key is missing")
+    sim.click(1150, 40)
+    check(sim.logged("START refused"), "a click on START is refused")
+    sim.renderMenu()
+    check(sim.drawnText(apT("hangar.kestrel_locked"):sub(1, 30)), "and a window says why")
+
+    sim.hangarShip = "PLAYER_SHIP_ROCK"
+    sim.clearLog()
+    sim.click(1150, 40)
+    check(not sim.logged("START refused"), "another ship starts as usual")
+
+    -- A seed without the Kestrel says NOT IN SEED instead, and refuses START just the same (Windows, b01).
+    shipConnect({ "Rock Cruiser Key" }, { kestrel_locked = true, layouts = { "PLAYER_SHIP_ROCK" } })
+    sim.hangarShip = "PLAYER_SHIP_HARD"
+    sim.clearLog()
+    sim.renderMenu()
+    check(sim.drawnText(apT("hangar.out_of_seed")), "START says NOT IN SEED, not NO KEY")
+    check(not sim.drawnText(apT("hangar.needs_key")), "it is not called keyless")
+    sim.click(1150, 40)
+    check(sim.logged("START refused: PLAYER_SHIP_HARD (out_of_seed)"), "and a run with it is refused")
+
+    -- The buttons move with the language: the game says which one is under the mouse (French panel).
+    sim.hangarShip = "PLAYER_SHIP_ROCK"
+    sim.clearLog()
+    sim.hangarHover = "list"
+    sim.click(133, 159)
+    equals(sim.hangarShip, "PLAYER_SHIP_ROCK", "LIST at the English arrow's place does not step")
+    sim.hangarHover = "right"
+    sim.click(183, 159)
+    equals(sim.hangarShip, "PLAYER_SHIP_HARD", "the French > steps where the game says it is")
+    sim.hangarHover = "start"
+    sim.click(600, 600)
+    check(sim.logged("START refused"), "START is the button the game names, wherever it is drawn")
+    sim.hangarHover = nil
+
+    shipConnect({ "Rock Cruiser Key", "Kestrel Cruiser Key" }, { kestrel_locked = true })
+    sim.hangarShip = "PLAYER_SHIP_HARD"
+    sim.clearLog()
+    sim.click(1150, 40)
+    check(not sim.logged("START refused"), "with its key the Kestrel starts")
+    sim.hangarOpen = false
+    sim.hangarShip = nil
+    shipDone()
+end)
+
+test("kestrel key: a Kestrel run without its key says it does not count for as long as it lasts", function()
+    shipConnect({ "Rock Cruiser Key" }, { kestrel_locked = true })
+    startRunWith("PLAYER_SHIP_HARD")
+    sim.tick(1)
+    sim.renderGui()
+    check(sim.drawnText(apT("run.refused.no_key")), "a banner says the run does not count")
+    sim.tick(600)
+    sim.renderGui()
+    check(sim.drawnText(apT("run.refused.no_key")), "still there ten seconds later")
+    shipDone()
+    shipConnect({ "Rock Cruiser Key" }, { kestrel_locked = true })
+    startRunWith("PLAYER_SHIP_ROCK")
+    sim.tick(1)
+    sim.renderGui()
+    check(not sim.drawnText(apT("run.refused.no_key")), "a run that counts has no banner")
+    shipDone()
+end)
+
+test("kestrel key: the hangar opens on the starting ship, RANDOM SHIP draws among the ships received", function()
+    shipConnect({ "Rock Cruiser Key", "Engi Cruiser Key" },
+        { kestrel_locked = true, start_ship = "PLAYER_SHIP_ROCK" })
+    sim.shipList.open = false
+    sim.hangarOpen = false
+    sim.renderMenu()
+    sim.hangarOpen = true
+    sim.hangarShip = "PLAYER_SHIP_HARD"
+    sim.renderMenu()
+    equals(sim.hangarShip, "PLAYER_SHIP_ROCK", "not on the Kestrel without its key")
+    sim.hangarShip = "PLAYER_SHIP_HARD"
+    sim.renderMenu()
+    equals(sim.hangarShip, "PLAYER_SHIP_HARD", "only when the hangar opens: the player may still look at it")
+
+    -- Back from a run: the menu is not drawn during the run, and the hangar shows its ship a few frames late.
+    sim.hangarOpen = false
+    sim.renderGui()
+    sim.hangarOpen = true
+    sim.hangarShip = ""
+    sim.renderMenu()
+    sim.renderMenu()
+    sim.hangarShip = "PLAYER_SHIP_HARD"
+    sim.renderMenu()
+    equals(sim.hangarShip, "PLAYER_SHIP_ROCK", "back from a run, on the starting ship too")
+
+    local seen = {}
+    for _ = 1, 30 do
+        sim.click(95, 194)
+        seen[sim.hangarShip] = true
+    end
+    check(seen.PLAYER_SHIP_ROCK and seen.PLAYER_SHIP_CIRCLE, "both ships received come up")
+    check(not seen.PLAYER_SHIP_HARD, "never the Kestrel without its key")
+
+    -- The arrows step through the base ships that can be shown: Kestrel (NO KEY), Engi, Rock, in list order.
+    sim.hangarShip = "PLAYER_SHIP_ROCK"
+    sim.click(144, 158)
+    equals(sim.hangarShip, "PLAYER_SHIP_HARD", "> from the Rock wraps to the Kestrel, marked NO KEY")
+    sim.click(144, 158)
+    equals(sim.hangarShip, "PLAYER_SHIP_CIRCLE", "> then the Engi")
+    sim.click(50, 158)
+    equals(sim.hangarShip, "PLAYER_SHIP_HARD", "< back to the Kestrel")
+    sim.click(50, 158)
+    equals(sim.hangarShip, "PLAYER_SHIP_ROCK", "< wraps to the Rock")
+
+    sim.hangarShip = "PLAYER_SHIP_HARD"
+    sim.click(1150, 40)
+    sim.renderMenu()
+    local words = {}
+    for word in apT("hangar.kestrel_locked"):gmatch("%S+") do words[#words + 1] = word end
+    check(sim.drawnText(words[#words]), "the refusal is drawn whole, down to its last word")
+    sim.hangarOpen = false
+    sim.hangarShip = nil
+    shipDone()
+end)
+
 test("in logic: after a reconnection, the items received before still count", function()
     local logic = { layouts = { PLAYER_SHIP_ROCK = { "Rock Cruiser Key" } },
                     checks = { ["PLAYER_SHIP_ROCK:sector:3"] = { ways = { { l = "PLAYER_SHIP_ROCK", i = {} } }, bp = 0, pass = 0 } },

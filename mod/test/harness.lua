@@ -495,6 +495,13 @@ local function resetWorld()
             return locked
         end,
         AchievementStatus = function(_, name) return sim.achievements[name] or -1 end,
+        HangarShip = function() return sim.hangarOpen and (sim.hangarShip or "PLAYER_SHIP_HARD") or "" end,
+        HangarHover = function() return sim.hangarHover end,
+        SwitchHangarShip = function(_, blueprint)
+            if not sim.hangarOpen then return false end
+            sim.hangarShip = blueprint
+            return true
+        end,
         SetGame = function(_, game) sim.net.game = game end,
         HideBeaconLabel = function(_, name, hidden)
             sim.hiddenBeacons = sim.hiddenBeacons or {}
@@ -547,6 +554,9 @@ local function resetWorld()
         version = "1.23.1-test",
 
         Resources = {
+            CreateImagePrimitiveString = function(_, name)
+                return { primitive = name }
+            end,
             GetImageId = function(_, name)
                 -- Like the game: a file it lacks gives one shared warning picture, not nil.
                 if (sim.missingImages or {})[name] or name == "archipelago/no_such_image.png" then
@@ -934,7 +944,7 @@ _G.Defines = {
         ON_MOUSE_L_BUTTON_DOWN = "ON_MOUSE_L_BUTTON_DOWN",
         ON_MOUSE_SCROLL = "ON_MOUSE_SCROLL",
     },
-    RenderEvents = { MAIN_MENU = "MAIN_MENU", GUI_CONTAINER = "GUI_CONTAINER", TABBED_WINDOW = "TABBED_WINDOW" },
+    RenderEvents = { MAIN_MENU = "MAIN_MENU", GUI_CONTAINER = "GUI_CONTAINER", TABBED_WINDOW = "TABBED_WINDOW", SHIP_STATUS = "SHIP_STATUS" },
     Chain = { CONTINUE = 0, PREEMPT = 1, HALT = 2 },
     SDL = setmetatable({
         KEY_BACKSPACE = 8, KEY_TAB = 9, KEY_RETURN = 13, KEY_ESCAPE = 27, KEY_SPACE = 32,

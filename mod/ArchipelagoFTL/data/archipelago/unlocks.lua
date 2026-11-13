@@ -131,7 +131,170 @@ local function unlockedInFtl(ship, variant)
     return ok and value == true
 end
 
-local function drawOutOfSeed()
+-- kestrel_key: FTL always counts the Kestrel A as unlocked and the hangar cannot grey it out, so the mod says
+-- it is locked and refuses START while it is the ship shown.
+function apKestrelBlocked(layout)
+    return layout == "PLAYER_SHIP_HARD" and _G.apSeedKestrelLocked ~= nil and apSeedKestrelLocked()
+        and _G.apLayoutInSeed ~= nil and apLayoutInSeed(layout)
+        and _G.apShipReceived ~= nil and _G.apInventorySynced ~= nil and apInventorySynced()
+        and apShipReceived(layout) ~= "ok"
+end
+
+-- The Kestrel A is always on show in FTL's hangar; other ships only once FTL's profile has them.
+local function shownPlayable(ship, variant)
+    return (ship == "PLAYER_SHIP_HARD" and variant == 0) or unlockedInFtl(ship, variant)
+end
+
+-- Why the hangar must not start a run with this layout: "needs_key", "out_of_seed", "not_received", or nil.
+-- A run with it would count for nothing, so START is refused rather than the run.
+function apHangarRefusal(layout)
+    if type(layout) ~= "string" or layout == "" then
+        return nil
+    end
+    if not (_G.apShipReceived and _G.apInventorySynced and apInventorySynced()) then
+        if _G.apLayoutInSeed and not apLayoutInSeed(layout) then
+            return "out_of_seed"
+        end
+        return nil
+    end
+    if apKestrelBlocked(layout) then
+        return "needs_key"
+    end
+    local status = apShipReceived(layout)
+    if status == "not_in_seed" then
+        return "out_of_seed"
+    elseif status ~= "ok" then
+        return "not_received"
+    end
+    return nil
+end
+
+local REFUSAL_MARK = {
+    needs_key = "hangar.needs_key", out_of_seed = "hangar.out_of_seed", not_received = "hangar.not_received",
+}
+local REFUSAL_TEXT = {
+    needs_key = "hangar.kestrel_locked", out_of_seed = "hangar.refused.out_of_seed",
+    not_received = "hangar.refused.not_received",
+}
+
+local START_BUTTON = { x = 1080, y = 10, w = 158, h = 58 }
+-- Where the English hangar has its buttons: only used with a library too old to say which one the mouse is on.
+local FALLBACK_BUTTONS = {
+    start = START_BUTTON,
+    left = { x = 30, y = 142, w = 40, h = 32 },
+    right = { x = 124, y = 142, w = 40, h = 32 },
+    random = { x = 18, y = 180, w = 158, h = 30 },
+}
+
+-- The hangar button under the mouse ("start", "left", "right", "random", "list") or nil. The buttons move with
+-- the language (the French panel is wider), so the game is asked rather than a fixed place guessed.
+local function hangarButton(x, y)
+    local hover = _G.apNetHangarHover and apNetHangarHover() or nil
+    if hover ~= nil then
+        return hover ~= "" and hover or nil
+    end
+    for name, area in pairs(FALLBACK_BUTTONS) do
+        if apUi.inside(area, x, y) then
+            return name
+        end
+    end
+    return nil
+end
+-- Seconds the refusal stays up, counted on FTL's clock (SpeedFactor is in sixteenths of a second).
+local refusedLeft = 0
+
+local function frameSeconds()
+    local ok, factor = pcall(function() return Hyperspace.FPS.SpeedFactor end)
+    factor = ok and tonumber(factor) or nil
+    if factor == nil or factor <= 0 then
+        return 1 / 60
+    end
+    return math.min(factor * 0.0625, 0.25)
+end
+
+-- The ships the hangar may show for this seed, the starting ship first.
+local playableLayouts
+
+local openOnPlayableShip
+-- A seed that locks the Kestrel opens the hangar on its starting ship instead of the locked Kestrel.
+local hangarWasOpen = false
+local openingFrames = 0
+
+openOnPlayableShip = function()
+    local ok, open = pcall(function() return Hyperspace.App.menu.shipBuilder.bOpen == true end)
+    open = ok and open
+    if open and not hangarWasOpen then
+        -- Back from a run, the hangar shows the previous ship for a moment before FTL puts the Kestrel back:
+        -- watch the first seconds, not only the first frame.
+        openingFrames = 180
+    end
+    hangarWasOpen = open
+    if not open or openingFrames <= 0 or not _G.apNetHangarShip then
+        return
+    end
+    openingFrames = openingFrames - 1
+    local shown = apNetHangarShip()
+    if shown == nil or shown == "" or apHangarRefusal(shown) == nil then
+        return
+    end
+    openingFrames = 0
+    local target = playableLayouts()[1]
+    if target and _G.apNetSwitchHangarShip and apNetSwitchHangarShip(target) then
+        unlockLog("hangar opened on " .. target .. " instead of " .. shown .. " (" .. apHangarRefusal(shown) .. ")")
+    end
+end
+
+local function hangarBlocked()
+    local ok, open = pcall(function()
+        return Hyperspace.App.menu.shipBuilder.bOpen == true
+            and not Hyperspace.CustomShipSelect.GetInstance():IsOpen()
+    end)
+    if not (ok and open) or not _G.apNetHangarShip then
+        return nil
+    end
+    local shown = apNetHangarShip()
+    local refusal = apHangarRefusal(shown)
+    return refusal, shown
+end
+
+local function drawKestrelLock()
+    local refusal, shown = hangarBlocked()
+    if refusal == nil then
+        refusedLeft = 0
+        return
+    end
+    -- START shaded out, with the same mark as the ship list on it.
+    local b = START_BUTTON
+    apUi.rect(b.x, b.y, b.w, b.h, "window", 0.75)
+    local label = apT(REFUSAL_MARK[refusal])
+    local font = apUi.fittingFont({ MARK_FONT, 10, 8 }, b.w - 20, label)
+    local width = math.min(b.w - 4, apUi.width(font, label) + 16)
+    local center = b.x + b.w / 2
+    apUi.rect(center - width / 2, b.y + b.h / 2 - 10, width, 20, "window", 0.95)
+    apUi.textCenter(font, center, b.y + b.h / 2 - 8, width, "warn", label)
+    if refusedLeft > 0 then
+        refusedLeft = refusedLeft - frameSeconds()
+        local text = apT(REFUSAL_TEXT[refusal], { ship = apShipLabel and apShipLabel(shown) or shown })
+        local w = math.min(620, apUi.width(14, text) + 48)
+        local lines = apUi.lines(14, text, w - 40, 3)
+        local h = 28 + #lines * 22
+        local x, y = (1280 - w) / 2, (720 - h) / 2
+        apUi.window(x, y, w, h, "warn")
+        for index, line in ipairs(lines) do
+            apUi.textCenter(14, x + w / 2, y + 14 + (index - 1) * 22, w - 32, "warn", line)
+        end
+    end
+end
+
+-- Where FTL's help sits over the list the first time it opens: marks under it would be drawn over its text.
+local HELP_BOX = { x = 335, y = 148, w = 602, h = 376 }
+
+local function underHelp(x, y)
+    return x + 190 > HELP_BOX.x and x < HELP_BOX.x + HELP_BOX.w and y + 120 > HELP_BOX.y
+        and y < HELP_BOX.y + HELP_BOX.h
+end
+
+local function drawOutOfSeed(help)
     if not _G.apLayoutInSeed then
         return
     end
@@ -146,21 +309,26 @@ local function drawOutOfSeed()
     for index, ship in ipairs(LIST_ORDER) do
         local layout = fullName(ship, variant)
         local key = nil
+        local playable = variant < layoutCount(ship) and shownPlayable(ship, variant)
         if variant < layoutCount(ship) then
-            if not apLayoutInSeed(layout) then
-                key = "hangar.out_of_seed"
-            elseif judged and apShipReceived(layout) == "not_received"
-                and unlockedInFtl(ship, variant) then
-                key = "hangar.not_received"
+            local refusal = apHangarRefusal(layout)
+            -- A ship FTL itself still shows locked needs no "not received": its silhouette says it.
+            if refusal ~= "not_received" or (judged and playable) then
+                key = REFUSAL_MARK[refusal or ""]
             end
         end
-        if key then
+        local x, y = cellOf(index - 1)
+        if key and not (help and underHelp(x, y)) then
+            -- A ship FTL shows as playable but which cannot be played looks as locked as the ones FTL locks.
+            if playable then
+                apUi.rect(x + 4, y + 4, 182, 112, "shade", 0.8)
+            end
             local label = apT(key)
-            local width = Graphics.freetype.easy_measureWidth(MARK_FONT, label) + 12
-            local x, y = cellOf(index - 1)
+            local font = apUi.fittingFont({ MARK_FONT, 10, 8 }, 176, label)
+            local width = apUi.width(font, label) + 12
             local center = x + 95
             apUi.rect(center - width / 2, y + 104, width, 18, "window", 0.9)
-            apUi.textCenter(MARK_FONT, center, y + 106, width, "warn", label)
+            apUi.textCenter(font, center, y + 106, width, "warn", label)
         end
     end
 end
@@ -184,9 +352,32 @@ end
 
 script.on_render_event(Defines.RenderEvents.MAIN_MENU, function() end, function()
     local ok, help = pcall(helpOverList)
-    if not (ok and help) then
-        pcall(drawOutOfSeed)
+    pcall(drawOutOfSeed, not ok or help)
+    pcall(openOnPlayableShip)
+    local drawn, err = pcall(drawKestrelLock)
+    if not drawn then
+        unlockLog("hangar lock not drawn: " .. tostring(err))
     end
+end)
+
+-- The menu is not drawn during a run: the hangar seen before it would otherwise still count as open on the
+-- way back, and the hangar would stay on the Kestrel.
+script.on_render_event(Defines.RenderEvents.GUI_CONTAINER, function() end, function()
+    hangarWasOpen = false
+end)
+
+script.on_internal_event(Defines.InternalEvents.ON_MOUSE_L_BUTTON_DOWN, function(x, y)
+    local refusal, shown = hangarBlocked()
+    if refusal == nil then
+        return Defines.Chain.CONTINUE
+    end
+    x, y = apMousePosition(x, y)
+    if hangarButton(x, y) == "start" then
+        refusedLeft = 5
+        unlockLog("START refused: " .. tostring(shown) .. " (" .. refusal .. ")")
+        return Defines.Chain.PREEMPT
+    end
+    return Defines.Chain.CONTINUE
 end)
 
 -- A Type B or C FTL earned by itself (its achievements, with layout unlocks set to vanilla) before its ship's
@@ -281,6 +472,99 @@ local function layoutsToCheck()
     end
     return layouts
 end
+
+playableLayouts = function()
+    if not (_G.apShipReceived and _G.apInventorySynced and apInventorySynced()) then
+        return {}
+    end
+    local list, start = {}, _G.apSeedStartShip and apSeedStartShip() or nil
+    for _, layout in ipairs(layoutsToCheck()) do
+        if apShipReceived(layout) == "ok" and not apKestrelBlocked(layout) then
+            if layout == start then
+                table.insert(list, 1, layout)
+            else
+                list[#list + 1] = layout
+            end
+        end
+    end
+    return list
+end
+
+-- RANDOM SHIP: FTL draws among the ships its own profile unlocked, which is only the Kestrel when Archipelago
+-- gives the ships. The mod draws among the ships received instead.
+
+local function randomShipClick(x, y)
+    local ok, open = pcall(function()
+        return Hyperspace.App.menu.shipBuilder.bOpen == true
+            and not Hyperspace.CustomShipSelect.GetInstance():IsOpen()
+    end)
+    if not (ok and open) or not _G.apNetSwitchHangarShip or hangarButton(x, y) ~= "random" then
+        return false
+    end
+    local choices, current = {}, _G.apNetHangarShip and apNetHangarShip() or nil
+    for _, layout in ipairs(playableLayouts()) do
+        if layout ~= current then
+            choices[#choices + 1] = layout
+        end
+    end
+    if #choices == 0 then
+        return false
+    end
+    local pick = choices[math.random(#choices)]
+    unlockLog("RANDOM SHIP: " .. pick)
+    return apNetSwitchHangarShip(pick) == true
+end
+
+-- The < and > arrows: FTL steps through the base ships its own profile unlocked (only the Kestrel when
+-- Archipelago gives the ships). The mod steps through the base ships of the seed that can be shown instead: those
+-- received, and the Kestrel A without its key, which the hangar then marks NO KEY. Same layout letter as shown.
+
+local function arrowClick(x, y)
+    local button = hangarButton(x, y)
+    local step = button == "left" and -1 or (button == "right" and 1 or nil)
+    if step == nil or not _G.apNetSwitchHangarShip or not _G.apNetHangarShip then
+        return false
+    end
+    local ok, open = pcall(function()
+        return Hyperspace.App.menu.shipBuilder.bOpen == true
+            and not Hyperspace.CustomShipSelect.GetInstance():IsOpen()
+    end)
+    if not (ok and open) or not (_G.apShipReceived and _G.apInventorySynced and apInventorySynced()) then
+        return false
+    end
+    local current = apNetHangarShip() or ""
+    local variant = current:match("_2$") and 1 or (current:match("_3$") and 2 or 0)
+    local cycle, at = {}, nil
+    for _, ship in ipairs(LIST_ORDER) do
+        local layout = fullName(ship, variant)
+        if layout == current then
+            at = #cycle + 1
+            cycle[at] = layout
+        elseif variant < layoutCount(ship) and (apShipReceived(layout) == "ok" or layout == "PLAYER_SHIP_HARD") then
+            cycle[#cycle + 1] = layout
+        end
+    end
+    -- Not a base ship (a Multiverse one): Hyperspace's own arrows already go through its list.
+    if at == nil or #cycle < 2 then
+        return false
+    end
+    local pick = cycle[(at - 1 + step) % #cycle + 1]
+    unlockLog((step < 0 and "<" or ">") .. " " .. pick)
+    return apNetSwitchHangarShip(pick) == true
+end
+
+script.on_internal_event(Defines.InternalEvents.ON_MOUSE_L_BUTTON_DOWN, function(x, y)
+    x, y = apMousePosition(x, y)
+    local arrowed, moved = pcall(arrowClick, x, y)
+    if arrowed and moved then
+        return Defines.Chain.PREEMPT
+    end
+    local ok, done = pcall(randomShipClick, x, y)
+    if ok and done then
+        return Defines.Chain.PREEMPT
+    end
+    return Defines.Chain.CONTINUE
+end)
 
 -- With the inventory complete, the profile holds exactly what Archipelago gave: anything FTL unlocked on its
 -- own (an event, an achievement, an older version of the mod) is locked again. Only at the main menu.

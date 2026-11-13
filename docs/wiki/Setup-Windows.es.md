@@ -91,4 +91,8 @@ Si falta el panel o la conexión nunca funciona, mira las [FAQ](FAQ.md) (en ingl
 Cierra FTL. Pon el nuevo `ArchipelagoFTL.ftl` en la carpeta `mods` de ftlman, pulsa **Apply** y vuelve a copiar
 el nuevo `Hyperspace.dll` en la carpeta de FTL.
 
-Siguiente: [Playing](Playing.md) (en inglés).
+Pon también el nuevo `ftl.apworld` en la carpeta `custom_worlds` de Archipelago, y avisa a la persona que genera
+el multiworld para que haga lo mismo. Una partida ya empezada se queda en la versión con la que se hizo: la nueva
+versión es para una seed nueva.
+
+Siguiente: [Jugar](Playing.es.md).

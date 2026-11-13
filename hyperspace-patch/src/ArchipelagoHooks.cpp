@@ -150,6 +150,54 @@ bool Client::HideBeaconLabel(const std::string& eventName, bool hidden)
     return true;
 }
 
+std::string Client::HangarShip() const
+{
+    CApp* app = G_->GetCApp();
+    if (app == nullptr) return std::string();
+    const ShipBuilder& builder = app->menu.shipBuilder;
+    if (!builder.bOpen || builder.currentShip == nullptr) return std::string();
+    return builder.currentShip->myBlueprint.blueprintName;
+}
+
+// Which hangar button the mouse is over ("start", "left", "right", "random", "list", or ""): the buttons move
+// with the language, so Lua asks the game instead of guessing where they are.
+std::string Client::HangarHover() const
+{
+    CApp* app = G_->GetCApp();
+    if (app == nullptr) return std::string();
+    const ShipBuilder& builder = app->menu.shipBuilder;
+    if (!builder.bOpen) return std::string();
+    if (builder.startButton.bHover) return "start";
+    if (builder.leftButton.bHover) return "left";
+    if (builder.rightButton.bHover) return "right";
+    if (builder.randomButton.bHover) return "random";
+    if (builder.listButton.bHover) return "list";
+    return std::string();
+}
+
+// Shows another ship in the hangar, as FTL's arrows or Hyperspace's list would: base ships by their id,
+// custom ones through Hyperspace's list (id + 100).
+bool Client::SwitchHangarShip(const std::string& blueprint)
+{
+    CApp* app = G_->GetCApp();
+    if (app == nullptr || blueprint.empty()) return false;
+    ShipBuilder& builder = app->menu.shipBuilder;
+    if (!builder.bOpen || builder.currentShip == nullptr) return false;
+    std::pair<int, int> id = vanillaIdAndVariant(blueprint);
+    if (id.first >= 0 && id.first < 100) {
+        builder.SwitchShip(id.first, id.second);
+        return true;
+    }
+    std::string base = blueprint;
+    if (id.second > 0) base = base.substr(0, base.size() - 2);
+    CustomShipSelect* list = CustomShipSelect::GetInstance();
+    int custom = list->GetShipButtonIdFromName(base);
+    if (custom < 0) return false;
+    builder.currentShip->destructor2();
+    list->SwitchShip(&builder, custom + 100, id.second, true);
+    return true;
+}
+
 int Client::AchievementStatus(const std::string& name) const
 {
     AchievementTracker* tracker = G_->GetAchievementTracker();

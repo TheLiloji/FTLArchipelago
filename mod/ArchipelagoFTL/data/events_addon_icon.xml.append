@@ -1,0 +1,11 @@
+<!-- Multiverse's addon icons: FTL Archipelago shows its own, lit while connected (mvaddon.lua). Art by Trapper444. -->
+<event name="ADDON_FTL_ARCHIPELAGO">
+	<hover-text>FTL ARCHIPELAGO
+	Click to see more info.</hover-text>
+	<text>FTL ARCHIPELAGO
+	Developed by: Liloji. Art by Trapper444.
+
+	Your ships, systems and weapons are spread across an Archipelago multiworld. The icon is lit while the game is connected to the server, and dark when it is not.
+
+	Press TAB, or the Archipelago button in the top right corner, to open the dashboard.</text>
+</event>
