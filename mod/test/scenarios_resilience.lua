@@ -1474,3 +1474,36 @@ test("sector skip: the start beacon is taken once the new sector's map is laid o
     sim.starMap.worldLevel = 0
     sim.meta["ap_reached_PLAYER_SHIP_HARD"] = nil
 end)
+
+test("free upgrades: a system put aboard by Archipelago at level 2 does not count that level as a head start", function()
+    withTeleporterPlace()
+    sim.buildAddedSystems, sim.addedSystemLevels = true, { teleporter = 2 }
+    applySeed({ kinds = { "cap" }, options = { system_install = 1, free_upgrades = 1 } })
+    apQueueItem({ kind = "cap", sys = "teleporter", n = 0, display = "Teleporter blueprint" })
+    apQueueItem({ kind = "cap", sys = "teleporter", n = 1, display = "Progressive Teleporter" })
+    drain()
+    sim.startRun(true)
+    apApplySystemRules()
+    local teleporter
+    local list = sim.player.vSystemList
+    for i = 0, list:size() - 1 do
+        if list[i].name == "teleporter" then teleporter = list[i] end
+    end
+    check(teleporter ~= nil, "the teleporter is aboard")
+    equals(teleporter.powerState.second, 2, "built at 2, the level Archipelago allows: nothing more for free")
+    equals(teleporter.maxLevel, 2, "and nothing more to buy")
+    sim.buildAddedSystems, sim.addedSystemLevels, sim.hullPlaces = nil, nil, nil
+end)
+
+test("system caps: a system bought after the first jump does not count its first levels as a head start", function()
+    _G.apInventory = { ships = {}, systemCaps = { drones = 2 }, startingUpgrades = {}, shopAvailability = {} }
+    applySeed({ kinds = { "cap" } })
+    sim.startRun(true)
+    apApplySystemRules()
+    sim.jumpArrive()
+    local drones = { name = "drones", iSystemType = "drones", powerState = { first = 2, second = 2 }, maxLevel = 8,
+                     healthState = { first = 2, second = 2 }, UpgradeSystem = function() return false end }
+    sim.player.vSystemList:push_back(drones)
+    apApplySystemRules()
+    equals(drones.maxLevel, 2, "bought at 2 with 2 allowed: no third level to buy")
+end)

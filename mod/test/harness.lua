@@ -295,6 +295,12 @@ local function makeShip(shipId)
         self._systemsHeld = self._systemsHeld or {}
         self._systemsHeld[id] = true
         sim.systemsAdded = (sim.systemsAdded or 0) + 1
+        -- When a test asks for it, the new system is built at the level FTL gives it (Drone Control at 2).
+        if sim.buildAddedSystems then
+            local name = Hyperspace.ShipSystem.SystemIdToName(id)
+            local level = (sim.addedSystemLevels or {})[name] or 1
+            self.vSystemList:push_back(makeSystem(name, level, 8))
+        end
         -- With a system limit set, a main system takes a slot like in Hyperspace.
         if sim.systemLimit ~= nil then
             sim.mainSystemsUsed = (sim.mainSystemsUsed or 0) + 1
