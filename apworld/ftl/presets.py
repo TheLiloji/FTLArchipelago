@@ -6,6 +6,7 @@ PRESET_FILES = {
     "Medium, about 10 h (recommended)": "medium_game.yaml",
     "Long, 20 h or more": "long_game.yaml",
     "Solo, about 7 h": "solo_game.yaml",
+    "Big sync, about 3 h": "sync_3h.yaml",
 }
 
 OPTIONS_PRESETS = {
@@ -67,5 +68,28 @@ OPTIONS_PRESETS = {
         "sector_skip": True,
         "sector_locks": True,
         "shop_deal_scrap": 120,
+    },
+    "Big sync, about 3 h": {
+        "victories_required": 1,
+        "victory_difficulty": "any",
+        "layout_count": 3,
+        "ship_layouts": "type_a_only",
+        "early_ship_keys": 2,
+        "archives": 3,
+        "archives_required": 2,
+        "sectorsanity_last_sector": 6,
+        "sector_skip": True,
+        "victory_collects_layout": "everything",
+        "ship_achievements": False,
+        "general_achievements": "disabled",
+        "full_system_upgrades": True,
+        "progressive_unlocks_system": True,
+        "free_upgrades": True,
+        "system_install": "immediately",
+        "run_start_scrap": 15,
+        "shop_per_ship": "per_class",
+        "shop_weapons": 15,
+        "shop_drones": 6,
+        "shop_augments": 10,
     },
 }
