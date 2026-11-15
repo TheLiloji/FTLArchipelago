@@ -1,0 +1,36 @@
+# Big sync with a 3 hour rule: one victory, a small seed, and a first sphere that stays small.
+# One victory on any difficulty, three Type A ships, two Archives, no traps, no ship achievements.
+# Each ship has its own share of the Archipelago shop, so you don't start with the whole shop open.
+# Measured: 61 locations, 31 free shop slots, ~13.9 checks per hour,
+# ~3.3 h to the goal, ~13.0 minutes max wait with nothing to send.
+# Checked with apworld/tools/seed_sim.py (see docs/BUILDING.md): about 3 h for an average player.
+# Change the name line, then generate as usual.
+
+name: Player
+description: FTL in a big sync, about 3 hours to the goal.
+game: "FTL: Faster Than Light"
+requires:
+  version: 0.6.7
+"FTL: Faster Than Light":
+  victories_required: 1
+  # any: an Easy victory counts. normal: Normal or Hard only.
+  victory_difficulty: any
+  layout_count: 3
+  ship_layouts: type_a_only
+  early_ship_keys: 2
+  archives: 3
+  archives_required: 2
+  sectorsanity_last_sector: 6
+  sector_skip: true
+  victory_collects_layout: everything
+  ship_achievements: false
+  general_achievements: disabled
+  full_system_upgrades: true
+  progressive_unlocks_system: true
+  free_upgrades: true
+  system_install: immediately
+  run_start_scrap: 15
+  shop_per_ship: per_class
+  shop_weapons: 15
+  shop_drones: 6
+  shop_augments: 10
