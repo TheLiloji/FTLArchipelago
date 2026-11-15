@@ -264,6 +264,9 @@ local function installOne(player, name, reason)
     end
     player:AddSystem(id)
     if player:HasSystem(id) then
+        -- FTL builds some systems above level 1 (Drone Control at 2): that is not a level the ship started with.
+        startingPower[name] = 1
+        recordStart(name, 1)
         sysLog(name .. ": installed for free (" .. reason .. ")")
         return true
     end
@@ -491,6 +494,10 @@ local function applyCap(system)
     if startingPower[name] == nil then
         if fromSave then
             startingPower[name] = recordedStart(name) or 1
+        elseif purchaseGuardArmed then
+            -- Bought or given after the first jump: the ship did not start with it, its first levels are not a bonus.
+            startingPower[name] = 1
+            recordStart(name, 1)
         else
             startingPower[name] = current
             recordStart(name, current)
