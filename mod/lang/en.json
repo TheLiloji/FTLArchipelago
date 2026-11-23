@@ -487,7 +487,6 @@
     "question.solo_save.title": "Solo mode",
     "dash.links.energy_short": "EnergyLink {n}",
     "item.wait_first_jump": "{n} item(s) wait for your first jump.",
-    "item.wait_first_jump": "{n} item(s) wait for your first jump.",
     "button.dashboard": "Archipelago dashboard (TAB)",
     "dash.ships.passes": "Sector Passes",
     "dash.ships.type.passes": "Type {letter}: {n}/2"
