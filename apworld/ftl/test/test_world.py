@@ -198,6 +198,15 @@ class TestUniversalTrackerRebuildsTheSameWorld(FTLTestBase):
         self.assertEqual(tracker.options.sectorsanity_first_sector.value, 3)
 
 
+class TestUniversalTrackerRebuildsAMultiverseWorld(TestUniversalTrackerRebuildsTheSameWorld):
+    """The same under Multiverse: the shop items come from Multiverse's catalogue, not the base game's."""
+
+    options = {**TestUniversalTrackerRebuildsTheSameWorld.options, "multiverse": True}
+
+    def test_the_shop_holds_multiverse_items(self) -> None:
+        self.assertTrue(any(item.blueprint not in data.SHOP_ITEMS_BY_BLUEPRINT for item in self.world.shop_items))
+
+
 class TestLogicCopyForTheMod(FTLTestBase):
     options = {"sector_logic": "strict", "layout_count": 4, "systemsanity": "first_install"}
 
