@@ -710,7 +710,8 @@ local function drawShipCard(row, cx, cy, cardW, cardH)
         or apT("dash.ships.clear")
     text(9, cx + 16, cy + cardH - 22, textW, "dim", remaining)
     local passes = sectorPasses()
-    if passes ~= nil then
+    -- Under Multiverse the race takes that line: the "Type A: 1/2" under each picture says enough on its own.
+    if passes ~= nil and not (row.species and roomy) then
         text(9, cx + 16, cy + 30, textW, any and "text" or "dim", apT("dash.ships.passes"))
     end
     local mx = cx + cardW - 12 - minisW
