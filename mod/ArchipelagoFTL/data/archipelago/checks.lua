@@ -1300,7 +1300,10 @@ function apSectorLockArrive()
         lockedIn = 0
     end
     if lockedIn ~= 0 then
-        if not apSectorLockedHere() then
+        -- Offline, or before the server has sent every item again, nothing says the pass is here: shut it stays.
+        local settled = _G.apSeedOption ~= nil and apSeedOption("sector_locks") ~= nil
+            and (_G.apInventorySynced == nil or apInventorySynced())
+        if settled and not apSectorLockedHere() then
             openLockedExit()
             checkLog("sector exit opened: the pass came in")
             if _G.apNotifyStatus and lockWarned then
