@@ -1109,3 +1109,20 @@ test("dashboard: the run card counts the crew waiting for a free seat", function
     check(sim.drawnText(apT("dash.run.crew_waiting", { n = 2 })), "the wait stays visible after the message")
     closeDashboard()
 end)
+
+test("dashboard: under Multiverse the race keeps its line, the Sector Pass counts stay under each picture", function()
+    sim.startRun(true)
+    dashboardSeed()
+    applySeed({ options = { sector_locks = 1 }, loc = { ["PLAYER_SHIP_HARD:sector:2"] = "Kestrel Cruiser A: Reach sector 2" } })
+    _G.apInventory.ships = { "PLAYER_SHIP_HARD" }
+    _G.apInventory.passes = { PLAYER_SHIP_HARD = 1 }
+    local restore = stub("apShipSpecies", function() return "Slug Clansman" end)
+    openDashboard("ships")
+    check(sim.drawnText("Slug Clansman"), "the race is written")
+    check(not sim.drawnText(apT("dash.ships.passes")), "the caption gives way, nothing drawn over the race")
+    check(sim.drawnText(apT("dash.ships.type.passes", { letter = "A", n = 1 })), "the counts stay")
+    closeDashboard()
+    restore()
+    _G.apInventory.passes = nil
+    applySeed({})
+end)
