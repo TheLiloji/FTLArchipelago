@@ -99,6 +99,7 @@ public:
     // FTL's own achievements (difficulty it was earned on, -1 if not), which Hyperspace's tracker of
     // custom achievements does not hold.
     int AchievementStatus(const std::string& name) const;
+    bool UnlockAchievement(const std::string& name);
     // The ship shown in the hangar, by blueprint name ("" outside the hangar).
     std::string HangarShip() const;
     // Shows that ship in the hangar instead (false outside the hangar or for an unknown ship).

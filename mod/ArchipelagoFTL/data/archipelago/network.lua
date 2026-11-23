@@ -1160,6 +1160,11 @@ function apNetAchievementStatus(name)
     return moduleCall("AchievementStatus", tostring(name))
 end
 
+-- Gives one of FTL's own achievements; nil with an older library.
+function apNetUnlockAchievement(name)
+    return moduleCall("UnlockAchievement", tostring(name))
+end
+
 -- The ship shown in the hangar ("" elsewhere), nil with a library that cannot tell.
 function apNetHangarShip()
     return moduleCall("HangarShip")

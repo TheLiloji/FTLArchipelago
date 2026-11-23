@@ -77,6 +77,16 @@ def selected_shop_items(options, rng) -> tuple[data.ShopItem, ...]:
     return tuple(sorted(chosen, key=lambda item: (item.family, item.slot)))
 
 
+MV_SHOP_ITEMS_BY_BLUEPRINT: dict[str, data.ShopItem] = {item.blueprint: item for item in data.MV_SHOP_ITEMS}
+
+
+def shop_item_named(options, blueprint: str) -> data.ShopItem:
+    """A shop item of the seed's catalogue by its blueprint (Universal Tracker rebuilds the draws from slot_data)."""
+    if locations.multiverse(options):
+        return MV_SHOP_ITEMS_BY_BLUEPRINT[blueprint]
+    return data.SHOP_ITEMS_BY_BLUEPRINT[blueprint]
+
+
 def bundled_families(options, shop_items, rng=None) -> dict[str, list[tuple[data.ShopItem, ...]]]:
     bundles: dict[str, list[tuple[data.ShopItem, ...]]] = {}
     for family in data.SHOP_FAMILIES:

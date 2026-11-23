@@ -580,9 +580,9 @@ battery, a Flagship power surge, a hazard). Traps wait for a quiet beacon and ne
 #### Crew Names
 
 `crew_names` · `vanilla`, `multiworld`, `multiworld_and_team` · default `multiworld`\
-Names of the crew who join you during a run. `multiworld`: the other players' slot names, then FTL's.
-`multiworld_and_team`: the same, then the people who made and tested the mod. `vanilla`: FTL's names. Your
-starting crew keeps its names.
+Names of your starting crew in a new run and of the crew who join you. `multiworld`: the other players' slot names, then FTL's.
+`multiworld_and_team`: the same, then the people who made and tested the mod. `vanilla`: FTL's names. A
+continued run keeps its names, and Multiverse's unique characters keep theirs.
 
 ### Expert (YAML only)
 

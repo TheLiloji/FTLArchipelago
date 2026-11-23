@@ -8,7 +8,31 @@ local run = {
     active = false,
     ended = false,
     crewSeen = false,
+    cloneLogged = false,
 }
+
+local CLONE_BAY = 13
+
+-- With every crew member dead but some waiting in a working Clone Bay, FTL goes on: they come back. The dead
+-- only join its queue on the next frame: until then they still lie in the crew list, marked dead.
+local function cloneBayWaiting(player)
+    local ok, waiting = pcall(function()
+        if not player:HasSystem(CLONE_BAY) then
+            return false
+        end
+        if Hyperspace.CrewFactory:GetCloneReadyList(true):size() > 0 then
+            return true
+        end
+        local crew = player.vCrewList
+        for i = 0, crew:size() - 1 do
+            if crew[i] ~= nil and crew[i].bDead and crew[i].iShipId == 0 then
+                return true
+            end
+        end
+        return false
+    end)
+    return ok and waiting == true
+end
 
 function apOnRunEnd(cause, detail)
     endLog("RUN END: " .. cause .. (detail and (" - " .. detail) or ""))
@@ -142,7 +166,15 @@ script.on_internal_event(Defines.InternalEvents.ON_TICK, function()
         local alive = countRealCrew(player)
         if alive > 0 then
             run.crewSeen = true
+            run.cloneLogged = false
         elseif run.crewSeen then
+            if cloneBayWaiting(player) then
+                    if not run.cloneLogged then
+                    run.cloneLogged = true
+                    endLog("no living crew, but the Clone Bay brings some back: the run goes on")
+                end
+                return
+            end
             apEndSnapshot("state at loss of crew:")
             declareEnd("crew", "no living crew left")
         end
@@ -153,6 +185,7 @@ script.on_init(function(newGame)
     run.active = true
     run.ended = false
     run.crewSeen = false
+    run.cloneLogged = false
     endLog("run started (newGame=" .. tostring(newGame) .. "), detection armed")
 end)
 

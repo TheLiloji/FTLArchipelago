@@ -60,6 +60,7 @@
 %rename("%s") ArchipelagoFTL::Client::ClearShopLocks;
 %rename("%s") ArchipelagoFTL::Client::SetShopLockTip;
 %rename("%s") ArchipelagoFTL::Client::AchievementStatus;
+%rename("%s") ArchipelagoFTL::Client::UnlockAchievement;
 %rename("%s") ArchipelagoFTL::Client::HangarShip;
 %rename("%s") ArchipelagoFTL::Client::SwitchHangarShip;
 %rename("%s") ArchipelagoFTL::Client::HangarHover;
