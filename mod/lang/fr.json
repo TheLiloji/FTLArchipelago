@@ -483,6 +483,8 @@
     "question.solo_save.title": "Mode solo",
     "dash.links.energy_short": "EnergyLink {n}",
     "item.wait_first_jump": "{n} objet(s) attendent votre premier saut.",
-    "button.dashboard": "Tableau de bord Archipelago (TAB)"
+    "button.dashboard": "Tableau de bord Archipelago (TAB)",
+    "dash.ships.passes": "Sector Pass",
+    "dash.ships.type.passes": "Type {letter} : {n}/2"
   }
 }

@@ -82,14 +82,14 @@ class FTLWorld(World):
         self.selected_layouts = locations.selected_layouts(self.options)
         self.created_locations = locations.selected_locations(self.options)
         if tracker is not None:
-            self.shop_items = tuple(data.SHOP_ITEMS_BY_BLUEPRINT[name] for name in tracker["shop_items"])
+            self.shop_items = tuple(items.shop_item_named(self.options, name) for name in tracker["shop_items"])
         else:
             self.shop_items = items.selected_shop_items(self.options, self.random)
         self.enabled_items = items.enabled_items(self.options, self.shop_items)
         self.system_unlocks = items.system_unlocks(self.enabled_items, self.options)
         self.bundles = items.bundled_families(self.options, self.shop_items, self.random)
         if tracker is not None:
-            self.bundles = {family: [tuple(data.SHOP_ITEMS_BY_BLUEPRINT[name] for name in bundle)
+            self.bundles = {family: [tuple(items.shop_item_named(self.options, name) for name in bundle)
                                      for bundle in bundles]
                             for family, bundles in tracker["bundles"].items()}
         self._balance_shop_and_filler()
@@ -342,7 +342,8 @@ class FTLWorld(World):
     def _logic_for_the_mod(self) -> dict[str, Any]:
         """A light copy of the logic for the dashboard's "in logic" marker. For each check: the layouts it can be
         done with, and for each of them the system blueprints still missing; how many blueprints it needs in all;
-        how many Sector Passes its depth asks of the layout. Power milestones are left out: the marker is a hint."""
+        how many Sector Passes its depth asks of the layout; for a system level, the Progressive items it needs. Power
+        milestones are left out: the marker is a hint."""
         level = self.sector_logic_level
         by_sector = bool(self.options.shop_by_sector)
         gated = bool(self.options.system_blueprints)
@@ -352,14 +353,22 @@ class FTLWorld(World):
         for location in self.created_locations:
             region = locations.region_of(location, self.options)
             able = [by_region[region]] if region in by_region else list(rules._layouts_able_to_try(self.options, location))
-            needed = rules.systems_a_location_needs(location)
             ways = []
-            for layout in able:
-                missing = [system for system in needed if system not in layout.start_systems]
-                if any(system not in layout.empty_slots for system in missing):
-                    continue
-                items = [data.BLUEPRINT_ITEM_NAMES[system] for system in missing] if gated else []
-                ways.append({"l": layout.blueprint, "i": items})
+            upgrades = rules.upgrades_needed(self.options, location)
+            if upgrades:
+                # A system level or an achievement that maxes systems: the same ways as its rule, Progressive
+                # items included (one name per copy needed).
+                for layout, blueprints, needs in rules.upgrade_paths(self, location, upgrades):
+                    items = list(blueprints) + [name for name, count in needs for _ in range(count)]
+                    ways.append({"l": layout.blueprint, "i": items})
+            else:
+                needed = rules.systems_a_location_needs(location)
+                for layout in able:
+                    missing = [system for system in needed if system not in layout.start_systems]
+                    if any(system not in layout.empty_slots for system in missing):
+                        continue
+                    items = [data.BLUEPRINT_ITEM_NAMES[system] for system in missing] if gated else []
+                    ways.append({"l": layout.blueprint, "i": items})
             depth = rules.location_depth(location, by_sector)
             passes = 0
             if self.options.sector_locks:

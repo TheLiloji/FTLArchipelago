@@ -588,9 +588,10 @@ nunca destruyen tu nave.
 #### Crew Names
 
 `crew_names` · `vanilla`, `multiworld`, `multiworld_and_team` · por defecto `multiworld`\
-Los nombres de la tripulación que se une a ti durante una run. `multiworld`: los nombres de slot de los demás
+Los nombres de tu tripulación inicial en una run nueva y de la tripulación que se une a ti. `multiworld`: los nombres de slot de los demás
 jugadores, luego los de FTL. `multiworld_and_team`: lo mismo, luego la gente que hizo y probó el mod. `vanilla`:
-los nombres de FTL. Tu tripulación inicial conserva sus nombres.
+los nombres de FTL. Una run continuada conserva sus nombres, y los personajes únicos de Multiverse conservan los
+suyos.
 
 ### Expert (solo YAML)
 

@@ -484,6 +484,8 @@
     "question.solo_save.title": "Solomodus",
     "dash.links.energy_short": "EnergyLink {n}",
     "item.wait_first_jump": "{n} Gegenstand/Gegenstände warten auf deinen ersten Sprung.",
-    "button.dashboard": "Archipelago-Übersicht (TAB)"
+    "button.dashboard": "Archipelago-Übersicht (TAB)",
+    "dash.ships.passes": "Sector Pass",
+    "dash.ships.type.passes": "Typ {letter}: {n}/2"
   }
 }

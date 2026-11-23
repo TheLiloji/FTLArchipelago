@@ -748,7 +748,7 @@ def _set_system_rules(world: "FTLWorld", layouts) -> None:
     options = world.options
 
     for location in world.created_locations:
-        upgrades = _upgrades_needed(options, location)
+        upgrades = upgrades_needed(options, location)
         if upgrades:
             add_rule(world.get_location(location.name), _upgrade_rule(world, location, upgrades))
             continue
@@ -758,7 +758,7 @@ def _set_system_rules(world: "FTLWorld", layouts) -> None:
             add_rule(world.get_location(location.name), rule)
 
 
-def _upgrades_needed(options, location: data.Location) -> dict[str, int]:
+def upgrades_needed(options, location: data.Location) -> dict[str, int]:
     if not options.progressive_systems:
         return {}
     needed: dict[str, int] = {}
@@ -787,11 +787,11 @@ def start_level(layout: data.Layout, system: str) -> int:
     return 1 if system in layout.start_systems else 0
 
 
-def _upgrade_rule(world: "FTLWorld", location: data.Location,
-                  upgrades: dict[str, int]) -> Callable[[CollectionState], bool]:
-    """In logic on one reachable layout holding the systems: the levels it starts with count, a bought system
-    starts at 1, and each Progressive item adds one (all of them with Full System Upgrades)."""
-    player = world.player
+def upgrade_paths(world: "FTLWorld", location: data.Location,
+                  upgrades: dict[str, int]) -> list[tuple[data.Layout, tuple[str, ...], tuple[tuple[str, int], ...]]]:
+    """Each reachable layout that can hold the systems, with the blueprints and the Progressive items it needs: the
+    levels it starts with count, a bought system starts at 1, and each Progressive item adds one (all of them with
+    Full System Upgrades)."""
     options = world.options
     gated = bool(options.system_blueprints)
     per_ship = bool(options.progressive_systems_per_ship)
@@ -813,7 +813,16 @@ def _upgrade_rule(world: "FTLWorld", location: data.Location,
                 count = 1
             if count:
                 needs.append((f"{prefix}Progressive {data.SYSTEMS_BY_ID[system].display}", count))
-        paths.append((region_name(layout), blueprints, tuple(needs)))
+        paths.append((layout, blueprints, tuple(needs)))
+    return paths
+
+
+def _upgrade_rule(world: "FTLWorld", location: data.Location,
+                  upgrades: dict[str, int]) -> Callable[[CollectionState], bool]:
+    """In logic on one reachable layout holding the systems, with its blueprints and upgrades (see upgrade_paths)."""
+    player = world.player
+    paths = [(region_name(layout), blueprints, needs)
+             for layout, blueprints, needs in upgrade_paths(world, location, upgrades)]
 
     if not paths:
         raise OptionError(
@@ -837,7 +846,7 @@ def upgrades_the_rules_read(world: "FTLWorld") -> frozenset[str]:
         return cached[1]
     names: set[str] = set()
     for location in world.created_locations:
-        upgrades = _upgrades_needed(world.options, location)
+        upgrades = upgrades_needed(world.options, location)
         for ship in _upgrade_ships(world, location, upgrades) if upgrades else ():
             display = data.SHIPS_BY_BLUEPRINT[ship].display
             names.update(f"{display}: Progressive {data.SYSTEMS_BY_ID[system].display}" for system in upgrades)

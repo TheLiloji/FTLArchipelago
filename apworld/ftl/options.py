@@ -1049,7 +1049,8 @@ class EventBeacons(Choice):
 
 
 class CrewNames(Choice):
-    """Names given to the crew members who join you during a run. Your starting crew keeps its names.
+    """Names given to your starting crew in a new run and to the crew members who join you. A continued run keeps
+    its names, and Multiverse's unique characters keep theirs.
 
     vanilla: FTL's own names.
     multiworld: the other players of the multiworld first, by their slot names, then FTL's own names once

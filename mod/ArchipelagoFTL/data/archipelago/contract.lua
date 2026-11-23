@@ -267,7 +267,9 @@ local function announceLostItem(itemName)
 end
 
 -- The "in logic" marker (seeds from 0.6 on): a light copy of the logic, what each layout needs and how many
--- system blueprints each check needs, against the items received so far. Power and system needs are left out.
+-- system blueprints each check needs, against the items received so far. Since 0.6.1 a system level's ways also
+-- list its Progressive items, one name per copy (older seeds mark every level once the system can be had).
+-- Power needs are left out.
 local function receivedCounts()
     local counts = {}
     for _, name in pairs(state.receivedByIndex or {}) do
