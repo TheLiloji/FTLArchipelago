@@ -188,6 +188,16 @@ int Client::AchievementStatus(const std::string& name) const
     return -1;
 }
 
+// Hyperspace's DamageArea asks for a hull above 0 and below 1 before giving Sweet Revenge: the mod sees the kill
+// itself and gives it here.
+bool Client::UnlockAchievement(const std::string& name)
+{
+    AchievementTracker* tracker = G_->GetAchievementTracker();
+    if (tracker == nullptr) return false;
+    tracker->SetAchievement(name, false, true);
+    return AchievementStatus(name) >= 0;
+}
+
 }
 
 // A save profile chosen in the menu is put in place before FTL reads it (see Client::SwitchProfile).

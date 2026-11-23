@@ -432,15 +432,44 @@ local function achievementStatus(tracker, ach)
     return status
 end
 
+-- Sweet Revenge: Hyperspace's own test for it asks for a hull above 0 and below 1, which never happens, so FTL
+-- never gives it. The kill is seen here instead: a crystal shard takes the enemy's hull from above 0 to 0.
+local CRYSTAL_ACH = "ACH_CRYSTAL_SHARD"
+local crystalKill = false
+
+function apCrystalShardHit(shipManager, damage)
+    if shipManager == nil or damage == nil or shipManager.iShipId ~= 1 or damage.crystalShard ~= true then
+        return
+    end
+    local hull = shipManager.ship.hullIntegrity.first
+    if hull > 0 or hull + (shipManager.iLastDamage or 0) <= 0 then
+        return
+    end
+    crystalKill = true
+    checkLog("enemy ship killed by a crystal shard: " .. CRYSTAL_ACH)
+    if _G.apNetUnlockAchievement then
+        pcall(apNetUnlockAchievement, CRYSTAL_ACH)
+    end
+end
+
+script.on_internal_event(Defines.InternalEvents.DAMAGE_AREA_HIT, function(shipManager, _, _, damage)
+    apTry(TAG, function() apCrystalShardHit(shipManager, damage) end)
+    return Defines.Chain.CONTINUE
+end)
+
 local function pollAchievements(layout)
     local tracker = Hyperspace.CustomAchievementTracker.instance
     for _, ach in ipairs(watchedAchievements(layout)) do
         local status = achievementStatus(tracker, ach)
+        if ach == CRYSTAL_ACH and crystalKill then
+            status = math.max(status, 0)
+        end
         if status >= 0 then
             apSendCheck("ach:" .. ach,
                 apT("check.label.achievement", { name = apAchievementLabel(ach) }))
         end
     end
+    crystalKill = false
 end
 
 local function pollSystems(layout)
@@ -1096,7 +1125,7 @@ function apSectorSkipArrive()
     end
     local done = deepestReached(layout) > sector
         or apCheckAlreadySent(layout .. ":sector:" .. (sector + 1))
-    if not done then
+    if not done or (_G.apSectorLockedHere and apSectorLockedHere()) then
         return
     end
     local here = Hyperspace.App.world.starMap.currentLoc
@@ -1139,16 +1168,16 @@ script.on_internal_event(Defines.InternalEvents.ON_TICK, function()
         if runVariable("ap_skip_loc") == 0 then
             Hyperspace.playerVariables.ap_skip_loc = (locKey(here) or -1) + 1
         end
-        if here.beacon ~= true and isOfferedBeacon(here) then
+        if here.beacon ~= true and isOfferedBeacon(here) and not apSectorLockedHere() then
             here.beacon = true
         end
     end)
 end)
 
 -- sector_locks: the exit of sector 4 (or 7) stays shut for a layout without its first (or second) Sector Pass,
--- and opens as soon as the pass comes in.
-local lockedExit, lockedNeed, lockedLayout = nil, 0, nil
-
+-- and opens as soon as the pass comes in. The shut exit is written in the run's save by its place on the map:
+-- a run continued after a restart starts on its beacon without a jump, and FTL builds the map again from the save,
+-- so it is judged on the ticks too, not only on arrival.
 local function locksOn()
     local value = _G.apSeedOption and apSeedOption("sector_locks")
     return value == 1 or value == true
@@ -1158,39 +1187,118 @@ local function passesFor(layout)
     return (((_G.apInventory or {}).passes or {})[layout]) or 0
 end
 
-function apSectorLockArrive()
-    lockedExit = nil
+local function lockNeed(sector)
+    return sector == 4 and 1 or (sector == 7 and 2 or 0)
+end
+
+local function currentSector()
+    return math.floor(Hyperspace.App.world.starMap.worldLevel) + 1
+end
+
+-- True while this run's layout lacks the pass to leave this sector: a sector skip offer must not open it either.
+function apSectorLockedHere()
     if not locksOn() then
-        return
+        return false
     end
     local layout = currentLayout()
-    local sector = math.floor(Hyperspace.App.world.starMap.worldLevel) + 1
-    local need = sector == 4 and 1 or (sector == 7 and 2 or 0)
+    local need = lockNeed(currentSector())
+    return layout ~= nil and need > 0 and passesFor(layout) < need
+end
+
+local function isLockedBeacon(loc)
+    local key = locKey(loc)
+    return key ~= nil and key == runVariable("ap_lock_loc") - 1
+end
+
+local function forEachLocation(fn)
+    pcall(function()
+        local locations = Hyperspace.App.world.starMap.locations
+        for i = 0, locations:size() - 1 do
+            fn(locations[i])
+        end
+    end)
+end
+
+local function openLockedExit()
+    forEachLocation(function(loc)
+        if isLockedBeacon(loc) then
+            loc.beacon = true
+        end
+    end)
     local here = Hyperspace.App.world.starMap.currentLoc
-    if layout == nil or need == 0 or here == nil or here.beacon ~= true or passesFor(layout) >= need then
+    if here ~= nil and isLockedBeacon(here) then
+        here.beacon = true
+    end
+    Hyperspace.playerVariables.ap_lock_loc = 0
+    Hyperspace.playerVariables.ap_lock_sector = 0
+end
+
+-- Said once the inventory is in: before that, a pass may only be on its way (a run continued after a restart).
+local lockWarned = false
+
+local function warnLock(sector)
+    if lockWarned or not (_G.apInventorySynced and apInventorySynced()) then
+        return
+    end
+    lockWarned = true
+    if _G.apNotifyWarning then
+        _G.apNotifyWarning(apT("sector_locks.closed", { n = lockNeed(sector), sector = sector }))
+    end
+end
+
+function apSectorLockArrive()
+    local sector = currentSector()
+    local lockedIn = runVariable("ap_lock_sector")
+    if lockedIn ~= 0 and lockedIn ~= sector then
+        -- A new sector: the lock of the last one is over.
+        Hyperspace.playerVariables.ap_lock_loc = 0
+        Hyperspace.playerVariables.ap_lock_sector = 0
+        lockedIn = 0
+    end
+    if lockedIn ~= 0 then
+        if not apSectorLockedHere() then
+            openLockedExit()
+            checkLog("sector exit opened: the pass came in")
+            if _G.apNotifyStatus and lockWarned then
+                _G.apNotifyStatus(apT("sector_locks.open"))
+            end
+            lockWarned = false
+            return
+        end
+        warnLock(sector)
+        -- Still locked: whatever FTL rebuilt from the save stays shut.
+        local here = Hyperspace.App.world.starMap.currentLoc
+        if here ~= nil and here.beacon == true and isLockedBeacon(here) then
+            here.beacon = false
+        end
+        forEachLocation(function(loc)
+            if loc.beacon == true and isLockedBeacon(loc) then
+                loc.beacon = false
+            end
+        end)
+        return
+    end
+    local here = Hyperspace.App.world.starMap.currentLoc
+    if here == nil or here.beacon ~= true or not apSectorLockedHere() then
         return
     end
     here.beacon = false
-    lockedExit, lockedNeed, lockedLayout = here, need, layout
-    checkLog("sector " .. sector .. " exit shut: " .. layout .. " needs Sector Pass " .. need)
-    if _G.apNotifyWarning then
-        _G.apNotifyWarning(apT("sector_locks.closed", { n = need, sector = sector }))
-    end
+    Hyperspace.playerVariables.ap_lock_loc = (locKey(here) or -1) + 1
+    Hyperspace.playerVariables.ap_lock_sector = sector
+    lockWarned = false
+    checkLog("sector " .. sector .. " exit shut: " .. currentLayout() .. " needs Sector Pass " .. lockNeed(sector))
+    warnLock(sector)
 end
 
 local lockTicks = 0
 script.on_internal_event(Defines.InternalEvents.ON_TICK, function()
     lockTicks = (lockTicks + 1) % 60
-    if lockTicks ~= 0 or lockedExit == nil then
+    if lockTicks ~= 0 or not inRun() then
         return
     end
-    if passesFor(lockedLayout) >= lockedNeed then
-        lockedExit.beacon = true
-        lockedExit = nil
-        checkLog("sector exit opened: the pass came in")
-        if _G.apNotifyStatus then
-            _G.apNotifyStatus(apT("sector_locks.open"))
-        end
+    local ok, jumping = pcall(function() return Hyperspace.ships.player.bJumping end)
+    if ok and jumping ~= true then
+        apTry(TAG, apSectorLockArrive)
     end
 end)
 

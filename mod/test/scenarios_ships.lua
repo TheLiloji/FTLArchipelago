@@ -820,3 +820,39 @@ test("in logic: after a reconnection, the items received before still count", fu
     equals(apInLogic("PLAYER_SHIP_ROCK:sector:3"), true, "the server's replay of the Rock still counts once reconnected")
     shipDone()
 end)
+
+test("Sweet Revenge: a crystal shard that kills the enemy gives the achievement Hyperspace never gives", function()
+    sim.achievements["ACH_CRYSTAL_SHARD"] = nil
+    local enemy = { iShipId = 1, iLastDamage = 2, ship = { hullIntegrity = { first = 1, second = 10 } } }
+    apCrystalShardHit(enemy, { crystalShard = true })
+    equals(sim.achievements["ACH_CRYSTAL_SHARD"], nil, "the enemy still stands: nothing")
+    enemy.ship.hullIntegrity.first = 0
+    apCrystalShardHit(enemy, { crystalShard = false })
+    equals(sim.achievements["ACH_CRYSTAL_SHARD"], nil, "killed by something else: nothing")
+    enemy.ship.hullIntegrity.first = -1
+    enemy.iLastDamage = 1
+    apCrystalShardHit(enemy, { crystalShard = true })
+    equals(sim.achievements["ACH_CRYSTAL_SHARD"], nil, "already dead before the shard: nothing")
+    apCrystalShardHit({ iShipId = 0, iLastDamage = 2, ship = { hullIntegrity = { first = 0 } } }, { crystalShard = true })
+    equals(sim.achievements["ACH_CRYSTAL_SHARD"], nil, "our own ship: nothing")
+    enemy.ship.hullIntegrity.first = 0
+    enemy.iLastDamage = 2
+    sim.fireForTesting("DAMAGE_AREA_HIT", enemy, nil, nil, { crystalShard = true }, false)
+    equals(sim.achievements["ACH_CRYSTAL_SHARD"], 0, "the shard's kill: FTL's achievement is given")
+    sim.achievements["ACH_CRYSTAL_SHARD"] = nil
+end)
+
+test("Sweet Revenge: with an older library, the Crystal Cruiser's check goes out all the same", function()
+    sim.achievements["ACH_CRYSTAL_SHARD"] = nil
+    local restore = stub("apNetUnlockAchievement", function() return nil end)
+    sim.player.myBlueprint.blueprintName = "PLAYER_SHIP_CRYSTAL"
+    sim.startRun(true)
+    applySeed({ loc = { ["ach:ACH_CRYSTAL_SHARD"] = "Crystal Cruiser: Sweet Revenge" } })
+    sim.clearLog()
+    local enemy = { iShipId = 1, iLastDamage = 3, ship = { hullIntegrity = { first = 0, second = 10 } } }
+    sim.fireForTesting("DAMAGE_AREA_HIT", enemy, nil, nil, { crystalShard = true }, false)
+    sim.jumpArrive()
+    restore()
+    check(sim.logged("CHECK ach:ACH_CRYSTAL_SHARD"), "the check is sent")
+    sim.player.myBlueprint.blueprintName = "PLAYER_SHIP_HARD"
+end)

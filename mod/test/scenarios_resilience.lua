@@ -1321,6 +1321,34 @@ test("sector locks: the exit of sector 4 stays shut without a pass, and opens wh
     _G.apInventory.passes = nil
 end)
 
+test("sector locks: a run continued on the exit beacon stays shut, even when FTL rebuilds the map", function()
+    apContractResetForTesting()
+    _G.apInventory = { ships = {}, systemCaps = {}, startingUpgrades = {}, shopAvailability = {} }
+    applySeed({ options = { sector_locks = 1 } })
+    sim.startRun(true)
+    sim.menuOpen = false
+    sim.starMap.worldLevel = 3
+    sim.starMap.currentLoc = sim.makeLocation()
+    sim.starMap.currentLoc.loc = { x = 120, y = 80 }
+    sim.starMap.currentLoc.beacon = true
+    sim.tick(61)
+    equals(sim.starMap.currentLoc.beacon, false, "continued on the exit, no jump: shut all the same")
+    sim.starMap.currentLoc = sim.makeLocation()
+    sim.starMap.currentLoc.loc = { x = 120, y = 80 }
+    sim.starMap.currentLoc.beacon = true
+    sim.tick(61)
+    equals(sim.starMap.currentLoc.beacon, false, "the map built again from the save: still shut")
+    apQueueItem({ kind = "pass", bp = "PLAYER_SHIP_HARD", display = "Sector Pass (The Kestrel)" })
+    sim.starMap.currentLoc = sim.makeLocation()
+    sim.starMap.currentLoc.loc = { x = 120, y = 80 }
+    sim.starMap.currentLoc.beacon = false
+    sim.tick(121)
+    equals(sim.starMap.currentLoc.beacon, true, "the pass came in: the exit saved shut opens again")
+    sim.starMap.worldLevel = 0
+    sim.menuOpen = nil
+    _G.apInventory.passes = nil
+end)
+
 test("sector skip: the first beacon of a new run is judged too, without a jump", function()
     apContractResetForTesting()
     applySeed({ options = { sector_skip = 1 } })
