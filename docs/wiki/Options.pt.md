@@ -584,9 +584,9 @@ um farol calmo e nunca destroem a tua nave.
 #### Crew Names
 
 `crew_names` · `vanilla`, `multiworld`, `multiworld_and_team` · por omissão `multiworld`\
-Os nomes da tripulação que se junta a ti durante uma run. `multiworld`: os nomes de slot dos outros jogadores,
+Os nomes da tua tripulação inicial numa run nova e da tripulação que se junta a ti. `multiworld`: os nomes de slot dos outros jogadores,
 depois os do FTL. `multiworld_and_team`: o mesmo, depois as pessoas que fizeram e testaram o mod. `vanilla`: os
-nomes do FTL. A tua tripulação inicial mantém os seus nomes.
+nomes do FTL. Uma run continuada mantém os seus nomes, e as personagens únicas do Multiverse mantêm os delas.
 
 ### Expert (só YAML)
 

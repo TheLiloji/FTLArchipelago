@@ -590,9 +590,9 @@ Le trappole aspettano un faro tranquillo e non distruggono mai la tua nave.
 #### Crew Names
 
 `crew_names` · `vanilla`, `multiworld`, `multiworld_and_team` · predefinito `multiworld`\
-I nomi dell'equipaggio che si unisce a te durante una run. `multiworld`: i nomi di slot degli altri giocatori,
+I nomi del tuo equipaggio iniziale in una nuova run e dell'equipaggio che si unisce a te. `multiworld`: i nomi di slot degli altri giocatori,
 poi quelli di FTL. `multiworld_and_team`: lo stesso, poi le persone che hanno fatto e testato la mod. `vanilla`:
-i nomi di FTL. Il tuo equipaggio iniziale tiene i suoi nomi.
+i nomi di FTL. Una run continuata tiene i suoi nomi, e i personaggi unici di Multiverse tengono i loro.
 
 ### Expert (solo YAML)
 
