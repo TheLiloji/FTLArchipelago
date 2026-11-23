@@ -676,6 +676,20 @@ end
 -- Below this height the name and the checks left would be drawn over each other.
 local SHIP_CARD_MIN_H = 74
 
+-- sector_locks: the passes each layout holds, out of the two it can get ("A 1/2  B 0/2").
+local function sectorPassLine(row)
+    local locks = _G.apSeedOption and apSeedOption("sector_locks")
+    if locks ~= 1 and locks ~= true then
+        return nil
+    end
+    local held = ((_G.apInventory or {}).passes) or {}
+    local parts = {}
+    for _, layout in ipairs(row.layouts) do
+        parts[#parts + 1] = apT("dash.ships.pass", { letter = layout.letter, n = math.min(2, held[layout.name] or 0) })
+    end
+    return apT("dash.ships.passes", { list = table.concat(parts, "  ") })
+end
+
 local function drawShipCard(row, cx, cy, cardW, cardH)
     local any = row.playable
     local spent = row.remaining == 0
@@ -692,6 +706,10 @@ local function drawShipCard(row, cx, cy, cardW, cardH)
     local remaining = row.remaining > 0 and apT("dash.ships.remaining", { n = row.remaining })
         or apT("dash.ships.clear")
     text(9, cx + 16, cy + cardH - 22, textW, "dim", remaining)
+    local passes = sectorPassLine(row)
+    if passes ~= nil then
+        text(9, cx + 16, cy + 30, textW, any and "text" or "dim", passes)
+    end
     local mx = cx + cardW - 12 - minisW
     local my = cy + math.floor((cardH - miniH - 18) / 2)
     for _, layout in ipairs(row.layouts) do

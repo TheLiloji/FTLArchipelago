@@ -140,6 +140,26 @@ test("dashboard: the ships page shows the unlocked layouts and the checks left p
     closeDashboard()
 end)
 
+test("dashboard: with sector locks, each ship card counts the Sector Passes of its layouts", function()
+    sim.startRun(true)
+    dashboardSeed()
+    _G.apInventory.ships = { "PLAYER_SHIP_HARD" }
+    _G.apInventory.passes = { PLAYER_SHIP_HARD = 1, PLAYER_SHIP_HARD_2 = 3 }
+    openDashboard("ships")
+    check(not sim.drawnText(apT("dash.ships.passes", { list = "" })),
+        "a seed without sector locks says nothing of passes")
+    closeDashboard()
+    applySeed({ options = { sector_locks = 1 }, loc = { ["PLAYER_SHIP_HARD:sector:2"] = "Kestrel Cruiser A: Reach sector 2" } })
+    openDashboard("ships")
+    local parts = { apT("dash.ships.pass", { letter = "A", n = 1 }), apT("dash.ships.pass", { letter = "B", n = 2 }),
+                    apT("dash.ships.pass", { letter = "C", n = 0 }) }
+    check(sim.drawnText(apT("dash.ships.passes", { list = table.concat(parts, "  ") })),
+        "the Kestrel's card: A 1/2, B capped at 2/2, C none")
+    closeDashboard()
+    _G.apInventory.passes = nil
+    applySeed({})
+end)
+
 test("dashboard: the systems page tells locked, levels and head starts apart", function()
     sim.startRun(true)
     dashboardSeed()
