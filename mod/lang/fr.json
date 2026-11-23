@@ -474,7 +474,7 @@
     "question.solo_save.title": "Mode solo",
     "dash.links.energy_short": "EnergyLink {n}",
     "item.wait_first_jump": "{n} objet(s) attendent votre premier saut.",
-    "dash.ships.passes": "Sector Pass : {list}",
-    "dash.ships.pass": "{letter} {n}/2"
+    "dash.ships.passes": "Sector Pass",
+    "dash.ships.type.passes": "Type {letter} : {n}/2"
   }
 }

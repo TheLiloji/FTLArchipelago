@@ -146,14 +146,15 @@ test("dashboard: with sector locks, each ship card counts the Sector Passes of i
     _G.apInventory.ships = { "PLAYER_SHIP_HARD" }
     _G.apInventory.passes = { PLAYER_SHIP_HARD = 1, PLAYER_SHIP_HARD_2 = 3 }
     openDashboard("ships")
-    check(not sim.drawnText(apT("dash.ships.passes", { list = "" })),
+    check(not sim.drawnText(apT("dash.ships.passes")),
         "a seed without sector locks says nothing of passes")
     closeDashboard()
     applySeed({ options = { sector_locks = 1 }, loc = { ["PLAYER_SHIP_HARD:sector:2"] = "Kestrel Cruiser A: Reach sector 2" } })
     openDashboard("ships")
-    local parts = { apT("dash.ships.pass", { letter = "A", n = 1 }), apT("dash.ships.pass", { letter = "B", n = 2 }),
-                    apT("dash.ships.pass", { letter = "C", n = 0 }) }
-    check(sim.drawnText(apT("dash.ships.passes", { list = table.concat(parts, "  ") })),
+    check(sim.drawnText(apT("dash.ships.passes")), "the card says what the numbers are")
+    check(sim.drawnText(apT("dash.ships.type.passes", { letter = "A", n = 1 }))
+        and sim.drawnText(apT("dash.ships.type.passes", { letter = "B", n = 2 }))
+        and sim.drawnText(apT("dash.ships.type.passes", { letter = "C", n = 0 })),
         "the Kestrel's card: A 1/2, B capped at 2/2, C none")
     closeDashboard()
     _G.apInventory.passes = nil

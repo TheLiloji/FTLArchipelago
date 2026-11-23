@@ -676,18 +676,13 @@ end
 -- Below this height the name and the checks left would be drawn over each other.
 local SHIP_CARD_MIN_H = 74
 
--- sector_locks: the passes each layout holds, out of the two it can get ("A 1/2  B 0/2").
-local function sectorPassLine(row)
+-- sector_locks: the passes each layout holds, out of the two it can get, under its picture ("Type A: 1/2").
+local function sectorPasses()
     local locks = _G.apSeedOption and apSeedOption("sector_locks")
     if locks ~= 1 and locks ~= true then
         return nil
     end
-    local held = ((_G.apInventory or {}).passes) or {}
-    local parts = {}
-    for _, layout in ipairs(row.layouts) do
-        parts[#parts + 1] = apT("dash.ships.pass", { letter = layout.letter, n = math.min(2, held[layout.name] or 0) })
-    end
-    return apT("dash.ships.passes", { list = table.concat(parts, "  ") })
+    return ((_G.apInventory or {}).passes) or {}
 end
 
 local function drawShipCard(row, cx, cy, cardW, cardH)
@@ -706,9 +701,9 @@ local function drawShipCard(row, cx, cy, cardW, cardH)
     local remaining = row.remaining > 0 and apT("dash.ships.remaining", { n = row.remaining })
         or apT("dash.ships.clear")
     text(9, cx + 16, cy + cardH - 22, textW, "dim", remaining)
-    local passes = sectorPassLine(row)
+    local passes = sectorPasses()
     if passes ~= nil then
-        text(9, cx + 16, cy + 30, textW, any and "text" or "dim", passes)
+        text(9, cx + 16, cy + 30, textW, any and "text" or "dim", apT("dash.ships.passes"))
     end
     local mx = cx + cardW - 12 - minisW
     local my = cy + math.floor((cardH - miniH - 18) / 2)
@@ -717,8 +712,9 @@ local function drawShipCard(row, cx, cy, cardW, cardH)
             rect(mx, my, miniW, miniH, layout.unlocked and "faint" or "card")
         end
         rect(mx, my + miniH + 2, miniW, 3, layout.unlocked and "good" or "faint")
-        textCenter(9, mx + miniW / 2, my + miniH + 7, miniW, layout.unlocked and "text" or "dim",
-            apT("dash.ships.type", { letter = layout.letter }))
+        local typeLabel = passes == nil and apT("dash.ships.type", { letter = layout.letter })
+            or apT("dash.ships.type.passes", { letter = layout.letter, n = math.min(2, passes[layout.name] or 0) })
+        textCenter(9, mx + miniW / 2, my + miniH + 7, miniW, layout.unlocked and "text" or "dim", typeLabel)
         mx = mx + miniW + miniGap
     end
 end
