@@ -1269,6 +1269,8 @@ test("dashboard button: not drawn outside a run", function()
         check(not (image.texture and image.texture.name == "ap_button.png"), "no button on the menu")
     end
     Hyperspace.App.menu.bOpen = false
+end)
+
 test("dashboard: under Multiverse the race keeps its line, the Sector Pass counts stay under each picture", function()
     sim.startRun(true)
     dashboardSeed()
