@@ -265,3 +265,31 @@ class TestLogicCopyFollowsSectorLocks(FTLTestBase):
         installs = [entry for key, entry in logic["checks"].items() if key.startswith("sys:") and key.count(":") == 1]
         for entry in installs:
             self.assertTrue(entry["ways"])
+
+
+class TestLogicCopyCountsSystemUpgrades(FTLTestBase):
+    """A level check needs its Progressive items in the copy too, or the dashboard marks every level as in logic
+    as soon as the system can be bought (Artillery level 4 shown in logic with two upgrades received)."""
+
+    options = {"systemsanity": "every_level", "progressive_systems": True, "full_system_upgrades": False,
+               "layout_count": 4}
+
+    def test_each_level_asks_one_more_progressive_item(self) -> None:
+        from .. import rules
+        logic = self.world.fill_slot_data()["logic"]
+        compared = 0
+        for location in self.world.created_locations:
+            if location.group != data.GROUP_SYSTEMS or (location.level or 1) < 3:
+                continue
+            item = f"Progressive {data.SYSTEMS_BY_ID[location.system].display}"
+            entry = logic["checks"][location.check_id]
+            lower = logic["checks"][location.check_id.rsplit(":", 1)[0] + f":{location.level - 1}"]
+            self.assertTrue(entry["ways"], location.check_id)
+            lower_ways = {way["l"]: way["i"].count(item) for way in lower["ways"]}
+            for way in entry["ways"]:
+                layout = data.LAYOUTS_BY_BLUEPRINT[way["l"]]
+                if way["l"] not in lower_ways or rules.start_level(layout, location.system) >= location.level - 1:
+                    continue
+                self.assertEqual(way["i"].count(item), lower_ways[way["l"]] + 1, (location.check_id, way["l"]))
+                compared += 1
+        self.assertTrue(compared, "no level compared")

@@ -597,9 +597,9 @@ balise calme et ne détruisent jamais ton vaisseau.
 #### Crew Names
 
 `crew_names` · `vanilla`, `multiworld`, `multiworld_and_team` · défaut `multiworld`\
-Les noms de l'équipage qui te rejoint pendant une run. `multiworld` : les noms de slot des autres joueurs, puis
+Les noms de ton équipage de départ dans une nouvelle run et de l'équipage qui te rejoint. `multiworld` : les noms de slot des autres joueurs, puis
 ceux de FTL. `multiworld_and_team` : pareil, puis les gens qui ont fait et testé le mod. `vanilla` : les noms de
-FTL. Ton équipage de départ garde ses noms.
+FTL. Une run continuée garde ses noms, et les personnages uniques de Multiverse gardent les leurs.
 
 ### Expert (YAML seulement)
 

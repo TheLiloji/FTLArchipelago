@@ -595,9 +595,10 @@ Bake und zerstören nie dein Schiff.
 #### Crew Names
 
 `crew_names` · `vanilla`, `multiworld`, `multiworld_and_team` · Standard `multiworld`\
-Die Namen der Crew, die sich dir während eines Runs anschließt. `multiworld`: die Slot-Namen der anderen Spieler,
+Die Namen deiner Startcrew in einem neuen Run und der Crew, die sich dir anschließt. `multiworld`: die Slot-Namen der anderen Spieler,
 dann die von FTL. `multiworld_and_team`: dasselbe, dann die Leute, die den Mod gemacht und getestet haben.
-`vanilla`: die Namen von FTL. Deine Startcrew behält ihre Namen.
+`vanilla`: die Namen von FTL. Ein fortgesetzter Run behält seine Namen, die einzigartigen Figuren von Multiverse
+behalten ihre.
 
 ### Expert (nur YAML)
 

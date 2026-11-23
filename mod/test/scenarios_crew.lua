@@ -140,6 +140,36 @@ test("DeathLink: a crew member the Clone Bay brings back is not a death", functi
     equals(sent.n, 0, "back on board: no death")
 end)
 
+test("DeathLink: the whole crew waiting in the Clone Bay is not a lost run", function()
+    apDeathLinkConfigure({ enabled = true, trigger = "both", cloned = false, graceSeconds = 0 })
+    local sent = { n = 0 }
+    sent.restore = stub("apNetSendDeath", function() sent.n = sent.n + 1 return true end)
+    sim.startRun(true)
+    sim.player._systemsHeld = { [13] = true }
+    sim.tick(60)
+    local crew = {}
+    for i = 0, sim.player.vCrewList:size() - 1 do
+        crew[#crew + 1] = sim.player.vCrewList[i]
+        sim.player.vCrewList[i].health.first = 0
+    end
+    sim.tick(30)
+    for _, member in ipairs(crew) do
+        member.bDead = true
+    end
+    sim.clearLog()
+    sim.tick(30)
+    sim.player.vCrewList = sim.vector({})
+    sim.cloneQueue = crew
+    sim.tick(120)
+    check(not sim.logged("RUN END"), "everyone in the Clone Bay: the run is not over")
+    equals(sent.n, 0, "and no DeathLink")
+    sim.cloneQueue = {}
+    sim.tick(60)
+    sent.restore()
+    check(sim.logged("RUN END: crew"), "the Clone Bay empty with nobody back: now it is lost")
+    sim.player._systemsHeld = nil
+end)
+
 test("DeathLink: a crew member the Clone Bay loses is a death", function()
     local sent = cloneBayRun(false)
     sim.cloneQueue = {}
@@ -329,23 +359,35 @@ end
 test("crew names: new crew is named after the other players, then keeps FTL's names", function()
     apCrewNamesConfigure("multiworld", { "Nina", "Bérénice", "Berserker" })
     sim.startRun(true)
+    sim.player.vCrewList = sim.vector({ sim.makeCrew("Ash", "human", 0) })
     sim.tick(30)
     local captain = sim.player.vCrewList[0]
-    local starting = captain:GetName()
-    equals(joins("Ruwen"):GetName(), "Nina", "the first recruit takes a player's name")
+    equals(captain:GetName(), "Nina", "a new run: the starting crew takes a player's name too")
     equals(joins("Kazu"):GetName(), "Berserker", "the next one the next player's, skipping a name FTL cannot draw")
     equals(joins("Hara"):GetName(), "Hara", "once every player is aboard, FTL's names come back")
-    equals(captain:GetName(), starting, "the starting crew keeps its names")
     sim.startRun(false)
+    sim.player.vCrewList = sim.vector({ sim.makeCrew("Ash", "human", 0) })
     sim.tick(30)
-    equals(joins("Lio"):GetName(), "Lio", "after a Continue, the names aboard are still taken")
+    equals(sim.player.vCrewList[0]:GetName(), "Ash", "a continued run keeps the names it was saved with")
+    equals(joins("Lio"):GetName(), "Nina", "and its recruits still get a name")
+end)
+
+test("crew names: a Multiverse unique character keeps its name", function()
+    apCrewNamesConfigure("multiworld", { "Nina" })
+    sim.startRun(true)
+    sim.player.vCrewList = sim.vector({ sim.makeCrew("Tully", "unique_tully", 0) })
+    sim.tick(30)
+    equals(sim.player.vCrewList[0]:GetName(), "Tully", "a character of the story")
+    equals(joins("Ruwen"):GetName(), "Nina", "the name goes to the next recruit")
+    apCrewNamesConfigure("multiworld", {})
 end)
 
 test("crew names: the team comes after the players, only when asked", function()
     apCrewNamesConfigure("multiworld_and_team", { "Nina" })
     sim.startRun(true)
+    sim.player.vCrewList = sim.vector({ sim.makeCrew("Ash", "human", 0) })
     sim.tick(30)
-    equals(joins("Ruwen"):GetName(), "Nina", "players first")
+    equals(sim.player.vCrewList[0]:GetName(), "Nina", "players first")
     equals(joins("Kazu"):GetName(), "Liloji", "then the team")
     apCrewNamesConfigure("vanilla", { "Nina" })
     sim.startRun(true)
@@ -356,7 +398,7 @@ end)
 
 test("crew names: a hologram or a drone keeps its name", function()
     apCrewNamesConfigure("multiworld", { "Nina" })
-    sim.startRun(true)
+    sim.startRun(false)
     sim.tick(30)
     local hologram = sim.player:AddCrewMemberFromString("Hologram", "human", false, 0, false, false)
     hologram.extend.deathTimer = {}

@@ -486,6 +486,7 @@ local function resetWorld()
             return locked
         end,
         AchievementStatus = function(_, name) return sim.achievements[name] or -1 end,
+        UnlockAchievement = function(_, name) sim.achievements[name] = 0 return true end,
         HangarShip = function() return sim.hangarOpen and (sim.hangarShip or "PLAYER_SHIP_HARD") or "" end,
         HangarHover = function() return sim.hangarHover end,
         SwitchHangarShip = function(_, blueprint)
@@ -928,6 +929,7 @@ _G.Defines = {
         ON_KEY_UP = "ON_KEY_UP",
         ON_MOUSE_L_BUTTON_DOWN = "ON_MOUSE_L_BUTTON_DOWN",
         ON_MOUSE_SCROLL = "ON_MOUSE_SCROLL",
+        DAMAGE_AREA_HIT = "DAMAGE_AREA_HIT",
     },
     RenderEvents = { MAIN_MENU = "MAIN_MENU", GUI_CONTAINER = "GUI_CONTAINER", TABBED_WINDOW = "TABBED_WINDOW" },
     Chain = { CONTINUE = 0, PREEMPT = 1, HALT = 2 },

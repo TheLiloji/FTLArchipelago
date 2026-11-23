@@ -476,6 +476,8 @@
     "hangar.refused.not_received": "{ship}: not received yet. Pick another ship.",
     "question.solo_save.title": "Solo mode",
     "dash.links.energy_short": "EnergyLink {n}",
-    "item.wait_first_jump": "{n} item(s) wait for your first jump."
+    "item.wait_first_jump": "{n} item(s) wait for your first jump.",
+    "dash.ships.passes": "Sector Passes",
+    "dash.ships.type.passes": "Type {letter}: {n}/2"
   }
 }
