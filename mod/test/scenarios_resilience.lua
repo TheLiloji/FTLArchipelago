@@ -1417,6 +1417,7 @@ test("sector locks: the exit of sector 4 stays shut without a pass, and opens wh
     sim.jumpArrive()
     equals(sim.starMap.currentLoc.beacon, false, "no pass: the exit is shut")
     apQueueItem({ kind = "pass", bp = "PLAYER_SHIP_HARD", display = "Sector Pass (The Kestrel)" })
+    apInventoryMarkSynced()
     sim.tick(121)
     equals(sim.starMap.currentLoc.beacon, true, "the pass came in: open")
     sim.starMap.worldLevel = 0
@@ -1441,11 +1442,21 @@ test("sector locks: a run continued on the exit beacon stays shut, even when FTL
     sim.tick(61)
     equals(sim.starMap.currentLoc.beacon, false, "the map built again from the save: still shut")
     apQueueItem({ kind = "pass", bp = "PLAYER_SHIP_HARD", display = "Sector Pass (The Kestrel)" })
+    sim.tick(61)
+    -- FTL restarted and the run continued offline: the pass is in the inventory, but nothing confirms it yet.
+    apContractResetForTesting()
+    apInventoryUnsyncForTesting()
     sim.starMap.currentLoc = sim.makeLocation()
     sim.starMap.currentLoc.loc = { x = 120, y = 80 }
-    sim.starMap.currentLoc.beacon = false
+    sim.starMap.currentLoc.beacon = true
     sim.tick(121)
-    equals(sim.starMap.currentLoc.beacon, true, "the pass came in: the exit saved shut opens again")
+    equals(sim.starMap.currentLoc.beacon, false, "offline: shut until the server confirms the pass")
+    applySeed({ options = { sector_locks = 1 } })
+    sim.tick(121)
+    equals(sim.starMap.currentLoc.beacon, false, "connected, items not all back yet: still shut")
+    apInventoryMarkSynced()
+    sim.tick(121)
+    equals(sim.starMap.currentLoc.beacon, true, "the pass confirmed: the exit saved shut opens again")
     sim.starMap.worldLevel = 0
     sim.menuOpen = nil
     _G.apInventory.passes = nil

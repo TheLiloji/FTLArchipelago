@@ -137,6 +137,11 @@ function apInventoryClear()
     invLog("inventory reset to empty (starting a real run)")
 end
 
+-- A restart: the items are back from the profile, the server has not sent them again yet.
+function apInventoryUnsyncForTesting()
+    synced = false
+end
+
 function apInventoryResetForTesting()
     local fresh = deepCopy(pristine)
     for key in pairs(_G.apInventory) do
