@@ -1339,6 +1339,8 @@ test("sector locks: a run continued on the exit beacon stays shut, even when FTL
     sim.starMap.currentLoc.beacon = true
     sim.tick(61)
     equals(sim.starMap.currentLoc.beacon, false, "the map built again from the save: still shut")
+    -- The pass comes in while the server is still sending the items again: nothing confirms it yet.
+    apInventoryUnsyncForTesting()
     apQueueItem({ kind = "pass", bp = "PLAYER_SHIP_HARD", display = "Sector Pass (The Kestrel)" })
     sim.tick(61)
     -- FTL restarted and the run continued offline: the pass is in the inventory, but nothing confirms it yet.
