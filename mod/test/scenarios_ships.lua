@@ -466,9 +466,15 @@ test("ships: solo counts its start ship and refuses one FTL unlocked on its own"
     _G.apRunStartCheckForTesting = nil
     sim.menuOpen = false
     check(apSoloStart(true), "solo mode starts")
-    startRunWith("PLAYER_SHIP_HARD")
+    -- The demo seed is not the same in the base and the Multiverse build: take its own start ship.
+    local start = (_G.apSoloSlotData or {}).start_ship or "PLAYER_SHIP_HARD"
+    local sector = nil
+    for key in pairs(apContractState.locNames or {}) do
+        if key:sub(1, #start + 8) == start .. ":sector:" then sector = key break end
+    end
+    startRunWith(start)
     equals(apRunRefusal(), nil, "the solo start ship counts, though solo hands out no starting item")
-    check(apSendCheck("PLAYER_SHIP_HARD:sector:5", "a sector"), "its check goes through")
+    check(sector ~= nil and apSendCheck(sector, "a sector"), "its check goes through")
     startRunWith("PLAYER_SHIP_CIRCLE")
     sim.tick(1)
     equals(apRunRefusal(), "not_received", "an Engi with no key in solo does not")
