@@ -21,5 +21,5 @@ a seed with a world it does not ship; in that case, host it yourself.
 
 ## Playing alone without a server
 
-An FTL player can also try a seed with no server at all: **Solo mode** on the main menu plays a seed that comes
-with the mod. See [Playing](Playing.md#solo-mode).
+An FTL player can also try a seed with no server at all: **Demo mode** on the main menu plays a seed that comes
+with the mod. See [Playing](Playing.md#demo-mode).

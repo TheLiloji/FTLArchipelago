@@ -928,7 +928,7 @@ _G.Defines = {
         KEY_MINUS = 45, KEY_PERIOD = 46, KEY_SLASH = 47, KEY_COLON = 58, KEY_SEMICOLON = 59,
         KEY_KP0 = 256, KEY_KP9 = 265, KEY_KP_PERIOD = 266, KEY_KP_MINUS = 269,
         KEY_KP_ENTER = 271, KEY_UP = 273, KEY_DOWN = 274, KEY_RIGHT = 275, KEY_LEFT = 276,
-        KEY_RSHIFT = 303, KEY_LSHIFT = 304,
+        KEY_RSHIFT = 303, KEY_LSHIFT = 304, KEY_CAPSLOCK = 301,
     }, {
         __index = function(t, key)
             local letter = key:match("^KEY_(%l)$")

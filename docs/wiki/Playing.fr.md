@@ -302,12 +302,12 @@ dernière Archive arrive pendant que tu es dans le menu.
 Certaines seeds demandent des victoires en Normal ou Difficile. Une victoire plus facile envoie quand même son
 check, mais ne compte pas pour le but.
 
-## Le mode solo
+## Le mode démo
 
-Pas de serveur ? Clique sur **Solo mode** dans le panneau de connexion. Il utilise une vraie seed générée et te
+Pas de serveur ? Clique sur **Demo mode** dans le panneau de connexion. Il utilise une vraie seed générée et te
 donne un de ses objets par check. C'est toujours la même seed de démo fournie avec le mod, pas ton YAML, donc tes
 options ne s'appliquent pas. Ta progression est gardée dans sa propre sauvegarde, tu peux donc arrêter et revenir
-plus tard. **Stop solo** la met de côté, et recliquer sur **Solo mode** demande s'il faut continuer ou tout
+plus tard. **Stop demo** la met de côté, et recliquer sur **Demo mode** demande s'il faut continuer ou tout
 recommencer.
 
 ## Bon à savoir

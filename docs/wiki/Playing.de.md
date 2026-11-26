@@ -306,12 +306,12 @@ letzte Archiv ankommt, während du im Menü sitzt.
 Manche Seeds verlangen Siege auf Normal oder Schwer. Ein leichterer Sieg schickt trotzdem seinen Check, zählt aber
 nicht für das Ziel.
 
-## Solomodus
+## Demomodus
 
-Kein Server? Klick auf **Solo mode** im Verbindungsfeld. Er nutzt einen echten erzeugten Seed und gibt dir pro
+Kein Server? Klick auf **Demo mode** im Verbindungsfeld. Er nutzt einen echten erzeugten Seed und gibt dir pro
 Check einen seiner Gegenstände. Es ist immer derselbe Demo-Seed, der mit dem Mod kommt, nicht deine YAML, also
 gelten deine Optionen nicht. Dein Fortschritt wird in einem eigenen Spielstand gespeichert, du kannst also
-aufhören und später weitermachen. **Stop solo** legt ihn beiseite, und ein erneuter Klick auf **Solo mode** fragt,
+aufhören und später weitermachen. **Stop demo** legt ihn beiseite, und ein erneuter Klick auf **Demo mode** fragt,
 ob du weitermachen oder neu anfangen willst.
 
 ## Gut zu wissen

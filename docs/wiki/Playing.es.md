@@ -297,12 +297,12 @@ Necesitas las victorias y suficientes Archivos. El objetivo sale solo en cuanto 
 Algunas seeds piden victorias en Normal o Difícil. Una victoria más fácil envía igual su check, pero no cuenta
 para el objetivo.
 
-## Modo solo
+## Modo demo
 
-¿Sin servidor? Haz clic en **Solo mode** en el panel de conexión. Usa una seed real generada y te da uno de sus
+¿Sin servidor? Haz clic en **Demo mode** en el panel de conexión. Usa una seed real generada y te da uno de sus
 objetos por check. Siempre es la misma seed de demostración que viene con el mod, no tu YAML, así que tus opciones
 no se aplican. Tu progreso se guarda en su propia partida guardada, así que puedes parar y volver más tarde.
-**Stop solo** la aparta, y volver a hacer clic en **Solo mode** pregunta si seguir o empezar de cero.
+**Stop demo** la aparta, y volver a hacer clic en **Demo mode** pregunta si seguir o empezar de cero.
 
 ## Bueno saberlo
 

@@ -116,7 +116,7 @@ More ideas and every option on the [options page](docs/wiki/Options.md).
    [release](https://github.com/TheLiloji/FTLArchipelago/releases) and follow the setup page for
    [Windows](docs/wiki/Setup-Windows.md) or [Linux](docs/wiki/Setup-Linux.md).
 2. Make your YAML, or take a [preset](presets). The host needs `ftl.apworld` and Archipelago 0.6.7.
-3. Start FTL, fill in the panel at the bottom left and connect. No server? Try **Solo mode**.
+3. Start FTL, fill in the panel at the bottom left and connect. No server? Try **Demo mode**.
 
 ## FTL: Multiverse <sup>beta</sup>
 
