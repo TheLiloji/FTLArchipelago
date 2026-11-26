@@ -379,7 +379,7 @@ local function resetWorld()
     sim.net = { present = true, calls = {}, events = {}, connectResult = true, checked = {}, shipLock = true,
                 last = { uri = "", slot = "" } }
     if _G.apNetCaptureResetForTesting then apNetCaptureResetForTesting() end
-    sim.shiftDown, sim.ctrlDown, sim.layoutText = false, false, nil
+    sim.shiftDown, sim.ctrlDown, sim.layoutText, sim.capsOn = false, false, nil, false
     sim.net.client = {
         LastUri = function() return sim.net.last.uri end,
         LastSlot = function() return sim.net.last.slot end,
@@ -1239,13 +1239,15 @@ local function typedBy(key)
     if KEYPAD[key] then return KEYPAD[key] end
     if key < 32 or key > 126 then return nil end
     local c = string.char(key)
+    -- Caps Lock, like the system, turns letters only.
+    if c:match("%l") and (sim.shiftDown ~= (sim.capsOn == true)) then return c:upper() end
     if not sim.shiftDown then return c end
-    if c:match("%l") then return c:upper() end
     return US_SHIFTED[c] or c
 end
 
 function sim.keyDown(key)
     if key == 303 or key == 304 then sim.shiftDown = true end
+    if key == 301 then sim.capsOn = not sim.capsOn end
     if sim.net and sim.net.capture and sim.layoutText ~= false and not sim.ctrlDown then
         local c = typedBy(key)
         if c then sim.net.typed = (sim.net.typed or "") .. c end
