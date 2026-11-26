@@ -39,6 +39,8 @@ local pending = false
 local logoTexture = nil
 local open = false
 local resumed = false
+-- sector_skip's extra pick: this menu came back for one more pick, until a pick is made or the menu is closed.
+local extraPick = false
 local taken = {}
 local pages = {}
 local hoveredEntry = nil
@@ -193,6 +195,7 @@ local function close(reason)
     open = false
     pending = false
     remember("open", 0)
+    remember("extra", 0)
 end
 
 local function geometry(categories)
@@ -234,9 +237,6 @@ function apLoadoutPoint(target, category, row)
     local area = target == "row" and rowArea(column, row or 1) or column[target]
     return area.x + area.w / 2, area.y + area.h / 2
 end
-
--- sector_skip's extra pick: this menu came back for one more pick, until a pick is made or the menu is closed.
-local extraPick = false
 
 local function roomFor(category)
     if category ~= "weapon" and category ~= "drone" then
@@ -281,10 +281,14 @@ local function take(category, entry)
     end
     taken[category] = entry.label
     remember(category, 1)
-    extraPick = false
     menuLog("taken for this run: " .. entry.label)
     if _G.apNotifyStatus then
         _G.apNotifyStatus(apT("loadout.taken", { name = entry.label }))
+    end
+    -- The sector skip gives one pick, not one per column.
+    if extraPick then
+        close("the extra pick is made")
+        return
     end
     local systemsLeft = _G.apSystemInstallChoices and #(apSystemInstallChoices()) or 0
     if taken.weapon and taken.drone and taken.crew and systemsLeft == 0 then
@@ -328,7 +332,8 @@ local function draw()
             0, Graphics.GL_Color(1, 1, 1, 1), false)
         titleX = titleX + LOGO_SIZE + 10
     end
-    ui.text(24, titleX, PANEL.y + 14, PANEL.x + PANEL.w - 20 - titleX, "title", apT("loadout.title"))
+    ui.text(24, titleX, PANEL.y + 14, PANEL.x + PANEL.w - 20 - titleX, "title",
+        apT(extraPick and "loadout.title.extra" or "loadout.title"))
     ui.wrapped(10, PANEL.x + 20, PANEL.y + 54, PANEL.w - 40, "dim",
         apT(extraPick and "loadout.hint.extra"
             or (#categories > #CATEGORIES and "loadout.hint.systems" or "loadout.hint")))
@@ -465,8 +470,10 @@ script.on_init(function(newGame)
     open = false
     pending = newGame == true
     resumed = newGame == false
+    extraPick = false
     if newGame then
         remember("open", 1)
+        remember("extra", 0)
         for _, category in ipairs(CATEGORIES) do
             remember(category, 0)
         end
@@ -486,6 +493,7 @@ script.on_internal_event(Defines.InternalEvents.JUMP_ARRIVE, function(shipManage
         open = false
         pending = true
         remember("open", 1)
+        remember("extra", 1)
         for _, category in ipairs(CATEGORIES) do
             remember(category, 0)
         end
@@ -515,6 +523,7 @@ script.on_render_event(
         if resumed and uiFree() then
             resumed = false
             pending = recalled("open")
+            extraPick = pending and recalled("extra")
             for _, category in ipairs(CATEGORIES) do
                 taken[category] = recalled(category) or nil
             end

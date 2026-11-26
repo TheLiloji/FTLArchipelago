@@ -68,6 +68,21 @@ test("dashboard: TAB opens it in a run, pauses the game, and TAB closes it", fun
     equals(gui.bPaused, false, "and the game resumes as it was")
 end)
 
+test("dashboard: the X in the corner closes it", function()
+    sim.startRun(true)
+    applySeed({ goal = { kind = "victories", count = 1 } })
+    Hyperspace.App.gui.bPaused = false
+    openDashboard(1)
+    local close = apDashboardAreaForTesting("close")
+    check(close ~= nil and sim.drawnText("X"), "the close button is drawn")
+    for _, area in pairs({ apDashboardAreaForTesting("tab:1") }) do
+        check(area.y >= close.y + close.h or area.x + area.w <= close.x, "it covers no tab")
+    end
+    sim.click(close.x + close.w / 2, close.y + close.h / 2)
+    check(not apDashboardOpen(), "a click on it closes the dashboard")
+    equals(Hyperspace.App.gui.bPaused, false, "and the game runs again")
+end)
+
 test("dashboard: a game already paused stays paused when it closes", function()
     sim.startRun(true)
     local gui = Hyperspace.App.gui

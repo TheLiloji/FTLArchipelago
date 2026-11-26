@@ -299,12 +299,12 @@ Arquivo chegue enquanto estás no menu.
 Algumas seeds pedem vitórias em Normal ou Difícil. Uma vitória mais fácil envia na mesma o seu check, mas não
 conta para o objetivo.
 
-## Modo solo
+## Modo demo
 
-Sem servidor? Clica em **Solo mode** no painel de ligação. Usa uma seed gerada a sério e dá-te um dos seus
+Sem servidor? Clica em **Demo mode** no painel de ligação. Usa uma seed gerada a sério e dá-te um dos seus
 objetos por check. É sempre a mesma seed de demonstração que vem com o mod, não o teu YAML, por isso as tuas opções
 não se aplicam. O teu progresso fica guardado no seu próprio jogo guardado, por isso podes parar e voltar mais
-tarde. **Stop solo** põe-no de lado, e clicar outra vez em **Solo mode** pergunta se queres continuar ou começar
+tarde. **Stop demo** põe-no de lado, e clicar outra vez em **Demo mode** pergunta se queres continuar ou começar
 do zero.
 
 ## É bom saber
