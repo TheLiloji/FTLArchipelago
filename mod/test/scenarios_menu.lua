@@ -741,6 +741,32 @@ test("sector skip: the extra pick says so, stays open when there is no room, and
     check(not apLoadoutOpen(), "closed with Finish, the extra pick is gone: it never comes back beacon after beacon")
 end)
 
+test("sector skip: the extra pick has its own title, is one pick only, and survives a Continue", function()
+    apInventoryClear()
+    apInventory.shopAvailability.LASER_BURST_3 = 2
+    apInventory.shopAvailability.LASER_BURST_2 = 2
+    apContractResetForTesting()
+    applySeed({ options = { sector_skip = 1 } })
+    sim.startRun(true)
+    sim.renderGui()
+    check(sim.drawnText(apT("loadout.title")), "a new run opens the start-of-run menu")
+    sim.click(apLoadoutPoint("done"))
+    _G.apLoadoutExtraPick = true
+    sim.jumpArrive()
+    sim.renderGui()
+    check(sim.drawnText(apT("loadout.title.extra")), "the extra pick is titled as the sector skip bonus")
+    check(not sim.drawnText(apT("loadout.title")), "not as the start of the run")
+    sim.startRun(false)
+    sim.renderGui()
+    check(apLoadoutOpen() and sim.drawnText(apT("loadout.title.extra")), "a Continue brings back the bonus, still titled so")
+    check(sim.drawnText(apT("loadout.hint.extra")), "with its own line under the title")
+    sim.click(apLoadoutPoint("row", "weapon", 1))
+    check(sim.logged("taken for this run"), "the pick is made")
+    check(not apLoadoutOpen(), "one pick and the bonus is over, the other columns are not free picks")
+    sim.renderGui()
+    check(not sim.drawnText(apT("loadout.hint")), "the start-of-run line never comes back")
+end)
+
 test("save profiles: a refused seed does not rename the save in use", function()
     sim.profiles.on = true
     sim.profiles.current = "seed-1"

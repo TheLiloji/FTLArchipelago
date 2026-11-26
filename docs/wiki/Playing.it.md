@@ -300,12 +300,12 @@ arriva mentre sei nel menu.
 Alcuni seed chiedono vittorie a Normale o Difficile. Una vittoria più facile manda comunque il suo check, ma non
 conta per l'obiettivo.
 
-## Modalità solo
+## Modalità demo
 
-Niente server? Clicca su **Solo mode** nel pannello di connessione. Usa un vero seed generato e ti dà uno dei suoi
+Niente server? Clicca su **Demo mode** nel pannello di connessione. Usa un vero seed generato e ti dà uno dei suoi
 oggetti per check. È sempre lo stesso seed demo fornito con la mod, non il tuo YAML, quindi le tue opzioni non
 valgono. I tuoi progressi sono tenuti nel suo salvataggio, quindi puoi fermarti e tornare più tardi.
-**Stop solo** lo mette da parte, e cliccare di nuovo su **Solo mode** chiede se continuare o ricominciare.
+**Stop demo** lo mette da parte, e cliccare di nuovo su **Demo mode** chiede se continuare o ricominciare.
 
 ## Buono a sapersi
 

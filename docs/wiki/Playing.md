@@ -290,12 +290,12 @@ arrives while you sit in the menu.
 
 Some seeds ask for Normal or Hard wins. An easier win still sends its check, but does not count for the goal.
 
-## Solo mode
+## Demo mode
 
-No server? Click **Solo mode** in the connection panel. It uses a real generated seed and gives you one of its
+No server? Click **Demo mode** in the connection panel. It uses a real generated seed and gives you one of its
 items per check. It is always the same demo seed shipped with the mod, not your YAML, so your options do not
-apply. Your progress is saved in its own save, so you can stop and come back later. **Stop solo** puts it aside,
-and clicking **Solo mode** again asks whether to continue or start over.
+apply. Your progress is saved in its own save, so you can stop and come back later. **Stop demo** puts it aside,
+and clicking **Demo mode** again asks whether to continue or start over.
 
 ## Things worth knowing
 

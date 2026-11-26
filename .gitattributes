@@ -1,0 +1,3 @@
+# The Multiverse build ships its own demo seed: a merge from next keeps this side.
+mod/ArchipelagoFTL/data/archipelago/solo_order.lua merge=ours
+mod/ArchipelagoFTL/data/archipelago/gifts_demo.lua merge=ours
