@@ -34,6 +34,9 @@ local message = nil
 local attempt = nil
 local messageTone = "dim"
 local shiftHeld = false
+-- Caps Lock flips with each press (FTL runs on SDL2, which sends a key down per press). The module cannot tell
+-- whether it was already on when FTL started, so that case still types lower case until it is pressed twice.
+local capsLock = false
 local ctrlHeld = false
 -- Fields the last refusal blames, drawn in red until they are edited.
 local blamed = {}
@@ -405,7 +408,10 @@ local function drawForm()
     if message ~= nil then
         ui.wrapped(9, g.message.x, g.message.y, g.message.w, messageTone, message)
     end
-    ui.wrapped(9, p.x + PAD, g.shortcuts, p.w - PAD * 2, "dim", apT("connect.keys"))
+    -- A message longer than two lines (how to install the network module) takes the place of the keys.
+    if message == nil or ui.width(9, message) <= g.message.w * 1.8 then
+        ui.wrapped(9, p.x + PAD, g.shortcuts, p.w - PAD * 2, "dim", apT("connect.keys"))
+    end
 end
 
 local function drawStatus()
@@ -575,6 +581,7 @@ function apConnectResetForTesting()
         field.value = DEFAULTS[index]
     end
     focus, message, messageTone, shiftHeld, ctrlHeld, blamed = FOCUS_INITIAL, nil, "dim", false, false, {}
+    capsLock = false
     selectAll, backspaceFrames, capturing = false, nil, false
     for _, field in ipairs(FIELDS) do field.cursor = nil end
     onMenu = false
@@ -611,7 +618,8 @@ local WITHOUT_SHIFT = {
 local function character(key)
     if key >= Defines.SDL.KEY_a and key <= Defines.SDL.KEY_z then
         local letter = string.char(key)
-        return shiftHeld and letter:upper() or letter
+        -- Caps Lock with Shift types lower case, like any text box.
+        return (shiftHeld ~= capsLock) and letter:upper() or letter
     end
     if key >= Defines.SDL.KEY_0 and key <= Defines.SDL.KEY_9 then
         return string.char(key)
@@ -691,6 +699,10 @@ script.on_internal_event(Defines.InternalEvents.ON_KEY_UP, function(key)
 end)
 
 script.on_internal_event(Defines.InternalEvents.ON_KEY_DOWN, function(key)
+    -- Followed everywhere, so a press during a run still counts once back on the menu.
+    if key == Defines.SDL.KEY_CAPSLOCK then
+        capsLock = not capsLock
+    end
     if quitting then
         return Defines.Chain.PREEMPT
     end

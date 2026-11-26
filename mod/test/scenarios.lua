@@ -2653,6 +2653,63 @@ test("a locked achievement is not reported", function()
     check(not sim.logged("CHECK ach:"), "nothing goes out until it's earned")
 end)
 
+test("network: checks done offline survive closing FTL and go out at the next connection", function()
+    sim.startRun(true)
+    connectNow()
+    local loc = { ["a:1"] = "Location A", ["a:2"] = "Location B", ["a:3"] = "Location C" }
+    applySeed({ loc = loc })
+
+    sim.netEvent("disconnected", {})
+    sim.tick(1)
+    apSendCheck("a:1", "offline")
+    apSendCheck("a:2", "offline")
+    equals(apPendingCheckCount(), 2, "both checks are waiting")
+
+    -- FTL closes: everything in memory is gone, the profile stays.
+    apForgetChecksForTesting()
+    apContractResetForTesting()
+    equals(apPendingCheckCount(), 0, "nothing left in memory")
+    applySeed({ loc = loc })
+    apSendCheck("a:3", "offline, next session")
+
+    sim.net.calls = {}
+    sim.netEvent("connected", { name = "Navigator", extra = {
+        contract = CONTRACT, kinds = { "filler" }, kinds_required = {}, items = {}, loc = loc,
+    } })
+    sim.tick(1)
+    equals(sim.netCalls("SendCheck"), 3, "the two checks of the closed session went out, and the new one too")
+    equals(apPendingCheckCount(), 0, "nothing is waiting anymore")
+
+    apForgetChecksForTesting()
+    apContractResetForTesting()
+    applySeed({ loc = loc })
+    sim.net.calls = {}
+    sim.netEvent("connected", { name = "Navigator", extra = {
+        contract = CONTRACT, kinds = { "filler" }, kinds_required = {}, items = {}, loc = loc,
+    } })
+    sim.tick(1)
+    equals(sim.netCalls("SendCheck"), 0, "once taken by the server they are not kept for another session")
+end)
+
+test("network: checks kept for one seed are not sent to another", function()
+    sim.startRun(true)
+    connectNow()
+    applySeed({ loc = { ["a:1"] = "Location A" }, seed_hash = "first-seed" })
+    sim.netEvent("disconnected", {})
+    sim.tick(1)
+    apSendCheck("a:1", "offline")
+    equals(apPendingCheckCount(), 1, "the check waits for the server")
+    local slotBefore = apOwnSlotName()
+    check(slotBefore ~= nil, "the slot is known, so only the seed differs below")
+    apForgetChecksForTesting()
+    apContractResetForTesting()
+    applySeed({ loc = { ["a:1"] = "Location A" }, seed_hash = "second-seed" }, slotBefore)
+    sim.net.calls = {}
+    apResendPendingChecks()
+    equals(sim.netCalls("SendCheck"), 0, "another seed does not inherit the waiting check")
+    equals(apPendingCheckCount(), 0, "nor counts it")
+end)
+
 test("network: a check done offline that the server already knew about is not resent", function()
     sim.startRun(true)
     connectNow()
@@ -7124,6 +7181,21 @@ test("home screen: a slot name with a space can be typed", function()
     equals(sentSlot, "Player 1", "and a stray space at the end is not sent to the server")
 end)
 
+test("home screen: Caps Lock types capitals, and Shift with it types lower case", function()
+    onTheHomeScreen()
+    sim.keyDown(Defines.SDL.KEY_CAPSLOCK)
+    sim.keyUp(Defines.SDL.KEY_CAPSLOCK)
+    sim.keyDown(Defines.SDL.KEY_b)
+    sim.keyDown(Defines.SDL.KEY_LSHIFT)
+    sim.keyDown(Defines.SDL.KEY_e)
+    sim.keyUp(Defines.SDL.KEY_LSHIFT)
+    sim.keyDown(Defines.SDL.KEY_n)
+    sim.keyDown(Defines.SDL.KEY_CAPSLOCK)
+    sim.keyUp(Defines.SDL.KEY_CAPSLOCK)
+    sim.keyDown(Defines.SDL.KEY_x)
+    equals(apConnectState().slot, "BeNx", "Caps Lock on, Shift flips one letter back, Caps Lock off again")
+end)
+
 local function typeKeys(keys)
     for _, key in ipairs(keys) do
         if type(key) == "table" then
@@ -7829,6 +7901,9 @@ test("home screen: with no network module, the panel blames the mod, not the pla
     restore()
 
     equals(apConnectState().message, apT("connect.no_module"), "the message names the real cause")
+    sim.renderMenu()
+    check(sim.drawnText(apT("connect.no_module")), "it is on screen")
+    check(not sim.drawnText(apT("connect.keys")), "and takes the place of the keys, so the lines do not overlap")
 end)
 
 test("home screen: the password isn't shown and isn't logged", function()

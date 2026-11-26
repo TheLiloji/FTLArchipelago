@@ -1569,11 +1569,19 @@ local function drawWindow()
         Graphics.CSurface.GL_BlitPixelImage(texture, x + 16, y + 8, 32, 32, 0, Graphics.GL_Color(1, 1, 1, 1), false)
     end
     text(24, x + 56, y + 8, 360, "title", apT("hud.title"))
+    -- A close button in the corner, for players who do not know TAB or Escape.
+    local close = { x = x + w - 16 - 24, y = y + 11, w = 24, h = 24 }
+    state.areas.close = close
+    rect(close.x, close.y, close.w, close.h, hovered(close) and "hover" or "faint")
+    outline(close.x, close.y, close.w, close.h, "border", 1)
+    textCenter(10, close.x + close.w / 2, close.y + 6, close.w, "title", "X")
+
     local status, tone = statusLine()
     local statusW = math.min(width(10, status) + 24, 420)
-    rect(x + w - 16 - statusW, y + 12, statusW, 22, "faint")
-    rect(x + w - 16 - statusW, y + 12, 3, 22, tone)
-    text(10, x + w - 16 - statusW + 12, y + 16, statusW - 18, "text", status)
+    local statusX = close.x - 8 - statusW
+    rect(statusX, y + 12, statusW, 22, "faint")
+    rect(statusX, y + 12, 3, 22, tone)
+    text(10, statusX + 12, y + 16, statusW - 18, "text", status)
 
     local tabGap = 6
     local tabW = math.floor((w - 32 - tabGap * (#PAGES - 1)) / #PAGES)
@@ -1832,7 +1840,9 @@ script.on_internal_event(Defines.InternalEvents.ON_MOUSE_L_BUTTON_DOWN, function
     for name, area in pairs(state.areas) do
         if inside(area, x, y) then
             local kind, index = name:match("^(%a+):(%d+)$")
-            if name == "deathlink" then
+            if name == "close" then
+                setOpen(false)
+            elseif name == "deathlink" then
                 apDeathLinkToggle()
             elseif kind == "tab" then
                 state.page = tonumber(index)

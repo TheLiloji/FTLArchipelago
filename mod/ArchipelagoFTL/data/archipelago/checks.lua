@@ -4,12 +4,66 @@ local function checkLog(message)
     log(TAG .. message)
 end
 
-local sent = {}
 local lastSector = nil
 
 local unsent = {}
 
 local SENT, PENDING, NO_LOCATION = "sent", "pending", "no_location"
+
+-- Checks the server has not taken yet are kept in the profile, per seed and slot, so closing FTL before the
+-- server comes back does not lose them: they go out at the next connection. Solo mode keeps its own progress.
+local unsentLoadedFor = nil
+local unsentSaved = false
+local function unsentKey()
+    local contract = _G.apContractState
+    if _G.apSoloEnabled or contract == nil or contract.connected ~= true or _G.apNetRememberText == nil then
+        return nil
+    end
+    local base = "ap_unsent_" .. tostring(_G.apSeedFingerprint and apSeedFingerprint() or 0)
+    return _G.apNetSlotKey and apNetSlotKey(base) or base
+end
+
+local sent = {}
+
+local function restoreUnsent()
+    local key = unsentKey()
+    if key == nil or unsentLoadedFor == key then
+        return key
+    end
+    unsentLoadedFor = key
+    local text = _G.apNetRecallText and apNetRecallText(key) or ""
+    unsentSaved = text ~= ""
+    local queued = {}
+    for _, id in ipairs(unsent) do queued[id] = true end
+    local restored = 0
+    for id in text:gmatch("[^|]+") do
+        if not queued[id] then
+            queued[id] = true
+            unsent[#unsent + 1] = id
+            sent[id] = true
+            restored = restored + 1
+        end
+    end
+    if restored > 0 then
+        checkLog(restored .. " check(s) kept from an earlier session, waiting for the server")
+    end
+    return key
+end
+
+local function saveUnsent()
+    local key = restoreUnsent()
+    if key == nil then
+        return
+    end
+    -- Nothing waiting is the usual case: write only when there is something, or when it just emptied.
+    if #unsent == 0 and not unsentSaved then
+        return
+    end
+    local list = {}
+    for _, id in ipairs(unsent) do list[#list + 1] = tostring(id) end
+    apNetRememberText(key, table.concat(list, "|"))
+    unsentSaved = #list > 0
+end
 
 local function pushToServer(id)
     if _G.apNetSendCheck == nil or _G.apLocationNameFor == nil then
@@ -30,6 +84,7 @@ local function pushToServer(id)
 end
 
 function apResendPendingChecks()
+    restoreUnsent()
     if #unsent == 0 then
         return 0
     end
@@ -44,6 +99,7 @@ function apResendPendingChecks()
         end
     end
     unsent = still
+    saveUnsent()
     if sentCount > 0 then
         checkLog(sentCount .. " pending check(s) resent, " .. #unsent .. " remaining")
         if _G.apNotifyStatus then
@@ -295,7 +351,9 @@ function apSendCheck(id, label)
     checkLog("CHECK " .. id .. (label and ("  (" .. label .. ")") or ""))
 
     if pushToServer(id) == PENDING then
+        restoreUnsent()
         unsent[#unsent + 1] = id
+        saveUnsent()
     end
 
     if _G.apNotifyCheck then
@@ -336,6 +394,7 @@ function apAdoptCheckedLocations(names)
     if type(names) ~= "table" then
         return 0
     end
+    restoreUnsent()
     local adopted = 0
     for _, name in ipairs(names) do
         local key = _G.apCheckKeyFor and _G.apCheckKeyFor(name) or nil
@@ -359,6 +418,7 @@ function apAdoptCheckedLocations(names)
     end
     local already = #unsent - #still
     unsent = still
+    saveUnsent()
     if already > 0 then
         checkLog(already .. " pending check(s) the server already knew about: not resent")
     end
@@ -375,6 +435,7 @@ end
 function apForgetChecks()
     sent = {}
     unsent = {}
+    unsentLoadedFor, unsentSaved = nil, false
     outOfSeed = {}
 end
 
@@ -387,6 +448,7 @@ end
 function apForgetChecksForTesting()
     sent = {}
     unsent = {}
+    unsentLoadedFor, unsentSaved = nil, false
     tutorialWarned = false
     outOfSeed = {}
     checkLog("checks forgotten (tests)")
@@ -1009,6 +1071,7 @@ end
 function apChecksForgetSeed()
     sent = {}
     unsent = {}
+    unsentLoadedFor, unsentSaved = nil, false
     outOfSeed = {}
     victories = {}
     victoriesFor = nil
