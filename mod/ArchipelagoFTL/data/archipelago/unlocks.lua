@@ -342,8 +342,12 @@ end
 
 script.on_render_event(Defines.RenderEvents.MAIN_MENU, function() end, function()
     local ok, help = pcall(helpOverList)
-    pcall(drawOutOfSeed, not ok or help)
     pcall(openOnPlayableShip)
+    -- The dashboard (TAB) opens over the hangar: the hangar's marks would land on top of it.
+    if _G.apDashboardOpen and apDashboardOpen() then
+        return
+    end
+    pcall(drawOutOfSeed, not ok or help)
     local drawn, err = pcall(drawKestrelLock)
     if not drawn then
         unlockLog("hangar lock not drawn: " .. tostring(err))

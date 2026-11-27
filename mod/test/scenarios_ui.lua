@@ -634,6 +634,10 @@ test("hangar: the ship list marks the layouts the seed leaves out", function()
     sim.shipList.variant = 2
     sim.renderMenu()
     equals(count(), 8, "type C: the Lanius and the Crystal have none, nothing to mark")
+    local restore = stub("apDashboardOpen", function() return true end)
+    sim.renderMenu()
+    restore()
+    equals(count(), 0, "the dashboard open over the list: no mark drawn on top of it")
 
     sim.shipList = { open = true, page = 1, variant = 0 }
     sim.renderMenu()
