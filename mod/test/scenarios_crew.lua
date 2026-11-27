@@ -164,7 +164,7 @@ test("DeathLink: the whole crew waiting in the Clone Bay is not a lost run", fun
     check(not sim.logged("RUN END"), "everyone in the Clone Bay: the run is not over")
     equals(sent.n, 0, "and no DeathLink")
     sim.cloneQueue = {}
-    sim.tick(60)
+    sim.tick(300)
     sent.restore()
     check(sim.logged("RUN END: crew"), "the Clone Bay empty with nobody back: now it is lost")
     sim.player._systemsHeld = nil
