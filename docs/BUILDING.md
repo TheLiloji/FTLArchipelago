@@ -43,6 +43,16 @@ hand (Run workflow), it only keeps them as a downloadable artifact.
 
 A check that cannot run prints `SKIPPED` with the reason and is never counted as passed.
 
+### How long a seed takes
+
+`python3 apworld/tools/seed_sim.py presets/sync_3h.yaml --seeds 300` generates 300 seeds of a preset and has a
+simulated player play each one to the goal: one ship per run, sector after sector, dying more often where the logic
+says the ship is too weak. It prints the hours to the goal (median, 10th and 90th percentile), the share of seeds
+over `--limit` hours, the size of sphere 1 and the seeds that never reach the goal. `--profile fast|average|beginner`
+changes the player, `--trace --first N` shows every run of seed N, `--json out.json` keeps every play. It is a model
+with guessed numbers (see `PROFILES` in the file): use it to compare presets and to find seeds that stall, and real
+games to know the actual hours. It needs the same Archipelago sources as `apworld/run_tests.sh`.
+
 On Windows, clone Archipelago 0.6.7 somewhere, link `apworld/ftl` into its `worlds` folder (a junction:
 `New-Item -ItemType Junction`), install the packages the tests import in a virtual environment (`PyYAML`,
 `jellyfish`, `schema`, `platformdirs`, `orjson`, `websockets==13.1`, `jinja2`, `colorama`, `lxml`, `pillow`),

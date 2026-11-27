@@ -43,6 +43,7 @@ Presets are ready-made YAML files. Pick the one for the time you have:
 | `medium_game` | about 10 h | the default options: 5 victories on Normal or Hard, 7 ship layouts, 10 Archives out of 12 |
 | `long_game` | 20 h or more | 10 victories, 14 ship layouts, 16 Archives out of 20, installing a system is a check |
 | `solo_game` | about 7 h | **Alone in the multiworld.** 3 victories, 5 ship layouts, fights checked per sector, sector skip and Sector Passes, more event checks |
+| `sync_3h` | about 3 h | **A big sync with a time rule.** 1 victory, Easy counts, 3 Type A ships, 2 Archives out of 3, no achievement checks, each ship sells its own part of the Archipelago shop so sphere 1 stays small |
 
 They are in `presets.zip` on the [release page](https://github.com/TheLiloji/FTLArchipelago/releases/latest).
 The top of each file says how many checks it has and roughly how long it takes.

@@ -49,7 +49,7 @@ class TestDurationPresets(TestCase):
     def test_short_medium_and_long(self) -> None:
         self.assertEqual(DURATION_PRESETS,
                          ["first_game.yaml", "long_game.yaml", "medium_game.yaml", "short_game.yaml",
-                          "solo_game.yaml"])
+                          "solo_game.yaml", "sync_3h.yaml"])
 
     def test_the_solo_preset_uses_what_keeps_a_lone_seed_going(self) -> None:
         options = load("solo_game.yaml")
