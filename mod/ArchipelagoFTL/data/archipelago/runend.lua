@@ -12,6 +12,9 @@ local run = {
 }
 
 local CLONE_BAY = 13
+-- A crew member teleporting is in neither ship for a moment: a whole crew boarding the enemy reads as no crew at
+-- all. The crew is lost only after this long with nobody (15 ticks between two looks, about 4 seconds).
+local CREW_LOSS_POLLS = 16
 
 -- With every crew member dead but some waiting in a working Clone Bay, FTL goes on: they come back. The dead
 -- only join its queue on the next frame: until then they still lie in the crew list, marked dead.
@@ -43,6 +46,7 @@ local function declareEnd(cause, detail)
         return
     end
     run.ended = true
+    run.cause = cause
     apOnRunEnd(cause, detail)
 end
 
@@ -111,12 +115,22 @@ script.on_internal_event(Defines.InternalEvents.ON_TICK, function()
             end
         end
 
-        if not started or run.ended then
+        if not started then
             return
         end
 
         local player = Hyperspace.ships.player
         if player == nil then
+            return
+        end
+
+        if run.ended then
+            -- A crew loss was declared, yet someone is aboard and the run goes on: it was not over, so its end
+            -- (a victory above all) must still count.
+            if run.cause == "crew" and not player.bDestroyed and countRealCrew(player) > 0 then
+                run.ended, run.cause, run.crewZero = false, nil, 0
+                endLog("crew aboard again: the run was not over, run-end detection armed again")
+            end
             return
         end
 
@@ -130,12 +144,17 @@ script.on_internal_event(Defines.InternalEvents.ON_TICK, function()
         if alive > 0 then
             run.crewSeen = true
             run.cloneLogged = false
+            run.crewZero = 0
         elseif run.crewSeen then
             if cloneBayWaiting(player) then
-                    if not run.cloneLogged then
+                if not run.cloneLogged then
                     run.cloneLogged = true
                     endLog("no living crew, but the Clone Bay brings some back: the run goes on")
                 end
+                return
+            end
+            run.crewZero = (run.crewZero or 0) + 1
+            if run.crewZero < CREW_LOSS_POLLS then
                 return
             end
             apEndSnapshot("state at loss of crew:")
@@ -147,6 +166,8 @@ end)
 script.on_init(function(newGame)
     run.active = true
     run.ended = false
+    run.cause = nil
+    run.crewZero = 0
     run.crewSeen = false
     run.cloneLogged = false
     endLog("run started (newGame=" .. tostring(newGame) .. "), detection armed")

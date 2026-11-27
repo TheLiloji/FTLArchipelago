@@ -6950,7 +6950,32 @@ test("losing the whole crew is detected, ship intact", function()
         sim.player.vCrewList[i].bDead = true
     end
     sim.tick(30)
+    check(not sim.logged("RUN END: crew"), "not at the first look: a crew teleporting is in neither ship for a moment")
+    sim.tick(300)
     check(sim.logged("RUN END: crew"), "a run is also lost with no crew")
+end)
+
+test("a whole crew teleporting to the enemy is not a lost run, and the victory still counts", function()
+    sim.startRun(true)
+    sim.tick(30)
+    sim.clearLog()
+    local crew = sim.player.vCrewList
+    sim.player.vCrewList = sim.vector({})
+    sim.tick(120)
+    sim.player.vCrewList = crew
+    sim.tick(30)
+    check(not sim.logged("RUN END"), "two seconds in transit: the run goes on")
+
+    -- A crew loss declared all the same (an older version, or a longer transit) is taken back once they are aboard.
+    sim.player.vCrewList = sim.vector({})
+    sim.tick(600)
+    check(sim.logged("RUN END: crew"), "ten seconds with nobody: lost")
+    sim.player.vCrewList = crew
+    sim.tick(30)
+    check(sim.logged("crew aboard again"), "they came back: the run was not over")
+    sim.clearLog()
+    sim.gameEvent("BOSS_DESTROYED")
+    check(sim.logged("RUN END: victory"), "and the flagship destroyed after that is a victory")
 end)
 
 test("the run end is declared only once", function()
